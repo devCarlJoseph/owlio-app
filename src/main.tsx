@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import HomePage from "@/pages/App";
 import LoginPage from "@/pages/auth/login";
 import RegisterPage from "@/pages/auth/register";
+import ForgotPasswordPage from "@/pages/auth/forgot-password";
 
 
 createRoot(document.getElementById("root")!).render(
@@ -14,6 +15,7 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/" element={<HomePage />} />
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
     </Routes>
   </BrowserRouter>,
 )
