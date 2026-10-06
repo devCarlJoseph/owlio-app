@@ -34,6 +34,8 @@ src/
 
 Use screen names that match routes, such as `login`, `register`, `forgot-password`, `password-reset`, and `email-verification`. The route page imports and composes its screen from `components/features/auth/<screen>/`. Apply the same page-to-feature ownership pattern to other domains when requested. Put genuinely reusable, domain-neutral primitives in `src/components/ui`.
 
+Auth-specific pieces reused across multiple auth screens (for example, the split-screen shell, shared brand panel, or provider button) belong in `src/components/features/auth/shared/`; keep each screen's form and unique content in its own screen folder.
+
 ## UI-first workflow
 
 When the user asks to build UI first:

@@ -1,6 +1,6 @@
 import { BookOpenCheck } from "lucide-react"
 
-export function LoginShowcase() {
+export function AuthShowcase() {
   return (
     <section className="relative hidden h-full min-h-0 overflow-hidden rounded-[26px] bg-[#080611] p-8 text-white lg:flex lg:flex-col lg:justify-between xl:p-12">
       <div
