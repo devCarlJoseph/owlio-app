@@ -2,6 +2,7 @@ import { Link } from "react-router"
 import { ArrowRight, BookOpen, Check, Clock3, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import ApiConnectionStatus from "./api-connection-status"
 
 const focusItems = ["Review biology notes", "Practice Spanish vocabulary", "Prepare for tomorrow"]
 
@@ -30,7 +31,8 @@ export default function WelcomeHero() {
             I already have an account
           </Button>
         </div>
-        <p className="mt-5 text-sm text-slate-500">For independent learners, classrooms, and tutoring.</p>
+        <p className="mt-3 text-sm text-slate-500">For independent learners, classrooms, and tutoring.</p>
+        <ApiConnectionStatus />
       </div>
 
       <div className="relative mx-auto w-full max-w-lg lg:ml-auto">

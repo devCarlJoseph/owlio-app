@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react"
+import { login } from "@/services/auth/auth.service"
+import { getApiErrorMessage } from "@/services/api/api-error"
 import { Eye, EyeOff, Mail } from "lucide-react"
 import { Link } from "react-router"
 
@@ -11,9 +13,31 @@ import { GoogleAuthButton } from "@/components/features/auth/shared/google-auth-
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setFeedback(null)
+    const form = event.currentTarget
+    const formData = new FormData(form)
+
+    setIsSubmitting(true)
+    try {
+      const { user } = await login({
+        email: String(formData.get("email") ?? "").trim(),
+        password: String(formData.get("password") ?? ""),
+        rememberMe: formData.has("rememberMe"),
+      })
+      setFeedback({
+        type: "success",
+        message: `You’re signed in${user.name ? `, ${user.name}` : ""}. Your session is active.`,
+      })
+    } catch (error) {
+      setFeedback({ type: "error", message: getApiErrorMessage(error, "Could not sign in. Please try again.") })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -36,7 +60,7 @@ export function LoginForm() {
               <Mail aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 autoComplete="email"
-              className="h-11 rounded-xl border-transparent bg-muted/70 pl-10 shadow-none placeholder:text-muted-foreground/75 focus-visible:border-ring"
+                className="h-11 rounded-xl border-transparent bg-muted/70 pl-10 shadow-none placeholder:text-muted-foreground/75 focus-visible:border-ring"
                 id="login-email"
                 name="email"
                 placeholder="you@example.com"
@@ -88,9 +112,18 @@ export function LoginForm() {
             </Label>
           </div>
 
-          <Button className="h-11 w-full rounded-xl text-sm font-semibold shadow-sm" type="submit">
-            Sign in
+          <Button className="h-11 w-full rounded-xl text-sm font-semibold shadow-sm" disabled={isSubmitting} type="submit">
+            {isSubmitting ? "Signing in…" : "Sign in"}
           </Button>
+          {feedback && (
+            <p
+              className={`rounded-xl px-3.5 py-3 text-sm leading-5 ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-destructive/10 text-destructive"}`}
+              role={feedback.type === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              {feedback.message}
+            </p>
+          )}
         </form>
 
         <div className="my-4 flex items-center gap-4 sm:my-5" aria-hidden="true">

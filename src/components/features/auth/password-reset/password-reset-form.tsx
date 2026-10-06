@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from "react"
 import { Eye, EyeOff, LockKeyhole } from "lucide-react"
+import { Link, useSearchParams } from "react-router"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { resetPassword } from "@/services/auth/auth.service"
 
 function PasswordField({ id, label, placeholder }: { id: string; label: string; placeholder: string }) {
   const [isVisible, setIsVisible] = useState(false)
@@ -40,8 +43,42 @@ function PasswordField({ id, label, placeholder }: { id: string; label: string; 
 }
 
 export function PasswordResetForm() {
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get("token")?.trim() ?? ""
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
+    token ? null : { type: "error", message: "This password reset link is missing its token. Request a new reset link to continue." },
+  )
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setFeedback(null)
+
+    if (!token) {
+      setFeedback({ type: "error", message: "This password reset link is missing its token. Request a new reset link to continue." })
+      return
+    }
+
+    const formData = new FormData(event.currentTarget)
+    const password = String(formData.get("new-password") ?? "")
+    const confirmPassword = String(formData.get("confirm-new-password") ?? "")
+    if (password !== confirmPassword) {
+      setFeedback({ type: "error", message: "Your passwords do not match." })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const result = await resetPassword({ token, password, confirmPassword })
+      setFeedback({ type: "success", message: result.message })
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: getApiErrorMessage(error, "Could not reset your password. Request a new link and try again."),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -60,9 +97,28 @@ export function PasswordResetForm() {
         <form className="space-y-5 [@media(max-height:760px)]:space-y-4" onSubmit={handleSubmit}>
           <PasswordField id="new-password" label="New password" placeholder="Enter a new password" />
           <PasswordField id="confirm-new-password" label="Confirm new password" placeholder="Enter it again" />
-          <Button className="h-11 w-full rounded-xl text-sm font-semibold shadow-sm" type="submit">
-            Save new password
+          <Button className="h-11 w-full rounded-xl text-sm font-semibold shadow-sm" disabled={isSubmitting || !token} type="submit">
+            {isSubmitting ? "Saving…" : "Save new password"}
           </Button>
+          {feedback && (
+            <div
+              className={`rounded-xl px-3.5 py-3 text-sm leading-5 ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-destructive/10 text-destructive"}`}
+              role={feedback.type === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              <p>{feedback.message}</p>
+              {feedback.type === "success" && (
+                <Link className="mt-2 inline-flex font-semibold underline underline-offset-4" to="/auth/login">
+                  Sign in with your new password
+                </Link>
+              )}
+              {feedback.type === "error" && !token && (
+                <Link className="mt-2 inline-flex font-semibold underline underline-offset-4" to="/auth/forgot-password">
+                  Request a new reset link
+                </Link>
+              )}
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>

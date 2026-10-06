@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { BookOpen, Eye, EyeOff, GraduationCap, Mail, UserRound } from "lucide-react"
+import { BookOpen, CircleHelp, Eye, EyeOff, GraduationCap, Mail, UserRound, UsersRound } from "lucide-react"
 
 import { GoogleAuthButton } from "@/components/features/auth/shared/google-auth-button"
 import { Button } from "@/components/ui/button"
@@ -7,8 +7,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { registerAccount } from "@/services/auth/auth.service"
 
-type AccountType = "student" | "educator"
+type AccountType = "student" | "educator" | "tutor" | "other"
+type FormFeedback = { type: "success" | "error"; message: string; actionUrl?: string }
 
 function PasswordField({ id, label, placeholder }: { id: string; label: string; placeholder: string }) {
   const [isVisible, setIsVisible] = useState(false)
@@ -44,9 +47,58 @@ function PasswordField({ id, label, placeholder }: { id: string; label: string; 
 
 export function RegisterForm() {
   const [accountType, setAccountType] = useState<AccountType>("student")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [feedback, setFeedback] = useState<FormFeedback | null>(null)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setFeedback(null)
+
+    if (accountType === "other") {
+      setFeedback({
+        type: "error",
+        message: "The API does not support the Other account type yet. Please choose Student, Educator, or Tutor.",
+      })
+      return
+    }
+
+    const formData = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const name = String(formData.get("name") ?? "").trim()
+    const email = String(formData.get("email") ?? "").trim()
+    const password = String(formData.get("register-password") ?? "")
+    const confirmPassword = String(formData.get("confirm-password") ?? "")
+
+    if (password !== confirmPassword) {
+      setFeedback({ type: "error", message: "Your passwords do not match." })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const result = await registerAccount({
+        name,
+        email,
+        accountType: accountType === "tutor" ? "educator" : accountType,
+        password,
+        confirmPassword,
+        termsAccepted: true,
+      })
+      setFeedback({
+        type: "success",
+        message: result.message,
+        ...(result.developmentActionUrl && { actionUrl: result.developmentActionUrl }),
+      })
+      form.reset()
+      setAccountType("student")
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: getApiErrorMessage(error, "Could not create your account. Please try again."),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -125,7 +177,36 @@ export function RegisterForm() {
                   Educator
                 </span>
               </label>
+              <label className="relative cursor-pointer">
+                <input
+                  checked={accountType === "tutor"}
+                  className="peer sr-only"
+                  name="accountType"
+                  onChange={() => setAccountType("tutor")}
+                  type="radio"
+                  value="tutor"
+                />
+                <span className="flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium text-muted-foreground transition-colors peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50 [@media(max-height:760px)]:h-9">
+                  <UsersRound aria-hidden="true" className="size-4" />
+                  Tutor
+                </span>
+              </label>
+              <label className="relative cursor-pointer">
+                <input
+                  checked={accountType === "other"}
+                  className="peer sr-only"
+                  name="accountType"
+                  onChange={() => setAccountType("other")}
+                  type="radio"
+                  value="other"
+                />
+                <span className="flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium text-muted-foreground transition-colors peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring/50 [@media(max-height:760px)]:h-9">
+                  <CircleHelp aria-hidden="true" className="size-4" />
+                  Other
+                </span>
+              </label>
             </div>
+            <p className="text-xs leading-4 text-muted-foreground">Tutor accounts are registered with the API’s educator account type.</p>
           </fieldset>
 
           <div className="grid grid-cols-2 gap-3">
@@ -138,9 +219,23 @@ export function RegisterForm() {
             <span>I agree to the terms of service and privacy policy.</span>
           </label>
 
-          <Button className="h-10 w-full rounded-xl text-sm font-semibold shadow-sm [@media(max-height:760px)]:h-9" type="submit">
-            Create account
+          <Button className="h-10 w-full rounded-xl text-sm font-semibold shadow-sm [@media(max-height:760px)]:h-9" disabled={isSubmitting} type="submit">
+            {isSubmitting ? "Creating account…" : "Create account"}
           </Button>
+          {feedback && (
+            <div
+              className={`rounded-xl px-3.5 py-3 text-sm leading-5 ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-destructive/10 text-destructive"}`}
+              role={feedback.type === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              <p>{feedback.message}</p>
+              {feedback.actionUrl && (
+                <a className="mt-2 inline-flex font-semibold underline underline-offset-4" href={feedback.actionUrl}>
+                  Open verification link
+                </a>
+              )}
+            </div>
+          )}
         </form>
 
         <div aria-hidden="true" className="my-3 flex items-center gap-3 sm:my-4 [@media(max-height:760px)]:my-1">

@@ -1,14 +1,38 @@
-import type { FormEvent } from "react"
+import { useState, type FormEvent } from "react"
 import { Mail } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { requestPasswordReset } from "@/services/auth/auth.service"
 
 export function ForgotPasswordForm() {
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string; actionUrl?: string } | null>(null)
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setFeedback(null)
+    const email = String(new FormData(event.currentTarget).get("email") ?? "").trim()
+
+    setIsSubmitting(true)
+    try {
+      const result = await requestPasswordReset(email)
+      setFeedback({
+        type: "success",
+        message: result.message,
+        ...(result.developmentActionUrl && { actionUrl: result.developmentActionUrl }),
+      })
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: getApiErrorMessage(error, "Could not send reset instructions. Please try again."),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -41,9 +65,23 @@ export function ForgotPasswordForm() {
             </div>
           </div>
 
-          <Button className="h-11 w-full rounded-xl text-sm font-semibold shadow-sm" type="submit">
-            Send reset instructions
+          <Button className="h-11 w-full rounded-xl text-sm font-semibold shadow-sm" disabled={isSubmitting} type="submit">
+            {isSubmitting ? "Sending…" : "Send reset instructions"}
           </Button>
+          {feedback && (
+            <div
+              className={`rounded-xl px-3.5 py-3 text-sm leading-5 ${feedback.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-destructive/10 text-destructive"}`}
+              role={feedback.type === "error" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              <p>{feedback.message}</p>
+              {feedback.actionUrl && (
+                <a className="mt-2 inline-flex font-semibold underline underline-offset-4" href={feedback.actionUrl}>
+                  Open password reset link
+                </a>
+              )}
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>
