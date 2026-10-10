@@ -248,3 +248,63 @@ These are copy and icon inspirations only; use the product copy specified in sec
 Treat this as a responsive composition: stack the entity cards on mobile and keep the same card order and interaction semantics. Ensure every selection remains keyboard-operable and meets the accessibility rules in section 7.
 
 Use this inspiration to guide implementation, not to justify adding dependencies, altering existing design tokens, or changing the onboarding content and behavior defined elsewhere in this skill.
+
+## 13. UI implementation workflow: reference-led build
+
+When building or refining the onboarding UI, follow this sequence. The visual references live in `public/onboarding-inspiration-design/`; inspect the actual files before coding rather than relying on memory or descriptions:
+
+```text
+public/onboarding-inspiration-design/
+  one.webp
+  two.webp
+  three.webp
+  four.webp
+```
+
+### Step 1 — Inspect the reference set and the live implementation
+
+- View all four images together and note the recurring design patterns: a contained onboarding workspace, a compact brand/help row, segmented progress near the top, a clear heading and short supporting copy, a focused form/choice area, consistently placed Back/Next controls, and a product/illustration panel on wide screens.
+- Use `three.webp` as inspiration for selectable option tiles and a highly visible selected state; map that pattern to Student, Educator, and Others, not to the reference's industry labels.
+- Use `one.webp` for the split onboarding composition and progress/navigation relationship. Use `four.webp` for the restrained completion layout and one primary next action.
+- `two.webp` depicts authenticator-app/QR-code setup. Owlio's current onboarding flow does not include MFA; do not add a QR code, authenticator step, or security promise based on that image. Take only reusable layout ideas such as step progress and form spacing.
+- Before modifying code, inspect the current route and components in `src/pages/onboarding/`, `src/components/features/onboarding/`, `src/components/common/`, `src/components/ui/`, and `src/main.tsx`. Reuse the existing implementation and preserve unrelated or user-authored route changes. The file tree in section 5 is the intended ownership pattern, not permission to recreate working files.
+
+### Step 2 — Translate the references into Owlio's visual language
+
+- Treat the images as composition and interaction references, not as Owlio artwork or a request to clone another product.
+- Keep the Owlio book mark/wordmark, Inter, indigo selection/action accents, neutral surfaces, and accessible color contrast from section 12 and the existing shared components. The references' black canvas, violet glow, IdeaPilot logo/copy, AI dashboard imagery, industry taxonomy, QR code, and pricing/promotional cards are not to be copied into the product UI.
+- On desktop, consider a framed two-column composition: onboarding controls and content in the primary column, with a quiet Owlio learning illustration or simple branded visual in the secondary column. Keep the stepper, heading, content, and actions in the primary reading order.
+- On mobile or narrow viewports, collapse to one column, hide or simplify the decorative panel, and keep progress plus Back/Continue reachable without horizontal scrolling.
+- Do not render the `.webp` reference screenshots as page backgrounds or user-facing onboarding content. They are for design inspection only; do not move, rename, or edit them.
+
+### Step 3 — Map Owlio's existing flow to the visual structure
+
+- Preserve the four functional steps and entity-specific questions in sections 2–3: entity selection → profile basics → entity details → review, followed by the Done screen.
+- Apply the reference's compact segmented progress treatment to the existing step model. Keep the accessible ordered-list/current-step semantics and textual step count specified in section 7.
+- Apply the reference's selection-tile treatment to the three entity cards while retaining their real radio behavior, current Owlio copy, keyboard interaction, and selected check/state.
+- Keep shared profile/detail forms visually consistent; use grouped fields, restrained separators, and optional-field labels rather than reproducing the reference's unrelated QR, dashboard, or industry controls.
+- Keep the Review screen scannable with Edit actions and make Done feel complete with one role-appropriate CTA. Do not introduce reference upsells or imply server persistence.
+
+### Step 4 — Build incrementally in the existing feature structure
+
+- Keep route composition in `src/pages/onboarding/index.tsx`; keep wizard state and step selection in the existing onboarding view; place screen-specific UI beside its onboarding feature step; reuse shared layout, stepper, entity card, and step-action components where they already exist.
+- Implement the page frame and responsive layout first, then align the stepper/header/actions, then refine the entity cards and individual form steps, then review and Done. Avoid rewriting the form schema, data model, or navigation logic solely to match a picture.
+- Preserve the Phase 1 constraint: local form state only, no API requests or browser persistence. Any class-code, avatar, or classroom controls remain clearly non-functional until separately integrated.
+- Before adding a UI primitive or dependency, check the existing `src/components/ui` primitives and `package.json`; follow section 7 for additions.
+
+### Step 5 — Compare, test, and review
+
+- Run the app and inspect `/onboarding` at desktop and narrow/mobile widths. Compare the live UI with `one.webp`–`four.webp` for composition and interaction cues, while checking the Owlio-specific adaptations above.
+- Walk through every entity path and the Back/Next, validation, entity-change confirmation, Review/Edit, and Done transitions. Verify input remains intact where specified.
+- Check keyboard-only use, visible focus, step announcements, radio-card semantics, field labels/errors, and reduced-width behavior. Decorative visuals must not be announced as meaningful content.
+- Confirm onboarding still makes no network requests or browser-storage writes. Run `npm run lint` and `npm run build`; report any failures accurately.
+- Review the final diff to ensure the change is onboarding-scoped, preserves current user changes, follows this skill's entity/flow/API boundaries, and does not copy unrelated brand or product content from the reference images.
+
+### Reference-led UI acceptance checklist
+
+- [ ] All four inspiration images were inspected; the relevant layout/selection/progress/completion patterns are reflected in the UI.
+- [ ] Owlio branding, entity terminology, fields, and four-step workflow remain authoritative over reference content.
+- [ ] The reference screenshots themselves and unrelated AI/QR/pricing elements are not shipped as onboarding UI.
+- [ ] Desktop composition is balanced; mobile becomes a usable single-column flow.
+- [ ] Existing components and user-authored routes are preserved unless a directly required onboarding change is approved.
+- [ ] Accessibility, local-only Phase 1 behavior, lint, and build checks are verified as required above.
