@@ -1,4 +1,5 @@
 import { Controller, useFormContext } from "react-hook-form"
+import { Check } from "lucide-react"
 import { CEFR_LEVELS, GENERAL_LEARNER_LEVELS, OTHERS_SUBTYPES, SESSION_FORMATS } from "../onboarding.constants"
 import type { OnboardingFormValues } from "../onboarding.types"
 import { ChoiceCheckboxGroup } from "../shared/choice-checkbox-group"
@@ -12,18 +13,23 @@ export function OthersDetailsStep() {
   const learnerOptions = (subtype === "esl_teacher" ? CEFR_LEVELS : GENERAL_LEARNER_LEVELS).map((value) => ({ value, label: value }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <fieldset className="space-y-3" aria-describedby={errors.othersSubtype ? "othersSubtype-error" : undefined}>
         <legend className="text-sm font-medium">What best describes your work?</legend>
         <div className="grid gap-2 sm:grid-cols-3">
           {OTHERS_SUBTYPES.map(({ value, label }) => {
             const inputId = `othersSubtype-${value}`
+            const checked = subtype === value
             return (
               <label
                 key={value}
                 htmlFor={inputId}
-                className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm transition focus-within:ring-2 focus-within:ring-indigo-600 ${
-                  subtype === value ? "border-indigo-600 bg-indigo-50/70" : "border-border hover:bg-muted/50"
+                className={`flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 has-[:focus-visible]:ring-offset-2 ${
+                  checked
+                    ? "border-indigo-600 bg-indigo-50/80 text-indigo-900 ring-1 ring-indigo-600"
+                    : errors.othersSubtype
+                      ? "border-destructive/60 bg-background hover:bg-muted/40"
+                      : "border-border bg-slate-50/60 hover:border-indigo-300 hover:bg-white"
                 }`}
               >
                 <input
@@ -31,9 +37,17 @@ export function OthersDetailsStep() {
                   type="radio"
                   value={value}
                   {...form.register("othersSubtype", { onChange: () => form.setValue("learnerLevels", []) })}
-                  className="size-4 accent-indigo-600"
+                  className="sr-only"
                 />
                 {label}
+                <span
+                  className={`flex size-5 shrink-0 items-center justify-center rounded-full border ${
+                    checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {checked && <Check className="size-3.5" strokeWidth={3} />}
+                </span>
               </label>
             )
           })}

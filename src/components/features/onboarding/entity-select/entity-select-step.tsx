@@ -13,7 +13,7 @@ export function EntitySelectStep({ value, error, onSelect }: EntitySelectStepPro
   return (
     <fieldset className="space-y-4" aria-describedby={error ? "entity-error" : undefined}>
       <legend className="sr-only">How will you use Owlio?</legend>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
         {ENTITY_OPTIONS.map((option) => (
           <EntityCard
             key={option.value}

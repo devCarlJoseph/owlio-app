@@ -18,22 +18,32 @@ type SummaryGroupProps = {
 
 function SummaryGroup({ title, step, rows, onEdit }: SummaryGroupProps) {
   return (
-    <Card className="gap-0 rounded-xl border border-border/70 p-0 shadow-none ring-0">
-      <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3 sm:px-5">
-        <h2 className="font-semibold">{title}</h2>
-        <Button type="button" variant="ghost" size="sm" onClick={() => onEdit(step)} aria-label={`Edit ${title}`}>
+    <section className="px-4 py-5 sm:px-6" aria-labelledby={`review-${step}`}>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id={`review-${step}`} className="text-sm font-semibold text-slate-950">{title}</h2>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 rounded-full px-3 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800"
+          onClick={() => onEdit(step)}
+          aria-label={`Edit ${title}`}
+        >
           <Pencil aria-hidden="true" /> Edit
         </Button>
       </div>
-      <dl className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
-        {rows.map(({ label, value }) => (
-          <div key={label} className="min-w-0">
-            <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-            <dd className="mt-1 break-words text-sm text-foreground">{value || "Not added"}</dd>
-          </div>
-        ))}
+      <dl className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+        {rows.map(({ label, value }) => {
+          const display = value || "Not added"
+          return (
+            <div key={label} className="min-w-0">
+              <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+              <dd className={`mt-0.5 break-words text-sm ${display === "Not added" ? "text-muted-foreground italic" : "font-medium text-foreground"}`}>{display}</dd>
+            </div>
+          )
+        })}
       </dl>
-    </Card>
+    </section>
   )
 }
 
@@ -66,7 +76,7 @@ export function ReviewStep({ values, onEdit }: ReviewStepProps) {
         ]
 
   return (
-    <div className="space-y-4">
+    <Card className="gap-0 divide-y divide-border/70 rounded-2xl border border-border/70 bg-slate-50/40 p-0 shadow-none ring-0">
       <SummaryGroup title="Your role" step="entity" onEdit={onEdit} rows={[{ label: "Using Owlio as", value: entity }]} />
       <SummaryGroup
         title="Profile basics"
@@ -79,6 +89,6 @@ export function ReviewStep({ values, onEdit }: ReviewStepProps) {
         ]}
       />
       <SummaryGroup title="Your details" step="details" onEdit={onEdit} rows={details} />
-    </div>
+    </Card>
   )
 }

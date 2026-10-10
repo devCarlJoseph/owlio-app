@@ -19,22 +19,15 @@ export function StepActions({
   isFinishing = false,
 }: StepActionsProps) {
   return (
-    <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-col-reverse gap-3 sm:flex-row">
-        {onBack && (
-          <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={onBack}>
-            <ArrowLeft aria-hidden="true" /> Back
-          </Button>
-        )}
-        {onSkip && (
-          <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={onSkip}>
-            Skip for now
-          </Button>
-        )}
-      </div>
+    <div className="flex w-full flex-wrap items-center gap-3">
+      {onBack && (
+        <Button type="button" variant="outline" className="h-11 flex-1 rounded-lg px-5 sm:flex-none" onClick={onBack}>
+          <ArrowLeft aria-hidden="true" /> Back
+        </Button>
+      )}
       <Button
         type="button"
-        className="w-full rounded-lg bg-indigo-600 px-5 text-white hover:bg-indigo-700 sm:w-auto"
+        className="h-11 flex-1 rounded-lg bg-indigo-600 px-6 text-white shadow-sm shadow-indigo-600/20 hover:bg-indigo-700 sm:flex-none"
         onClick={onNext}
         disabled={nextDisabled || isFinishing}
       >
@@ -42,6 +35,11 @@ export function StepActions({
         {isFinishing ? "Finishing…" : nextLabel}
         {!isFinishing && <ArrowRight aria-hidden="true" />}
       </Button>
+      {onSkip && (
+        <Button type="button" variant="ghost" className="h-11 w-full rounded-lg sm:ml-auto sm:w-auto" onClick={onSkip}>
+          Skip for now
+        </Button>
+      )}
     </div>
   )
 }

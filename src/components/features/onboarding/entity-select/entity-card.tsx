@@ -23,10 +23,10 @@ export function EntityCard({ entity, title, description, icon, checked, onChange
   return (
     <label
       htmlFor={inputId}
-      className={`relative flex min-h-48 cursor-pointer flex-col rounded-xl border p-5 text-left transition focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 ${
+      className={`group relative flex min-h-44 cursor-pointer flex-col rounded-2xl border p-5 text-left transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 has-[:focus-visible]:ring-offset-2 ${
         checked
-          ? "border-indigo-600 bg-indigo-50/70 shadow-sm"
-          : "border-border bg-card hover:border-indigo-300 hover:bg-muted/30"
+          ? "border-indigo-600 bg-indigo-50/80 shadow-md shadow-indigo-600/10 ring-1 ring-indigo-600"
+          : "border-border bg-slate-50/60 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-white hover:shadow-sm"
       }`}
     >
       <input
@@ -39,15 +39,27 @@ export function EntityCard({ entity, title, description, icon, checked, onChange
         onChange={onChange}
         aria-label={`${title}: ${description}`}
       />
-      <span className={`mb-5 flex size-11 items-center justify-center rounded-xl ${checked ? "bg-indigo-600 text-white" : "bg-muted text-foreground"}`} aria-hidden="true">
-        <Icon className="size-5" />
+      <span
+        className={`absolute top-4 right-4 flex size-5 items-center justify-center rounded-full border transition-colors ${
+          checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
+        }`}
+        aria-hidden="true"
+      >
+        {checked && <Check className="size-3.5" strokeWidth={3} />}
       </span>
-      <span className="mb-1 flex items-center gap-2 font-semibold text-foreground">
-        {title}
-        {checked && <Check className="size-4 text-indigo-700" aria-label="Selected" />}
+      <span
+        className={`mb-6 flex size-12 items-center justify-center rounded-xl transition-colors ${
+          checked ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
+        }`}
+        aria-hidden="true"
+      >
+        <Icon className="size-6" />
       </span>
-      <span className="text-sm leading-5 text-muted-foreground">{description}</span>
-      <span className="sr-only">{checked ? "Selected" : "Not selected"}</span>
+      <span className="mt-auto text-base font-semibold text-foreground">{title}</span>
+      <span className="mt-1 text-sm leading-5 text-muted-foreground">{description}</span>
+      <span className={`mt-3 text-xs font-medium ${checked ? "text-indigo-700" : "text-transparent"}`} aria-hidden="true">
+        Selected
+      </span>
     </label>
   )
 }
