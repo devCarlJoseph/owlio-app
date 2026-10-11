@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form"
+import { Button } from "@/components/ui/button"
 import { AuthFeedback } from "../shared/auth-feedback"
-import { AuthFormActions } from "../shared/auth-form-actions"
 import type { ResendVerificationValues } from "./email-verification.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -17,19 +17,19 @@ export function ResendVerificationForm({ requestNotice, onSubmit }: ResendVerifi
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      <FieldGroup className="gap-5">
+      <FieldGroup className="gap-4">
         <div className="space-y-2">
-          <Label htmlFor="verificationEmail">Email <span className="text-destructive">*</span></Label>
-          <Input id="verificationEmail" type="email" autoComplete="email" required aria-invalid={Boolean(error)} aria-describedby={error ? "verificationEmail-error" : undefined} {...form.register("email")} />
+          <Label htmlFor="verificationEmail" className="text-xs font-medium text-slate-700">Email</Label>
+          <Input id="verificationEmail" type="email" autoComplete="email" placeholder="Your email address" required aria-invalid={Boolean(error)} aria-describedby={error ? "verificationEmail-error" : undefined} className="h-10 rounded-md border-slate-300 px-3 text-xs shadow-none placeholder:text-slate-400" {...form.register("email")} />
           <FieldError id="verificationEmail-error" errors={[error]} />
         </div>
       </FieldGroup>
       {requestNotice && (
-        <AuthFeedback title="Preview only — no message was sent">
-          If an account can be verified for this email, a new verification message would be sent. This preview does not check whether the address has an account.
+        <AuthFeedback title="Verification email is not connected yet">
+          No message was sent and your address was not saved.
         </AuthFeedback>
       )}
-      <AuthFormActions label="Resend verification email" />
+      <Button type="submit" className="h-10 w-full rounded-md bg-[#89a6e8] text-xs font-medium text-white hover:bg-[#7898e2]">Resend verification email</Button>
     </form>
   )
 }
