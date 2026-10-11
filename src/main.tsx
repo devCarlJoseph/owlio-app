@@ -19,6 +19,7 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/auth/email-verification" element={<EmailVerificationPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/auth/password-reset" element={<PasswordResetPage />} />
+      <Route path="/workspace/*" element={<HomePage />} />
       <Route path="/" element={<HomePage />} />
     </Routes>
   </BrowserRouter>,

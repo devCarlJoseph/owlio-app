@@ -189,3 +189,7 @@ src/
 - [ ] No unimplemented OAuth control is presented as working.
 - [ ] Target component/file tree stays under the proposed auth page/feature structure and does not add API/session modules.
 - [ ] Screens are keyboard accessible and responsive at mobile and desktop sizes.
+
+## Shared Owlio product UI guidance
+
+For Owlio-wide product scope and visual conventions drawn from the official landing page, also follow [`skills/owlio-product-ui/SKILL.md`](../owlio-product-ui/SKILL.md). This authentication skill remains authoritative for auth-specific UX and security constraints.

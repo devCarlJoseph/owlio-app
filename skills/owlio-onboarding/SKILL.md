@@ -308,3 +308,7 @@ public/onboarding-inspiration-design/
 - [ ] Desktop composition is balanced; mobile becomes a usable single-column flow.
 - [ ] Existing components and user-authored routes are preserved unless a directly required onboarding change is approved.
 - [ ] Accessibility, local-only Phase 1 behavior, lint, and build checks are verified as required above.
+
+## Shared Owlio product UI guidance
+
+For Owlio-wide product scope and visual conventions drawn from the official landing page, also follow [`skills/owlio-product-ui/SKILL.md`](../owlio-product-ui/SKILL.md). This onboarding skill remains authoritative for onboarding-specific flow and constraints.
