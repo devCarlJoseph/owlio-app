@@ -1,6 +1,5 @@
 import { useFormContext } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { AuthFeedback } from "../shared/auth-feedback"
 import { PasswordField } from "../shared/password-field"
 import { PasswordGuidance } from "../shared/password-guidance"
 import { AccountTypeSelector } from "./account-type-selector"
@@ -10,11 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type RegisterFormProps = {
-  requestNotice: boolean
   onSubmit: (values: RegisterValues) => void
 }
 
-export function RegisterForm({ requestNotice, onSubmit }: RegisterFormProps) {
+export function RegisterForm({ onSubmit }: RegisterFormProps) {
   const form = useFormContext<RegisterValues>()
   const errors = form.formState.errors
 
@@ -43,11 +41,6 @@ export function RegisterForm({ requestNotice, onSubmit }: RegisterFormProps) {
           <FieldError id="acceptTerms-error" errors={[errors.acceptTerms]} />
         </div>
       </FieldGroup>
-      {requestNotice && (
-        <AuthFeedback title="Registration is not connected yet">
-          Authentication is not connected. Your information was not sent or saved.
-        </AuthFeedback>
-      )}
       <Button type="submit" className="h-10 w-full rounded-md bg-[#89a6e8] text-xs font-medium text-white hover:bg-[#7898e2]">Create account</Button>
     </form>
   )

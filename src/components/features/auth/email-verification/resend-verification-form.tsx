@@ -1,17 +1,15 @@
 import { useFormContext } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { AuthFeedback } from "../shared/auth-feedback"
 import type { ResendVerificationValues } from "./email-verification.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type ResendVerificationFormProps = {
-  requestNotice: boolean
   onSubmit: (values: ResendVerificationValues) => void
 }
 
-export function ResendVerificationForm({ requestNotice, onSubmit }: ResendVerificationFormProps) {
+export function ResendVerificationForm({ onSubmit }: ResendVerificationFormProps) {
   const form = useFormContext<ResendVerificationValues>()
   const error = form.formState.errors.email
 
@@ -24,11 +22,6 @@ export function ResendVerificationForm({ requestNotice, onSubmit }: ResendVerifi
           <FieldError id="verificationEmail-error" errors={[error]} />
         </div>
       </FieldGroup>
-      {requestNotice && (
-        <AuthFeedback title="Verification email is not connected yet">
-          No message was sent and your address was not saved.
-        </AuthFeedback>
-      )}
       <Button type="submit" className="h-10 w-full rounded-md bg-[#89a6e8] text-xs font-medium text-white hover:bg-[#7898e2]">Resend verification email</Button>
     </form>
   )

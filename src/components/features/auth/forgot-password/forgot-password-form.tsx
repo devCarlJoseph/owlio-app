@@ -1,17 +1,15 @@
 import { useFormContext } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import { AuthFeedback } from "../shared/auth-feedback"
 import type { ForgotPasswordValues } from "./forgot-password.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type ForgotPasswordFormProps = {
-  requestNotice: boolean
   onSubmit: (values: ForgotPasswordValues) => void
 }
 
-export function ForgotPasswordForm({ requestNotice, onSubmit }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({ onSubmit }: ForgotPasswordFormProps) {
   const form = useFormContext<ForgotPasswordValues>()
   const error = form.formState.errors.email
 
@@ -24,11 +22,6 @@ export function ForgotPasswordForm({ requestNotice, onSubmit }: ForgotPasswordFo
           <FieldError id="forgotEmail-error" errors={[error]} />
         </div>
       </FieldGroup>
-      {requestNotice && (
-        <AuthFeedback title="Password reset is not connected yet">
-          No email was sent and your address was not saved.
-        </AuthFeedback>
-      )}
       <Button type="submit" className="h-10 w-full rounded-md bg-[#89a6e8] text-xs font-medium text-white hover:bg-[#7898e2]">Send reset instructions</Button>
     </form>
   )
