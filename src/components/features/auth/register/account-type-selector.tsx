@@ -15,7 +15,7 @@ export function AccountTypeSelector() {
 
   return (
     <fieldset className="space-y-2" aria-describedby={error ? "accountType-error" : undefined}>
-      <legend className="mb-2 text-xs font-medium text-slate-700">I am joining Owlio as <span className="text-destructive">*</span></legend>
+      <legend className="mb-2 text-sm font-medium text-slate-600">I am joining Owlio as <span className="text-destructive">*</span></legend>
       <Controller
         control={form.control}
         name="accountType"
@@ -25,8 +25,8 @@ export function AccountTypeSelector() {
               <label
                 key={value}
                 htmlFor={`accountType-${value}`}
-                className={`flex min-w-0 cursor-pointer flex-col gap-2 rounded-lg border p-2.5 transition focus-within:ring-2 focus-within:ring-ring/50 sm:p-3 ${
-                  field.value === value ? "border-blue-500 bg-blue-50/70" : "border-slate-300 hover:bg-slate-50"
+                className={`flex min-w-0 cursor-pointer flex-col gap-1.5 rounded-lg border p-3 transition focus-within:ring-2 focus-within:ring-blue-500/20 ${
+                  field.value === value ? "border-blue-500 bg-blue-50/70" : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
                 }`}
               >
                 <span className="flex min-w-0 items-center gap-1.5">
@@ -45,9 +45,9 @@ export function AccountTypeSelector() {
                     aria-describedby={error ? "accountType-error" : undefined}
                   />
                   <Icon className="size-3.5 shrink-0 text-blue-700" aria-hidden="true" />
-                  <span className="truncate text-[11px] font-semibold text-slate-800">{label}</span>
+                  <span className="truncate text-sm font-semibold text-slate-800">{label}</span>
                 </span>
-                <span className="pl-5 text-[9px] leading-4 text-slate-500 sm:pl-5 sm:text-[10px]">{description}</span>
+                <span className="pl-5 text-[11px] leading-4 text-slate-500">{description}</span>
               </label>
             ))}
           </div>

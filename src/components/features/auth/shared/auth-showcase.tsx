@@ -44,7 +44,7 @@ const patternIcons: Array<{ icon: LucideIcon; className: string }> = [
 
 const rotationDelay = 6500
 
-export function LoginShowcase() {
+export function AuthShowcase() {
   const celebrateTimer = useRef(0)
   const [activeFeature, setActiveFeature] = useState(0)
   const [paused, setPaused] = useState(false)

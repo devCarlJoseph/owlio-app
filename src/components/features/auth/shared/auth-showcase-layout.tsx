@@ -1,12 +1,12 @@
 import type { ReactNode } from "react"
 import { Link } from "react-router"
-import { LoginShowcase } from "./login-showcase"
+import { AuthShowcase } from "./auth-showcase"
 
-type LoginLayoutProps = {
+type AuthShowcaseLayoutProps = {
   children: ReactNode
 }
 
-export function LoginLayout({ children }: LoginLayoutProps) {
+export function AuthShowcaseLayout({ children }: AuthShowcaseLayoutProps) {
   return (
     <div className="min-h-svh bg-white lg:grid lg:h-svh lg:grid-cols-2 lg:gap-4 lg:overflow-hidden lg:p-3">
       <main className="flex min-h-svh flex-col px-6 py-6 sm:px-10 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-8 lg:py-5">
@@ -18,7 +18,7 @@ export function LoginLayout({ children }: LoginLayoutProps) {
           <section className="w-full max-w-[400px]">{children}</section>
         </div>
       </main>
-      <LoginShowcase />
+      <AuthShowcase />
     </div>
   )
 }
