@@ -1,7 +1,6 @@
-import { Link } from "react-router"
 import { useFormContext } from "react-hook-form"
+import { Button } from "@/components/ui/button"
 import { AuthFeedback } from "../shared/auth-feedback"
-import { AuthFormActions } from "../shared/auth-form-actions"
 import type { ForgotPasswordValues } from "./forgot-password.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -17,23 +16,20 @@ export function ForgotPasswordForm({ requestNotice, onSubmit }: ForgotPasswordFo
   const error = form.formState.errors.email
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <FieldGroup className="gap-5">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <FieldGroup className="gap-4">
         <div className="space-y-2">
-          <Label htmlFor="forgotEmail">Email <span className="text-destructive">*</span></Label>
-          <Input id="forgotEmail" type="email" autoComplete="email" required aria-invalid={Boolean(error)} aria-describedby={error ? "forgotEmail-error" : undefined} {...form.register("email")} />
+          <Label htmlFor="forgotEmail" className="text-xs font-medium text-slate-700">Email</Label>
+          <Input id="forgotEmail" type="email" autoComplete="email" placeholder="Your email address" required aria-invalid={Boolean(error)} aria-describedby={error ? "forgotEmail-error" : undefined} className="h-10 rounded-md border-slate-300 px-3 text-xs shadow-none placeholder:text-slate-400" {...form.register("email")} />
           <FieldError id="forgotEmail-error" errors={[error]} />
         </div>
       </FieldGroup>
       {requestNotice && (
-        <AuthFeedback title="Preview only — no request was sent">
-          This UI does not send email or save your address.
+        <AuthFeedback title="Password reset is not connected yet">
+          No email was sent and your address was not saved.
         </AuthFeedback>
       )}
-      <AuthFormActions label="Send reset instructions" />
-      <p className="text-center text-sm text-muted-foreground">
-        Remembered your password? <Link to="/auth/login" className="font-semibold text-indigo-700 underline-offset-4 hover:underline">Back to sign in</Link>
-      </p>
+      <Button type="submit" className="h-10 w-full rounded-md bg-[#89a6e8] text-xs font-medium text-white hover:bg-[#7898e2]">Send reset instructions</Button>
     </form>
   )
 }

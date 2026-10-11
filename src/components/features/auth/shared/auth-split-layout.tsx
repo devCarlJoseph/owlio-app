@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card"
 
 type AuthSplitLayoutProps = {
   title: string
+  description?: string
   headingRef: RefObject<HTMLHeadingElement | null>
   footer: ReactNode
   children: ReactNode
@@ -70,7 +71,7 @@ function WorkspacePreview() {
   )
 }
 
-export function AuthSplitLayout({ title, headingRef, footer, children, contentClassName = "max-w-[320px]" }: AuthSplitLayoutProps) {
+export function AuthSplitLayout({ title, description, headingRef, footer, children, contentClassName = "max-w-[320px]" }: AuthSplitLayoutProps) {
   return (
     <div className="min-h-svh bg-white">
       <div className="grid min-h-svh grid-cols-1 md:grid-cols-[46%_54%]">
@@ -82,7 +83,8 @@ export function AuthSplitLayout({ title, headingRef, footer, children, contentCl
           <div className="flex flex-1 items-center justify-center py-4">
             <section className={`w-full ${contentClassName}`}>
               <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">{title}</h1>
-              <div className="mt-6">{children}</div>
+              {description && <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>}
+              <div className={description ? "mt-5" : "mt-6"}>{children}</div>
             </section>
           </div>
           <footer className="mt-auto pt-5 text-center text-xs text-slate-500 sm:text-sm">{footer}</footer>
