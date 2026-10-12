@@ -5,41 +5,44 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FieldError } from "@/components/ui/field"
+import { authInputClassName } from "./auth-input-styles"
 
 type PasswordFieldProps = {
   id: string
   label: string
+  placeholder: string
   autoComplete: "current-password" | "new-password"
   registration: UseFormRegisterReturn
   error?: string
   description?: string
 }
 
-export function PasswordField({ id, label, autoComplete, registration, error, description }: PasswordFieldProps) {
+export function PasswordField({ id, label, placeholder, autoComplete, registration, error, description }: PasswordFieldProps) {
   const [visible, setVisible] = useState(false)
   const errorId = `${id}-error`
   const descriptionId = description ? `${id}-description` : undefined
   const describedBy = [error ? errorId : null, descriptionId].filter(Boolean).join(" ") || undefined
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label} <span className="text-destructive">*</span></Label>
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="sr-only">{label}</Label>
       <div className="relative">
         <Input
           id={id}
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}
+          placeholder={placeholder}
           required
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
-          className="pr-12"
+          className={`${authInputClassName} pr-12`}
           {...registration}
         />
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="absolute right-1 top-1/2 -translate-y-1/2"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-500"
           aria-label={visible ? `Hide ${label.toLocaleLowerCase()}` : `Show ${label.toLocaleLowerCase()}`}
           aria-pressed={visible}
           onClick={() => setVisible((value) => !value)}
