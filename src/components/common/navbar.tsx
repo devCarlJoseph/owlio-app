@@ -14,10 +14,10 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link to="/auth/login" className="text-sm font-semibold text-slate-700 transition hover:text-indigo-700">
+          <Link to="/login" className="text-sm font-semibold text-slate-700 transition hover:text-indigo-700">
             Sign in
           </Link>
-          <Button render={<Link to="/auth/register" />} className="rounded-full bg-indigo-600 px-5 text-white hover:bg-indigo-700">
+          <Button render={<Link to="/register" />} className="rounded-full bg-indigo-600 px-5 text-white hover:bg-indigo-700">
             Get started <ArrowUpRight aria-hidden="true" />
           </Button>
         </div>

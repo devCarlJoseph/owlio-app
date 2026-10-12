@@ -14,6 +14,7 @@ import StudentsPage from "@/pages/dashboard/students";
 import EducatorsPage from "@/pages/dashboard/educators";
 import TutorsPage from "@/pages/dashboard/tutors";
 import EslPage from "@/pages/dashboard/esl";
+import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
@@ -21,11 +22,12 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/onboarding" element={<OnboardingPage />} />
 
       {/*Auth Pages */}
-      <Route path="/auth/register" element={<RegisterPage />} />
-      <Route path="/auth/login" element={<LoginPage />} />
-      <Route path="/auth/email-verification" element={<EmailVerificationPage />} />
-      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/auth/password-reset" element={<PasswordResetPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/email-verification" element={<EmailVerificationPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/password-reset" element={<PasswordResetPage />} />
+      <Route path="/auth/*" element={<AuthRouteRedirect />} />
 
       {/*App Pages */}
       <Route element={<PlatformLayout />}>

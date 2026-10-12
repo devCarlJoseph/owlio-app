@@ -36,12 +36,12 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
             <input id="rememberMe" type="checkbox" className="size-4 rounded accent-blue-600" {...form.register("rememberMe")} />
             Stay signed in
           </label>
-          <Link to="/auth/forgot-password" className={`text-sm ${authLinkClassName} font-medium`}>Forgot password?</Link>
+          <Link to="/forgot-password" className={`text-sm ${authLinkClassName} font-medium`}>Forgot password?</Link>
         </div>
       </FieldGroup>
       <Button type="submit" className={authPrimaryButtonClassName}>Log in</Button>
       <p className="text-center text-sm text-slate-500">
-        Don’t have an account? <Link to="/auth/register" className={authLinkClassName}>Sign up</Link>
+        Don’t have an account? <Link to="/register" className={authLinkClassName}>Sign up</Link>
       </p>
     </form>
   )

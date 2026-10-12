@@ -68,7 +68,7 @@ export function EmailVerificationView() {
             </div>
           )}
           <p className="text-center text-sm text-slate-500">
-            Already have an account? <Link to="/auth/login" className={authLinkClassName}>Log in</Link>
+            Already have an account? <Link to="/login" className={authLinkClassName}>Log in</Link>
           </p>
         </div>
       </AuthShowcaseLayout>

@@ -47,7 +47,7 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
       </FieldGroup>
       <Button type="submit" className={authPrimaryButtonClassName}>Create account</Button>
       <p className="text-center text-sm text-slate-500">
-        Already have an account? <Link to="/auth/login" className={authLinkClassName}>Log in</Link>
+        Already have an account? <Link to="/login" className={authLinkClassName}>Log in</Link>
       </p>
     </form>
   )

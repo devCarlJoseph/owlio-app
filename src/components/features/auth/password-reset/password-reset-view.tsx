@@ -31,10 +31,10 @@ export function PasswordResetView() {
           {linkProvided ? (
             <PasswordResetForm onSubmit={() => undefined} />
           ) : (
-            <Button render={<Link to="/auth/forgot-password" />} className={authPrimaryButtonClassName}>Request a new reset link</Button>
+            <Button render={<Link to="/forgot-password" />} className={authPrimaryButtonClassName}>Request a new reset link</Button>
           )}
           <p className="text-center text-sm text-slate-500">
-            Remembered your password? <Link to="/auth/login" className={authLinkClassName}>Log in</Link>
+            Remembered your password? <Link to="/login" className={authLinkClassName}>Log in</Link>
           </p>
         </div>
       </AuthShowcaseLayout>

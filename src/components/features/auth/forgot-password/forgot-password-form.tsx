@@ -26,7 +26,7 @@ export function ForgotPasswordForm({ onSubmit }: ForgotPasswordFormProps) {
       </FieldGroup>
       <Button type="submit" className={authPrimaryButtonClassName}>Send reset instructions</Button>
       <p className="text-center text-sm text-slate-500">
-        Remembered your password? <Link to="/auth/login" className={authLinkClassName}>Log in</Link>
+        Remembered your password? <Link to="/login" className={authLinkClassName}>Log in</Link>
       </p>
     </form>
   )
