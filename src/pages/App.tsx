@@ -1,5 +1,11 @@
-import { WorkspaceView } from "@/components/features/workspace/workspace-view"
+
 
 export default function HomePage() {
-  return <WorkspaceView />
+  return (
+    <div>
+      <h1>
+        This is a Page
+      </h1>
+    </div>
+  );
 }
