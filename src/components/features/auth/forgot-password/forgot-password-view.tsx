@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react"
-import { Link } from "react-router"
 import { FormProvider, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { AuthSplitLayout } from "../shared/auth-split-layout"
+import { AuthShowcaseLayout } from "../shared/auth-showcase-layout"
 import { ForgotPasswordForm } from "./forgot-password-form"
 import { forgotPasswordSchema, type ForgotPasswordValues } from "./forgot-password.schema"
 
@@ -20,15 +19,13 @@ export function ForgotPasswordView() {
 
   return (
     <FormProvider {...form}>
-      <AuthSplitLayout
-        context="forgot-password"
-        title="Reset your password"
-        description="Enter the email address associated with your Owlio account."
-        headingRef={headingRef}
-        footer={<>Remembered your password? <Link to="/auth/login" className="ml-1 font-semibold text-blue-700 underline-offset-4 hover:underline">Log in</Link></>}
-      >
-        <ForgotPasswordForm onSubmit={() => undefined} />
-      </AuthSplitLayout>
+      <AuthShowcaseLayout>
+        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">Reset your password</h1>
+        <p className="mt-1.5 text-sm text-slate-500">Enter the email address associated with your Owlio account.</p>
+        <div className="mt-7">
+          <ForgotPasswordForm onSubmit={() => undefined} />
+        </div>
+      </AuthShowcaseLayout>
     </FormProvider>
   )
 }
