@@ -1,5 +1,28 @@
-import DashboardPage from "../dashboard-page"
+import { BookOpenCheck, CalendarDays, ChartNoAxesCombined } from "lucide-react"
+
+const dashboardSections = [
+  { title: "My learning", description: "Your courses and learning resources will appear here.", icon: BookOpenCheck },
+  { title: "Coming up", description: "Upcoming lessons and tasks will appear here.", icon: CalendarDays },
+  { title: "My progress", description: "Track your learning activity and milestones here.", icon: ChartNoAxesCombined },
+]
 
 export default function StudentsPage() {
-  return <DashboardPage audience="students" />
+  return (
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Students workspace</p>
+        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Your learning, all in one place.</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">Keep learning materials, upcoming work, and progress together in your student workspace.</p>
+      </section>
+      <section aria-label="Student dashboard sections" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {dashboardSections.map(({ title, description, icon: Icon }) => (
+          <article key={title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><Icon className="size-5" aria-hidden="true" /></span>
+            <h3 className="mt-4 text-sm font-semibold text-slate-900">{title}</h3>
+            <p className="mt-1.5 text-sm leading-5 text-slate-500">{description}</p>
+          </article>
+        ))}
+      </section>
+    </div>
+  )
 }
