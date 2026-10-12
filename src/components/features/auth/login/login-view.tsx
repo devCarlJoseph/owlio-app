@@ -13,7 +13,7 @@ export function LoginView() {
 
   return (
     <FormProvider {...form}>
-      <AuthShowcaseLayout>
+      <AuthShowcaseLayout context="login">
         <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">Welcome back!</h1>
         <p className="mt-1.5 text-sm text-slate-500">Log in to your Owlio account to continue learning.</p>
         <div className="mt-7">

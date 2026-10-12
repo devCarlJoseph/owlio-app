@@ -37,7 +37,7 @@ export function EmailVerificationView() {
 
   return (
     <FormProvider {...form}>
-      <AuthShowcaseLayout>
+      <AuthShowcaseLayout context="email-verification">
         <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">
           {isResending ? "Resend verification email" : "Verify your email"}
         </h1>

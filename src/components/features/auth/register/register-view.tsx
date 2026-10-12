@@ -13,7 +13,7 @@ export function RegisterView() {
 
   return (
     <FormProvider {...form}>
-      <AuthShowcaseLayout>
+      <AuthShowcaseLayout context="register">
         <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">Create your account</h1>
         <div className="mt-7">
           <RegisterForm onSubmit={() => undefined} />

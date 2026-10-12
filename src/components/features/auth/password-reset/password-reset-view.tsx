@@ -24,7 +24,7 @@ export function PasswordResetView() {
 
   return (
     <FormProvider {...form}>
-      <AuthShowcaseLayout>
+      <AuthShowcaseLayout context="password-reset">
         <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">Choose a new password</h1>
         <p className="mt-1.5 text-sm text-slate-500">{linkProvided ? "Set a new password for your Owlio account." : "Request a password-reset link to continue."}</p>
         <div className="mt-7 space-y-5">
