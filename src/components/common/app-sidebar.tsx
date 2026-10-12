@@ -28,7 +28,7 @@ export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileC
       )}
       <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:top-0 md:h-svh md:translate-x-0 ${widthClassName}`} aria-label="Workspace sidebar">
         <div className={`flex h-14 shrink-0 items-center ${compact ? "justify-center px-2" : "justify-between px-3"}`}>
-          <Link to="/workspace" aria-label="Owlio workspace" onClick={onMobileClose} className="flex min-w-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+          <Link to="/" aria-label="Owlio home" onClick={onMobileClose} className="flex min-w-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
             <img src="/mascot/owlio-mark.png" alt="" className="size-8 shrink-0 object-contain" />
             {!compact && <span className="truncate text-lg font-bold tracking-tight text-blue-700">Owlio</span>}
           </Link>
@@ -64,7 +64,7 @@ export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileC
           <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${compact ? "sr-only" : ""}`}>Workspaces</p>
           <ul className="space-y-1">
             {dashboardNavigation.map(({ label, href, icon: Icon }) => {
-              const active = href === "/workspace" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+              const active = pathname === href || pathname.startsWith(`${href}/`)
 
               return (
                 <li key={href}>

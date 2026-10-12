@@ -1,7 +1,7 @@
 import "@/styles/global.css";
 
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { BrowserRouter, Routes, Route } from "react-router";
 import HomePage from "@/pages/App";
 import OnboardingPage from "@/pages/onboarding";
 import RegisterPage from "@/pages/auth/register";
@@ -10,7 +10,6 @@ import EmailVerificationPage from "@/pages/auth/email-verification";
 import ForgotPasswordPage from "@/pages/auth/forgot-password";
 import PasswordResetPage from "@/pages/auth/password-reset";
 import PlatformLayout from "@/pages/dashboard/layout";
-import DashboardOverviewPage from "@/pages/dashboard";
 import StudentsPage from "@/pages/dashboard/students";
 import EducatorsPage from "@/pages/dashboard/educators";
 import TutorsPage from "@/pages/dashboard/tutors";
@@ -30,13 +29,6 @@ createRoot(document.getElementById("root")!).render(
 
       {/*App Pages */}
       <Route element={<PlatformLayout />}>
-        <Route path="/workspace">
-          <Route index element={<DashboardOverviewPage />} />
-          <Route path="students" element={<Navigate to="/students" replace />} />
-          <Route path="educators" element={<Navigate to="/educators" replace />} />
-          <Route path="tutors" element={<Navigate to="/tutors" replace />} />
-          <Route path="esl" element={<Navigate to="/esl" replace />} />
-        </Route>
         <Route path="/students">
           <Route index element={<StudentsPage />} />
         </Route>
