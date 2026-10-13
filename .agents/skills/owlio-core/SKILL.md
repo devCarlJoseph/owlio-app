@@ -5,7 +5,7 @@ description: Apply Owlio-wide product boundaries, frontend conventions, accessib
 
 # Owlio Core
 
-Use this skill for cross-cutting product decisions or when work touches multiple Owlio experiences. `AGENTS.md`, current source, and confirmed backend contracts are authoritative. The product plan is direction, not proof that a feature or API already exists.
+Use this skill for cross-cutting product decisions or when work touches multiple Owlio experiences. Follow the [Owlio Product Plan](../../../OWLIO_PRODUCT_PLAN.md) for product vision and target workflows. `AGENTS.md`, current source, and confirmed backend contracts are authoritative for implementation status and technical behavior; the plan is not proof that a feature or API already exists.
 
 ## Product model
 
@@ -21,7 +21,8 @@ Keep a student's personal work and peer study-space content distinct from educat
 ## Current implementation guardrails
 
 - The current app is a React/TypeScript Vite SPA. Keep route adapters thin, put domain behavior beside its feature, and reuse existing UI primitives.
-- Treat dashboard pages as scaffolds and auth/onboarding submissions as UI-only unless current source and an approved API contract show otherwise.
+- Dashboard role roots are `/students`, `/educators`, `/tutors`, and `/esl`. Put role-specific pages under `src/pages/dashboard/<role>/<feature>/index.tsx`; put shared page components under `src/pages/dashboard/<feature>/index.tsx` and mount them beneath each role-prefixed route so the sidebar keeps its workspace context. These route prefixes are UX context, not authorization.
+- Dashboard pages are feature-specific UI scaffolds/empty states; feature data services and an auth role/session provider are not wired in this snapshot. Do not present sample values as live activity. Auth/onboarding submissions are UI-only unless current source and an approved API contract show otherwise.
 - Registration currently uses `student`/`teacher`/`other`; onboarding uses `student`/`educator`/`others` with educator subtypes. Do not normalize or choose a canonical backend role without owner/backend confirmation.
 - Do not invent endpoints, permissions, supported upload types, integrations, or product states. Label proposals and future functionality clearly.
 - Preserve Owlio branding, existing theme tokens, responsive behavior, keyboard access, visible focus, associated labels, and useful status/error feedback.

@@ -1,6 +1,6 @@
 # Owlio App — Agent Context
 
-This is the repository-specific guide for work in `owlio-app`. Keep it aligned with the current source tree. Source code and explicit product-owner instructions are authoritative when this guide or a skill is stale. Do not treat marketing previews, placeholder pages, or TODO-shaped UI as working backend features.
+This is the repository-specific guide for work in `owlio-app`. Keep it aligned with the current source tree. `OWLIO_PRODUCT_PLAN.md` documents the product vision and target workflows; source code, confirmed backend contracts, and explicit product-owner decisions are authoritative when implementation status or requirements differ. Do not treat marketing previews, placeholder pages, or TODO-shaped UI as working backend features.
 
 ## 1. Working rules
 
@@ -40,20 +40,54 @@ The app is a client-rendered React/TypeScript SPA built with Vite. The package m
 
 ```text
 src/
-  main.tsx                         BrowserRouter and route registration
-  pages/                           Thin route entry points
-    auth/<flow>/index.tsx          Auth page adapters
-    dashboard/layout.tsx           Shared shell for role pages
-    dashboard/{students,educators,tutors,esl}/index.tsx
-    onboarding/index.tsx           Onboarding route adapter
+  main.tsx
+  pages/
+    auth/<flow>/index.tsx
+    onboarding/index.tsx
+    dashboard/
+      layout.tsx
+      students/
+        index.tsx
+        subjects/index.tsx
+        tasks/index.tsx
+        notes/index.tsx
+        study-spaces/index.tsx
+        classwork/index.tsx
+      educators/
+        index.tsx
+        classwork/index.tsx
+        attendance/index.tsx
+        learners/index.tsx
+      tutors/
+        index.tsx
+        sessions/index.tsx
+        classwork/index.tsx
+        attendance/index.tsx
+        learners/index.tsx
+      esl/
+        index.tsx
+        lessons/index.tsx
+        classwork/index.tsx
+        attendance/index.tsx
+        learners/index.tsx
+      classroom/index.tsx          Shared classroom view (plural URL)
+      schedule/index.tsx
+      materials/index.tsx
+      communication/index.tsx
+      notifications/index.tsx
+      progress/index.tsx
+      ai-assistant/index.tsx
   components/
-    common/                        Cross-feature navigation/layout utilities
-    features/auth/                 Auth views, forms, schemas, shared showcase
-    features/onboarding/           Multi-step onboarding workflow
-    ui/                            Domain-neutral shadcn-style components
-  lib/                             Shared HTTP and class utilities
-  services/api/                    API health/error/types foundation
-  styles/global.css                Tailwind/theme/font entry point
+    common/
+      app-sidebar.tsx
+      dashboard-navigation.ts     Role/shared menu data and route resolution
+      ...
+    features/auth/
+    features/onboarding/
+    ui/                            Domain-neutral Base UI/shadcn wrappers
+  lib/
+  services/api/                    Health/error/types foundation only
+  styles/global.css
 ```
 
 Conventions:
@@ -61,7 +95,12 @@ Conventions:
 - Route adapters stay thin; screen/page behavior belongs under `src/components/features/<domain>/` or the role page's own folder when that is the current convention.
 - Reusable domain-neutral controls belong in `src/components/ui/`. Reuse `Button`, `Card`, `Field`, `Input`, `Label`, `ScrollArea`, `Avatar`, etc. before creating parallel primitives.
 - Use the `@/*` alias for `src/*`. `components.json` configures Tailwind CSS at `src/styles/global.css`, Lucide icons, and the `base-vega` style.
-- Role dashboards share `src/pages/dashboard/layout.tsx` through a pathless React Router layout route. Current direct role URLs are `/students`, `/educators`, `/tutors`, and `/esl`; each has its own route module. These pages are UI scaffolds, not data-backed dashboards. Add future role features as nested routes/files under the relevant role instead of restoring a single catch-all content file.
+- Role dashboards share `src/pages/dashboard/layout.tsx` through a pathless React Router layout route. Workspace roots are `/students`, `/educators`, `/tutors`, and `/esl`; each role owns a page tree under `src/pages/dashboard/<role>/`.
+- Put role-specific page modules under `src/pages/dashboard/<role>/<feature>/index.tsx`. Current student modules are `subjects`, `tasks`, `notes`, `study-spaces`, and `classwork`; educator modules are `classwork`, `attendance`, and `learners`; tutor modules are `sessions`, `classwork`, `attendance`, and `learners`; ESL modules are `lessons`, `classwork`, `attendance`, and `learners`.
+- Shared dashboard page components live at `src/pages/dashboard/<feature>/index.tsx` (currently `classroom`, `schedule`, `materials`, `communication`, `notifications`, `progress`, and `ai-assistant`). The same shared component is mounted below each role path, for example `/students/classrooms` and `/tutors/classrooms`. Keep the role prefix so the sidebar retains its workspace context; do not replace these with root-level shared URLs unless a persistent user-role/session model is added.
+- `src/components/common/dashboard-navigation.ts` is the navigation source for role and shared items. `getDashboardRole` derives the menu context from the URL prefix for presentation only; it is not authentication or authorization. Keep its hrefs in sync with `src/main.tsx`.
+- The header in `src/pages/dashboard/layout.tsx` uses existing shadcn-style wrappers, a date, a search that filters the current workspace's navigation links, a Ctrl/Meta+K focus shortcut, and a role-scoped notifications link. The avatar/account label is generic presentation, not authenticated user data.
+- Dashboard pages currently provide role-specific UI scaffolds and empty states; there are no feature data services or dashboard queries wired in this snapshot. Do not add sample metrics/activity as live data or claim CRUD, notifications, search over content, classroom management, or AI generation works unless the relevant service/API is implemented and approved. Add future role features as nested routes/files under the relevant role instead of restoring a catch-all content file.
 - The `/` page in `src/pages/App.tsx` is currently a placeholder, not a complete marketing site or authenticated dashboard.
 - `README.md` is still the stock React/Vite starter guide; do not treat it as the product architecture or workflow specification.
 
@@ -78,7 +117,7 @@ Routes are defined in `src/main.tsx`:
 | `/email-verification` | Verification/resend view | UI states only; token presence is read from the query string but is not verified by a backend here. |
 | `/forgot-password` | Recovery form | UI only; current submit handler is a no-op. |
 | `/password-reset` | Password-reset form when a `token` query parameter exists; otherwise a request-link CTA | UI only; token presence is not validation and current submit handler is a no-op. |
-| `/students`, `/educators`, `/tutors`, `/esl` | Role pages inside `PlatformLayout` | Placeholder/static UI; no dashboard data services are wired. |
+| `/students/*`, `/educators/*`, `/tutors/*`, `/esl/*` | Role-specific and role-prefixed shared pages inside `PlatformLayout` | Feature-specific UI scaffolds and empty states; no dashboard data services are wired. See the route/file map in section 3. |
 | `/auth/*` | `AuthRouteRedirect` compatibility handler | Redirects known legacy auth URLs to canonical top-level paths and preserves search/hash; unknown `/auth/*` paths return to `/`. |
 
 The authentication views use `AuthShowcaseLayout` and `AuthShowcase`. Pass the correct `AuthShowcaseContext` (`login`, `register`, `forgot-password`, `email-verification`, or `password-reset`). The owl/art panel stays shared; page-specific carousel/guide copy lives in `auth-showcase-content.ts`. Preserve each left-side page's own heading, copy, and form.
