@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { dashboardNavigation } from "./dashboard-navigation"
+import { getDashboardNavigation } from "./dashboard-navigation"
 
 type AppSidebarProps = {
   collapsed: boolean
@@ -60,29 +60,33 @@ export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileC
           )}
         </div>
 
-        <nav aria-label="Workspace navigation" className="flex-1 px-2">
-          <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${compact ? "sr-only" : ""}`}>Workspaces</p>
-          <ul className="space-y-1">
-            {dashboardNavigation.map(({ label, href, icon: Icon }) => {
-              const active = pathname === href || pathname.startsWith(`${href}/`)
+        <nav aria-label="Workspace navigation" className="flex-1 overflow-y-auto px-2 pb-3">
+          {getDashboardNavigation(pathname).map(({ label: groupLabel, items }) => (
+            <section key={groupLabel} className="mb-5">
+              <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${compact ? "sr-only" : ""}`}>{groupLabel}</p>
+              <ul className="space-y-1">
+                {items.map(({ label, href, icon: Icon }) => {
+                  const active = pathname === href
 
-              return (
-                <li key={href}>
-                  <Link
-                    to={href}
-                    onClick={onMobileClose}
-                    aria-label={compact ? label : undefined}
-                    aria-current={active ? "page" : undefined}
-                    title={compact ? label : undefined}
-                    className={`flex h-10 items-center rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${compact ? "justify-center px-0" : "gap-3 px-3"} ${active ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
-                  >
-                    <Icon className="size-4.5 shrink-0" aria-hidden="true" />
-                    {!compact && <span className="truncate">{label}</span>}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+                  return (
+                    <li key={href}>
+                      <Link
+                        to={href}
+                        onClick={onMobileClose}
+                        aria-label={compact ? label : undefined}
+                        aria-current={active ? "page" : undefined}
+                        title={compact ? label : undefined}
+                        className={`flex h-10 items-center rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${compact ? "justify-center px-0" : "gap-3 px-3"} ${active ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
+                      >
+                        <Icon className="size-4.5 shrink-0" aria-hidden="true" />
+                        {!compact && <span className="truncate">{label}</span>}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))}
         </nav>
 
         <div className="h-px shrink-0 bg-slate-100" />

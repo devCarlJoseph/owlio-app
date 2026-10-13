@@ -3,13 +3,13 @@ import { Menu } from "lucide-react"
 import { Outlet, useLocation } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { Button } from "@/components/ui/button"
-import { dashboardNavigation } from "@/components/common/dashboard-navigation"
+import { getDashboardPageTitle } from "@/components/common/dashboard-navigation"
 
 export default function PlatformLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { pathname } = useLocation()
-  const currentPage = dashboardNavigation.find(({ href }) => href === pathname)
+  const pageTitle = getDashboardPageTitle(pathname)
 
   return (
     <div className="flex min-h-svh bg-slate-50">
@@ -32,7 +32,7 @@ export default function PlatformLayout() {
           >
             <Menu aria-hidden="true" />
           </Button>
-          <h1 className="text-sm font-semibold text-slate-800">{currentPage?.label ?? "Workspace"}</h1>
+          <h1 className="text-sm font-semibold text-slate-800">{pageTitle}</h1>
           <span className="ml-auto hidden text-xs text-slate-500 sm:block">Your learning space</span>
         </header>
         <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8">
