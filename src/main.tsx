@@ -61,12 +61,26 @@ createRoot(document.getElementById("root")!).render(
           <Route path="notes" element={<StudentNotesPage />} />
           <Route path="study-spaces" element={<StudentStudySpacesPage />} />
           <Route path="classwork" element={<StudentClassworkPage />} />
+          <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="materials" element={<MaterialsPage />} />
+          <Route path="communication" element={<CommunicationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="progress" element={<ProgressPage />} />
+          <Route path="ai-assistant" element={<AiAssistantPage />} />
         </Route>
         <Route path="/educators">
           <Route index element={<EducatorsPage />} />
           <Route path="classwork" element={<EducatorClassworkPage />} />
           <Route path="attendance" element={<EducatorAttendancePage />} />
           <Route path="learners" element={<EducatorLearnersPage />} />
+          <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="materials" element={<MaterialsPage />} />
+          <Route path="communication" element={<CommunicationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="progress" element={<ProgressPage />} />
+          <Route path="ai-assistant" element={<AiAssistantPage />} />
         </Route>
         <Route path="/tutors">
           <Route index element={<TutorsPage />} />
@@ -74,6 +88,13 @@ createRoot(document.getElementById("root")!).render(
           <Route path="classwork" element={<TutorClassworkPage />} />
           <Route path="attendance" element={<TutorAttendancePage />} />
           <Route path="learners" element={<TutorLearnersPage />} />
+          <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="materials" element={<MaterialsPage />} />
+          <Route path="communication" element={<CommunicationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="progress" element={<ProgressPage />} />
+          <Route path="ai-assistant" element={<AiAssistantPage />} />
         </Route>
         <Route path="/esl">
           <Route index element={<EslPage />} />
@@ -81,14 +102,14 @@ createRoot(document.getElementById("root")!).render(
           <Route path="classwork" element={<EslClassworkPage />} />
           <Route path="attendance" element={<EslAttendancePage />} />
           <Route path="learners" element={<EslLearnersPage />} />
+          <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="materials" element={<MaterialsPage />} />
+          <Route path="communication" element={<CommunicationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="progress" element={<ProgressPage />} />
+          <Route path="ai-assistant" element={<AiAssistantPage />} />
         </Route>
-        <Route path="/classrooms" element={<ClassroomsPage />} />
-        <Route path="/schedule" element={<SchedulePage />} />
-        <Route path="/materials" element={<MaterialsPage />} />
-        <Route path="/communication" element={<CommunicationPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/progress" element={<ProgressPage />} />
-        <Route path="/ai-assistant" element={<AiAssistantPage />} />
       </Route>
 
       <Route path="/" element={<HomePage />} />

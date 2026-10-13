@@ -25,6 +25,7 @@ type DashboardNavigationItem = {
   icon: LucideIcon
   pageTitle?: string
 }
+type SharedNavigationItem = Omit<DashboardNavigationItem, "href"> & { path: string }
 type DashboardNavigationGroup = {
   label: string
   items: DashboardNavigationItem[]
@@ -68,15 +69,19 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationItem[]> = {
   ],
 }
 
-const sharedNavigation: DashboardNavigationItem[] = [
-  { label: "Classrooms", href: "/classrooms", icon: School },
-  { label: "Schedule", href: "/schedule", icon: CalendarDays },
-  { label: "Materials", href: "/materials", icon: FolderOpen },
-  { label: "Communication", href: "/communication", icon: MessagesSquare },
-  { label: "Notifications", href: "/notifications", icon: Bell },
-  { label: "Progress", href: "/progress", icon: ChartNoAxesCombined },
-  { label: "AI Assistant", href: "/ai-assistant", icon: Sparkles },
+const sharedNavigation: SharedNavigationItem[] = [
+  { label: "Classrooms", path: "classrooms", icon: School },
+  { label: "Schedule", path: "schedule", icon: CalendarDays },
+  { label: "Materials", path: "materials", icon: FolderOpen },
+  { label: "Communication", path: "communication", icon: MessagesSquare },
+  { label: "Notifications", path: "notifications", icon: Bell },
+  { label: "Progress", path: "progress", icon: ChartNoAxesCombined },
+  { label: "AI Assistant", path: "ai-assistant", icon: Sparkles },
 ]
+
+function getSharedNavigation(role: DashboardRole): DashboardNavigationItem[] {
+  return sharedNavigation.map(({ path, ...item }) => ({ ...item, href: `/${role}/${path}` }))
+}
 
 export function getDashboardRole(pathname: string): DashboardRole | undefined {
   const roleSegment = pathname.split("/").filter(Boolean)[0]
@@ -86,16 +91,19 @@ export function getDashboardRole(pathname: string): DashboardRole | undefined {
 export function getDashboardNavigation(pathname: string): DashboardNavigationGroup[] {
   const role = getDashboardRole(pathname)
 
+  if (!role) return []
+
   return [
-    ...(role ? [{ label: workspaceLabels[role], items: roleNavigation[role] }] : []),
-    { label: "Shared", items: sharedNavigation },
+    { label: workspaceLabels[role], items: roleNavigation[role] },
+    { label: "Shared", items: getSharedNavigation(role) },
   ]
 }
 
 export function getDashboardPageTitle(pathname: string): string {
   const role = getDashboardRole(pathname)
-  const items = [...(role ? roleNavigation[role] : []), ...sharedNavigation]
-  const currentPage = items.find(({ href }) => pathname === href)
+  const currentPage = getDashboardNavigation(pathname)
+    .flatMap(({ items }) => items)
+    .find(({ href }) => pathname === href)
 
   return currentPage?.pageTitle ?? currentPage?.label ?? (role ? workspaceLabels[role] : "Workspace")
 }
