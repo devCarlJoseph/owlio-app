@@ -102,15 +102,27 @@ The current registration selector/schema uses `student`, `teacher`, and `other`;
 
 ## 5. Skills and when to consult them
 
-Repository skill documents are plain Markdown under `skills/`; the current Devin skill registry did not discover them automatically. Read the relevant file directly for its domain, but verify its claims against the current source because some passages are aspirational or stale.
+Project agent skills live under `.agents/skills/<name>/SKILL.md`. They provide focused workflow guidance; they do not override this file, current source, or confirmed backend contracts. Treat roadmap capabilities as planned until their implementation and API support are verified.
 
 | Work area | Skill file | Use it for |
 |---|---|---|
-| Auth forms, routing UX, verification/recovery states, auth visual language | `skills/owlio-authentication/SKILL.md` | UI/UX and security-conscious presentation. It explicitly excludes API/session wiring. Its sample `/auth/*` routes are stale; current canonical routes are in `src/main.tsx`. |
-| Onboarding steps, role selection, local validation and completion | `skills/owlio-onboarding/SKILL.md` | Onboarding workflow and Phase 1 UI constraints. Only implement its API Phase 2 when explicitly requested and after confirming the backend contract. |
-| Shared product UI, student/educator/tutor/ESL boundaries, brand and role-aware UX | `skills/owlio-product-ui/SKILL.md` | Product-wide UI decisions and role-specific workflows. Treat landing-page examples as inspiration, not proof of shipped features. |
+| Cross-product principles, security, architecture, and ownership boundaries | `.agents/skills/owlio-core/SKILL.md` | Shared decisions across Owlio experiences. |
+| Student personal workspace and classroom participation | `.agents/skills/student-workflows/SKILL.md` | Student-owned work and learner-facing classroom flows. |
+| Student-created peer collaboration | `.agents/skills/study-spaces/SKILL.md` | Shared study-space membership, content, and boundaries. |
+| Educator-led classroom lifecycle | `.agents/skills/educator-classroom/SKILL.md` | Classroom and lesson workflows across educator types. |
+| Flexible tutoring | `.agents/skills/tutoring-workflows/SKILL.md` | One-to-one/group sessions and non-institutional teaching. |
+| Language-learning workflows | `.agents/skills/esl-teaching/SKILL.md` | ESL activities and language-specific learner needs. |
+| Activity creation, submissions, grading, and feedback | `.agents/skills/classwork-assessment/SKILL.md` | Form and non-form classwork and evaluation. |
+| Educator-facing AI assistance | `.agents/skills/ai-assistant/SKILL.md` | AI-generated teaching/assessment drafts and human review. |
+| Authentication UX and security-conscious states | `.agents/skills/owlio-authentication/SKILL.md` | Registration, login, verification, and recovery UI. |
+| Local onboarding wizard | `.agents/skills/owlio-onboarding/SKILL.md` | Entity selection, profile setup, validation, and local completion. |
+| Calendar, schedules, and deadlines | `.agents/skills/schedule-calendar/SKILL.md` | Personal, classroom, and tutoring time workflows. |
+| Learning resources | `.agents/skills/learning-materials/SKILL.md` | Personal, shared, classroom, and lesson materials. |
+| Classroom/session attendance | `.agents/skills/attendance/SKILL.md` | Attendance UX and educator-controlled records. |
+| Discussions, announcements, polls, and alerts | `.agents/skills/communication-notifications/SKILL.md` | Contextual communication and notification workflows. |
+| Progress summaries and exports | `.agents/skills/learner-progress-reporting/SKILL.md` | Personal progress, educator insights, and authorized reports. |
 
-The skills refer to `OWLIO_FRONTEND_GUIDE.md`, which is not present in this repository snapshot. Do not assume that file or any service/tree described only by a skill exists. Current source, package scripts, this guide, and explicit owner/backend contracts take precedence.
+Verify skill guidance against current source because role contracts, API capabilities, and product direction can change. Do not assume a feature, service, endpoint, or permission exists merely because a skill describes the planned workflow. Current source, this guide, and explicit owner/backend contracts take precedence.
 
 ## 6. UI and implementation invariants
 
