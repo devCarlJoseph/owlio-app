@@ -14,12 +14,12 @@ export function SubjectWorkspace() {
           Everything you keep around a subject, all personal.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-3 sm:grid-cols-3">
+      <CardContent className="grid gap-2">
         {subjectShortcutLinks.map(({ label, description, href, icon: Icon }) => (
           <Link
             key={href}
             to={href}
-            className="flex items-start gap-3 rounded-xl bg-slate-50 p-3 outline-none transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="flex items-start gap-3 rounded-xl bg-slate-50 p-3.5 outline-none transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
               <Icon className="size-4" aria-hidden="true" />

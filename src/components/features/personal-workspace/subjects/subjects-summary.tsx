@@ -31,12 +31,9 @@ export function SubjectsSummary({ totals }: SubjectsSummaryProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-1 sm:grid-cols-2 xl:grid-cols-4">
+      <CardContent className="grid gap-1 sm:grid-cols-2">
         {subjectSummaryTiles.map(({ label, icon: Icon }, index) => (
-          <div
-            key={label}
-            className="flex items-center gap-3 rounded-xl px-2 py-2 xl:border-l xl:border-slate-100 xl:first:border-l-0 xl:first:pl-0"
-          >
+          <div key={label} className="flex items-center gap-3 rounded-xl bg-slate-50/60 px-3 py-2">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
               <Icon className="size-4" aria-hidden="true" />
             </span>

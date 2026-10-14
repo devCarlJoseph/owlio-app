@@ -60,9 +60,11 @@ export function SubjectsView() {
 
       <SampleDataNotice />
 
-      <SubjectsSummary totals={totals} />
+      <div className="grid gap-5 lg:grid-cols-2">
+        <SubjectsSummary totals={totals} />
 
-      <SubjectWorkspace />
+        <SubjectWorkspace />
+      </div>
 
       <Card className="border border-slate-200 bg-white shadow-sm ring-0">
           <CardHeader>
