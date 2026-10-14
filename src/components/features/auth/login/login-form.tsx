@@ -39,7 +39,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
           <Link to="/forgot-password" className={`text-sm ${authLinkClassName} font-medium`}>Forgot password?</Link>
         </div>
       </FieldGroup>
-      <Button type="submit" className={authPrimaryButtonClassName}>Log in</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Signing in…' : 'Log in'}</Button>
       <p className="text-center text-sm text-slate-500">
         Don’t have an account? <Link to="/register" className={authLinkClassName}>Sign up</Link>
       </p>

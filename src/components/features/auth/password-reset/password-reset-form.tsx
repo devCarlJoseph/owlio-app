@@ -18,7 +18,7 @@ export function PasswordResetForm({ onSubmit }: PasswordResetFormProps) {
       <PasswordField id="resetPassword" label="New password" placeholder="Create a new password" autoComplete="new-password" registration={form.register("password")} error={form.formState.errors.password?.message} />
       <PasswordGuidance />
       <PasswordField id="resetPasswordConfirmation" label="Confirm new password" placeholder="Confirm your new password" autoComplete="new-password" registration={form.register("passwordConfirmation")} error={error} />
-      <Button type="submit" className={authPrimaryButtonClassName}>Set new password</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Updating…' : 'Set new password'}</Button>
     </form>
   )
 }

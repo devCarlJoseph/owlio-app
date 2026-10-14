@@ -45,7 +45,7 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
           <FieldError id="acceptTerms-error" errors={[errors.acceptTerms]} />
         </div>
       </FieldGroup>
-      <Button type="submit" className={authPrimaryButtonClassName}>Create account</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Creating account…' : 'Create account'}</Button>
       <p className="text-center text-sm text-slate-500">
         Already have an account? <Link to="/login" className={authLinkClassName}>Log in</Link>
       </p>

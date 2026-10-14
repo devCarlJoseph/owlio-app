@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Bell, Menu, Search } from "lucide-react"
+import { Bell, LogOut, Menu, Search } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { getDashboardNavigation, getDashboardPageTitle } from "@/components/common/dashboard-navigation"
+import { useAuthSession } from "@/components/features/auth/auth-session-context"
+import { getApiErrorMessage } from "@/services/api/api-error"
 
 export default function PlatformLayout() {
   const [collapsed, setCollapsed] = useState(false)
@@ -15,6 +17,9 @@ export default function PlatformLayout() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { user, signOut } = useAuthSession()
+  const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState<string | null>(null)
   const pageTitle = getDashboardPageTitle(pathname)
   const navigationItems = getDashboardNavigation(pathname).flatMap(({ label: group, items }) =>
     items.map((item) => ({ ...item, group }))
@@ -28,6 +33,8 @@ export default function PlatformLayout() {
     month: "long",
     year: "numeric",
   }).format(new Date())
+  const userInitials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'OW'
+  const userRoleLabel = user?.roles.includes('STUDENT') ? 'Student account' : 'Educator account'
   const isMacPlatform = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
   const searchShortcut = isMacPlatform ? "Meta+K" : "Control+K"
   const searchShortcutLabel = isMacPlatform ? "⌘" : "Ctrl"
@@ -49,6 +56,19 @@ export default function PlatformLayout() {
     window.addEventListener("keydown", handleSearchShortcut)
     return () => window.removeEventListener("keydown", handleSearchShortcut)
   }, [])
+
+  const handleSignOut = async () => {
+    setSigningOut(true)
+    setSignOutError(null)
+    try {
+      await signOut()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      setSignOutError(getApiErrorMessage(error, 'Could not sign out. Please try again.'))
+    } finally {
+      setSigningOut(false)
+    }
+  }
 
   return (
     <div className="flex min-h-svh bg-slate-50">
@@ -144,16 +164,21 @@ export default function PlatformLayout() {
             <div className="hidden h-8 w-px bg-slate-200 sm:block" />
             <div className="flex min-w-0 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1.5 pr-3">
               <Avatar size="sm" className="size-8">
-                <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-800">OW</AvatarFallback>
+                <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-800">{userInitials}</AvatarFallback>
               </Avatar>
               <div className="hidden min-w-0 md:block">
-                <p className="truncate text-xs font-semibold text-slate-800">Your workspace</p>
-                <p className="truncate text-[10px] text-slate-500">Learning account</p>
+                <p className="truncate text-xs font-semibold text-slate-800">{user?.name}</p>
+                <p className="truncate text-[10px] text-slate-500">{userRoleLabel}</p>
               </div>
             </div>
+            <Button type="button" variant="ghost" size="sm" disabled={signingOut} onClick={() => void handleSignOut()}>
+              <LogOut aria-hidden="true" />
+              <span className="hidden sm:inline">{signingOut ? 'Signing out…' : 'Sign out'}</span>
+            </Button>
           </div>
         </header>
         <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8">
+          {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
           <Outlet />
         </main>
       </div>

@@ -27,7 +27,7 @@ The app is a client-rendered React/TypeScript SPA built with Vite. The package m
 | `shadcn`, `components.json` | shadcn component-generation/configuration tooling and local component style metadata. The checked-in UI is project-owned and built on Base UI. |
 | `lucide-react`, `tech-stack-icons` | Lucide interface icons; `tech-stack-icons` supplies the Google brand mark in the login preview, not an OAuth integration. |
 | `react-hook-form`, `@hookform/resolvers`, `zod` | Form state and client-side schemas/resolvers, used by auth and onboarding. Server validation remains authoritative when backend integration exists. |
-| `axios` | HTTP client instance in `src/lib/axios.ts`; its base URL comes from `VITE_API_URL` with a localhost fallback. Current feature forms do not call auth services. |
+| `axios` | HTTP client instance in `src/lib/axios.ts`; its base URL comes from `VITE_API_URL` with a localhost fallback and `withCredentials` enabled. `src/services/api/auth.service.ts` calls the v1 auth API and maintains the CSRF token in memory. |
 | `cn`, `clsx`, `tailwind-merge`, `class-variance-authority` | Class composition/merging and variants. Follow the import pattern in the neighboring component; avoid adding another class helper. |
 | `cmdk`, `input-otp` | Command and OTP UI primitives in `src/components/ui`. |
 | `@tanstack/react-query`, `date-fns`, `@shadcn/react` | Installed in `package.json`, but no direct source imports were found in this snapshot. Do not assume they are part of an active data flow. |
@@ -112,30 +112,30 @@ Routes are defined in `src/main.tsx`:
 |---|---|---|
 | `/` | `src/pages/App.tsx` | Placeholder heading. |
 | `/onboarding` | `OnboardingView` in `src/components/features/onboarding/` | Local React Hook Form wizard; the route passes `needsOnboarding={true}` explicitly. This is not server-driven onboarding gating. |
-| `/register` | Registration view/form/schema | UI and client validation only; current view passes a no-op submit handler. |
-| `/login` | Login view/form/schema | UI only; current view passes a no-op submit handler. The Google mark/button is not OAuth. |
-| `/email-verification` | Verification/resend view | UI states only; token presence is read from the query string but is not verified by a backend here. |
-| `/forgot-password` | Recovery form | UI only; current submit handler is a no-op. |
-| `/password-reset` | Password-reset form when a `token` query parameter exists; otherwise a request-link CTA | UI only; token presence is not validation and current submit handler is a no-op. |
-| `/students/*`, `/educators/*`, `/tutors/*`, `/esl/*` | Role-specific and role-prefixed shared pages inside `PlatformLayout` | Feature-specific UI scaffolds and empty states; no dashboard data services are wired. See the route/file map in section 3. |
+| `/register` | Registration view/form/schema | Calls `POST /api/v1/auth/register`; accepted account types are `student` and `educator`. Successful registration proceeds to email verification. |
+| `/login` | Login view/form/schema | Calls `POST /api/v1/auth/login`; JWT/refresh cookies are HttpOnly and the in-memory auth session is established. Google mark/button remains a visual placeholder, not OAuth. |
+| `/email-verification` | Verification/resend view | Reads a verification token from the email-link query, removes it from the visible URL, then posts it to the API; resend calls the API. |
+| `/forgot-password` | Recovery form | Calls `POST /api/v1/auth/forgot-password` and shows the generic account-safe response. |
+| `/password-reset` | Password-reset form when a `token` query parameter exists; otherwise a request-link CTA | Captures and removes the token from the URL, then posts the new password to the API. |
+| `/students/*`, `/educators/*`, `/tutors/*`, `/esl/*` | Role-specific and role-prefixed shared pages inside `PlatformLayout` | Protected by the frontend auth-session check; feature-specific pages remain UI scaffolds with no dashboard data services wired. Frontend guards are not backend authorization. See the route/file map in section 3. |
 | `/auth/*` | `AuthRouteRedirect` compatibility handler | Redirects known legacy auth URLs to canonical top-level paths and preserves search/hash; unknown `/auth/*` paths return to `/`. |
 
 The authentication views use `AuthShowcaseLayout` and `AuthShowcase`. Pass the correct `AuthShowcaseContext` (`login`, `register`, `forgot-password`, `email-verification`, or `password-reset`). The owl/art panel stays shared; page-specific carousel/guide copy lives in `auth-showcase-content.ts`. Preserve each left-side page's own heading, copy, and form.
 
-Current auth navigation is navbar → `/login` or `/register`; login links to `/forgot-password` and `/register`; forgot-password, password-reset, and email-verification screens link back to `/login`. Password-reset without a `token` offers a link back to recovery. These are navigation affordances only: every current auth submit handler is a no-op, the Google button is not OAuth, email tokens are not verified, and no registration→verification→authenticated transition is implemented.
+Current auth navigation is navbar → `/login` or `/register`; login links to `/forgot-password` and `/register`; forgot-password, password-reset, and email-verification screens link back to `/login`. Password-reset without a `token` offers a link back to recovery. Auth forms now call the backend v1 auth API; successful registration proceeds to verification, verification/reset query tokens are consumed through API requests, and login/logout update the in-memory session context. The Google button remains a visual placeholder, not OAuth. Onboarding remains a local-only wizard.
 
 Onboarding's current UX is a four-step local wizard: entity selection → profile basics → entity details → review → local Done screen. `onboarding-view.tsx` owns step state and navigation; constants/types/schemas and step components live beside it. Finish currently changes local state after a short delay; it does not save to an API or browser storage.
 
 ### Important role-contract mismatch
 
-The current registration selector/schema uses `student`, `teacher`, and `other`; onboarding uses `student`, `educator`, and `others` (with tutor/ESL/freelance subtypes). These do not match. Do not silently normalize or expand role values. Confirm the intended product/backend contract before connecting registration, onboarding, dashboard routing, or authorization.
+Registration now uses `student` and `educator`, matching the v1 auth API. Onboarding still uses `student`, `educator`, and `others` with tutor/ESL/freelance subtypes; those subtypes are not persisted by authentication. Do not infer or route educator subtypes until the backend profile contract is defined. Frontend route guards are UX only; resource authorization remains a backend responsibility.
 
 ### API foundation and security
 
-`src/services/api/` currently contains API types, error extraction, and an API health request. `src/lib/axios.ts` configures Axios with `VITE_API_URL` and `withCredentials`; there is no auth service, server-session provider, or role-aware authorization layer in the current frontend. Do not describe the auth/onboarding UI as API-backed or protected.
+`src/services/api/` contains API types, error extraction, health, and authentication services. `src/lib/axios.ts` configures Axios with `VITE_API_URL` and `withCredentials`. `AuthSessionProvider` restores the user through `/me` and refresh, auth mutations use the CSRF header and HttpOnly cookies, and dashboard routes are guarded against anonymous access. These are frontend session/UX controls only; they do not replace backend authorization. Onboarding remains local-only, and dashboard feature data is still not API-backed.
 
 - Never expose secrets in source, documentation, client-side environment variables, logs, commits, or screenshots. Never inspect `.env` values during routine work.
-- Verification/reset tokens are sensitive. Do not log, render, persist, or send tokens except through an approved API flow; preserve query parameters during the existing legacy URL redirect.
+- Verification/reset tokens are sensitive. Read tokens from approved email-link query parameters, remove them from the visible URL, send them only in the corresponding API request body, and never log or store them in local storage. Preserve query parameters through the legacy auth redirect so email links continue to work.
 - Client-side role selection, form validation, route visibility, and onboarding guards are UX only. Backend authorization must enforce access when API integration is implemented.
 - Keep error copy generic where account existence could be disclosed. Never display raw server payloads or stack traces to users.
 

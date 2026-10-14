@@ -24,7 +24,7 @@ export function ForgotPasswordForm({ onSubmit }: ForgotPasswordFormProps) {
           <FieldError id="forgotEmail-error" errors={[error]} />
         </div>
       </FieldGroup>
-      <Button type="submit" className={authPrimaryButtonClassName}>Send reset instructions</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Sending…' : 'Send reset instructions'}</Button>
       <p className="text-center text-sm text-slate-500">
         Remembered your password? <Link to="/login" className={authLinkClassName}>Log in</Link>
       </p>

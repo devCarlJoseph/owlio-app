@@ -1,12 +1,11 @@
-import { GraduationCap, School, Users } from "lucide-react"
+import { GraduationCap, School } from "lucide-react"
 import { Controller, useFormContext } from "react-hook-form"
 import { FieldError } from "@/components/ui/field"
 import type { RegisterValues } from "./register.schema"
 
 const accountTypes = [
   { value: "student", label: "Student", description: "For learners", Icon: GraduationCap },
-  { value: "teacher", label: "Teacher", description: "For classrooms", Icon: School },
-  { value: "other", label: "Other", description: "Tutors, ESL teachers & more", Icon: Users },
+  { value: "educator", label: "Educator", description: "Teachers, tutors, and ESL educators", Icon: School },
 ] as const
 
 export function AccountTypeSelector() {
@@ -20,7 +19,7 @@ export function AccountTypeSelector() {
         control={form.control}
         name="accountType"
         render={({ field }) => (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {accountTypes.map(({ value, label, description, Icon }) => (
               <label
                 key={value}

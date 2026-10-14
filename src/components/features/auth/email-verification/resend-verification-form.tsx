@@ -23,7 +23,7 @@ export function ResendVerificationForm({ onSubmit }: ResendVerificationFormProps
           <FieldError id="verificationEmail-error" errors={[error]} />
         </div>
       </FieldGroup>
-      <Button type="submit" className={authPrimaryButtonClassName}>Resend verification email</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Sending…' : 'Resend verification email'}</Button>
     </form>
   )
 }

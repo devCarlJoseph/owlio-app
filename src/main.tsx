@@ -37,11 +37,14 @@ import CommunicationPage from "@/pages/dashboard/communication";
 import NotificationsPage from "@/pages/dashboard/notifications";
 import ProgressPage from "@/pages/dashboard/progress";
 import AiAssistantPage from "@/pages/dashboard/ai-assistant";
-import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
+import { AuthRouteRedirect } from "@/components/common/auth-route-redirect"
+import { AuthSessionProvider } from "@/components/features/auth/auth-session-provider"
+import { RequireAuth } from "@/components/features/auth/require-auth";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
-    <Routes>
+    <AuthSessionProvider>
+      <Routes>
       <Route path="/onboarding" element={<OnboardingPage />} />
 
       {/*Auth Pages */}
@@ -53,7 +56,7 @@ createRoot(document.getElementById("root")!).render(
       <Route path="/auth/*" element={<AuthRouteRedirect />} />
 
       {/*App Pages */}
-      <Route element={<PlatformLayout />}>
+      <Route element={<RequireAuth><PlatformLayout /></RequireAuth>}>
         <Route path="/students">
           <Route index element={<StudentsPage />} />
           <Route path="subjects" element={<StudentSubjectsPage />} />
@@ -113,6 +116,7 @@ createRoot(document.getElementById("root")!).render(
       </Route>
 
       <Route path="/" element={<HomePage />} />
-    </Routes>
+      </Routes>
+    </AuthSessionProvider>
   </BrowserRouter>,
 );

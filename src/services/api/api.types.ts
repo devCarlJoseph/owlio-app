@@ -9,20 +9,40 @@ export type ApiHealth = {
   timestamp: string
 }
 
+export type AuthRole = "STUDENT" | "EDUCATOR"
+
 export type AuthUser = {
-  id: number
+  id: string
   email: string
-  name: string | null
-  status: string
-  roles: string[]
+  name: string
+  status: "PENDING_VERIFICATION" | "ACTIVE" | "SUSPENDED"
+  emailVerifiedAt: string | null
+  roles: AuthRole[]
+  createdAt: string
 }
 
 export type AuthMessage = {
   message: string
-  email?: string
   developmentActionUrl?: string
+  csrfToken?: string
 }
 
 export type AuthSession = {
   user: AuthUser
+  csrfToken: string
+}
+
+export type RegisterRequest = {
+  name: string
+  email: string
+  accountType: "student" | "educator"
+  password: string
+  confirmPassword: string
+  termsAccepted: true
+}
+
+export type LoginRequest = {
+  email: string
+  password: string
+  rememberMe: boolean
 }
