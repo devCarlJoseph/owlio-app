@@ -2,13 +2,14 @@
 
 ## Purpose and status
 
-This document proposes a staged plan for turning the classroom meeting-room preview into a real-time meeting. It is a design plan, not an implemented API contract.
+This document describes meeting integration considerations. Its Socket.IO signaling proposal is not the current implementation or an approved backend contract.
 
 Current frontend state:
 
-- `src/pages/dashboard/classroom/meeting-room.tsx` is a local UI prototype. It can preview the local camera and screen, and its participants/chat are mock or browser-local only.
-- The current repository is the Owlio React/Vite frontend. No Socket.IO client/server, meeting API, signaling service, STUN/TURN configuration, or remote media flow is currently wired in.
-- `OWLIO_PRODUCT_PLAN.md` currently lists full video conferencing as outside the MVP. Confirm that priority with the product owner before starting production integration.
+- `src/pages/dashboard/classroom/meeting-room.tsx` connects to the existing meeting API and LiveKit client for room media and connected-participant presence. `src/services/api/meeting.service.ts` calls the existing create, join, and end operations.
+- The frontend also uses LiveKit reliable data packets for ephemeral in-room chat and hand-raise state. These interactions are not persisted and do not represent official classroom communication or attendance.
+- This repository contains the frontend contract only; backend authorization, token grants, and LiveKit deployment must be verified with the backend. Data publishing depends on the issued token allowing it.
+- `OWLIO_PRODUCT_PLAN.md` lists full video conferencing as outside the MVP. The current implementation exists in source, but its product priority and production readiness still require owner/backend confirmation.
 
 ## Recommended architecture
 

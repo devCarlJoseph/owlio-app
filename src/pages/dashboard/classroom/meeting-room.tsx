@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import {
   ArrowLeft,
+  Hand,
   Copy,
+  MessageCircle,
   Mic,
   MicOff,
   MonitorUp,
   PhoneOff,
+  Send,
   Users,
   Video,
   VideoOff,
+  X,
 } from 'lucide-react'
 import {
   Participant as LiveKitParticipant,
@@ -29,6 +33,37 @@ import {
 } from '@/services/api/meeting.service'
 
 type RoomStatus = 'idle' | 'joining' | 'connected' | 'reconnecting' | 'ended'
+type MeetingPanel = 'chat' | 'people'
+type MeetingSignal =
+  | { type: 'chat'; id: string; text: string }
+  | { type: 'hand'; raised: boolean }
+type MeetingMessage = { id: string; identity: string; text: string; sentAt: number }
+
+function decodeMeetingSignal(payload: Uint8Array): MeetingSignal | null {
+  if (payload.byteLength > 2048) return null
+
+  try {
+    const value: unknown = JSON.parse(new TextDecoder().decode(payload))
+    if (!value || typeof value !== 'object') return null
+
+    const signal = value as Record<string, unknown>
+    if (signal.type === 'chat'
+      && typeof signal.id === 'string'
+      && signal.id.length <= 100
+      && typeof signal.text === 'string'
+      && signal.text.trim().length > 0
+      && signal.text.length <= 500) {
+      return { type: 'chat', id: signal.id, text: signal.text.trim() }
+    }
+    if (signal.type === 'hand' && typeof signal.raised === 'boolean') {
+      return { type: 'hand', raised: signal.raised }
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
 
 function getRoomId(value: string) {
   try {
@@ -55,15 +90,59 @@ export default function MeetingRoomPage() {
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [screenOn, setScreenOn] = useState(false)
+  const [raisedHands, setRaisedHands] = useState<Record<string, boolean>>({})
+  const [messages, setMessages] = useState<MeetingMessage[]>([])
+  const [chatDraft, setChatDraft] = useState('')
+  const [chatSending, setChatSending] = useState(false)
+  const [handUpdating, setHandUpdating] = useState(false)
+  const [activePanel, setActivePanel] = useState<MeetingPanel | null>(null)
+  const [unreadMessages, setUnreadMessages] = useState(0)
   const [revision, setRevision] = useState(0)
   const [busy, setBusy] = useState(false)
   const roomRef = useRef<Room | null>(null)
+  const activePanelRef = useRef<MeetingPanel | null>(null)
+  const seenMessageIdsRef = useRef(new Set<string>())
   const isEducator = user?.roles.includes('EDUCATOR') ?? false
+
+  useEffect(() => {
+    activePanelRef.current = activePanel
+  }, [activePanel])
 
   useEffect(() => {
     if (!room) return
 
     const refresh = () => setRevision((current) => current + 1)
+    const participantLeft = (participant: LiveKitParticipant) => {
+      refresh()
+      setRaisedHands((current) => {
+        if (!current[participant.identity]) return current
+        const next = { ...current }
+        delete next[participant.identity]
+        return next
+      })
+    }
+    const receiveData = (payload: Uint8Array, participant?: LiveKitParticipant) => {
+      if (!participant) return
+      const signal = decodeMeetingSignal(payload)
+      if (!signal) return
+
+      if (signal.type === 'hand') {
+        setRaisedHands((current) => ({ ...current, [participant.identity]: signal.raised }))
+        return
+      }
+
+      if (seenMessageIdsRef.current.has(signal.id)) return
+      seenMessageIdsRef.current.add(signal.id)
+      setMessages((current) => [...current, {
+        id: signal.id,
+        identity: participant.identity,
+        text: signal.text,
+        sentAt: Date.now(),
+      }].slice(-100))
+      if (activePanelRef.current !== 'chat') {
+        setUnreadMessages((current) => current + 1)
+      }
+    }
     const reconnecting = () => setStatus('reconnecting')
     const reconnected = () => setStatus('connected')
     const disconnected = () => {
@@ -73,15 +152,21 @@ export default function MeetingRoomPage() {
       setMicOn(false)
       setCameraOn(false)
       setScreenOn(false)
+      setRaisedHands({})
+      setMessages([])
+      setChatDraft('')
+      setUnreadMessages(0)
+      seenMessageIdsRef.current.clear()
     }
 
     room
       .on(RoomEvent.ParticipantConnected, refresh)
-      .on(RoomEvent.ParticipantDisconnected, refresh)
+      .on(RoomEvent.ParticipantDisconnected, participantLeft)
       .on(RoomEvent.TrackSubscribed, refresh)
       .on(RoomEvent.TrackUnsubscribed, refresh)
       .on(RoomEvent.TrackMuted, refresh)
       .on(RoomEvent.TrackUnmuted, refresh)
+      .on(RoomEvent.DataReceived, receiveData)
       .on(RoomEvent.Reconnecting, reconnecting)
       .on(RoomEvent.Reconnected, reconnected)
       .on(RoomEvent.Disconnected, disconnected)
@@ -89,11 +174,12 @@ export default function MeetingRoomPage() {
     return () => {
       room
         .off(RoomEvent.ParticipantConnected, refresh)
-        .off(RoomEvent.ParticipantDisconnected, refresh)
+        .off(RoomEvent.ParticipantDisconnected, participantLeft)
         .off(RoomEvent.TrackSubscribed, refresh)
         .off(RoomEvent.TrackUnsubscribed, refresh)
         .off(RoomEvent.TrackMuted, refresh)
         .off(RoomEvent.TrackUnmuted, refresh)
+        .off(RoomEvent.DataReceived, receiveData)
         .off(RoomEvent.Reconnecting, reconnecting)
         .off(RoomEvent.Reconnected, reconnected)
         .off(RoomEvent.Disconnected, disconnected)
@@ -135,6 +221,12 @@ export default function MeetingRoomPage() {
     setError('')
     setMessage('')
     setStatus('joining')
+    setMessages([])
+    setChatDraft('')
+    setRaisedHands({})
+    setUnreadMessages(0)
+    setActivePanel(null)
+    seenMessageIdsRef.current.clear()
     setSearchParams({ room: normalizedRoomId })
 
     const nextRoom = new Room({ adaptiveStream: true, dynacast: true })
@@ -169,6 +261,11 @@ export default function MeetingRoomPage() {
     setMicOn(false)
     setCameraOn(false)
     setScreenOn(false)
+    setRaisedHands({})
+    setMessages([])
+    setChatDraft('')
+    setUnreadMessages(0)
+    seenMessageIdsRef.current.clear()
     if (currentRoom) await currentRoom.disconnect(true)
   }
 
@@ -219,6 +316,68 @@ export default function MeetingRoomPage() {
     } catch {
       setError('Screen sharing was unavailable or cancelled.')
     }
+  }
+
+  const publishSignal = async (signal: MeetingSignal) => {
+    if (!room) return
+    await room.localParticipant.publishData(
+      new TextEncoder().encode(JSON.stringify(signal)),
+      { reliable: true, topic: 'owlio-meeting' },
+    )
+  }
+
+  const toggleRaisedHand = async () => {
+    if (!room || handUpdating) return
+    const raised = !raisedHands[room.localParticipant.identity]
+    setError('')
+    setHandUpdating(true)
+    try {
+      await publishSignal({ type: 'hand', raised })
+      setRaisedHands((current) => ({ ...current, [room.localParticipant.identity]: raised }))
+    } catch {
+      setError('Could not update your raised hand. The meeting service may not allow room messages.')
+    } finally {
+      setHandUpdating(false)
+    }
+  }
+
+  const sendChatMessage = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!room || chatSending) return
+    const text = chatDraft.trim()
+    if (!text) return
+    if (text.length > 500) {
+      setError('Messages must be 500 characters or fewer.')
+      return
+    }
+
+    const messageId = crypto.randomUUID()
+    setError('')
+    setChatSending(true)
+    try {
+      await publishSignal({ type: 'chat', id: messageId, text })
+      seenMessageIdsRef.current.add(messageId)
+      setMessages((current) => [...current, {
+        id: messageId,
+        identity: room.localParticipant.identity,
+        text,
+        sentAt: Date.now(),
+      }].slice(-100))
+      setChatDraft('')
+    } catch {
+      setError('Could not send your message. The meeting service may not allow room messages.')
+    } finally {
+      setChatSending(false)
+    }
+  }
+
+  const openPanel = (panel: MeetingPanel) => {
+    setActivePanel((current) => {
+      const next = current === panel ? null : panel
+      activePanelRef.current = next
+      if (next === 'chat') setUnreadMessages(0)
+      return next
+    })
   }
 
   const copyInvite = async () => {
@@ -276,10 +435,11 @@ export default function MeetingRoomPage() {
 
       {room ? (
         <section className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-3 sm:p-5">
             <div className="flex shrink-0 items-center justify-between gap-3 text-xs text-slate-400">
               <span className="inline-flex items-center gap-2"><Users aria-hidden="true" className="size-4" />{participants.length} connected</span>
-              <span>{status === 'reconnecting' ? 'Restoring your connection…' : 'Audio and video are live'}</span>
+              <span>{status === 'reconnecting' ? 'Restoring your connection...' : 'Meeting room is live'}</span>
             </div>
             <div className="grid min-h-0 flex-1 auto-rows-fr gap-3 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3">
               {participants.map((participant) => (
@@ -287,18 +447,126 @@ export default function MeetingRoomPage() {
                   key={participant.identity}
                   participant={participant}
                   local={participant.identity === room.localParticipant.identity}
+                  raised={Boolean(raisedHands[participant.identity])}
                   updateKey={revision}
                 />
               ))}
             </div>
             {error && <p role="alert" className="shrink-0 text-center text-sm text-rose-300">{error}</p>}
           </div>
+
+          {activePanel && (
+            <aside
+              aria-label={activePanel === 'chat' ? 'Meeting chat' : 'Meeting participants'}
+              className="flex max-h-[42vh] min-h-56 shrink-0 flex-col border-t border-white/10 bg-[#192220] lg:h-auto lg:max-h-none lg:min-h-0 lg:w-80 lg:border-l lg:border-t-0"
+            >
+              <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+                <h2 className="text-sm font-semibold">
+                  {activePanel === 'chat' ? 'In-call messages' : `People (${participants.length})`}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => openPanel(activePanel)}
+                  aria-label="Close meeting panel"
+                  className="flex size-8 items-center justify-center rounded-full text-slate-300 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              </div>
+
+              {activePanel === 'chat' ? (
+                <>
+                  <div role="log" aria-label="Meeting messages" aria-live="polite" aria-relevant="additions" className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+                    {messages.length === 0 ? (
+                      <p className="py-8 text-center text-xs leading-5 text-slate-400">
+                        No messages yet. Messages are only available while this room is connected.
+                      </p>
+                    ) : messages.map((chatMessage) => {
+                      const sender = participants.find((person) => person.identity === chatMessage.identity)
+                      const ownMessage = chatMessage.identity === room.localParticipant.identity
+                      return (
+                        <article key={chatMessage.id} className={`max-w-[90%] ${ownMessage ? 'ml-auto text-right' : ''}`}>
+                          <div className="mb-1 flex items-center gap-2 text-[10px] text-slate-400">
+                            <span className="font-medium text-slate-200">
+                              {ownMessage ? 'You' : sender?.name || 'Participant'}
+                            </span>
+                            <time dateTime={new Date(chatMessage.sentAt).toISOString()}>
+                              {new Date(chatMessage.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                            </time>
+                          </div>
+                          <p className={`inline-block whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-left text-xs leading-5 ${ownMessage ? 'bg-[#d4a95e] text-[#172c27]' : 'bg-white/8 text-slate-100'}`}>
+                            {chatMessage.text}
+                          </p>
+                        </article>
+                      )
+                    })}
+                  </div>
+                  <form onSubmit={(event) => void sendChatMessage(event)} className="flex shrink-0 gap-2 border-t border-white/10 p-3">
+                    <label htmlFor="meeting-chat-message" className="sr-only">Write a meeting message</label>
+                    <input
+                      id="meeting-chat-message"
+                      value={chatDraft}
+                      maxLength={500}
+                      onChange={(event) => setChatDraft(event.target.value)}
+                      placeholder="Write a message..."
+                      className="min-h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!chatDraft.trim() || chatSending}
+                      aria-label="Send message"
+                      className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f1c078] text-[#1e332d] transition hover:bg-[#f6ce91] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    >
+                      <Send aria-hidden="true" className="size-4" />
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
+                  {participants.map((participant) => (
+                    <li key={participant.identity} className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-100/10 text-sm font-semibold text-emerald-100">
+                        {(participant.name || 'P').slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium text-white">
+                          {participant.name || 'Participant'}{participant.identity === room.localParticipant.identity ? ' (you)' : ''}
+                        </span>
+                        <span className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+                          {participant.isMicrophoneEnabled
+                            ? <Mic aria-hidden="true" className="size-3" />
+                            : <MicOff aria-hidden="true" className="size-3" />}
+                          {participant.isMicrophoneEnabled ? 'Microphone on' : 'Microphone off'}
+                        </span>
+                      </span>
+                      {raisedHands[participant.identity] && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#f1c078]/15 px-2 py-1 text-[10px] font-medium text-[#f6ce91]">
+                          <Hand aria-hidden="true" className="size-3" />
+                          Hand raised
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </aside>
+          )}
+        </div>
+
           <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#151d1b] px-3 py-3 sm:px-5">
             <p className="hidden text-xs text-slate-400 lg:block">{participants.length} of {room.numParticipants || participants.length} participants</p>
-            <div className="mx-auto flex items-center gap-3">
+            <div className="mx-auto flex flex-wrap items-center justify-center gap-2 sm:gap-3">
               <ControlButton label={micOn ? 'Turn microphone off' : 'Turn microphone on'} active={micOn} onClick={() => void toggleMicrophone()} icon={micOn ? <Mic /> : <MicOff />} />
               <ControlButton label={cameraOn ? 'Turn camera off' : 'Turn camera on'} active={cameraOn} onClick={() => void toggleCamera()} icon={cameraOn ? <Video /> : <VideoOff />} />
               <ControlButton label={screenOn ? 'Stop presenting' : 'Share screen'} active={screenOn} onClick={() => void toggleScreenShare()} icon={<MonitorUp />} />
+              <ControlButton label={raisedHands[room.localParticipant.identity] ? 'Lower hand' : 'Raise hand'} active={Boolean(raisedHands[room.localParticipant.identity])} disabled={handUpdating} onClick={() => void toggleRaisedHand()} icon={<Hand />} />
+              <button type="button" onClick={() => openPanel('chat')} aria-pressed={activePanel === 'chat'} aria-label={`Open chat${unreadMessages ? `, ${unreadMessages} unread` : ''}`} className={`relative flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 sm:size-12 ${activePanel === 'chat' ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}>
+                <MessageCircle aria-hidden="true" className="size-4" />
+                {unreadMessages > 0 && <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#f1c078] text-[9px] font-bold text-[#1e332d]">{Math.min(unreadMessages, 9)}</span>}
+              </button>
+              <button type="button" onClick={() => openPanel('people')} aria-pressed={activePanel === 'people'} aria-label={`Open participants, ${participants.length} connected`} className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 sm:size-12 ${activePanel === 'people' ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}>
+                <Users aria-hidden="true" className="size-4" />
+              </button>
               {isHost && <button type="button" disabled={busy} onClick={() => void endRoom()} className="h-11 rounded-full border border-rose-300/30 px-4 text-xs font-semibold text-rose-200 hover:bg-rose-400/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">End meeting</button>}
               <button type="button" onClick={() => void leaveRoom()} className="flex h-11 items-center gap-2 rounded-full bg-[#d84b4b] px-4 text-xs font-semibold text-white hover:bg-[#ec5c5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
                 <PhoneOff aria-hidden="true" className="size-4" /><span>Leave</span>
@@ -370,10 +638,12 @@ export default function MeetingRoomPage() {
 function ParticipantTile({
   participant,
   local,
+  raised,
   updateKey,
 }: {
   participant: LiveKitParticipant
   local: boolean
+  raised: boolean
   updateKey: number
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -415,6 +685,12 @@ function ParticipantTile({
           ? <AudioTrack key={publication.trackSid} track={publication.track} />
           : null
       ))}
+      {raised && (
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#f1c078] px-2.5 py-1.5 text-[10px] font-semibold text-[#1e332d] shadow-lg">
+          <Hand aria-hidden="true" className="size-3.5" />
+          Hand raised
+        </span>
+      )}
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3">
         <span className="max-w-[75%] truncate text-xs font-medium text-white">{participant.name || 'Participant'}{local ? ' · You' : ''}</span>
         <span className="rounded-full bg-black/40 p-1.5 text-white" aria-label={participant.isMicrophoneEnabled ? 'Microphone on' : 'Microphone off'}>
@@ -443,11 +719,13 @@ function AudioTrack({ track }: { track: LiveKitTrack }) {
 function ControlButton({
   label,
   active,
+  disabled = false,
   onClick,
   icon,
 }: {
   label: string
   active: boolean
+  disabled?: boolean
   onClick: () => void
   icon: ReactNode
 }) {
@@ -455,10 +733,11 @@ function ControlButton({
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label}
       aria-pressed={active}
       title={label}
-      className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 sm:size-12 ${active ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100 hover:bg-emerald-100/25' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}
+      className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 sm:size-12 ${active ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100 hover:bg-emerald-100/25' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}
     >
       {icon}
     </button>

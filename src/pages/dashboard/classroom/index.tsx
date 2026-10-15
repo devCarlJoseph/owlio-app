@@ -44,20 +44,20 @@ export default function ClassroomsPage() {
             A shared space for every lesson.
           </h2>
           <p className="mt-4 max-w-xl text-sm leading-6 text-emerald-50/75 sm:text-base">
-            Keep the classroom, learning session, and live room connected. Start with a local room preview while classroom services are being built.
+            Start a live classroom meeting, share an invite, and let learners participate with in-room chat and hand raises.
           </p>
           <Link
             to={roomPath}
             className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#f1c078] px-5 py-2.5 text-sm font-semibold text-[#1e332d] transition hover:bg-[#f6ce91] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#102c2a]"
           >
-            Open room preview
+            Open meeting room
             <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-5 text-xs text-emerald-50/65 sm:absolute sm:bottom-9 sm:right-10 sm:mt-0 sm:border-0 sm:pt-0">
-          <span className="inline-flex items-center gap-2"><Check aria-hidden="true" className="size-3.5 text-[#a8d5a2]" />Camera preview</span>
-          <span className="inline-flex items-center gap-2"><Check aria-hidden="true" className="size-3.5 text-[#a8d5a2]" />Room controls</span>
-          <span className="inline-flex items-center gap-2"><CircleHelp aria-hidden="true" className="size-3.5 text-[#a8d5a2]" />No live call yet</span>
+          <span className="inline-flex items-center gap-2"><Check aria-hidden="true" className="size-3.5 text-[#a8d5a2]" />Live audio and video</span>
+          <span className="inline-flex items-center gap-2"><Check aria-hidden="true" className="size-3.5 text-[#a8d5a2]" />Chat and hand raise</span>
+          <span className="inline-flex items-center gap-2"><CircleHelp aria-hidden="true" className="size-3.5 text-[#a8d5a2]" />Room roster only</span>
         </div>
       </section>
 

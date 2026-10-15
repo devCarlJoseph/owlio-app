@@ -1,0 +1,40 @@
+---
+name: meeting-room
+description: Build the Owlio classroom meeting-room experience with LiveKit while keeping chat, raised hands, presence, and media permissions safe and clearly scoped.
+---
+
+# Meeting Room
+
+Use this skill for the classroom meeting route and its in-call controls. The room is a live learning session, not a source of official attendance or a substitute for classroom authorization.
+
+## Current implementation
+
+- The page lives at `src/pages/dashboard/classroom/meeting-room.tsx` and is mounted below each role-prefixed classroom route.
+- `src/services/api/meeting.service.ts` creates, joins, and ends meetings through the existing API. Joining returns short-lived LiveKit credentials; `livekit-client` handles media and current room presence.
+- The backend implementation is not in this frontend repository. Confirm its contracts and permissions before adding routes, roles, or server-side behavior.
+- Chat and raised hands use small, reliable LiveKit data packets in the connected room. They are transient UI state, not persisted chat or official participation records. Do not claim delivery or retention guarantees.
+- Publishing data requires the issued LiveKit token to permit it. Surface a recoverable message when the service rejects a packet; never work around server permissions in the client.
+- The attendee list reflects LiveKit's connected participants. It is not an attendance register and must not be used to create official attendance.
+
+## Interaction and privacy rules
+
+- Keep microphone and camera disabled until the participant explicitly enables them. Request browser permissions only from those controls.
+- Derive participant identity and names from the connected room, not from message payloads. Validate and bound every received packet before rendering it.
+- Keep chat attached to the active room, clear transient room state when leaving, and do not store chat or tokens in browser storage.
+- Represent hand-raise state as a request to speak; do not treat it as a permission change or educator approval.
+- Never infer classroom membership, host authority, or educator permissions from route prefixes or hidden controls. The backend remains the authorization boundary.
+- Do not record, persist, export, or notify about meeting activity unless an approved API and privacy contract supports it.
+
+## UI and accessibility
+
+- Preserve the Owlio classroom palette (deep green, warm amber, and soft sage), Inter typography, and the existing responsive meeting stage.
+- Keep controls keyboard-operable with visible focus, accessible names, pressed state, and concise error feedback.
+- Make chat and participant panels usable on narrow viewports; announce newly received messages without moving focus.
+- Show only the current LiveKit roster. Do not insert example attendees or activity as if they were real.
+
+## Verification
+
+- Run focused ESLint for changed meeting-room files and `npm run build`.
+- Exercise two authorized clients to confirm room roster, data-packet permissions, chat, hand raise/lower, and disconnect cleanup.
+- Verify that failed publish attempts remain visible and do not falsely update local hand or chat state.
+- Treat cross-client behavior as unverified if no meeting service is available; report it rather than assuming the connection works.
