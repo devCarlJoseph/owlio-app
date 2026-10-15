@@ -42,8 +42,8 @@ async function getCsrfToken(forceRefresh = false): Promise<string> {
   return csrfRequest
 }
 
-async function postAuth<T>(path: string, body?: unknown): Promise<T> {
-  const send = (token: string) => api.post<ApiSuccess<T>>(`${authPath}${path}`, body, {
+export async function postApiWithCsrf<T>(path: string, body?: unknown): Promise<T> {
+  const send = (token: string) => api.post<ApiSuccess<T>>(path, body, {
     headers: { 'x-csrf-token': token },
   })
 
@@ -59,6 +59,10 @@ async function postAuth<T>(path: string, body?: unknown): Promise<T> {
 
   rememberCsrfToken(response.data.data)
   return response.data.data
+}
+
+async function postAuth<T>(path: string, body?: unknown): Promise<T> {
+  return postApiWithCsrf<T>(`${authPath}${path}`, body)
 }
 
 export async function getCurrentUser(): Promise<AuthUser> {
