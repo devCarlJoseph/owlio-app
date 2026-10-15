@@ -396,7 +396,7 @@ export default function MeetingRoomPage() {
   const isHost = Boolean(user && joinInfo?.hostId === user.id)
 
   return (
-    <main className="fixed inset-0 z-50 flex min-h-svh flex-col overflow-hidden bg-slate-50 text-slate-900">
+    <main className="fixed inset-0 z-50 flex h-dvh min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-900">
       <header className="flex min-h-[4.5rem] shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Link
@@ -434,14 +434,14 @@ export default function MeetingRoomPage() {
       </header>
 
       {room ? (
-        <section className="flex min-h-0 flex-1 flex-col">
+        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-3 sm:p-5">
             <div className="flex shrink-0 items-center justify-between gap-3 text-xs text-slate-500">
               <span className="inline-flex items-center gap-2"><Users aria-hidden="true" className="size-4" />{participants.length} connected</span>
               <span>{status === 'reconnecting' ? 'Restoring your connection...' : 'Meeting room is live'}</span>
             </div>
-            <div className="grid min-h-0 flex-1 auto-rows-fr gap-3 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid min-h-0 flex-1 auto-rows-[minmax(9rem,1fr)] gap-3 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3">
               {participants.map((participant) => (
                 <ParticipantTile
                   key={participant.identity}
@@ -458,7 +458,7 @@ export default function MeetingRoomPage() {
           {activePanel && (
             <aside
               aria-label={activePanel === 'chat' ? 'Meeting chat' : 'Meeting participants'}
-              className="flex max-h-[42vh] min-h-56 shrink-0 flex-col border-t border-slate-200 bg-white lg:h-auto lg:max-h-none lg:min-h-0 lg:w-80 lg:border-l lg:border-t-0"
+              className="absolute inset-x-2 bottom-2 z-10 flex max-h-[min(52vh,28rem)] min-h-0 flex-col rounded-xl border border-slate-200 bg-white shadow-xl lg:static lg:max-h-none lg:min-h-0 lg:w-80 lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:border-l lg:shadow-none"
             >
               <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-slate-200 px-4">
                 <h2 className="text-sm font-semibold text-slate-900">
@@ -662,7 +662,7 @@ function ParticipantTile({
   }, [videoTrack, updateKey])
 
   return (
-    <article className="relative min-h-56 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+    <article className="relative min-h-36 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
       {videoTrack ? (
         <video
           ref={videoRef}
