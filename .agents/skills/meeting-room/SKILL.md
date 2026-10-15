@@ -21,6 +21,7 @@ Use this skill for the classroom meeting route and its in-call controls. The roo
 - Keep microphone and camera disabled until the participant explicitly enables them. Request browser permissions only from those controls.
 - Derive participant identity and names from the connected room, not from message payloads. Validate and bound every received packet before rendering it.
 - Keep chat attached to the active room, clear transient room state when leaving, and do not store chat or tokens in browser storage.
+- Participant pinning changes only the current user's layout. It must not be broadcast as a room-wide state change.
 - Represent hand-raise state as a request to speak; do not treat it as a permission change or educator approval.
 - Never infer classroom membership, host authority, or educator permissions from route prefixes or hidden controls. The backend remains the authorization boundary.
 - Do not record, persist, export, or notify about meeting activity unless an approved API and privacy contract supports it.

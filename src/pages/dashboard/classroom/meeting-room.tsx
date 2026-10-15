@@ -7,6 +7,7 @@ import {
   Mic,
   MicOff,
   MonitorUp,
+  Pin,
   PhoneOff,
   Send,
   Users,
@@ -91,6 +92,7 @@ export default function MeetingRoomPage() {
   const [cameraOn, setCameraOn] = useState(false)
   const [screenOn, setScreenOn] = useState(false)
   const [raisedHands, setRaisedHands] = useState<Record<string, boolean>>({})
+  const [pinnedParticipantIdentity, setPinnedParticipantIdentity] = useState<string | null>(null)
   const [messages, setMessages] = useState<MeetingMessage[]>([])
   const [chatDraft, setChatDraft] = useState('')
   const [chatSending, setChatSending] = useState(false)
@@ -114,6 +116,7 @@ export default function MeetingRoomPage() {
     const refresh = () => setRevision((current) => current + 1)
     const participantLeft = (participant: LiveKitParticipant) => {
       refresh()
+      setPinnedParticipantIdentity((current) => current === participant.identity ? null : current)
       setRaisedHands((current) => {
         if (!current[participant.identity]) return current
         const next = { ...current }
@@ -153,6 +156,7 @@ export default function MeetingRoomPage() {
       setCameraOn(false)
       setScreenOn(false)
       setRaisedHands({})
+      setPinnedParticipantIdentity(null)
       setMessages([])
       setChatDraft('')
       setUnreadMessages(0)
@@ -193,6 +197,12 @@ export default function MeetingRoomPage() {
   const participants = room
     ? [room.localParticipant, ...room.remoteParticipants.values()]
     : []
+  const pinnedParticipant = participants.find(
+    (participant) => participant.identity === pinnedParticipantIdentity,
+  )
+  const galleryParticipants = pinnedParticipant
+    ? participants.filter((participant) => participant.identity !== pinnedParticipant.identity)
+    : participants
 
   const createRoom = async () => {
     setBusy(true)
@@ -224,6 +234,7 @@ export default function MeetingRoomPage() {
     setMessages([])
     setChatDraft('')
     setRaisedHands({})
+    setPinnedParticipantIdentity(null)
     setUnreadMessages(0)
     setActivePanel(null)
     seenMessageIdsRef.current.clear()
@@ -262,6 +273,7 @@ export default function MeetingRoomPage() {
     setCameraOn(false)
     setScreenOn(false)
     setRaisedHands({})
+    setPinnedParticipantIdentity(null)
     setMessages([])
     setChatDraft('')
     setUnreadMessages(0)
@@ -441,17 +453,51 @@ export default function MeetingRoomPage() {
               <span className="inline-flex items-center gap-2"><Users aria-hidden="true" className="size-4" />{participants.length} connected</span>
               <span>{status === 'reconnecting' ? 'Restoring your connection...' : 'Meeting room is live'}</span>
             </div>
-            <div className="grid min-h-0 flex-1 auto-rows-[minmax(9rem,1fr)] gap-3 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3">
-              {participants.map((participant) => (
+            {pinnedParticipant ? (
+              <div className={`grid min-h-0 flex-1 gap-3 overflow-hidden ${galleryParticipants.length > 0 ? 'grid-cols-1 grid-rows-[minmax(0,1fr)_6rem] sm:grid-rows-[minmax(0,1fr)_7rem] lg:grid-cols-[minmax(0,1fr)_16rem] lg:grid-rows-1' : 'grid-cols-1 grid-rows-1'}`}>
                 <ParticipantTile
-                  key={participant.identity}
-                  participant={participant}
-                  local={participant.identity === room.localParticipant.identity}
-                  raised={Boolean(raisedHands[participant.identity])}
+                  key={pinnedParticipant.identity}
+                  participant={pinnedParticipant}
+                  local={pinnedParticipant.identity === room.localParticipant.identity}
+                  raised={Boolean(raisedHands[pinnedParticipant.identity])}
+                  pinned
+                  size="pinned"
+                  onPinToggle={() => setPinnedParticipantIdentity(null)}
                   updateKey={revision}
                 />
-              ))}
-            </div>
+                {galleryParticipants.length > 0 && (
+                  <div className="flex min-h-0 gap-3 overflow-x-auto lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
+                    {galleryParticipants.map((participant) => (
+                      <ParticipantTile
+                        key={participant.identity}
+                        participant={participant}
+                        local={participant.identity === room.localParticipant.identity}
+                        raised={Boolean(raisedHands[participant.identity])}
+                        pinned={false}
+                        size="thumbnail"
+                        onPinToggle={() => setPinnedParticipantIdentity(participant.identity)}
+                        updateKey={revision}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid min-h-0 flex-1 auto-rows-[minmax(9rem,1fr)] gap-3 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3">
+                {participants.map((participant) => (
+                  <ParticipantTile
+                    key={participant.identity}
+                    participant={participant}
+                    local={participant.identity === room.localParticipant.identity}
+                    raised={Boolean(raisedHands[participant.identity])}
+                    pinned={false}
+                    size="grid"
+                    onPinToggle={() => setPinnedParticipantIdentity(participant.identity)}
+                    updateKey={revision}
+                  />
+                ))}
+              </div>
+            )}
             {error && <p role="alert" className="shrink-0 text-center text-sm text-rose-700">{error}</p>}
           </div>
 
@@ -639,11 +685,17 @@ function ParticipantTile({
   participant,
   local,
   raised,
+  pinned,
+  size,
+  onPinToggle,
   updateKey,
 }: {
   participant: LiveKitParticipant
   local: boolean
   raised: boolean
+  pinned: boolean
+  size: 'grid' | 'pinned' | 'thumbnail'
+  onPinToggle: () => void
   updateKey: number
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -662,7 +714,7 @@ function ParticipantTile({
   }, [videoTrack, updateKey])
 
   return (
-    <article className="relative min-h-36 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+    <article className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 ${size === 'grid' ? 'min-h-36' : 'min-h-0'} ${size === 'thumbnail' ? 'h-full w-28 shrink-0 sm:w-36 lg:h-32 lg:w-full lg:shrink-0' : ''}`}>
       {videoTrack ? (
         <video
           ref={videoRef}
@@ -686,11 +738,21 @@ function ParticipantTile({
           : null
       ))}
       {raised && (
-        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1.5 text-[10px] font-semibold text-amber-800 shadow-lg">
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1.5 text-[10px] font-semibold text-amber-800 shadow-lg">
           <Hand aria-hidden="true" className="size-3.5" />
           Hand raised
         </span>
       )}
+      <button
+        type="button"
+        onClick={onPinToggle}
+        aria-label={`${pinned ? 'Unpin' : 'Pin'} ${participant.name || 'participant'} ${pinned ? 'from' : 'for'} your view`}
+        aria-pressed={pinned}
+        title={pinned ? 'Unpin from your view' : 'Pin for your view'}
+        className={`absolute right-3 top-3 flex size-9 items-center justify-center rounded-full border shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${pinned ? 'border-blue-200 bg-blue-600 text-white hover:bg-blue-700' : 'border-slate-200 bg-white/95 text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}
+      >
+        <Pin aria-hidden="true" className="size-4" />
+      </button>
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3">
         <span className="max-w-[75%] truncate text-xs font-medium text-white">{participant.name || 'Participant'}{local ? ' · You' : ''}</span>
         <span className="rounded-full bg-black/40 p-1.5 text-white" aria-label={participant.isMicrophoneEnabled ? 'Microphone on' : 'Microphone off'}>
