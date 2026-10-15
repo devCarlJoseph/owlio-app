@@ -31,6 +31,7 @@ import EslClassworkPage from "@/pages/dashboard/esl/classwork";
 import EslAttendancePage from "@/pages/dashboard/esl/attendance";
 import EslLearnersPage from "@/pages/dashboard/esl/learners";
 import ClassroomsPage from "@/pages/dashboard/classroom";
+import MeetingRoomPage from "@/pages/dashboard/classroom/meeting-room";
 import SchedulePage from "@/pages/dashboard/schedule";
 import MaterialsPage from "@/pages/dashboard/materials";
 import CommunicationPage from "@/pages/dashboard/communication";
@@ -65,6 +66,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="study-spaces" element={<StudentStudySpacesPage />} />
           <Route path="classwork" element={<StudentClassworkPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="classrooms/meeting-room" element={<MeetingRoomPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
@@ -78,6 +80,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="attendance" element={<EducatorAttendancePage />} />
           <Route path="learners" element={<EducatorLearnersPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="classrooms/meeting-room" element={<MeetingRoomPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
@@ -92,6 +95,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="attendance" element={<TutorAttendancePage />} />
           <Route path="learners" element={<TutorLearnersPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="classrooms/meeting-room" element={<MeetingRoomPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
@@ -106,6 +110,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="attendance" element={<EslAttendancePage />} />
           <Route path="learners" element={<EslLearnersPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
+          <Route path="classrooms/meeting-room" element={<MeetingRoomPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
