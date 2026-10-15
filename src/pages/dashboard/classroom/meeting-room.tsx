@@ -396,19 +396,19 @@ export default function MeetingRoomPage() {
   const isHost = Boolean(user && joinInfo?.hostId === user.id)
 
   return (
-    <main className="fixed inset-0 z-50 flex min-h-svh flex-col overflow-hidden bg-[#111817] text-white">
-      <header className="flex min-h-[4.5rem] shrink-0 items-center justify-between gap-4 border-b border-white/10 bg-[#151d1b] px-4 sm:px-6">
+    <main className="fixed inset-0 z-50 flex min-h-svh flex-col overflow-hidden bg-slate-50 text-slate-900">
+      <header className="flex min-h-[4.5rem] shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Link
             to={classroomPath}
             aria-label="Back to classrooms"
-            className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <ArrowLeft aria-hidden="true" className="size-4" />
           </Link>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold sm:text-base">Classroom meeting</p>
-            <p className="mt-0.5 truncate text-[11px] text-slate-400">
+            <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">Classroom meeting</p>
+            <p className="mt-0.5 truncate text-[11px] text-slate-500">
               {roomId ? `Room ${roomId.slice(0, 8)}…` : 'LiveKit group meeting'}
             </p>
           </div>
@@ -418,15 +418,15 @@ export default function MeetingRoomPage() {
             <button
               type="button"
               onClick={() => void copyInvite()}
-              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-white/10 px-3 text-xs text-slate-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-slate-200 px-3 text-xs text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <Copy aria-hidden="true" className="size-3.5" />
               <span className="hidden sm:inline">Copy invite</span>
             </button>
           )}
           {room && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-medium text-emerald-100">
-              <span className="size-1.5 rounded-full bg-emerald-300" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-medium text-blue-700">
+              <span className="size-1.5 rounded-full bg-blue-600" />
               {status === 'reconnecting' ? 'Reconnecting' : 'Live'}
             </span>
           )}
@@ -437,7 +437,7 @@ export default function MeetingRoomPage() {
         <section className="flex min-h-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-3 sm:p-5">
-            <div className="flex shrink-0 items-center justify-between gap-3 text-xs text-slate-400">
+            <div className="flex shrink-0 items-center justify-between gap-3 text-xs text-slate-500">
               <span className="inline-flex items-center gap-2"><Users aria-hidden="true" className="size-4" />{participants.length} connected</span>
               <span>{status === 'reconnecting' ? 'Restoring your connection...' : 'Meeting room is live'}</span>
             </div>
@@ -452,23 +452,23 @@ export default function MeetingRoomPage() {
                 />
               ))}
             </div>
-            {error && <p role="alert" className="shrink-0 text-center text-sm text-rose-300">{error}</p>}
+            {error && <p role="alert" className="shrink-0 text-center text-sm text-rose-700">{error}</p>}
           </div>
 
           {activePanel && (
             <aside
               aria-label={activePanel === 'chat' ? 'Meeting chat' : 'Meeting participants'}
-              className="flex max-h-[42vh] min-h-56 shrink-0 flex-col border-t border-white/10 bg-[#192220] lg:h-auto lg:max-h-none lg:min-h-0 lg:w-80 lg:border-l lg:border-t-0"
+              className="flex max-h-[42vh] min-h-56 shrink-0 flex-col border-t border-slate-200 bg-white lg:h-auto lg:max-h-none lg:min-h-0 lg:w-80 lg:border-l lg:border-t-0"
             >
-              <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
-                <h2 className="text-sm font-semibold">
+              <div className="flex min-h-14 shrink-0 items-center justify-between border-b border-slate-200 px-4">
+                <h2 className="text-sm font-semibold text-slate-900">
                   {activePanel === 'chat' ? 'In-call messages' : `People (${participants.length})`}
                 </h2>
                 <button
                   type="button"
                   onClick={() => openPanel(activePanel)}
                   aria-label="Close meeting panel"
-                  className="flex size-8 items-center justify-center rounded-full text-slate-300 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  className="flex size-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   <X aria-hidden="true" className="size-4" />
                 </button>
@@ -486,22 +486,22 @@ export default function MeetingRoomPage() {
                       const ownMessage = chatMessage.identity === room.localParticipant.identity
                       return (
                         <article key={chatMessage.id} className={`max-w-[90%] ${ownMessage ? 'ml-auto text-right' : ''}`}>
-                          <div className="mb-1 flex items-center gap-2 text-[10px] text-slate-400">
-                            <span className="font-medium text-slate-200">
+                          <div className="mb-1 flex items-center gap-2 text-[10px] text-slate-500">
+                            <span className="font-medium text-slate-700">
                               {ownMessage ? 'You' : sender?.name || 'Participant'}
                             </span>
                             <time dateTime={new Date(chatMessage.sentAt).toISOString()}>
                               {new Date(chatMessage.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                             </time>
                           </div>
-                          <p className={`inline-block whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-left text-xs leading-5 ${ownMessage ? 'bg-[#d4a95e] text-[#172c27]' : 'bg-white/8 text-slate-100'}`}>
+                          <p className={`inline-block whitespace-pre-wrap break-words rounded-2xl px-3 py-2 text-left text-xs leading-5 ${ownMessage ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-800'}`}>
                             {chatMessage.text}
                           </p>
                         </article>
                       )
                     })}
                   </div>
-                  <form onSubmit={(event) => void sendChatMessage(event)} className="flex shrink-0 gap-2 border-t border-white/10 p-3">
+                  <form onSubmit={(event) => void sendChatMessage(event)} className="flex shrink-0 gap-2 border-t border-slate-200 p-3">
                     <label htmlFor="meeting-chat-message" className="sr-only">Write a meeting message</label>
                     <input
                       id="meeting-chat-message"
@@ -509,13 +509,13 @@ export default function MeetingRoomPage() {
                       maxLength={500}
                       onChange={(event) => setChatDraft(event.target.value)}
                       placeholder="Write a message..."
-                      className="min-h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 text-xs text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                      className="min-h-10 min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     />
                     <button
                       type="submit"
                       disabled={!chatDraft.trim() || chatSending}
                       aria-label="Send message"
-                      className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f1c078] text-[#1e332d] transition hover:bg-[#f6ce91] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       <Send aria-hidden="true" className="size-4" />
                     </button>
@@ -525,14 +525,14 @@ export default function MeetingRoomPage() {
                 <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
                   {participants.map((participant) => (
                     <li key={participant.identity} className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-100/10 text-sm font-semibold text-emerald-100">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
                         {(participant.name || 'P').slice(0, 1).toUpperCase()}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-medium text-white">
+                        <span className="block truncate text-xs font-medium text-slate-900">
                           {participant.name || 'Participant'}{participant.identity === room.localParticipant.identity ? ' (you)' : ''}
                         </span>
-                        <span className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+                        <span className="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
                           {participant.isMicrophoneEnabled
                             ? <Mic aria-hidden="true" className="size-3" />
                             : <MicOff aria-hidden="true" className="size-3" />}
@@ -540,7 +540,7 @@ export default function MeetingRoomPage() {
                         </span>
                       </span>
                       {raisedHands[participant.identity] && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#f1c078]/15 px-2 py-1 text-[10px] font-medium text-[#f6ce91]">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[10px] font-medium text-amber-800">
                           <Hand aria-hidden="true" className="size-3" />
                           Hand raised
                         </span>
@@ -553,22 +553,22 @@ export default function MeetingRoomPage() {
           )}
         </div>
 
-          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#151d1b] px-3 py-3 sm:px-5">
-            <p className="hidden text-xs text-slate-400 lg:block">{participants.length} of {room.numParticipants || participants.length} participants</p>
+          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-3 sm:px-5">
+            <p className="hidden text-xs text-slate-500 lg:block">{participants.length} of {room.numParticipants || participants.length} participants</p>
             <div className="mx-auto flex flex-wrap items-center justify-center gap-2 sm:gap-3">
               <ControlButton label={micOn ? 'Turn microphone off' : 'Turn microphone on'} active={micOn} onClick={() => void toggleMicrophone()} icon={micOn ? <Mic /> : <MicOff />} />
               <ControlButton label={cameraOn ? 'Turn camera off' : 'Turn camera on'} active={cameraOn} onClick={() => void toggleCamera()} icon={cameraOn ? <Video /> : <VideoOff />} />
               <ControlButton label={screenOn ? 'Stop presenting' : 'Share screen'} active={screenOn} onClick={() => void toggleScreenShare()} icon={<MonitorUp />} />
               <ControlButton label={raisedHands[room.localParticipant.identity] ? 'Lower hand' : 'Raise hand'} active={Boolean(raisedHands[room.localParticipant.identity])} disabled={handUpdating} onClick={() => void toggleRaisedHand()} icon={<Hand />} />
-              <button type="button" onClick={() => openPanel('chat')} aria-pressed={activePanel === 'chat'} aria-label={`Open chat${unreadMessages ? `, ${unreadMessages} unread` : ''}`} className={`relative flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 sm:size-12 ${activePanel === 'chat' ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}>
+              <button type="button" onClick={() => openPanel('chat')} aria-pressed={activePanel === 'chat'} aria-label={`Open chat${unreadMessages ? `, ${unreadMessages} unread` : ''}`} className={`relative flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:size-12 ${activePanel === 'chat' ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'}`}>
                 <MessageCircle aria-hidden="true" className="size-4" />
-                {unreadMessages > 0 && <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[#f1c078] text-[9px] font-bold text-[#1e332d]">{Math.min(unreadMessages, 9)}</span>}
+                {unreadMessages > 0 && <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-blue-600 text-[9px] font-bold text-white">{Math.min(unreadMessages, 9)}</span>}
               </button>
-              <button type="button" onClick={() => openPanel('people')} aria-pressed={activePanel === 'people'} aria-label={`Open participants, ${participants.length} connected`} className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 sm:size-12 ${activePanel === 'people' ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}>
+              <button type="button" onClick={() => openPanel('people')} aria-pressed={activePanel === 'people'} aria-label={`Open participants, ${participants.length} connected`} className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:size-12 ${activePanel === 'people' ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'}`}>
                 <Users aria-hidden="true" className="size-4" />
               </button>
-              {isHost && <button type="button" disabled={busy} onClick={() => void endRoom()} className="h-11 rounded-full border border-rose-300/30 px-4 text-xs font-semibold text-rose-200 hover:bg-rose-400/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">End meeting</button>}
-              <button type="button" onClick={() => void leaveRoom()} className="flex h-11 items-center gap-2 rounded-full bg-[#d84b4b] px-4 text-xs font-semibold text-white hover:bg-[#ec5c5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+              {isHost && <button type="button" disabled={busy} onClick={() => void endRoom()} className="h-11 rounded-full border border-rose-200 px-4 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">End meeting</button>}
+              <button type="button" onClick={() => void leaveRoom()} className="flex h-11 items-center gap-2 rounded-full bg-rose-600 px-4 text-xs font-semibold text-white hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
                 <PhoneOff aria-hidden="true" className="size-4" /><span>Leave</span>
               </button>
             </div>
@@ -577,54 +577,54 @@ export default function MeetingRoomPage() {
       ) : (
         <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-8" aria-labelledby="meeting-heading">
           <div className="grid w-full max-w-4xl gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(19rem,0.9fr)]">
-            <div className="relative flex min-h-[18rem] flex-col justify-end overflow-hidden rounded-3xl border border-white/10 bg-[#202a28] p-6 sm:min-h-[25rem] sm:p-8">
-              <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_75%_10%,rgba(103,157,128,0.28),transparent_42%),radial-gradient(ellipse_at_15%_100%,rgba(232,175,101,0.12),transparent_40%),linear-gradient(145deg,#263431,#151c1b)]" />
+          <div className="relative flex min-h-[18rem] flex-col justify-end overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:min-h-[25rem] sm:p-8">
+            <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_85%_10%,rgba(59,130,246,0.12),transparent_42%),linear-gradient(145deg,#ffffff,#f8fafc)]" />
               <div className="relative max-w-lg">
-                <p className="inline-flex items-center gap-2 rounded-full border border-emerald-100/15 bg-white/5 px-3 py-1.5 text-xs text-emerald-100">
-                  <span className={`size-1.5 rounded-full ${meetingEnded ? 'bg-slate-400' : 'bg-emerald-300'}`} />
+                <p className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs text-blue-700">
+                  <span className={`size-1.5 rounded-full ${meetingEnded ? 'bg-slate-400' : 'bg-blue-600'}`} />
                   {meetingEnded ? 'Meeting ended' : 'Live group room'}
                 </p>
                 <h1 id="meeting-heading" className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
                   {meetingEnded ? 'This room has ended.' : roomId ? 'You are invited.' : 'Bring the class together.'}
                 </h1>
-                <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
+                <p className="mt-3 max-w-md text-sm leading-6 text-slate-600">
                   {meetingEnded
                     ? 'Ask the educator to create a new meeting invite.'
                     : 'Join a shared classroom meeting. Your camera and microphone stay off until you turn them on.'}
                 </p>
               </div>
-              {message && <p role="status" className="relative mt-6 text-sm text-emerald-200">{message}</p>}
-              {error && <p role="alert" className="relative mt-4 text-sm text-rose-300">{error}</p>}
+              {message && <p role="status" className="relative mt-6 text-sm text-blue-700">{message}</p>}
+              {error && <p role="alert" className="relative mt-4 text-sm text-rose-700">{error}</p>}
             </div>
 
-            <div className="flex flex-col justify-center rounded-3xl border border-white/10 bg-[#192220] p-6 sm:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">Meeting access</p>
-              <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            <div className="flex flex-col justify-center rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Meeting access</p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
                 {roomId ? 'Ready when you are' : 'Join with an invite'}
               </h2>
               <form key={roomId} onSubmit={(event) => void joinRoom(event)} className="mt-6 space-y-3">
-                <label htmlFor="meeting-invite" className="block text-sm font-medium text-slate-200">Invite link or room code</label>
+                <label htmlFor="meeting-invite" className="block text-sm font-medium text-slate-700">Invite link or room code</label>
                 <input
                   ref={roomInputRef}
                   id="meeting-invite"
                   defaultValue={roomId}
                   autoComplete="url"
                   placeholder="Paste the classroom meeting invite"
-                  className="min-h-11 w-full rounded-xl border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  className="min-h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 />
-                <button type="submit" disabled={busy} className="min-h-11 w-full rounded-xl bg-[#f1c078] px-4 text-sm font-semibold text-[#1e332d] transition hover:bg-[#f6ce91] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <button type="submit" disabled={busy} className="min-h-11 w-full rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                   {busy && status === 'joining' ? 'Connecting…' : 'Join meeting'}
                 </button>
               </form>
               {isEducator && (
                 <>
-                  <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-wider text-slate-500"><span className="h-px flex-1 bg-white/10" />or<span className="h-px flex-1 bg-white/10" /></div>
-                  <button type="button" disabled={busy} onClick={() => void createRoom()} className="min-h-11 w-full rounded-xl border border-white/15 px-4 text-sm font-semibold text-white hover:bg-white/5 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                  <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-wider text-slate-500"><span className="h-px flex-1 bg-slate-200" />or<span className="h-px flex-1 bg-slate-200" /></div>
+                  <button type="button" disabled={busy} onClick={() => void createRoom()} className="min-h-11 w-full rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                     {busy && status !== 'joining' ? 'Creating…' : 'Create a meeting'}
                   </button>
                 </>
               )}
-              <p className="mt-5 text-xs leading-5 text-slate-500">
+        <p className="mt-5 text-xs leading-5 text-slate-500">
                 Only signed-in students and educators can join. Camera and microphone permissions are requested only when you enable those controls.
               </p>
             </div>
@@ -662,7 +662,7 @@ function ParticipantTile({
   }, [videoTrack, updateKey])
 
   return (
-    <article className="relative min-h-56 overflow-hidden rounded-2xl border border-white/10 bg-[#202a28]">
+    <article className="relative min-h-56 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
       {videoTrack ? (
         <video
           ref={videoRef}
@@ -673,11 +673,11 @@ function ParticipantTile({
           className="absolute inset-0 size-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_50%_35%,rgba(103,157,128,0.2),transparent_50%),linear-gradient(145deg,#263431,#151c1b)]">
-          <span className="flex size-16 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl font-semibold text-emerald-100">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_50%_35%,rgba(59,130,246,0.12),transparent_50%),linear-gradient(145deg,#e2e8f0,#f8fafc)]">
+          <span className="flex size-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xl font-semibold text-blue-700">
             {(participant.name || 'O').slice(0, 1).toUpperCase()}
           </span>
-          <span className="mt-3 text-xs text-slate-300">{participant.isCameraEnabled ? 'Camera starting…' : 'Camera off'}</span>
+          <span className="mt-3 text-xs text-slate-600">{participant.isCameraEnabled ? 'Camera starting…' : 'Camera off'}</span>
         </div>
       )}
       {audioPublications.map((publication) => (
@@ -686,7 +686,7 @@ function ParticipantTile({
           : null
       ))}
       {raised && (
-        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#f1c078] px-2.5 py-1.5 text-[10px] font-semibold text-[#1e332d] shadow-lg">
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1.5 text-[10px] font-semibold text-amber-800 shadow-lg">
           <Hand aria-hidden="true" className="size-3.5" />
           Hand raised
         </span>
@@ -737,7 +737,7 @@ function ControlButton({
       aria-label={label}
       aria-pressed={active}
       title={label}
-      className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 sm:size-12 ${active ? 'border-emerald-200/20 bg-emerald-100/15 text-emerald-100 hover:bg-emerald-100/25' : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'}`}
+      className={`flex size-11 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:size-12 ${active ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100' : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
     >
       {icon}
     </button>

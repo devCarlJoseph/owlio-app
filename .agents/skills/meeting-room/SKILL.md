@@ -27,7 +27,7 @@ Use this skill for the classroom meeting route and its in-call controls. The roo
 
 ## UI and accessibility
 
-- Preserve the Owlio classroom palette (deep green, warm amber, and soft sage), Inter typography, and the existing responsive meeting stage.
+- Match the dashboard's blue, slate, and white palette, Inter typography, and shared spacing/focus conventions. Use amber or rose only for status and destructive states.
 - Keep controls keyboard-operable with visible focus, accessible names, pressed state, and concise error feedback.
 - Make chat and participant panels usable on narrow viewports; announce newly received messages without moving focus.
 - Show only the current LiveKit roster. Do not insert example attendees or activity as if they were real.
