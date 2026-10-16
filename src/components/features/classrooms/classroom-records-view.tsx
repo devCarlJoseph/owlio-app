@@ -46,9 +46,15 @@ export function ClassroomPeopleView({ classroom }: { classroom: Classroom }) {
     <section className="space-y-4" aria-labelledby="people-heading">
       <div>
         <h3 id="people-heading" className="text-lg font-semibold text-slate-900">People in this class</h3>
-        <p className="mt-1 text-sm text-slate-600">{classroom.members.length} demo members.</p>
+        <p className="mt-1 text-sm text-slate-600">{classroom.isMock
+          ? `${classroom.members.length} demo members.`
+          : "Connected classroom membership is verified by the API."}
+        </p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">This is a sample roster, not live membership data.</p>
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">{classroom.isMock
+        ? "This is a sample roster, not live membership data."
+        : "The classroom API does not return a full member roster yet; only the instructor and current learner context are shown."}
+      </p>
       <ul className="grid gap-3 sm:grid-cols-2">
         {classroom.members.map((member) => (
           <li key={member.id}>

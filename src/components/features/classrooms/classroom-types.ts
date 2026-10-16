@@ -130,8 +130,9 @@ export type Classroom = {
   description: string
   instructorName: string
   ownerWorkspace: Exclude<WorkspaceRole, "students">
-  joinCode: string
+  joinCode: string | null
   meetingId: string | null
+  access: "owner" | "student"
   members: ClassroomMember[]
   enrolledLearnerIds: string[]
   posts: ClassroomPost[]
@@ -141,7 +142,7 @@ export type Classroom = {
   attendance: ClassroomAttendance[]
   activities: ClassroomActivity[]
   progress: ClassroomProgressRecord[]
-  isMock: true
+  isMock: boolean
 }
 
 export type CreateClassroomInput = {

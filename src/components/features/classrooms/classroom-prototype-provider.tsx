@@ -1,4 +1,11 @@
-import { useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import {
+  createClassroom as createClassroomRequest,
+  getClassrooms,
+  joinClassroomByCode,
+  type ApiClassroom,
+} from "@/services/api/classroom.service"
 import { DEMO_LEARNER_ID, initialClassrooms } from "./classroom-mock-data"
 import { ClassroomPrototypeContext, type ClassroomPrototypeContextValue } from "./classroom-prototype-context"
 import type {
@@ -8,8 +15,6 @@ import type {
   ClassroomComment,
   ClassroomPost,
   CreateActivityInput,
-  CreateClassroomInput,
-  WorkspaceRole,
 } from "./classroom-types"
 
 function newId(prefix: string) {
@@ -20,19 +25,26 @@ function demoTime() {
   return "Just now · demo"
 }
 
-function buildClassroom(input: CreateClassroomInput, ownerWorkspace: Exclude<WorkspaceRole, "students">): Classroom {
-  const id = newId("class")
+function fromApiClassroom(record: ApiClassroom): Classroom {
+  const members: Classroom["members"] = [
+    { id: `educator-${record.id}`, name: record.instructorName, role: "educator" },
+  ]
+  if (record.access === "student") {
+    members.push({ id: DEMO_LEARNER_ID, name: "You", role: "student" })
+  }
+
   return {
-    id,
-    name: input.name.trim(),
-    subject: input.subject.trim(),
-    description: input.description.trim(),
-    instructorName: "You · demo educator",
-    ownerWorkspace,
-    joinCode: `OWL-${crypto.randomUUID().slice(0, 6).toUpperCase()}`,
-    meetingId: null,
-    members: [{ id: `owner-${id}`, name: "You · demo educator", role: "educator" }],
-    enrolledLearnerIds: [],
+    id: record.id,
+    name: record.name,
+    subject: record.subject,
+    description: record.description,
+    instructorName: record.instructorName,
+    ownerWorkspace: "educators",
+    joinCode: record.joinCode,
+    meetingId: record.meetingId,
+    access: record.access,
+    members,
+    enrolledLearnerIds: record.access === "student" ? [DEMO_LEARNER_ID] : [],
     posts: [],
     chatMessages: [],
     materials: [],
@@ -40,7 +52,7 @@ function buildClassroom(input: CreateClassroomInput, ownerWorkspace: Exclude<Wor
     attendance: [],
     activities: [],
     progress: [],
-    isMock: true,
+    isMock: false,
   }
 }
 
@@ -82,6 +94,30 @@ function buildActivity(input: CreateActivityInput): ClassroomActivity {
 
 export function ClassroomPrototypeProvider({ children }: { children: ReactNode }) {
   const [classrooms, setClassrooms] = useState<Classroom[]>(initialClassrooms)
+  const [classroomsLoading, setClassroomsLoading] = useState(true)
+  const [classroomsError, setClassroomsError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getClassrooms()
+      .then((records) => {
+        if (!active) return
+        const apiClassrooms = records.map(fromApiClassroom)
+        const apiIds = new Set(apiClassrooms.map((classroom) => classroom.id))
+        setClassrooms((current) => [
+          ...current.filter((classroom) => classroom.isMock || !apiIds.has(classroom.id)),
+          ...apiClassrooms,
+        ])
+        setClassroomsError(null)
+      })
+      .catch((error) => {
+        if (active) setClassroomsError(getApiErrorMessage(error, "Connected classrooms are unavailable."))
+      })
+      .finally(() => {
+        if (active) setClassroomsLoading(false)
+      })
+    return () => { active = false }
+  }, [])
 
   const value = useMemo<ClassroomPrototypeContextValue>(() => {
     const updateClassroom = (classroomId: string, update: (classroom: Classroom) => Classroom) => {
@@ -92,34 +128,46 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
 
     return {
       classrooms,
+      classroomsLoading,
+      classroomsError,
       getClassroom: (classroomId) => classrooms.find((classroom) => classroom.id === classroomId),
       getClassroomsForWorkspace: (role) => classrooms.filter((classroom) =>
-        role === "students"
-          ? classroom.enrolledLearnerIds.includes(DEMO_LEARNER_ID)
-          : classroom.ownerWorkspace === role,
+        classroom.isMock
+          ? role === "students"
+            ? classroom.enrolledLearnerIds.includes(DEMO_LEARNER_ID)
+            : classroom.ownerWorkspace === role
+          : role === "students"
+            ? classroom.access === "student"
+            : classroom.access === "owner",
       ),
-      createClassroom: (input, ownerWorkspace) => {
-        const classroom = buildClassroom(input, ownerWorkspace)
-        setClassrooms((current) => [classroom, ...current])
+      createClassroom: async (input, ownerWorkspace) => {
+        const classroom = fromApiClassroom(await createClassroomRequest(input))
+        classroom.ownerWorkspace = ownerWorkspace
+        setClassrooms((current) => [classroom, ...current.filter((item) => item.id !== classroom.id)])
+        setClassroomsError(null)
         return classroom
       },
-      joinClassroom: (joinCode) => {
-        const classroom = classrooms.find((item) => item.joinCode.toLowerCase() === joinCode.trim().toLowerCase())
-        if (!classroom) return { error: "not-found" }
-        if (classroom.enrolledLearnerIds.includes(DEMO_LEARNER_ID)) return { error: "already-enrolled" }
+      joinClassroom: async (joinCode) => {
+        const mockClassroom = classrooms.find((item) =>
+          item.isMock && item.joinCode?.toLowerCase() === joinCode.trim().toLowerCase(),
+        )
+        if (mockClassroom) {
+          if (mockClassroom.enrolledLearnerIds.includes(DEMO_LEARNER_ID)) return { error: "already-enrolled" }
+          updateClassroom(mockClassroom.id, (current) => ({
+            ...current,
+            enrolledLearnerIds: [...current.enrolledLearnerIds, DEMO_LEARNER_ID],
+            members: [...current.members, { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" }],
+          }))
+          return { classroomId: mockClassroom.id, classroomName: mockClassroom.name }
+        }
 
-        updateClassroom(classroom.id, (current) => ({
-          ...current,
-          enrolledLearnerIds: [...current.enrolledLearnerIds, DEMO_LEARNER_ID],
-          members: [...current.members, { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" }],
-        }))
-        return { classroomId: classroom.id }
+        const classroom = fromApiClassroom(await joinClassroomByCode(joinCode))
+        setClassrooms((current) => [classroom, ...current.filter((item) => item.id !== classroom.id)])
+        setClassroomsError(null)
+        return { classroomId: classroom.id, classroomName: classroom.name }
       },
       createMeetingLink: (classroomId, meetingId) => {
-        updateClassroom(classroomId, (classroom) => classroom.meetingId
-          ? classroom
-          : { ...classroom, meetingId },
-        )
+        updateClassroom(classroomId, (classroom) => ({ ...classroom, meetingId }))
       },
       createPost: (classroomId, body) => {
         if (!body.trim()) return
@@ -239,7 +287,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
         }))
       },
     }
-  }, [classrooms])
+  }, [classrooms, classroomsError, classroomsLoading])
 
   return <ClassroomPrototypeContext.Provider value={value}>{children}</ClassroomPrototypeContext.Provider>
 }

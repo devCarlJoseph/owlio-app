@@ -9,8 +9,8 @@ export type MeetingJoin = {
   serverUrl: string
 }
 
-export async function createMeeting() {
-  return postApiWithCsrf<{ meetingId: string }>('/api/v1/meetings', {})
+export async function createMeeting(classroomId?: string) {
+  return postApiWithCsrf<{ meetingId: string }>('/api/v1/meetings', classroomId ? { classroomId } : {})
 }
 
 export async function joinMeeting(meetingId: string) {

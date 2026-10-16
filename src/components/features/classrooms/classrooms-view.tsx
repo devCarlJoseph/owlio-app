@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { getApiErrorMessage } from "@/services/api/api-error"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { WorkspaceRole } from "./classroom-types"
 
@@ -21,43 +22,69 @@ export function ClassroomsView() {
   const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? "students"
   const isStudent = role === "students"
-  const { getClassroom, getClassroomsForWorkspace, createClassroom, joinClassroom } = useClassroomPrototype()
+  const {
+    classroomsLoading,
+    classroomsError,
+    getClassroomsForWorkspace,
+    createClassroom,
+    joinClassroom,
+  } = useClassroomPrototype()
   const classrooms = getClassroomsForWorkspace(role)
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   const [joinCode, setJoinCode] = useState("")
   const [feedback, setFeedback] = useState("")
   const [joinError, setJoinError] = useState("")
+  const [createError, setCreateError] = useState("")
+  const [creating, setCreating] = useState(false)
+  const [joining, setJoining] = useState(false)
 
   const openClassroom = (classroomId: string) => `/${role}/classrooms/${classroomId}`
 
-  const handleCreate = (event: FormEvent<HTMLFormElement>) => {
+  const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const classroom = createClassroom({
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
+    setCreating(true)
+    setCreateError("")
+    try {
+      const classroom = await createClassroom({
       name: String(form.get("class-name") ?? ""),
       subject: String(form.get("class-subject") ?? ""),
       description: String(form.get("class-description") ?? ""),
-    }, role === "students" ? "educators" : role)
-    event.currentTarget.reset()
-    setShowCreate(false)
-    setFeedback(`${classroom.name} was added to this demo session. It is not saved.`)
+      }, role === "students" ? "educators" : role)
+      formElement.reset()
+      setShowCreate(false)
+      setFeedback(classroom.isMock
+        ? `${classroom.name} was added to this demo session. It is not saved.`
+        : `${classroom.name} was created and saved. Share its invite code with students.`)
+    } catch (error) {
+      setCreateError(getApiErrorMessage(error, "Could not create the classroom. Please try again."))
+    } finally {
+      setCreating(false)
+    }
   }
 
-  const handleJoin = (event: FormEvent<HTMLFormElement>) => {
+  const handleJoin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setJoinError("")
-    const result = joinClassroom(joinCode)
-    if ("error" in result) {
-      setJoinError(result.error === "already-enrolled"
-        ? "You are already enrolled in this demo classroom."
-        : "That demo invite code was not found.")
-      return
+    setJoining(true)
+    try {
+      const result = await joinClassroom(joinCode)
+      if ("error" in result) {
+        setJoinError(result.error === "already-enrolled"
+          ? "You are already enrolled in this demo classroom."
+          : "That demo invite code was not found.")
+        return
+      }
+      setJoinCode("")
+      setShowJoin(false)
+      setFeedback(`${result.classroomName} was added to your classroom list.`)
+    } catch (error) {
+      setJoinError(getApiErrorMessage(error, "Could not join the classroom. Please check the invite code."))
+    } finally {
+      setJoining(false)
     }
-    const classroom = getClassroom(result.classroomId)
-    setJoinCode("")
-    setShowJoin(false)
-    setFeedback(`${classroom?.name ?? "Classroom"} was added to your demo enrollment. It is not saved.`)
   }
 
   return (
@@ -65,14 +92,16 @@ export function ClassroomsView() {
       <section className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">Interactive demo · not connected</Badge>
+            <Badge variant="secondary" className={classroomsError ? "bg-amber-100 text-amber-900" : "bg-blue-100 text-blue-800"}>
+              {classroomsError ? "Demo preview · API unavailable" : "Connected classrooms + demo previews"}
+            </Badge>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
               {isStudent ? "Your learning spaces" : "Your classrooms"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {isStudent
                 ? "Open an enrolled class to find its conversations, group chat, activities, and learning resources."
-                : "Create a classroom, share a demo invite code, and organize your class learning space."}
+                : "Create a connected classroom, share its invite code, and organize your class learning space."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -90,12 +119,13 @@ export function ClassroomsView() {
       </section>
 
       {feedback && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{feedback}</p>}
+      {classroomsError && <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Connected classrooms could not be loaded. Demo classrooms remain available. {classroomsError}</p>}
 
       {showCreate && !isStudent && (
         <Card className="border-blue-200">
           <CardHeader>
-            <CardTitle>Create a demo classroom</CardTitle>
-            <CardDescription>This classroom only exists in this browser session. No server record is created.</CardDescription>
+            <CardTitle>Create a classroom</CardTitle>
+            <CardDescription>Create a connected class record and generate a student invite code.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="grid gap-4 sm:grid-cols-2">
@@ -112,9 +142,10 @@ export function ClassroomsView() {
                 <Textarea id="class-description" name="class-description" maxLength={500} placeholder="What will learners explore in this class?" />
               </div>
               <div className="flex flex-wrap gap-2 sm:col-span-2">
-                <Button type="submit">Create demo classroom</Button>
+                <Button type="submit" disabled={creating}>{creating ? "Creating…" : "Create classroom"}</Button>
                 <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
               </div>
+              {createError && <p role="alert" className="text-sm text-rose-700 sm:col-span-2">{createError}</p>}
             </form>
           </CardContent>
         </Card>
@@ -124,7 +155,7 @@ export function ClassroomsView() {
         <Card className="border-blue-200">
           <CardHeader>
             <CardTitle>Join a classroom</CardTitle>
-            <CardDescription>Enter an invite code from an educator's demo classroom.</CardDescription>
+            <CardDescription>Enter an invite code shared by the educator.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleJoin} className="flex flex-col gap-3 sm:flex-row">
@@ -138,10 +169,10 @@ export function ClassroomsView() {
                 aria-describedby={joinError ? "join-error" : "join-disclosure"}
                 className="sm:max-w-sm"
               />
-              <Button type="submit" disabled={!joinCode.trim()}>Join demo class</Button>
+              <Button type="submit" disabled={!joinCode.trim() || joining}>{joining ? "Joining…" : "Join class"}</Button>
             </form>
             {joinError && <p id="join-error" role="alert" className="mt-3 text-sm text-rose-700">{joinError}</p>}
-            <p id="join-disclosure" className="mt-3 text-xs text-slate-500">Joining changes this in-memory preview only. It does not enroll an account on a server.</p>
+            <p id="join-disclosure" className="mt-3 text-xs text-slate-500">Real class codes enroll your signed-in account. Demo codes only change this preview session.</p>
           </CardContent>
         </Card>
       )}
@@ -152,15 +183,17 @@ export function ClassroomsView() {
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">{workspaceTitle(role)}</p>
             <h3 id="classrooms-heading" className="mt-1 text-xl font-semibold text-slate-900">Classrooms</h3>
           </div>
-          <Badge variant="outline" className="border-dashed border-amber-300 bg-amber-50 text-amber-800">Mock data</Badge>
+          <Badge variant="outline" className="border-dashed border-amber-300 bg-amber-50 text-amber-800">Connected + demo classes</Badge>
         </div>
-        {classrooms.length === 0 ? (
+        {classroomsLoading && classrooms.length === 0 ? (
+          <Card><CardContent className="py-8 text-sm text-slate-600" role="status">Loading classrooms…</CardContent></Card>
+        ) : classrooms.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="items-center py-10 text-center">
               <School aria-hidden="true" className="size-8 text-slate-400" />
               <h4 className="text-base font-semibold text-slate-900">{isStudent ? "No demo classes joined yet" : "No demo classrooms yet"}</h4>
-              <p className="max-w-md text-sm leading-6 text-slate-600">
-                {isStudent ? "Use an educator's demo invite code to preview joining a class." : "Create a classroom to start exploring the educator workflow."}
+            <p className="max-w-md text-sm leading-6 text-slate-600">
+                {isStudent ? "Use an educator's invite code to join a connected class." : "Create a classroom to start exploring the educator workflow."}
               </p>
             </CardContent>
           </Card>
@@ -180,9 +213,17 @@ export function ClassroomsView() {
                 <CardContent className="flex-1">
                   <p className="line-clamp-2 min-h-10 text-sm leading-5 text-slate-600">{classroom.description}</p>
                   <p className="text-xs text-slate-500">{isStudent ? "Educator" : "Class educator"}: {classroom.instructorName}</p>
-                  <p className="text-xs text-slate-500">{classroom.enrolledLearnerIds.length} demo learners</p>
+                  <p className="text-xs text-slate-500">{classroom.isMock
+                    ? `${classroom.enrolledLearnerIds.length} demo learners`
+                    : classroom.access === "student" ? "Enrolled classroom" : "Classroom you manage"}
+                  </p>
                   <div className="mt-2 flex items-center justify-between gap-3">
-                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo classroom</Badge>
+                    <Badge variant="outline" className={classroom.isMock
+                      ? "border-amber-200 bg-amber-50 text-amber-800"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-800"}
+                    >
+                      {classroom.isMock ? "Demo classroom" : "Connected"}
+                    </Badge>
                     <Link
                       to={openClassroom(classroom.id)}
                       className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-blue-700 outline-none hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500"

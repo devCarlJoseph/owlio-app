@@ -18,6 +18,7 @@ export const initialClassrooms: Classroom[] = [
     ownerWorkspace: "educators",
     joinCode: "BIO-2048",
     meetingId: null,
+    access: "owner",
     members: [
       { id: "demo-educator", name: "Morgan Chen", role: "educator" },
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
@@ -205,6 +206,7 @@ export const initialClassrooms: Classroom[] = [
     ownerWorkspace: "tutors",
     joinCode: "MATH-6103",
     meetingId: null,
+    access: "owner",
     members: [
       { id: "demo-tutor", name: "Alex Rivera", role: "educator" },
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
@@ -246,6 +248,7 @@ export const initialClassrooms: Classroom[] = [
     ownerWorkspace: "esl",
     joinCode: "ESL-3021",
     meetingId: null,
+    access: "owner",
     members: [
       { id: "demo-esl-teacher", name: "Jamie Brooks", role: "educator" },
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },

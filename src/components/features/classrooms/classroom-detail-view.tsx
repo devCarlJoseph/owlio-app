@@ -49,21 +49,37 @@ export function ClassroomDetailView() {
   const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? "students"
   const { classroomId } = useParams()
-  const { getClassroom, createMeetingLink } = useClassroomPrototype()
+  const { getClassroom, createMeetingLink, classroomsLoading } = useClassroomPrototype()
   const { user } = useAuthSession()
   const [status, setStatus] = useState("")
   const [meetingError, setMeetingError] = useState("")
   const [creatingMeeting, setCreatingMeeting] = useState(false)
   const classroom = classroomId ? getClassroom(classroomId) : undefined
   const isStudent = role === "students"
-  const hasAccessInDemo = classroom && (isStudent
-    ? classroom.enrolledLearnerIds.includes("demo-learner")
-    : classroom.ownerWorkspace === role)
-  const isClassOwner = classroom?.ownerWorkspace === role
-  const canCreateMeeting = isClassOwner && !isStudent && (user?.roles.includes("EDUCATOR") ?? false)
+  const hasAccessInDemo = classroom && (classroom.isMock
+    ? isStudent
+      ? classroom.enrolledLearnerIds.includes("demo-learner")
+      : classroom.ownerWorkspace === role
+    : isStudent
+      ? classroom.access === "student"
+      : classroom.access === "owner")
+  const isClassOwner = classroom && (classroom.isMock
+    ? classroom.ownerWorkspace === role
+    : classroom.access === "owner" && !isStudent)
+  const canCreateMeeting = Boolean(
+    classroom
+      && !classroom.isMock
+      && isClassOwner
+      && !isStudent
+      && user?.roles.includes("EDUCATOR"),
+  )
   const meetingUrl = classroom?.meetingId
-    ? new URL(`/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId)}`, window.location.origin).toString()
+    ? new URL(`/students/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId)}`, window.location.origin).toString()
     : null
+
+  if (!classroom && classroomsLoading) {
+    return <p role="status" className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading classroom…</p>
+  }
 
   if (!classroom || !hasAccessInDemo) {
     return (
@@ -95,9 +111,9 @@ export function ClassroomDetailView() {
     setMeetingError("")
     setStatus("")
     try {
-      const { meetingId } = await createMeeting()
+      const { meetingId } = await createMeeting(classroom.id)
       createMeetingLink(classroom.id, meetingId)
-      setStatus("Meeting room created and linked to this classroom in the current session.")
+      setStatus("Meeting room created and linked to this classroom. Enrolled students can now see and join it.")
     } catch (error) {
       setMeetingError(getApiErrorMessage(error, "Could not create the meeting room. Please try again."))
     } finally {
@@ -106,12 +122,15 @@ export function ClassroomDetailView() {
   }
 
   const handleCopyInviteCode = async () => {
-    if (!classroom) return
+    if (!classroom?.joinCode) return
     try {
       await navigator.clipboard.writeText(classroom.joinCode)
-      setStatus("Demo invite code copied. It is not a real enrollment token.")
+      setStatus(classroom.isMock ? "Demo invite code copied. It is not a real enrollment token." : "Classroom invite code copied.")
     } catch {
-      setStatus(`Demo invite code: ${classroom.joinCode}. It is not a real enrollment token.`)
+      setStatus(classroom.isMock
+        ? `Demo invite code: ${classroom.joinCode}. It is not a real enrollment token.`
+        : `Classroom invite code: ${classroom.joinCode}`,
+      )
     }
   }
 
@@ -130,19 +149,23 @@ export function ClassroomDetailView() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="bg-amber-100 text-amber-900">Mock classroom</Badge>
+                <Badge variant="secondary" className={classroom.isMock ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-900"}>
+                  {classroom.isMock ? "Mock classroom" : "Connected classroom"}
+                </Badge>
                 <Badge variant="outline">{classroom.subject}</Badge>
               </div>
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{classroom.name}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{classroom.description}</p>
-              <p className="mt-3 text-sm font-medium text-slate-700">Educator: {classroom.instructorName} <span className="font-normal text-slate-500">· {classroom.members.length} demo members</span></p>
+              <p className="mt-3 text-sm font-medium text-slate-700">Educator: {classroom.instructorName}
+                {classroom.isMock && <span className="font-normal text-slate-500"> · {classroom.members.length} demo members</span>}
+              </p>
             </div>
             <div className="grid w-full max-w-sm gap-3">
               <section className="rounded-xl border border-blue-100 bg-white/90 p-4 shadow-sm" aria-labelledby="meeting-link-heading">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 id="meeting-link-heading" className="text-sm font-semibold text-slate-900">Class meeting link</h2>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">One room created by the class educator</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">One room associated with this class</p>
                   </div>
                   <Badge variant="outline" className={classroom.meetingId
                     ? "border-emerald-200 bg-emerald-50 text-emerald-800"
@@ -164,6 +187,11 @@ export function ClassroomDetailView() {
                       >
                         Join meeting
                       </Link>
+                      {canCreateMeeting && (
+                        <Button type="button" variant="outline" size="sm" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>
+                          {creatingMeeting ? "Checking room…" : "Refresh meeting link"}
+                        </Button>
+                      )}
                     </div>
                   </>
                 ) : isStudent ? (
@@ -172,13 +200,18 @@ export function ClassroomDetailView() {
                   <Button type="button" size="sm" className="mt-3" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>
                     {creatingMeeting ? "Creating room…" : "Create meeting room"}
                   </Button>
+                ) : classroom.isMock ? (
+                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">Create a connected classroom before attaching a real meeting room.</p>
                 ) : (
                   <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">An educator account must create the meeting room.</p>
                 )}
                 {meetingError && <p role="alert" className="mt-2 text-xs text-rose-700">{meetingError}</p>}
-                <p className="mt-2 text-[11px] leading-4 text-slate-500">Meeting rooms use the existing meeting service. The classroom-to-room association is held in this app session only.</p>
+                <p className="mt-2 text-[11px] leading-4 text-slate-500">{classroom.isMock
+                  ? "Demo classrooms are not stored by the API."
+                  : "The meeting ID is stored with this classroom and shared with its enrolled students."}
+                </p>
               </section>
-              {isClassOwner && (
+              {isClassOwner && classroom.joinCode && (
                 <section className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm" aria-labelledby="invite-code-heading">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -189,7 +222,7 @@ export function ClassroomDetailView() {
                   </div>
                   <code className="mt-3 block rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{classroom.joinCode}</code>
                   <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void handleCopyInviteCode()}>
-                    <Copy aria-hidden="true" /> Copy demo code
+                    <Copy aria-hidden="true" /> {classroom.isMock ? "Copy demo code" : "Copy invite code"}
                   </Button>
                 </section>
               )}
@@ -207,9 +240,11 @@ export function ClassroomDetailView() {
 
       <Alert className="border-amber-200 bg-amber-50 text-amber-900">
         <School aria-hidden="true" />
-        <AlertTitle>Classroom workflow preview</AlertTitle>
+        <AlertTitle>{classroom.isMock ? "Classroom workflow preview" : "Connected classroom"}</AlertTitle>
         <AlertDescription className="text-amber-800">
-          Posts, messages, classwork, attendance, sessions, and learner records are mock data held in this app session only. Meeting rooms are created through the real meeting service.
+          {classroom.isMock
+            ? "This demo classroom and its content exist only in this app session."
+            : "Classroom membership and meeting links are connected to the API. Posts, messages, classwork, attendance, sessions, and learner records remain mock data held in this app session only."}
         </AlertDescription>
       </Alert>
 
