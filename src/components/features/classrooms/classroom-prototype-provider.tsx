@@ -30,7 +30,7 @@ function buildClassroom(input: CreateClassroomInput, ownerWorkspace: Exclude<Wor
     instructorName: "You · demo educator",
     ownerWorkspace,
     joinCode: `OWL-${crypto.randomUUID().slice(0, 6).toUpperCase()}`,
-    demoMeetingLink: null,
+    meetingId: null,
     members: [{ id: `owner-${id}`, name: "You · demo educator", role: "educator" }],
     enrolledLearnerIds: [],
     posts: [],
@@ -115,10 +115,10 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
         }))
         return { classroomId: classroom.id }
       },
-      createMeetingLink: (classroomId) => {
-        updateClassroom(classroomId, (classroom) => classroom.demoMeetingLink
+      createMeetingLink: (classroomId, meetingId) => {
+        updateClassroom(classroomId, (classroom) => classroom.meetingId
           ? classroom
-          : { ...classroom, demoMeetingLink: `owlio-demo://classroom/${classroom.id}/meeting` },
+          : { ...classroom, meetingId },
         )
       },
       createPost: (classroomId, body) => {

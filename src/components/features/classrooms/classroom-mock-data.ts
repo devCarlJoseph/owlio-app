@@ -17,7 +17,7 @@ export const initialClassrooms: Classroom[] = [
     instructorName: "Morgan Chen",
     ownerWorkspace: "educators",
     joinCode: "BIO-2048",
-    demoMeetingLink: "owlio-demo://classroom/biology-101/meeting",
+    meetingId: null,
     members: [
       { id: "demo-educator", name: "Morgan Chen", role: "educator" },
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
@@ -204,7 +204,7 @@ export const initialClassrooms: Classroom[] = [
     instructorName: "Alex Rivera",
     ownerWorkspace: "tutors",
     joinCode: "MATH-6103",
-    demoMeetingLink: null,
+    meetingId: null,
     members: [
       { id: "demo-tutor", name: "Alex Rivera", role: "educator" },
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
@@ -245,7 +245,7 @@ export const initialClassrooms: Classroom[] = [
     instructorName: "Jamie Brooks",
     ownerWorkspace: "esl",
     joinCode: "ESL-3021",
-    demoMeetingLink: null,
+    meetingId: null,
     members: [
       { id: "demo-esl-teacher", name: "Jamie Brooks", role: "educator" },
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },

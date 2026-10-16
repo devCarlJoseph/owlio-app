@@ -131,7 +131,7 @@ export type Classroom = {
   instructorName: string
   ownerWorkspace: Exclude<WorkspaceRole, "students">
   joinCode: string
-  demoMeetingLink: string | null
+  meetingId: string | null
   members: ClassroomMember[]
   enrolledLearnerIds: string[]
   posts: ClassroomPost[]

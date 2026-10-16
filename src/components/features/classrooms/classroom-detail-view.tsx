@@ -18,6 +18,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuthSession } from "@/components/features/auth/auth-session-context"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { createMeeting } from "@/services/api/meeting.service"
 import { ClassroomChatView } from "./classroom-chat-view"
 import { ClassroomClassworkView } from "./classroom-classwork-view"
 import { ClassroomFeedView } from "./classroom-feed-view"
@@ -47,13 +50,20 @@ export function ClassroomDetailView() {
   const role = getDashboardRole(pathname) ?? "students"
   const { classroomId } = useParams()
   const { getClassroom, createMeetingLink } = useClassroomPrototype()
+  const { user } = useAuthSession()
   const [status, setStatus] = useState("")
+  const [meetingError, setMeetingError] = useState("")
+  const [creatingMeeting, setCreatingMeeting] = useState(false)
   const classroom = classroomId ? getClassroom(classroomId) : undefined
   const isStudent = role === "students"
   const hasAccessInDemo = classroom && (isStudent
     ? classroom.enrolledLearnerIds.includes("demo-learner")
     : classroom.ownerWorkspace === role)
   const isClassOwner = classroom?.ownerWorkspace === role
+  const canCreateMeeting = isClassOwner && !isStudent && (user?.roles.includes("EDUCATOR") ?? false)
+  const meetingUrl = classroom?.meetingId
+    ? new URL(`/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId)}`, window.location.origin).toString()
+    : null
 
   if (!classroom || !hasAccessInDemo) {
     return (
@@ -70,12 +80,28 @@ export function ClassroomDetailView() {
   }
 
   const handleCopyMeetingLink = async () => {
-    if (!classroom.demoMeetingLink) return
+    if (!meetingUrl) return
     try {
-      await navigator.clipboard.writeText(classroom.demoMeetingLink)
-      setStatus("Demo meeting link copied. It cannot join a real room.")
+      await navigator.clipboard.writeText(meetingUrl)
+      setStatus("Meeting invite copied.")
     } catch {
-      setStatus(`Demo meeting link: ${classroom.demoMeetingLink}. It cannot join a real room.`)
+      setStatus(`Meeting invite: ${meetingUrl}`)
+    }
+  }
+
+  const handleCreateMeeting = async () => {
+    if (!canCreateMeeting || creatingMeeting || !classroom) return
+    setCreatingMeeting(true)
+    setMeetingError("")
+    setStatus("")
+    try {
+      const { meetingId } = await createMeeting()
+      createMeetingLink(classroom.id, meetingId)
+      setStatus("Meeting room created and linked to this classroom in the current session.")
+    } catch (error) {
+      setMeetingError(getApiErrorMessage(error, "Could not create the meeting room. Please try again."))
+    } finally {
+      setCreatingMeeting(false)
     }
   }
 
@@ -116,31 +142,41 @@ export function ClassroomDetailView() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 id="meeting-link-heading" className="text-sm font-semibold text-slate-900">Class meeting link</h2>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">One reusable link per class · preview only</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">One room created by the class educator</p>
                   </div>
-                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Not joinable</Badge>
+                  <Badge variant="outline" className={classroom.meetingId
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-slate-200 bg-slate-50 text-slate-600"}
+                  >
+                    {classroom.meetingId ? "Room ready" : "No room yet"}
+                  </Badge>
                 </div>
-                {classroom.demoMeetingLink ? (
+                {meetingUrl ? (
                   <>
-                    <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{classroom.demoMeetingLink}</code>
+                    <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{meetingUrl}</code>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingLink()}>
-                        <Copy aria-hidden="true" /> Copy demo link
+                        <Copy aria-hidden="true" /> Copy meeting link
                       </Button>
-                      <Button type="button" size="sm" disabled aria-describedby="meeting-link-note">Join unavailable</Button>
+                      <Link
+                        to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId ?? "")}`}
+                        className="inline-flex min-h-9 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
+                        Join meeting
+                      </Link>
                     </div>
                   </>
                 ) : isStudent ? (
-                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">The educator has not created a demo link for this class yet.</p>
-                ) : (
-                  <Button type="button" size="sm" className="mt-3" onClick={() => {
-                    createMeetingLink(classroom.id)
-                    setStatus("Demo class link created for this session only. It is not a real meeting room.")
-                  }}>
-                    Create demo meeting link
+                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">The educator has not created a meeting room for this class yet.</p>
+                ) : canCreateMeeting ? (
+                  <Button type="button" size="sm" className="mt-3" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>
+                    {creatingMeeting ? "Creating room…" : "Create meeting room"}
                   </Button>
+                ) : (
+                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">An educator account must create the meeting room.</p>
                 )}
-                <p id="meeting-link-note" className="mt-2 text-[11px] leading-4 text-slate-500">This preview link is not connected to LiveKit and cannot start a meeting.</p>
+                {meetingError && <p role="alert" className="mt-2 text-xs text-rose-700">{meetingError}</p>}
+                <p className="mt-2 text-[11px] leading-4 text-slate-500">Meeting rooms use the existing meeting service. The classroom-to-room association is held in this app session only.</p>
               </section>
               {isClassOwner && (
                 <section className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm" aria-labelledby="invite-code-heading">
@@ -173,7 +209,7 @@ export function ClassroomDetailView() {
         <School aria-hidden="true" />
         <AlertTitle>Classroom workflow preview</AlertTitle>
         <AlertDescription className="text-amber-800">
-          Posts, messages, classwork, attendance, sessions, and learner records on this page are mock data held in this app session only.
+          Posts, messages, classwork, attendance, sessions, and learner records are mock data held in this app session only. Meeting rooms are created through the real meeting service.
         </AlertDescription>
       </Alert>
 
