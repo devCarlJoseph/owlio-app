@@ -165,7 +165,7 @@ export function ClassroomsView() {
                 value={joinCode}
                 onChange={(event) => setJoinCode(event.currentTarget.value)}
                 autoComplete="off"
-                placeholder="Enter invite code"
+                placeholder="OWLIO-0123ABCDEF"
                 aria-describedby={joinError ? "join-error" : "join-disclosure"}
                 className="sm:max-w-sm"
               />

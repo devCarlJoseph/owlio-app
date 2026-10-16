@@ -16,7 +16,7 @@ export const initialClassrooms: Classroom[] = [
     description: "Explore living systems, ecosystems, and the science behind them.",
     instructorName: "Morgan Chen",
     ownerWorkspace: "educators",
-    joinCode: "BIO-2048",
+    joinCode: "OWLIO-A1B2C3D4E5",
     meetingId: null,
     access: "owner",
     members: [
@@ -204,7 +204,7 @@ export const initialClassrooms: Classroom[] = [
     description: "A flexible tutoring group for working through algebra concepts.",
     instructorName: "Alex Rivera",
     ownerWorkspace: "tutors",
-    joinCode: "MATH-6103",
+    joinCode: "OWLIO-6F8A01B2C3",
     meetingId: null,
     access: "owner",
     members: [
@@ -246,7 +246,7 @@ export const initialClassrooms: Classroom[] = [
     description: "A supportive space for conversation practice and language feedback.",
     instructorName: "Jamie Brooks",
     ownerWorkspace: "esl",
-    joinCode: "ESL-3021",
+    joinCode: "OWLIO-91D4A7B2C5",
     meetingId: null,
     access: "owner",
     members: [
