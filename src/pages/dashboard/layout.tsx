@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { getDashboardNavigation, getDashboardPageTitle } from "@/components/common/dashboard-navigation"
+import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { getApiErrorMessage } from "@/services/api/api-error"
 
@@ -179,7 +180,9 @@ export default function PlatformLayout() {
         </header>
         <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8">
           {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
-          <Outlet />
+          <ClassroomPrototypeProvider>
+            <Outlet />
+          </ClassroomPrototypeProvider>
         </main>
       </div>
     </div>

@@ -103,7 +103,7 @@ export function getDashboardPageTitle(pathname: string): string {
   const role = getDashboardRole(pathname)
   const currentPage = getDashboardNavigation(pathname)
     .flatMap(({ items }) => items)
-    .find(({ href }) => pathname === href)
+    .find(({ href }) => pathname === href || (href !== `/${role}` && pathname.startsWith(`${href}/`)))
 
   return currentPage?.pageTitle ?? currentPage?.label ?? (role ? workspaceLabels[role] : "Workspace")
 }

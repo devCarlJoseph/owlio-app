@@ -32,6 +32,8 @@ import EslClassworkPage from "@/pages/dashboard/esl/classwork";
 import EslAttendancePage from "@/pages/dashboard/esl/attendance";
 import EslLearnersPage from "@/pages/dashboard/esl/learners";
 import ClassroomsPage from "@/pages/dashboard/classroom";
+import ClassroomDetailPage from "@/pages/dashboard/classroom/detail";
+import ClassroomActivityPage from "@/pages/dashboard/classroom/activity";
 import MeetingRoomPage from "@/pages/dashboard/classroom/meeting-room.lazy";
 import SchedulePage from "@/pages/dashboard/schedule";
 import MaterialsPage from "@/pages/dashboard/materials";
@@ -68,6 +70,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="classwork" element={<StudentClassworkPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
           <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
+          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
+          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
@@ -82,6 +86,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="learners" element={<EducatorLearnersPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
           <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
+          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
+          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
@@ -97,6 +103,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="learners" element={<TutorLearnersPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
           <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
+          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
+          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
@@ -112,6 +120,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="learners" element={<EslLearnersPage />} />
           <Route path="classrooms" element={<ClassroomsPage />} />
           <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
+          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
+          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="materials" element={<MaterialsPage />} />
           <Route path="communication" element={<CommunicationPage />} />

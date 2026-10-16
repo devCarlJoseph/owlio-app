@@ -68,7 +68,7 @@ export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileC
                 <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${compact ? "sr-only" : ""}`}>{groupLabel}</p>
                 <ul className="space-y-1">
                   {items.map(({ label, href, icon: Icon }) => {
-                    const active = pathname === href
+                    const active = pathname === href || (href.endsWith("/classrooms") && pathname.startsWith(`${href}/`))
 
                     return (
                       <li key={href}>
