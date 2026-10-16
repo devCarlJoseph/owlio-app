@@ -25,6 +25,7 @@ import {
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { useAuthSession } from '@/components/features/auth/auth-session-context'
+import { formatMeetingCode, getMeetingIdFromInvite } from '@/lib/meeting-code'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import {
   createMeeting,
@@ -66,22 +67,14 @@ function decodeMeetingSignal(payload: Uint8Array): MeetingSignal | null {
   return null
 }
 
-function getRoomId(value: string) {
-  try {
-    const url = new URL(value)
-    return url.searchParams.get('room') ?? ''
-  } catch {
-    return value.trim()
-  }
-}
-
 export default function MeetingRoomPage() {
   const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? 'students'
   const classroomPath = `/${role}/classrooms`
   const { user } = useAuthSession()
   const [searchParams, setSearchParams] = useSearchParams()
-  const roomId = searchParams.get('room') ?? ''
+  const roomId = getMeetingIdFromInvite(searchParams.get('room') ?? '')
+  const meetingCode = roomId ? formatMeetingCode(roomId) : ''
   const roomInputRef = useRef<HTMLInputElement>(null)
   const [room, setRoom] = useState<Room | null>(null)
   const [joinInfo, setJoinInfo] = useState<MeetingJoin | null>(null)
@@ -210,7 +203,7 @@ export default function MeetingRoomPage() {
     setMessage('')
     try {
       const result = await createMeeting()
-      setSearchParams({ room: result.meetingId })
+      setSearchParams({ room: formatMeetingCode(result.meetingId) })
       setMessage('Meeting created. Copy the invite and share it with your class.')
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, 'Could not create the meeting.'))
@@ -221,7 +214,7 @@ export default function MeetingRoomPage() {
 
   const joinRoom = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
-    const normalizedRoomId = getRoomId(roomInputRef.current?.value ?? '')
+    const normalizedRoomId = getMeetingIdFromInvite(roomInputRef.current?.value ?? '')
     if (!normalizedRoomId) {
       setError('Enter a meeting invite link or room code first.')
       return
@@ -238,7 +231,7 @@ export default function MeetingRoomPage() {
     setUnreadMessages(0)
     setActivePanel(null)
     seenMessageIdsRef.current.clear()
-    setSearchParams({ room: normalizedRoomId })
+    setSearchParams({ room: formatMeetingCode(normalizedRoomId) })
 
     const nextRoom = new Room({ adaptiveStream: true, dynacast: true })
     roomRef.current = nextRoom
@@ -395,12 +388,12 @@ export default function MeetingRoomPage() {
   const copyInvite = async () => {
     if (!roomId) return
     const invite = new URL(window.location.href)
-    invite.searchParams.set('room', roomId)
+    invite.searchParams.set('room', formatMeetingCode(roomId))
     try {
       await navigator.clipboard.writeText(invite.toString())
       setMessage('Meeting invite copied.')
     } catch {
-      setMessage(`Share this room code: ${roomId}`)
+      setMessage(`Share this Owlio meeting code: ${formatMeetingCode(roomId)}`)
     }
   }
 
@@ -421,7 +414,7 @@ export default function MeetingRoomPage() {
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">Classroom meeting</p>
             <p className="mt-0.5 truncate text-[11px] text-slate-500">
-              {roomId ? `Room ${roomId.slice(0, 8)}…` : 'LiveKit group meeting'}
+              {roomId ? formatMeetingCode(roomId) : 'LiveKit group meeting'}
             </p>
           </div>
         </div>
@@ -653,7 +646,7 @@ export default function MeetingRoomPage() {
                 <input
                   ref={roomInputRef}
                   id="meeting-invite"
-                  defaultValue={roomId}
+                  defaultValue={meetingCode}
                   autoComplete="url"
                   placeholder="Paste the classroom meeting invite"
                   className="min-h-11 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"

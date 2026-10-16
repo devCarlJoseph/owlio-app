@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
+import { formatMeetingCode } from "@/lib/meeting-code"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import { createMeeting } from "@/services/api/meeting.service"
 import { ClassroomChatView } from "./classroom-chat-view"
@@ -74,7 +75,7 @@ export function ClassroomDetailView() {
       && user?.roles.includes("EDUCATOR"),
   )
   const meetingUrl = classroom?.meetingId
-    ? new URL(`/students/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId)}`, window.location.origin).toString()
+    ? new URL(`/students/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`, window.location.origin).toString()
     : null
 
   if (!classroom && classroomsLoading) {
@@ -102,6 +103,17 @@ export function ClassroomDetailView() {
       setStatus("Meeting invite copied.")
     } catch {
       setStatus(`Meeting invite: ${meetingUrl}`)
+    }
+  }
+
+  const handleCopyMeetingCode = async () => {
+    if (!classroom?.meetingId) return
+    const code = formatMeetingCode(classroom.meetingId)
+    try {
+      await navigator.clipboard.writeText(code)
+      setStatus("Owlio meeting code copied.")
+    } catch {
+      setStatus(`Owlio meeting code: ${code}`)
     }
   }
 
@@ -176,13 +188,18 @@ export function ClassroomDetailView() {
                 </div>
                 {meetingUrl ? (
                   <>
+                    <p className="mt-3 text-xs font-medium text-slate-500">Owlio meeting code</p>
+                    <code className="mt-1 block break-all rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{formatMeetingCode(classroom.meetingId ?? "")}</code>
                     <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{meetingUrl}</code>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingLink()}>
-                        <Copy aria-hidden="true" /> Copy meeting link
+                        <Copy aria-hidden="true" /> Copy Owlio link
+                      </Button>
+                      <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingCode()}>
+                        <Copy aria-hidden="true" /> Copy room code
                       </Button>
                       <Link
-                        to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId ?? "")}`}
+                        to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
                         className="inline-flex min-h-9 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       >
                         Join meeting
