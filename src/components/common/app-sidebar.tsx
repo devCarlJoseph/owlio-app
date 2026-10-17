@@ -3,7 +3,87 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { getDashboardNavigation } from "./dashboard-navigation"
+import { getDashboardRole, getDashboardSidebarNavigation } from "./dashboard-navigation"
+
+type SidebarGroup = ReturnType<typeof getDashboardSidebarNavigation>[number]
+
+function SidebarNavigationGroup({
+  group,
+  collapsed,
+  activeHref,
+  onMobileClose,
+}: {
+  group: SidebarGroup
+  collapsed: boolean
+  activeHref?: string
+  onMobileClose: () => void
+}) {
+  return (
+    <section key={group.label} className="mb-5">
+      {group.showLabel !== false && (
+        <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${collapsed ? "sr-only" : ""}`}>
+          {group.label}
+        </p>
+      )}
+      <ul className="space-y-1">
+        {group.items.map(({ label, href, icon: Icon }) => {
+          const active = href !== undefined && href === activeHref
+          const className = `flex h-10 items-center rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            collapsed ? "justify-center px-0" : "gap-3 px-3"
+          } ${
+            active
+              ? "bg-blue-50 font-semibold text-blue-700"
+              : href
+                ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                : "cursor-not-allowed text-slate-400"
+          }`
+          const content = (
+            <>
+              <Icon className="size-4.5 shrink-0" aria-hidden="true" />
+              {!collapsed && (
+                <>
+                  <span className="truncate">{label}</span>
+                  {!href && (
+                    <span aria-hidden="true" className="ml-auto rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-500">
+                      Planned
+                    </span>
+                  )}
+                </>
+              )}
+            </>
+          )
+
+          return (
+            <li key={href ?? `${group.label}-${label}`}>
+              {href ? (
+                <Link
+                  to={href}
+                  onClick={onMobileClose}
+                  aria-label={collapsed ? label : undefined}
+                  aria-current={active ? "page" : undefined}
+                  title={collapsed ? label : undefined}
+                  className={className}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  aria-label={`${label}, planned`}
+                  title={`${label} — Planned`}
+                  className={className}
+                >
+                  {content}
+                </button>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
 
 type AppSidebarProps = {
   collapsed: boolean
@@ -16,6 +96,18 @@ export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileC
   const { pathname } = useLocation()
   const compact = collapsed && !mobileOpen
   const widthClassName = collapsed ? "md:w-[72px]" : "md:w-64"
+  const navigationGroups = getDashboardSidebarNavigation(pathname)
+  const role = getDashboardRole(pathname)
+  const matchedItems = navigationGroups
+    .flatMap(({ items }) => items)
+    .filter(({ href }) => (
+      href !== undefined
+      && (pathname === href || (href !== `/${role}` && pathname.startsWith(`${href}/`)))
+    ))
+    .sort((first, second) => (second.href?.length ?? 0) - (first.href?.length ?? 0))
+  const activeHref = matchedItems[0]?.href
+  const mainGroups = navigationGroups.filter(({ placement }) => placement !== "footer")
+  const footerGroups = navigationGroups.filter(({ placement }) => placement === "footer")
 
   return (
     <>
@@ -63,36 +155,33 @@ export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileC
 
         <ScrollArea className="min-h-0 flex-1">
           <nav aria-label="Workspace navigation" className="h-full overflow-x-hidden px-2 pb-3">
-            {getDashboardNavigation(pathname).map(({ label: groupLabel, items }) => (
-              <section key={groupLabel} className="mb-5">
-                <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${compact ? "sr-only" : ""}`}>{groupLabel}</p>
-                <ul className="space-y-1">
-                  {items.map(({ label, href, icon: Icon }) => {
-                    const active = pathname === href || (href.endsWith("/classrooms") && pathname.startsWith(`${href}/`))
-
-                    return (
-                      <li key={href}>
-                        <Link
-                          to={href}
-                          onClick={onMobileClose}
-                          aria-label={compact ? label : undefined}
-                          aria-current={active ? "page" : undefined}
-                          title={compact ? label : undefined}
-                          className={`flex h-10 items-center rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${compact ? "justify-center px-0" : "gap-3 px-3"} ${active ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}
-                        >
-                          <Icon className="size-4.5 shrink-0" aria-hidden="true" />
-                          {!compact && <span className="truncate">{label}</span>}
-                        </Link>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </section>
+            {mainGroups.map((group) => (
+              <SidebarNavigationGroup
+                key={group.label}
+                group={group}
+                collapsed={compact}
+                activeHref={activeHref}
+                onMobileClose={onMobileClose}
+              />
             ))}
           </nav>
         </ScrollArea>
 
-        <div className="h-px shrink-0 bg-slate-100" />
+        {footerGroups.length > 0 && (
+          <div className="shrink-0 border-t border-slate-100 px-2 py-3">
+            <nav aria-label="Account navigation">
+              {footerGroups.map((group) => (
+                <SidebarNavigationGroup
+                  key={group.label}
+                  group={group}
+                  collapsed={compact}
+                  activeHref={activeHref}
+                  onMobileClose={onMobileClose}
+                />
+              ))}
+            </nav>
+          </div>
+        )}
       </aside>
     </>
   )
