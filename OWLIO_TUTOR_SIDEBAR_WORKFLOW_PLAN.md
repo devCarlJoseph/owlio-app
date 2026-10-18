@@ -213,7 +213,7 @@ ACCOUNT
 
 | Area | Current source | Verified implementation status |
 |---|---|---|
-| Tutor navigation | `src/components/common/dashboard-navigation.ts`; `src/components/common/app-sidebar.tsx` | Tutor sidebar currently has Overview, Sessions, Activities & evaluations, Attendance, Learners plus a generic Shared section (Classrooms, Schedule, Materials, Communication, Notifications, Progress, AI Assistant). The proposed grouped labels and new routes require navigation/title/search alignment. |
+| Tutor navigation | `src/components/common/dashboard-navigation.ts`; `src/components/common/app-sidebar.tsx` | Tutor sidebar now has the grouped labels in this plan. Existing routes are linked; Learning Plans, Session Notes, Announcements, and Profile & Settings remain disabled/planned until routes exist. Header search includes route-backed entries only. |
 | Routes/layout | `src/main.tsx`; `src/pages/dashboard/layout.tsx` | Tutor routes are role-prefixed under `/tutors`; role-prefixed route guard requires authentication only. Frontend URL context is not authorization. |
 | Overview | `src/pages/dashboard/tutors/index.tsx` | “--” statistics and empty upcoming-session/AI states; no tutor overview query. |
 | My Learners | `src/pages/dashboard/tutors/learners/index.tsx` | Group tabs and learner/progress/submission areas are placeholder UI. No learner or group service; no real learner data is loaded. |
@@ -231,9 +231,517 @@ ACCOUNT
 
 The registration/onboarding role contract is still inconsistent: authentication uses account types `student` and `educator`, while onboarding has additional educator/tutor-like subtypes that are not persisted by authentication. Confirm the canonical tutor identity/profile/authorization contract before treating `/tutors` or a client-selected subtype as an access boundary.
 
+## Route and component implementation blueprint
+
+This is the target frontend architecture, not a statement that all listed pages/services exist. `E` means an existing route, `P` means a proposed route, and `D` means a sidebar item that remains disabled/planned until its route and service are approved.
+
+### Route inventory
+
+| Sidebar destination | Route | Status and intended route behavior |
+|---|---|---|
+| Overview | `/tutors` | E. Tutor dashboard scaffold. |
+| My Learners | `/tutors/learners` | E. Current placeholder directory/group view. |
+| Learning Plans | `/tutors/learning-plans` | P. Multi-session goal/plan workspace, distinct from one-session agenda. |
+| Activities & Evaluations | `/tutors/classwork` | E. Current explanatory activity/evaluation page. |
+| Sessions & Schedule | `/tutors/sessions` | E. Current session-planning scaffold; target becomes the tutoring-session hub/calendar entry. Keep `/tutors/schedule` as a role-prefixed calendar deep link where useful. |
+| Session Attendance | `/tutors/attendance` | E. Empty attendance/history preview, no record service. |
+| Session Notes | `/tutors/session-notes` | P. Tutor-only notes; separate from feedback published to learners. |
+| Meeting Room | `/tutors/classrooms/meeting-room` | E. Standalone shared LiveKit page; online sessions deep-link here only with a valid room. |
+| Discussions | `/tutors/communication` | E. Shared contextual communication preview; no direct inbox. |
+| Announcements | `/tutors/announcements` | P. Tutor-authored notice page for an explicit learner/group audience. |
+| Notifications | `/tutors/notifications` | E. Empty-state preview; no delivery/read service. |
+| Teaching Materials | `/tutors/materials` | E. Context chooser, not a connected material library. |
+| Student Progress | `/tutors/progress` | E. Generic no-data progress preview; target tutor-specific, sourced evidence. |
+| AI Tutor Assistant | `/tutors/ai-assistant` | E. Shared educator-preparation scaffold; no AI provider/generation. |
+| Profile & Settings | `/tutors/settings` | P. Requires authenticated profile/preferences API. |
+
+Supporting existing class routes remain `/tutors/classrooms`, `/tutors/classrooms/:classroomId`, and `/tutors/classrooms/:classroomId/classwork/:activityId`. They are reached contextually from learner/session/activity views; the proposed sidebar does not add a separate My Classes item.
+
+### `index.tsx`-only route adapters
+
+- Every new or refactored route directory under `src/pages/` should contain only `index.tsx`. Each adapter imports one feature view and returns it; do not put screen sections, form state, mock arrays, API requests, or business rules in route adapters.
+- Register routes in `src/main.tsx`; keep tutor URLs role-prefixed under `/tutors`. A role-prefixed route is navigation context, not authentication or authorization.
+- Existing tutor route folders `index`, `sessions`, `classwork`, `attendance`, and `learners` already have `index.tsx` adapters.
+- Proposed route folders: `learning-plans/index.tsx`, `learners/detail/index.tsx`, `session-notes/index.tsx`, `announcements/index.tsx`, and `settings/index.tsx`; add each route only after its page and product/API contract are approved.
+- Shared classroom exceptions are `src/pages/dashboard/classroom/detail.tsx`, `activity.tsx`, `meeting-room.tsx`, and `meeting-room.lazy.tsx`. A separately approved shared-route cleanup can move these to `classroom/detail/index.tsx`, `classroom/activity/index.tsx`, and `classroom/meeting-room/index.tsx` while preserving current URLs and lazy loading.
+- `src/pages/dashboard/layout.tsx` is a shared layout route rather than a tutor screen; moving it under `src/components/layouts/` is a cross-app cleanup, not a tutor feature requirement. Root `src/pages/App.tsx` is also outside this tutoring scope.
+- Shared classroom, schedule, materials, communication, notifications, progress, and AI screens should delegate to role-aware feature views. Keep tutoring labels flexible and do not duplicate the shared classroom implementation.
+- Use the local Base UI-based wrappers as used by neighboring code. Use `Button render={<Link to="..." />}` for Router links; do not assume Radix `asChild`. Local `Tabs` use `value` and `onValueChange`.
+
+### File placement and component ownership
+
+The tree shows target locations, not files to create in this documentation change. `(E)` means existing; `(P)` means proposed.
+
+```text
+src/pages/dashboard/tutors/
+  index.tsx                            # E: route adapter -> TutorOverviewView
+  learners/index.tsx                   # E: route adapter -> TutorLearnersView
+  learners/detail/index.tsx            # P: route adapter -> TutorLearnerDetailView
+  sessions/index.tsx                   # E: route adapter -> TutorSessionsView
+  classwork/index.tsx                  # E: route adapter -> TutorActivitiesView
+  attendance/index.tsx                 # E: route adapter -> TutorAttendanceView
+  learning-plans/index.tsx             # P: route adapter -> LearningPlansView
+  session-notes/index.tsx              # P: route adapter -> TutorSessionNotesView
+  announcements/index.tsx              # P: route adapter -> TutorAnnouncementsView
+  settings/index.tsx                   # P: route adapter -> TutorSettingsView
+
+src/pages/dashboard/classroom/
+  index.tsx                            # E: shared class list adapter
+  detail/index.tsx                     # P migration of current detail.tsx adapter
+  activity/index.tsx                   # P migration of current activity.tsx adapter
+  meeting-room/index.tsx               # P migration/lazy adapter for current meeting-room view
+
+src/components/features/
+  tutor-workspace/
+    overview/tutor-overview-view.tsx           # P: daily dashboard composition
+    overview/upcoming-sessions.tsx              # P
+    overview/follow-up-queue.tsx                # P
+    learners/tutor-learners-view.tsx             # P: refactor existing placeholder
+    learners/learner-directory.tsx               # P
+    learners/learner-detail-view.tsx              # P
+    learning-plans/learning-plans-view.tsx        # P
+    learning-plans/plan-editor.tsx                # P
+    activities/tutor-activities-view.tsx           # P
+    activities/activity-builder/                  # P: form sections/schemas
+    activities/submission-review-queue.tsx         # P
+    sessions/tutor-sessions-view.tsx               # P: refactor existing placeholder
+    sessions/session-calendar.tsx                  # P
+    sessions/session-detail-view.tsx               # P
+    attendance/tutor-attendance-view.tsx             # P
+    attendance/session-picker.tsx                   # P
+    attendance/attendance-roster.tsx                # P
+    notes/tutor-session-notes-view.tsx               # P
+    notes/private-note-editor.tsx                    # P
+    notes/published-feedback-view.tsx                # P: distinct learner-visible records
+    materials/tutor-materials-view.tsx                # P: refactor shared materials context
+    progress/tutor-student-progress-view.tsx          # P
+    communication/discussions-view.tsx                # P
+    communication/announcements-view.tsx              # P
+    notifications/tutor-notifications-view.tsx        # P
+    ai/tutor-ai-assistant-view.tsx                     # P
+    settings/tutor-settings-view.tsx                   # P
+  classrooms/                                      # E: shared class detail/feed/records/activity views
+  meeting-room/                                    # E/P: extract shared LiveKit screen
+  schedule/                                        # P: shared calendar sections
+  ui/                                              # E: domain-neutral wrappers
+src/components/layouts/
+  platform-layout.tsx                             # P: move shared dashboard layout in separate cleanup
+```
+
+### Checked-in shadcn-style component mapping
+
+Reuse wrappers from `src/components/ui/`; they are project-owned Base UI wrappers, not raw Radix components. This is a page-by-page toolkit suggestion, not a requirement to use every primitive.
+
+| Tutor page | Suitable checked-in wrappers |
+|---|---|
+| Overview | `Card`, `Badge`, `Button`, `Empty`, `Skeleton`, `Alert`; `Progress` only for sourced metrics. |
+| My Learners | `Input`, `Select`, `Tabs`, `Card`, `Avatar`, `Badge`, `Table`, `Empty`, `Skeleton`, `Alert`. |
+| Learning Plans | `Tabs`, `Card`, `Field`, `Input`, `Textarea`, `Select`, `Button`, `Badge`, `Dialog`, `Empty`, `Skeleton`. |
+| Activities & Evaluations | `Tabs`, `Card`, `Table`, `Field`, `Input`, `Textarea`, `Select`, `Checkbox`, `Dialog`, `Badge`, `Alert`, `Empty`, `Skeleton`. |
+| Sessions & Schedule | `Card`, `Tabs`, `Button`, `Select`, `Table`, `Badge`, `Dialog` or `Drawer`, `Empty`, `Skeleton`, `Alert`. |
+| Session Attendance | `Select`, `Table`, `Checkbox`, `Card`, `Badge`, `Alert`, `Empty`, `Skeleton`, `Collapsible`, `Button`. |
+| Session Notes | `Tabs`, `Card`, `Field`, `Textarea`, `Input`, `Badge`, `Button`, `Dialog`, `Alert`, `Empty`; make note audience visible. |
+| Meeting Room | Existing custom LiveKit controls plus `Button`, `Drawer`, `ScrollArea`, `Alert`, `Badge`; media remains opt-in. |
+| Discussions | `Tabs`, `Card`, `Badge`, `Textarea`, `Field`, `Button`, `ScrollArea`, `Empty`, `Alert`. |
+| Announcements | `Card`, `Field`, `Input`, `Textarea`, `Select`, `Button`, `Badge`, `Dialog`, `Alert`, `Empty`. |
+| Notifications | `Card`, `Tabs`, `Badge`, `Button`, `Empty`, `Skeleton`, `Alert`. |
+| Teaching Materials | `Card`, `Tabs`, `Input`, `Select`, `Badge`, `Attachment`, `Empty`, `Skeleton`, `Alert`; do not expose upload actions without storage support. |
+| Student Progress | `Card`, `Tabs`, `Table`, `Progress`, `Badge`, `Empty`, `Skeleton`, `Alert`; provide text equivalents and sources for charts. |
+| AI Tutor Assistant | `Card`, `Field`, `Textarea`, `Input`, `Select`, `Button`, `Alert`, `Badge`, `Skeleton`, `Dialog` for review. |
+| Profile & Settings | `Card`, `Field`, `Input`, `Switch`, `Button`, `Alert`; editable only for API-supported fields. |
+
+Complex forms may use React Hook Form/Zod where consistent with existing code; schemas belong beside their feature. No new UI dependency is required by this plan.
+
+## Tutor page click-through flowcharts
+
+Each chart begins at its sidebar destination. `E` means an existing route, `P` a proposed route/action, and `D` a disabled/planned item. Mermaid subgraphs visually group related paths; open this Markdown in a Mermaid-enabled preview to see rendered diagrams instead of source. Same-page tabs, dialogs, and filters are labeled as such.
+
+### Overview: `/tutors` (E)
+
+**Sections:** tutor welcome, upcoming session agenda, activity review queue, learner follow-ups, and sourced metrics.
+
+```mermaid
+flowchart LR
+  O(["Overview /tutors E"]) --> NEXT{"What needs attention?"}
+  subgraph LEARNERS["Learner work"]
+    L["My Learners /tutors/learners E"]
+    PLAN["Learning Plans /tutors/learning-plans P"]
+    ACT["Activities & Evaluations /tutors/classwork E"]
+  end
+  subgraph SESSIONS["Today's tutoring"]
+    S["Sessions & Schedule /tutors/sessions E"]
+    ATT["Session Attendance /tutors/attendance E"]
+    ROOM["Meeting Room /tutors/classrooms/meeting-room E"]
+  end
+  subgraph FOLLOW_UP["Review and progress"]
+    PROG["Student Progress /tutors/progress E"]
+    NOTES["Session Notes /tutors/session-notes P"]
+  end
+  NEXT --> L
+  NEXT --> PLAN
+  NEXT --> ACT
+  NEXT --> S
+  NEXT --> ATT
+  NEXT --> PROG
+  S -->|"Valid online room attached"| ROOM
+  O -->|"No learner/session data"| EMPTY["Add a learner or schedule a first session; no fake stats"]
+```
+
+### My Learners: `/tutors/learners` (E)
+
+**Sections:** individual/group selector, learner search, authorized profile context, active Learning Plans, upcoming sessions, activity history, and clear private/published record labels.
+
+```mermaid
+flowchart LR
+  L(["My Learners /tutors/learners E"]) --> FILTER["Search / select individual or group P"]
+  FILTER --> ACCESS{"Tutor relationship authorized?"}
+  ACCESS -->|"No"| EMPTY["No matching/authorized learner state P"]
+  ACCESS -->|"Yes"| DETAIL["Learner detail /tutors/learners/detail/:learnerId P"]
+  subgraph LEARNER_CONTEXT["Learner or group teaching context"]
+    PLAN["Learning Plans /tutors/learning-plans P"]
+    SESSIONS["Sessions & Schedule /tutors/sessions E"]
+    ACTIVITY["Activities & Evaluations /tutors/classwork E"]
+    PROGRESS["Student Progress /tutors/progress E"]
+  end
+  DETAIL --> PLAN
+  DETAIL --> SESSIONS
+  DETAIL --> ACTIVITY
+  DETAIL --> PROGRESS
+  FILTER -->|"Create learner/group if service supports it"| CREATE["Approved learner/group form P"]
+```
+
+### Learning Plans: `/tutors/learning-plans` (P)
+
+**Sections:** learner/group selector, tutor-authored goals, focus areas, milestones, linked session history, and next steps.
+
+```mermaid
+flowchart LR
+  LP(["Learning Plans D until route; /tutors/learning-plans P"]) --> OWNER["Choose authorized learner or group"]
+  subgraph PLAN_CONTENT["Multi-session tutoring plan"]
+    GOALS["Set tutor-defined goals / focus"]
+    MILESTONES["Order milestones / review dates"]
+    ACTIONS["Link activities / materials"]
+    GOALS --> MILESTONES --> ACTIONS
+  end
+  OWNER --> GOALS
+  ACTIONS -->|"Save after plan service confirms"| SAVE["Server-confirmed plan P"]
+  SAVE -->|"Schedule a session"| SESSIONS["Sessions & Schedule /tutors/sessions E"]
+  SAVE -->|"Review evidence"| PROGRESS["Student Progress /tutors/progress E"]
+  LP -->|"No plan service today"| EMPTY["Keep planned; do not show invented mastery data"]
+```
+
+### Activities & Evaluations: `/tutors/classwork` (E)
+
+**Sections:** learner/group and session context, practice/activity list, submission review, tutor evaluation, and a distinct publish-feedback action.
+
+```mermaid
+flowchart LR
+  ACT(["Activities & Evaluations /tutors/classwork E"]) --> CONTEXT["Choose authorized learner/group + session"]
+  subgraph CREATE["Prepare tutoring work"]
+    TYPE{"Choose supported activity"}
+    BUILD["Exercise / quiz / project / response builder P"]
+    DRAFT["Review instructions and criteria P"]
+    TYPE --> BUILD --> DRAFT
+  end
+  CONTEXT --> TYPE
+  DRAFT -->|"Assign after service confirms"| LEARNER["Learner receives activity P"]
+  LEARNER -->|"Submit supported response"| REVIEW["Tutor reviews evidence P"]
+  REVIEW --> EVAL["Tutor evaluation / feedback draft P"]
+  EVAL -->|"Publish feedback intentionally"| PROGRESS["Student Progress /tutors/progress E"]
+  ACT -->|"No activity service today"| EMPTY["Current explanatory scaffold E"]
+```
+
+**Boundary:** Do not assume school grading scales, supported response types, scoring, or lifecycle labels for tutoring. Tutor evaluations are not institutional grades.
+
+### Sessions & Schedule: `/tutors/sessions` (E)
+
+**Sections:** individual/group session agenda, delivery mode, time/timezone, topic, agenda, linked Learning Plan/material/activity, and Meeting Room action only when an online room exists.
+
+```mermaid
+flowchart LR
+  S(["Sessions & Schedule /tutors/sessions E"]) --> MODE{"Choose supported session mode"}
+  subgraph PLAN_SESSION["Prepare an appointment"]
+    LEARNER["Select learner/group P"]
+    FOCUS["Set topic / session focus P"]
+    TIME["Choose time / timezone P"]
+    LEARNER --> FOCUS --> TIME
+  end
+  MODE --> LEARNER
+  TIME --> SAVE["Save after session service confirms P"]
+  subgraph SESSION_CONTEXT["Session workspace"]
+    PLAN["Link Learning Plan /tutors/learning-plans P"]
+    MATERIAL["Link Teaching Materials /tutors/materials E"]
+    ACTIVITY["Link activity /tutors/classwork E"]
+    ATTENDANCE["Record Session Attendance /tutors/attendance E"]
+  end
+  SAVE --> PLAN
+  SAVE --> MATERIAL
+  SAVE --> ACTIVITY
+  SAVE --> ATTENDANCE
+  SAVE -->|"Online + valid room"| ROOM["Meeting Room /tutors/classrooms/meeting-room E"]
+  SAVE -->|"In-person / hybrid"| PLACE["Show approved session details; no video room required P"]
+```
+
+**Boundary:** Confirm timezone, recurrence, cancellation, reminder, and in-person/hybrid behavior before session CRUD. A multi-session Learning Plan is not a calendar appointment.
+
+### Session Attendance: `/tutors/attendance` (E)
+
+**Sections:** session picker, eligible learner/group roster, supported status controls, confirmation, and history by session/learner.
+
+```mermaid
+flowchart LR
+  AT(["Session Attendance /tutors/attendance E"]) --> PICK["Choose authorized tutoring session"]
+  PICK --> DATA{"Session and participants loaded?"}
+  DATA -->|"No"| EMPTY["Current no-session/history state E"]
+  DATA -->|"Yes"| ROSTER["Mark supported status for each participant P"]
+  subgraph RECORD["Tutor-controlled attendance record"]
+    REVIEW["Review the roll call P"]
+    SAVE["Confirm when service allows P"]
+    ERROR["Recoverable error; keep safe draft P"]
+    REVIEW --> SAVE
+    SAVE -->|"Failure"| ERROR
+  end
+  ROSTER --> REVIEW
+  SAVE -->|"Server confirms"| HISTORY["Session/learner history P"]
+  HISTORY -->|"Open learner"| LEARNER["My Learners /tutors/learners E"]
+  AT -.->|"Meeting presence is not attendance"| NO_INFER["Never auto-mark from LiveKit roster"]
+```
+
+### Session Notes: `/tutors/session-notes` (P)
+
+**Sections:** learner/group and session filters, tutor-only observations, and a separate learner-visible feedback draft/publish area.
+
+```mermaid
+flowchart LR
+  NOTES(["Session Notes D until route; /tutors/session-notes P"]) --> AUDIENCE{"Choose record audience"}
+  subgraph PRIVATE["Tutor-only notes"]
+    PRIVATE_NOTE["Private observation linked to session/learner P"]
+    SAVE_NOTE["Save under private-note service P"]
+    PRIVATE_NOTE --> SAVE_NOTE
+  end
+  subgraph LEARNER_VISIBLE["Published learner feedback"]
+    DRAFT["Feedback draft linked to activity/session P"]
+    REVIEW["Confirm learner/group audience P"]
+    PUBLISH["Publish when service confirms P"]
+    DRAFT --> REVIEW --> PUBLISH
+  end
+  AUDIENCE -->|"Private note"| PRIVATE_NOTE
+  AUDIENCE -->|"Feedback for learner"| DRAFT
+  PUBLISH -->|"Learner can see released feedback"| PROGRESS["Student Progress /tutors/progress E"]
+```
+
+**Boundary:** Private notes never flow into learner profiles, group discussions, notifications, or progress exports. Publishing feedback is explicit and creates a distinct learner-visible record.
+
+### Meeting Room: `/tutors/classrooms/meeting-room` (E)
+
+**Sections:** invite/code lobby, connected LiveKit stage, participant panel, opt-in media controls, transient in-call chat/hand raise, and leave/host-end actions.
+
+```mermaid
+flowchart LR
+  ROOM(["Meeting Room /tutors/classrooms/meeting-room E"]) --> ARRIVE{"Arrival path"}
+  subgraph LOBBY["Standalone lobby"]
+    CODE["Enter invite/room code"]
+    PREFILL["Valid code from online session"]
+    JOIN["Meeting API join"]
+    CODE --> JOIN
+    PREFILL --> JOIN
+  end
+  ARRIVE -->|"Sidebar"| CODE
+  ARRIVE -->|"Session deep link"| PREFILL
+  JOIN -->|"Invalid / denied / offline"| ERROR["Show recoverable error; remain in lobby E"]
+  JOIN -->|"Authorized token + LiveKit connected"| LIVE["Connected room E"]
+  subgraph IN_CALL["Live session tools"]
+    MEDIA["Opt-in microphone / camera / screen share E"]
+    CHAT["Transient in-call chat / hand raise E"]
+    PEOPLE["Connected roster; not attendance E"]
+  end
+  LIVE --> MEDIA
+  LIVE --> CHAT
+  LIVE --> PEOPLE
+  LIVE -->|"Leave / host ends"| CLEAN["Disconnect and clear transient state E"]
+  CLEAN --> ROOM
+```
+
+**Boundary:** Create/end permission comes from the server-issued host capability. In-call messages and room presence are neither saved Discussions nor official attendance. Don't imply every in-person/hybrid session has a room.
+
+### Discussions: `/tutors/communication` (E scaffold)
+
+**Sections:** learner/group/session context chooser, authorized thread list, author/audience/timestamp, thread detail, and reply composer when a communication service exists.
+
+```mermaid
+flowchart LR
+  DISC(["Discussions /tutors/communication E"]) --> CONTEXT{"Choose a tutoring context"}
+  subgraph CONTEXTS["Learner and session sources"]
+    LEARNER["My Learners /tutors/learners E"]
+    SESSION["Sessions & Schedule /tutors/sessions E"]
+    ACTIVITY["Activities & Evaluations /tutors/classwork E"]
+  end
+  CONTEXT --> LEARNER
+  CONTEXT --> SESSION
+  CONTEXT --> ACTIVITY
+  LEARNER --> THREADS["Context-scoped thread list P"]
+  SESSION --> THREADS
+  ACTIVITY --> THREADS
+  THREADS -->|"Open thread"| THREAD["Thread detail in the same context P"]
+  THREAD -->|"Tutor/learner reply"| SAVE["Service confirms post or returns safe error P"]
+  DISC -->|"No communication service today"| EMPTY["Current preview; no live messages E"]
+```
+
+**Boundary:** Do not turn a session chat packet into a saved discussion. Direct private inbox messaging remains future.
+
+### Announcements: `/tutors/announcements` (P)
+
+**Sections:** authorized learner/group audience, compose/preview, published notices, and delivery state only if the service reports it.
+
+```mermaid
+flowchart LR
+  ANN(["Announcements D until route; /tutors/announcements P"]) --> AUD["Choose learner/group audience"]
+  subgraph COMPOSE["Write and review notice"]
+    BODY["Session update / preparation instructions"]
+    PREVIEW["Preview audience + content"]
+    BODY --> PREVIEW
+    PREVIEW -->|"Edit"| BODY
+  end
+  AUD --> BODY
+  PREVIEW -->|"Publish after service exists"| SAVED["Server confirms announcement P"]
+  SAVED -->|"Delivery event confirmed"| NOTICE["Notifications /tutors/notifications E"]
+  SAVED -->|"Open related learner/group"| LEARNER["My Learners /tutors/learners E"]
+  PREVIEW -->|"No announcement API today"| BLOCK["Keep planned; do not claim delivery"]
+```
+
+### Notifications: `/tutors/notifications` (E scaffold)
+
+**Sections:** authorized event inbox, event/source labels, filters/read state only if supported, and a link back to the record that owns the event.
+
+```mermaid
+flowchart LR
+  N(["Notifications /tutors/notifications E"]) --> SERVICE{"Notification service available?"}
+  SERVICE -->|"No"| EMPTY["Current empty state; no live event/read state E"]
+  SERVICE -->|"Yes"| LIST["Authorized tutor event inbox P"]
+  subgraph SOURCES["Open event source"]
+    SESSION["Upcoming session /tutors/sessions E"]
+    ACTIVITY["Submission / evaluation /tutors/classwork E"]
+    LEARNER["Learner/group update /tutors/learners E"]
+    DISC["Discussion / announcement /tutors/communication E"]
+  end
+  LIST -->|"Session reminder"| SESSION
+  LIST -->|"Work to review / feedback released"| ACTIVITY
+  LIST -->|"Learner/group update"| LEARNER
+  LIST -->|"Thread or notice"| DISC
+  LIST -->|"Mark read if supported"| READ["Service-confirmed read state P"]
+```
+
+**Boundary:** Don't expose private session notes in inbox previews or claim a notice/reminder was delivered without service confirmation.
+
+### Teaching Materials: `/tutors/materials` (E context chooser)
+
+**Sections:** owner/context selector, learner/group/session/topic filters, resource results, supported detail/preview, and explicit share/attach action.
+
+```mermaid
+flowchart LR
+  MAT(["Teaching Materials /tutors/materials E"]) --> OWNER{"Choose resource owner/context"}
+  subgraph CONTEXTS["Authorized tutoring contexts"]
+    LEARNER["Learner/group /tutors/learners E"]
+    PLAN["Learning Plan /tutors/learning-plans P"]
+    SESSION["Session /tutors/sessions E"]
+  end
+  OWNER --> LEARNER
+  OWNER --> PLAN
+  OWNER --> SESSION
+  LEARNER --> LIB["Tutor-owned library results P"]
+  PLAN --> LIB
+  SESSION --> LIB
+  LIB -->|"Search / filter by topic or type"| RESOURCE["Resource detail / preview P"]
+  RESOURCE -->|"Explicitly attach/share"| DEST["Selected learner/plan/session audience P"]
+  MAT -->|"No library service today"| EMPTY["Current context cards; no upload/browse E"]
+```
+
+**Boundary:** A tutor-private resource does not become learner-visible until explicitly shared. File types, size, preview, storage, and external integrations require approved contracts.
+
+### Student Progress: `/tutors/progress` (E scaffold)
+
+**Sections:** individual/group selector, timeframe, completed sessions, attendance, activities/evaluations, learning-plan milestones, and learner-visible feedback with source labels.
+
+```mermaid
+flowchart LR
+  PROG(["Student Progress /tutors/progress E"]) --> PICK["Choose authorized learner/group"]
+  PICK --> SERVICE{"Real tutoring records available?"}
+  SERVICE -->|"No"| EMPTY["Current generic no-data state E"]
+  SERVICE -->|"Yes"| VIEW["Evidence-based progress summary P"]
+  subgraph EVIDENCE["Record sources"]
+    SESSIONS["Sessions & Schedule /tutors/sessions E"]
+    ATTENDANCE["Session Attendance /tutors/attendance E"]
+    ACTIVITIES["Activities & Evaluations /tutors/classwork E"]
+    PLANS["Learning Plans /tutors/learning-plans P"]
+    FEEDBACK["Published feedback /tutors/session-notes P"]
+  end
+  VIEW --> SESSIONS
+  VIEW --> ATTENDANCE
+  VIEW --> ACTIVITIES
+  VIEW --> PLANS
+  VIEW --> FEEDBACK
+  VIEW -->|"Open source record"| SOURCE["Return to owning learner/session/activity context"]
+```
+
+**Boundary:** Show tutor-defined criteria, date, and source; do not infer school grades, automated mastery, or group-wide access to individual notes.
+
+### AI Tutor Assistant: `/tutors/ai-assistant` (E scaffold)
+
+**Sections:** tutor-selected learner/group and goal context, prompt/task type, editable draft, review controls, and handoff to a learning plan/activity/session.
+
+```mermaid
+flowchart LR
+  AI(["AI Tutor Assistant /tutors/ai-assistant E"]) --> APPROVED{"Provider, privacy, and API approved?"}
+  APPROVED -->|"No"| INFO["Current explanation only; no generation E"]
+  APPROVED -->|"Yes"| CONTEXT["Tutor supplies approved learner/goal context P"]
+  CONTEXT --> SERVICE["Backend generates a draft suggestion P"]
+  SERVICE --> REVIEW["Tutor reviews and edits draft P"]
+  subgraph DECISION["Tutor controls use"]
+    ACCEPT["Accept selected draft"]
+    REJECT["Reject / regenerate / leave"]
+  end
+  REVIEW --> ACCEPT
+  REVIEW --> REJECT
+  ACCEPT -->|"Add goal"| PLAN["Learning Plans /tutors/learning-plans P"]
+  ACCEPT -->|"Prepare practice"| ACTIVITY["Activities & Evaluations /tutors/classwork E"]
+  ACCEPT -->|"Add session idea"| SESSION["Sessions & Schedule /tutors/sessions E"]
+  REJECT --> AI
+```
+
+**Boundary:** This is a tutor-facing copilot, not an autonomous learner-facing AI tutor. It does not contact learners, assign work, make final evaluations, set mastery, or mutate attendance/progress records.
+
+### Profile & Settings: `/tutors/settings` (P)
+
+**Sections:** authenticated tutor profile, supported preferences, notification settings when available, and account actions. Sign-out remains in the shared header.
+
+```mermaid
+flowchart LR
+  SETTINGS(["Profile & Settings D until route/API; /tutors/settings P"]) --> READY{"Profile/preferences contract defined?"}
+  READY -->|"No"| WAIT["Keep planned; do not show fake editable state"]
+  READY -->|"Yes"| PROFILE["View authenticated tutor profile P"]
+  subgraph EDIT["Edit supported fields"]
+    FORM["Labeled profile/preferences form P"]
+    RESULT{"Server confirms save?"}
+    ERROR["Keep draft; retryable safe error P"]
+    FORM -->|"Save"| RESULT
+    RESULT -->|"Yes"| PROFILE
+    RESULT -->|"No"| ERROR
+  end
+  PROFILE -->|"Edit supported preference"| FORM
+  SETTINGS -->|"Sign out through shared shell"| LOGIN["/login after logout confirmation"]
+```
+
+### Cross-page navigation and record-state rules
+
+- Learner, group, plan, activity, session, attendance, private-note, feedback, and material routes retain their owner and audience context.
+- Tabs, filters, dialogs, and list/board toggles stay on their current URL unless a flowchart names a destination. Proposed routes are not implicitly registered.
+- Every create, submit, evaluate, publish, attendance, notification, and settings action has pending, confirmed success, and recoverable failure states. Do not claim success until a service confirms it.
+- Loading, empty, filtered-empty, unavailable, error, and permission-denied states are distinct. Sample and in-memory tutoring records stay labeled as demo.
+- Keep private Session Notes out of learner-facing views, group discussions, notifications, and progress summaries. Meeting presence/chat remain transient and never become attendance or saved messages.
+
 ## Delivery roadmap
 
-### Stage 0 — Product/data contracts and access model
+### Stage 0 - Product/data contracts and access model
 
 - Confirm tutor account/profile representation, ownership of learners/groups, invitations/membership, and backend authorization boundaries.
 - Define learner versus group relationship, tutoring context, individual/group session participation, and what in-person/online/hybrid session modes are supported.
@@ -241,9 +749,10 @@ The registration/onboarding role contract is still inconsistent: authentication 
 - Define timezone, recurrence, cancellation, reminders, material types/sharing, discussion audiences, announcement delivery, notification/read state, AI provider/privacy, and profile preferences before implementation.
 - Defer direct messages, payments/subscriptions, tutoring-business invoicing, and advanced scheduling until separately approved.
 
-### Stage 1 — Tutor workspace and learner relationships
+### Stage 1 - Tutor workspace and learner relationships
 
 - Finalize the tutor-specific grouped sidebar, navigation hrefs, page title, active-item logic, workspace search, and mobile/collapsed behavior.
+- Keep every new/refactored tutor route folder to a thin `index.tsx` adapter; move screen content, forms, state, and domain logic to the mapped `tutor-workspace` feature components.
 - Replace fake/stat placeholder content with real service data or clear no-data/loading/error/permission states.
 - Establish tutor-owned learner/group records and My Learners views with backend isolation before exposing private learner data.
 - Keep current classroom list/create/join behavior verified against the API, and separate connected classroom metadata from demo classroom prototype state.
@@ -286,14 +795,17 @@ The registration/onboarding role contract is still inconsistent: authentication 
 - AI Tutor Assistant is clearly tutor-facing, outputs editable drafts, and cannot autonomously assign work, evaluate a learner, message a learner, or mutate official records.
 - Sample and in-memory classroom/tutor data are never reported as live or server-saved; each page has appropriate loading, empty, error, unavailable, and permission-denied states.
 - Tutor navigation changes stay under `/tutors`, keep page title/search/active state in sync, and do not alter student, educator, or ESL navigation unless separately approved.
+- Every sidebar page in this blueprint has a route status, component/file ownership map, checked-in UI-wrapper recommendations, and a branching Mermaid click-flow diagram.
+- New/refactored tutor route directories contain only `index.tsx`; feature views, sections, forms, schemas, and data orchestration live in `src/components/features/`.
+- Each clickable sidebar item resolves to a registered tutor-prefixed route. Unimplemented destinations are disabled Planned items and excluded from header page search until added to `src/main.tsx`.
 - No new dependencies, API routes, permissions, grade scales, file rules, or integrations are assumed without explicit approval.
 
 ## Likely application files if implementation is separately approved
 
 - Tutor sidebar/navigation and layout mapping: `src/components/common/dashboard-navigation.ts`, `src/components/common/app-sidebar.tsx`, `src/pages/dashboard/layout.tsx`.
-- Tutor routes/adapters: `src/main.tsx`; existing pages under `src/pages/dashboard/tutors/{index,sessions,classwork,attendance,learners}/`; new modules may be needed for Learning Plans, Session Notes, Announcements, and settings.
-- Tutor domain views/services: create focused feature modules under `src/components/features/` for learner/group plans, activities/evaluations, attendance, private session notes, and learner-facing feedback; add `src/services/api/` modules only after backend contracts are confirmed.
-- Shared workflow views: `src/pages/dashboard/classroom/`, `schedule/`, `materials/`, `communication/`, `notifications/`, `progress/`, and `ai-assistant/`.
+- Tutor routes/adapters: `src/main.tsx`; existing `src/pages/dashboard/tutors/{index,learners,sessions,classwork,attendance}/index.tsx`; proposed `learners/detail/index.tsx`, `learning-plans/index.tsx`, `session-notes/index.tsx`, `announcements/index.tsx`, and `settings/index.tsx`.
+- Tutor feature views: `src/components/features/tutor-workspace/{overview,learners,learning-plans,activities,sessions,attendance,notes,materials,progress,communication,notifications,ai,settings}/`.
+- Shared route adapters: `src/pages/dashboard/classroom/`, `schedule/`, `materials/`, `communication/`, `notifications/`, `progress/`, and `ai-assistant/`; keep shared classroom/meeting code role-aware and avoid a duplicate tutor-specific Meeting Room.
 - Existing classroom integration/prototype: `src/services/api/classroom.service.ts`, `src/components/features/classrooms/classroom-prototype-context.ts`, `classroom-prototype-provider.tsx`, `classroom-mock-data.ts`, and shared classroom views. Keep mock state clearly separated while replacing flows with approved APIs.
 - Meeting integration: `src/pages/dashboard/classroom/meeting-room.tsx` and `src/services/api/meeting.service.ts`; retain transient room chat/hand boundaries and do not add persistence without an approved contract.
 - No application source, route, dependency, configuration, or backend changes are included in this planning document.
