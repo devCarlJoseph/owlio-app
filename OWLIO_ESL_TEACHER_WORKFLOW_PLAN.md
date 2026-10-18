@@ -226,11 +226,528 @@ ACCOUNT
 - Do not infer ESL subtype or authorization from client-side onboarding selection. The registered educator identity and ESL workspace currently have a role-contract mismatch/open decision; backend authorization remains authoritative.
 - No settings route or profile-update service exists.
 
+## Route and component implementation blueprint
+
+This is the target frontend architecture, not a claim that every route or operation exists. `E` means an existing route, `P` means a proposed route, and `D` means the sidebar item remains disabled/planned until its route and service are approved.
+
+### Route inventory
+
+| Sidebar destination | Route | Status and intended route behavior |
+|---|---|---|
+| Overview | `/esl` | E. Current ESL dashboard scaffold. |
+| My Learners | `/esl/learners` | E. Current empty learner-context page. |
+| Lesson Plans | `/esl/lessons` | E. Skill-category/lesson preview; plan records not connected. |
+| Teaching Materials | `/esl/materials` | E. Shared material-context selector, not a library/upload service. |
+| Activities & Assessments | `/esl/classwork` | E. Language activity preview; no activities/submissions service. |
+| Lesson Attendance | `/esl/attendance` | E. Check-in/history preview; no attendance service. |
+| Meeting Room | `/esl/classrooms/meeting-room` | E. Standalone shared LiveKit room. Whiteboard remains an in-room tool only. |
+| Lesson Schedule | `/esl/schedule` | E. Shared calendar grid; no event data or persistence. |
+| Discussions | `/esl/communication` | E. Shared contextual communication preview, not a saved messaging service. |
+| Announcements | `/esl/announcements` | P/D. Separate ESL-prefixed page once audience/save behavior is defined. |
+| Notifications | `/esl/notifications` | E. Empty inbox preview; no delivery/read-state service. |
+| Learner Progress | `/esl/progress` | E. Generic progress placeholder; no ESL progress records. |
+| Feedback & Notes | `/esl/feedback-notes` | P/D. Separate private educator notes from learner-visible published feedback. |
+| AI Lesson Assistant | `/esl/ai-assistant` | E. Shared educator-preparation scaffold; no provider/generation service. |
+| Profile & Settings | `/esl/settings` | P/D. Requires authenticated profile/preferences contract. |
+
+Supporting class routes remain `/esl/classrooms`, `/esl/classrooms/:classroomId`, and `/esl/classrooms/:classroomId/classwork/:activityId`; keep them role-prefixed even if the top-level sidebar uses My Learners as the primary teaching hub.
+
+### `index.tsx`-only route adapters
+
+- Every new or refactored route folder under `src/pages/` should contain only `index.tsx`. An adapter imports one feature view and returns it; it owns no screen sections, form state, mock arrays, API requests, or feature rules.
+- Register routes in `src/main.tsx`; keep ESL URLs under `/esl`. The route prefix is workspace presentation only, not authorization.
+- Current ESL folders `esl/`, `esl/learners/`, `esl/lessons/`, `esl/classwork/`, and `esl/attendance/` already have `index.tsx` adapters.
+- Proposed route folders: `esl/announcements/index.tsx`, `esl/feedback-notes/index.tsx`, and `esl/settings/index.tsx`. Add each route in `main.tsx` only after its feature contract is approved.
+- Shared classroom exceptions are `src/pages/dashboard/classroom/detail.tsx`, `activity.tsx`, `meeting-room.tsx`, and `meeting-room.lazy.tsx`. A separately approved shared-route cleanup can move these to `classroom/detail/index.tsx`, `classroom/activity/index.tsx`, and `classroom/meeting-room/index.tsx`, preserving their role-prefixed URLs and lazy loading.
+- `src/pages/dashboard/layout.tsx` is a shared route layout, not an ESL screen. Move it under `src/components/layouts/` only as a separately approved cross-app cleanup; root `src/pages/App.tsx` is also outside this tutor/ESL scope.
+- Shared ESL screens under `schedule`, `materials`, `communication`, `notifications`, `progress`, and `ai-assistant` should delegate to role-aware feature views. Reuse the shared destination where the workflow genuinely matches, but do not force ESL-specific learner language, session format, or feedback into a school-only design.
+- Use the local Base UI-based wrappers as used by neighboring code. For Router links use `Button render={<Link to="..." />}`; do not assume Radix `asChild`. The local `Tabs` API uses `value` and `onValueChange`.
+
+### File placement and component ownership
+
+The tree shows likely future file locations, not files to create in this plan change. `(E)` means an existing page/view; `(P)` means proposed.
+
+```text
+src/pages/dashboard/esl/
+  index.tsx                             # E: route adapter -> EslOverviewView
+  learners/index.tsx                    # E: route adapter -> EslLearnersView
+  lessons/index.tsx                     # E: route adapter -> EslLessonPlansView
+  classwork/index.tsx                   # E: route adapter -> EslActivitiesView
+  attendance/index.tsx                  # E: route adapter -> EslAttendanceView
+  announcements/index.tsx               # P: route adapter -> EslAnnouncementsView
+  feedback-notes/index.tsx              # P: route adapter -> EslFeedbackNotesView
+  settings/index.tsx                    # P: route adapter -> EslSettingsView
+src/pages/dashboard/classroom/
+  index.tsx                             # E: shared class list adapter
+  detail/index.tsx                      # P migration of current detail.tsx adapter
+  activity/index.tsx                    # P migration of current activity.tsx adapter
+  meeting-room/index.tsx                # P migration/lazy adapter for current room page
+
+src/components/features/
+  esl-teaching/
+    overview/esl-overview-view.tsx              # P: dashboard composition
+    learners/esl-learners-view.tsx              # P: learner/group list
+    learners/learner-profile-view.tsx            # P: one authorized learner's context
+    lesson-plans/esl-lesson-plans-view.tsx        # P: reusable plans
+    lesson-plans/lesson-plan-editor.tsx           # P
+    materials/esl-materials-view.tsx              # P: role-aware library view
+    activities/esl-activities-view.tsx            # P: practice/evaluation lists
+    activities/activity-builder.tsx               # P
+    activities/submission-review-queue.tsx        # P
+    attendance/esl-attendance-view.tsx             # P
+    attendance/lesson-session-picker.tsx           # P
+    attendance/attendance-roster.tsx               # P
+    meeting-room/esl-whiteboard.tsx                # P: temporary in-room board
+    meeting-room/whiteboard-prompt-builder.tsx     # P: built-in text/vector prompts
+    meeting-room/whiteboard-stage.tsx              # P: synchronized learner responses
+    schedule/esl-schedule-view.tsx                 # P
+    communication/discussions-view.tsx             # P
+    communication/announcements-view.tsx           # P
+    notifications/esl-notifications-view.tsx       # P
+    progress/esl-learner-progress-view.tsx          # P
+    feedback-notes/esl-feedback-notes-view.tsx      # P: private and published records
+    ai-assistant/esl-ai-lesson-assistant-view.tsx   # P: educator-reviewed drafts
+    settings/esl-settings-view.tsx                  # P
+  classrooms/                                      # E: shared classroom/detail/activity views
+  meeting-room/                                    # E/P: extract shared LiveKit page as a feature view
+  ui/                                              # E: domain-neutral wrappers
+src/components/layouts/
+  platform-layout.tsx                     # P: move shared dashboard layout in separate cleanup
+```
+
+### Checked-in shadcn-style component mapping
+
+Use the actual wrappers under `src/components/ui/`; they are project-owned Base UI wrappers, not raw Radix components. This table suggests building blocks, not a requirement to use every item on every page.
+
+| ESL page | Suitable checked-in wrappers |
+|---|---|
+| Overview | `Card`, `Badge`, `Button`, `Empty`, `Skeleton`, `Alert`; `Progress` only when sourced data is real. |
+| My Learners | `Input`, `Select`, `Tabs`, `Card`, `Avatar`, `Badge`, `Table`, `Empty`, `Skeleton`, `Alert`. |
+| Lesson Plans | `Tabs`, `Card`, `Field`, `Input`, `Textarea`, `Select`, `Button`, `Badge`, `Dialog`, `Empty`, `Skeleton`. |
+| Teaching Materials | `Card`, `Tabs`, `Input`, `Select`, `Badge`, `Attachment`, `Empty`, `Skeleton`, `Alert`; upload only after storage contract. |
+| Activities & Assessments | `Tabs`, `Card`, `Table`, `Field`, `Input`, `Textarea`, `Select`, `Checkbox`, `Dialog`, `Badge`, `Alert`, `Empty`, `Skeleton`. |
+| Lesson Attendance | `Select`, `Table`, `Checkbox`, `Card`, `Badge`, `Alert`, `Empty`, `Skeleton`, `Collapsible`, `Button`. |
+| Meeting Room | Existing custom LiveKit controls plus `Button`, `Drawer`, `ScrollArea`, `Alert`, `Badge`; board objects should be keyboard/touch accessible. |
+| ESL Whiteboard | `Card`, `Button`, `Tabs`, `Dialog`, `Alert`, `Badge`; use semantic SVG/vector targets for built-in prompts rather than a new component dependency unless approved. |
+| Lesson Schedule | `Card`, `Button`, `Select`, `Dialog` or `Drawer`, `Badge`, `Empty`; no Popover wrapper exists in the current UI folder. |
+| Discussions | `Tabs`, `Card`, `Badge`, `Textarea`, `Field`, `Button`, `ScrollArea`, `Empty`, `Alert`. |
+| Announcements | `Card`, `Field`, `Input`, `Textarea`, `Select`, `Button`, `Badge`, `Dialog`, `Alert`, `Empty`. |
+| Notifications | `Card`, `Tabs`, `Badge`, `Button`, `Empty`, `Skeleton`, `Alert`. |
+| Learner Progress | `Card`, `Tabs`, `Table`, `Progress`, `Badge`, `Empty`, `Skeleton`, `Alert`; include text summaries for charts. |
+| Feedback & Notes | `Tabs`, `Card`, `Field`, `Textarea`, `Input`, `Badge`, `Button`, `Dialog`, `Alert`, `Empty`; private notes and published feedback are separate record types. |
+| AI Lesson Assistant | `Card`, `Field`, `Textarea`, `Input`, `Select`, `Button`, `Alert`, `Badge`, `Skeleton`, `Dialog` for review. |
+| Profile & Settings | `Card`, `Field`, `Input`, `Switch`, `Button`, `Alert`; editable only for API-supported fields. |
+
+Use React Hook Form/Zod for complex forms where consistent with neighboring code, with schemas beside the feature. No new UI dependency is required by this plan.
+
+## ESL page click-through flowcharts
+
+Each chart begins at a sidebar destination. `E` means an existing route, `P` a proposed route/action, and `D` a disabled/planned item. Mermaid subgraphs group related branches; open this Markdown in a Mermaid-enabled preview to see rendered diagrams instead of source. Same-page tabs/dialogs are labeled as such. The charts describe target navigation and do not imply an API exists.
+
+### Overview: `/esl` (E)
+
+**Sections:** learner/session summary, coming-up list, preparation/review queue, recent lesson activity, and quick actions. Populate counts only from authorized, real records.
+
+```mermaid
+flowchart LR
+  O(["Overview /esl E"]) --> NEXT{"What needs attention?"}
+  subgraph TEACH["Prepare and teach"]
+    LEARNERS["My Learners /esl/learners E"]
+    PLANS["Lesson Plans /esl/lessons E"]
+    ACTIVITIES["Activities & Assessments /esl/classwork E"]
+  end
+  subgraph LIVE["Upcoming lessons"]
+    SCHEDULE["Lesson Schedule /esl/schedule E"]
+    ROOM["Meeting Room /esl/classrooms/meeting-room E"]
+  end
+  subgraph FOLLOWUP["Review and follow up"]
+    ATTENDANCE["Lesson Attendance /esl/attendance E"]
+    PROGRESS["Learner Progress /esl/progress E"]
+    FEEDBACK["Feedback & Notes D"]
+  end
+  NEXT --> LEARNERS
+  NEXT --> PLANS
+  NEXT --> ACTIVITIES
+  NEXT --> SCHEDULE
+  NEXT --> ATTENDANCE
+  NEXT --> PROGRESS
+  SCHEDULE -->|"Valid online room exists"| ROOM
+  O -->|"No live data"| EMPTY["Setup/empty state; no invented learner metrics"]
+```
+
+### My Learners: `/esl/learners` (E)
+
+**Sections:** learner/group search, enrollment/context filter, learner cards/list, and a detail view with approved profile/goal/lesson links.
+
+```mermaid
+flowchart LR
+  L(["My Learners /esl/learners E"]) --> FILTER["Search / filter by supported context: same page P"]
+  FILTER --> PICK{"Select authorized learner or group"}
+  subgraph PROFILE["Learner teaching context"]
+    DETAIL["Learner detail /esl/learners/:learnerId P"]
+    GOALS["Teacher-supplied goals / level only if defined P"]
+    LESSONS["Related lessons /esl/lessons E"]
+    ACT["Activities /esl/classwork E"]
+    PROGRESS["Sourced progress /esl/progress E"]
+    DETAIL --> GOALS
+    DETAIL --> LESSONS
+    DETAIL --> ACT
+    DETAIL --> PROGRESS
+  end
+  PICK --> DETAIL
+  PICK -->|"No profile service today"| EMPTY["Current learner-context preview E"]
+  DETAIL -->|"Private notes"| NOTES["Feedback & Notes D"]
+```
+
+**Boundary:** A client-side learner ID or `/esl` prefix does not authorize the profile. Do not infer CEFR/proficiency or mix one learner's records into a group view.
+
+### Lesson Plans: `/esl/lessons` (E)
+
+**Sections:** plan library, learner/group selector, goal/skill context, reusable lesson sequence, linked materials/activity, and save/publish state.
+
+```mermaid
+flowchart LR
+  LP(["Lesson Plans /esl/lessons E"]) --> SELECT["Choose learner/group and plan"]
+  subgraph PREP["Plan content"]
+    GOAL["Set teacher-authored objective"]
+    SEQUENCE["Build lesson steps / practice sequence P"]
+    MATERIAL["Attach Teaching Materials /esl/materials E"]
+    ACTIVITY["Attach activity /esl/classwork E"]
+    GOAL --> SEQUENCE
+    SEQUENCE --> MATERIAL
+    SEQUENCE --> ACTIVITY
+  end
+  SELECT --> GOAL
+  SEQUENCE -->|"Save/reuse after plan service exists"| SAVE["Server-confirmed plan P"]
+  SAVE -->|"Schedule a dated session"| SCHEDULE["Lesson Schedule /esl/schedule E"]
+  SCHEDULE -->|"Online room linked"| ROOM["Meeting Room /esl/classrooms/meeting-room E"]
+  LP -->|"No lesson-plan service today"| EMPTY["Skill overview + not-connected state E"]
+```
+
+### Teaching Materials: `/esl/materials` (E context chooser)
+
+**Sections:** teacher-owned library, class/lesson/learner/group context, skill/topic filters, resource list, detail/preview, and explicit share/attach actions.
+
+```mermaid
+flowchart LR
+  MAT(["Teaching Materials /esl/materials E"]) --> CONTEXT{"Choose resource context"}
+  subgraph OWNERS["Resource owners"]
+    LESSON["Lesson plan /esl/lessons E"]
+    ACTIVITY["Activity /esl/classwork E"]
+    LEARNER["Learner/group /esl/learners E"]
+  end
+  CONTEXT --> LESSON
+  CONTEXT --> ACTIVITY
+  CONTEXT --> LEARNER
+  LESSON --> LIB["Authorized library results P"]
+  ACTIVITY --> LIB
+  LEARNER --> LIB
+  LIB -->|"Search / filter by skill or topic"| ITEM["Resource detail / attachment P"]
+  ITEM -->|"Explicitly attach/share"| DEST["Chosen lesson/activity and audience P"]
+  MAT -->|"No materials service today"| EMPTY["Context cards; no browse/upload E"]
+```
+
+**Boundary:** Private tutor/educator resources stay private until explicit sharing. Supported file formats, upload limits, preview, storage, and external integrations require service contracts.
+
+### Activities & Assessments: `/esl/classwork` (E)
+
+**Sections:** practice/activity list, learner/group and lesson filters, activity builder, learner submissions/responses, educator review, and feedback publication.
+
+```mermaid
+flowchart LR
+  ACT(["Activities & Assessments /esl/classwork E"]) --> CONTEXT["Choose learner/group + lesson context P"]
+  subgraph BUILD["Create language practice"]
+    TYPE{"Choose supported activity type"}
+    FORM["Vocabulary / grammar / reading / listening / speaking / writing"]
+    CRITERIA["Set teacher-authored instructions and criteria P"]
+    DRAFT["Review draft before assigning P"]
+    TYPE --> FORM --> CRITERIA --> DRAFT
+  end
+  CONTEXT --> TYPE
+  DRAFT -->|"Publish after service confirms"| LEARNER["Learner receives assigned activity P"]
+  LEARNER -->|"Learner submits supported response"| REVIEW["Submission review queue P"]
+  REVIEW -->|"Tutor/teacher evaluates"| FEEDBACK["Private draft or explicit published feedback"]
+  FEEDBACK -->|"Published record"| PROGRESS["Learner Progress /esl/progress E"]
+  ACT -->|"No activity/submission service"| EMPTY["Current activity-category preview E"]
+```
+
+**Boundary:** Activity types, file/link response types, statuses, assessment scales, and feedback release rules must follow the API contract. Whiteboard interaction is a live practice action, not a submission or grade.
+
+### Lesson Attendance: `/esl/attendance` (E)
+
+**Sections:** session/lesson selector, learner/group roster, allowed status controls, confirmation state, and history by session/learner.
+
+```mermaid
+flowchart LR
+  AT(["Lesson Attendance /esl/attendance E"]) --> PICK["Choose scheduled lesson/session"]
+  PICK --> SERVICE{"Session and authorized roster loaded?"}
+  SERVICE -->|"No"| EMPTY["Current empty/not-connected state E"]
+  SERVICE -->|"Yes"| ROSTER["Mark supported statuses for each learner/group member P"]
+  subgraph REGISTER["Educator-reviewed register"]
+    ROSTER --> REVIEW["Review attendance before confirmation P"]
+    REVIEW -->|"Service confirms"| SAVED["Confirmed lesson attendance P"]
+    REVIEW -->|"Service fails"| ERROR["Keep safe draft; show retry/error P"]
+  end
+  subgraph HISTORY_VIEW["After confirmation"]
+    HISTORY["History by learner and session P"]
+    LEARNER["My Learners /esl/learners E"]
+    HISTORY -->|"Open learner context"| LEARNER
+  end
+  SAVED --> HISTORY
+  AT -.->|"LiveKit presence is not attendance"| IGNORE["Do not auto-mark from room roster"]
+```
+
+### Meeting Room and temporary ESL whiteboard: `/esl/classrooms/meeting-room` (E)
+
+**Sections:** standalone lobby, LiveKit stage, participant/chat panels, existing controls, and an ESL-only whiteboard stage available only after an authorized room is connected.
+
+```mermaid
+flowchart LR
+  ROOM(["Meeting Room /esl/classrooms/meeting-room E"]) --> ENTRY{"How does the teacher enter?"}
+  subgraph LOBBY["Standalone lobby"]
+    INVITE["Enter invite / room code"]
+    CREATE["Create room if server-authorized"]
+    JOIN["Meeting API join"]
+    INVITE --> JOIN
+    CREATE --> JOIN
+  end
+  ENTRY -->|"Sidebar entry"| INVITE
+  ENTRY -->|"Lesson schedule link"| PREFILL["Valid room code prefilled"]
+  PREFILL --> JOIN
+  JOIN -->|"Denied / invalid / service error"| ERROR["Recoverable error; remain in lobby E"]
+  JOIN -->|"Authorized token + connected"| LIVE["LiveKit room E"]
+  subgraph SESSION["During active ESL lesson"]
+    MEDIA["Opt-in microphone / camera / screen share E"]
+    WHITEBOARD["Open temporary whiteboard P"]
+    CHAT["Transient in-call chat / hand raise E"]
+    PEOPLE["Connected participants E"]
+  end
+  LIVE --> MEDIA
+  LIVE --> WHITEBOARD
+  LIVE --> CHAT
+  LIVE --> PEOPLE
+  subgraph BOARD["Built-in whiteboard prompt"]
+    PROMPT["Teacher presents text/vector prompt P"]
+    RESPOND["Learner clicks/selects/circles/marks target P"]
+    SYNC["Authorized room participants see live action P"]
+    RESET["Teacher clears/resets prompt P"]
+    PROMPT --> RESPOND --> SYNC --> RESET
+  end
+  WHITEBOARD --> PROMPT
+  RESET -->|"Next prompt"| PROMPT
+  LIVE -->|"Leave / room ends"| CLEAR["Clear transient room and board state P"]
+  CLEAR --> ROOM
+```
+
+**Boundary:** Whiteboard input stays temporary and separate from submission, assessment, attendance, feedback, and progress. Room membership/host authority must come from server-issued authorization, not the `/esl` route.
+
+### Lesson Schedule: `/esl/schedule` (E scaffold)
+
+**Sections:** calendar grid, selected-day agenda, learner/group selector, lesson detail, and Meeting Room action only for a valid online session.
+
+```mermaid
+flowchart LR
+  CAL(["Lesson Schedule /esl/schedule E"]) --> DATE["Select date/month: same page E"]
+  DATE --> SERVICE{"Schedule records available?"}
+  SERVICE -->|"No"| EMPTY["Current no-events state E"]
+  SERVICE -->|"Yes"| AGENDA["Lessons grouped by learner/group P"]
+  subgraph PREP["Open lesson context"]
+    PLAN["Lesson Plans /esl/lessons E"]
+    MATERIAL["Teaching Materials /esl/materials E"]
+    ACTIVITY["Activities /esl/classwork E"]
+  end
+  AGENDA -->|"Open lesson plan"| PLAN
+  AGENDA -->|"Open resource"| MATERIAL
+  AGENDA -->|"Open activity deadline"| ACTIVITY
+  AGENDA -->|"Join valid online session"| ROOM["Meeting Room /esl/classrooms/meeting-room?room=CODE E"]
+  CAL -->|"Create/reschedule if service supports"| FORM["Learner/group-scoped session form P"]
+```
+
+**Boundary:** Confirm timezone, recurrence, cancellation, reminders, and online/in-person/hybrid modes before event mutations or external calendar sync.
+
+### Discussions: `/esl/communication` (E preview)
+
+**Sections:** context selector, learner/group/lesson thread list, author/audience metadata, thread detail, and reply composer after a communications service exists.
+
+```mermaid
+flowchart LR
+  DISC(["Discussions /esl/communication E"]) --> CONTEXT{"Choose authorized learning context"}
+  subgraph CONTEXTS["Learner and lesson contexts"]
+    LEARNER["My Learners /esl/learners E"]
+    LESSON["Lesson Plans /esl/lessons E"]
+    ACTIVITY["Activities /esl/classwork E"]
+  end
+  CONTEXT --> LEARNER
+  CONTEXT --> LESSON
+  CONTEXT --> ACTIVITY
+  LEARNER --> THREADS["Context-scoped thread list P"]
+  LESSON --> THREADS
+  ACTIVITY --> THREADS
+  THREADS -->|"Open thread"| THREAD["Thread detail; same context P"]
+  THREAD -->|"Educator/learner reply"| SAVE["Server confirms post or returns safe error P"]
+  DISC -->|"No service today"| EMPTY["Current not-connected preview E"]
+```
+
+**Boundary:** Direct messaging is not in the first scope. In-call chat remains transient to the Meeting Room and must not appear as a saved discussion or private Session Note.
+
+### Announcements: `/esl/announcements` (P)
+
+**Sections:** learner/group audience picker, composer, preview, published/draft list, and notification status only if confirmed by services.
+
+```mermaid
+flowchart LR
+  ANN(["Announcements D until route; /esl/announcements P"]) --> AUD["Choose authorized learner/group audience"]
+  subgraph AUTHOR["Compose and review"]
+    COMPOSE["Write lesson/session update"]
+    PREVIEW["Review content + audience"]
+    AUD --> COMPOSE --> PREVIEW
+    PREVIEW -->|"Edit"| COMPOSE
+  end
+  subgraph AFTER_PUBLISH["After service confirms"]
+    NOTICE["Notifications /esl/notifications E"]
+    LESSON["Lesson Plans /esl/lessons E"]
+  end
+  PREVIEW -->|"Publish when service exists"| SAVED["Server confirms announcement P"]
+  SAVED -->|"Delivery confirmed"| NOTICE
+  SAVED -->|"Open relevant lesson"| LESSON
+  PREVIEW -->|"No announcement service"| BLOCK["Keep planned; do not claim delivery"]
+```
+
+### Notifications: `/esl/notifications` (E scaffold)
+
+**Sections:** confirmed event inbox, category/read filters if supported, safe event preview, and a link to the originating lesson/learner/activity.
+
+```mermaid
+flowchart LR
+  N(["Notifications /esl/notifications E"]) --> SERVICE{"Notification service available?"}
+  SERVICE -->|"No"| EMPTY["Current no-live-inbox state E"]
+  SERVICE -->|"Yes"| LIST["Authorized event list P"]
+  subgraph DESTINATIONS["Open the source context"]
+    LESSON["Lesson Schedule /esl/schedule E"]
+    LEARNER["My Learners /esl/learners E"]
+    ACTIVITY["Activities /esl/classwork E"]
+    DISC["Discussions /esl/communication E"]
+  end
+  LIST -->|"Upcoming lesson / change"| LESSON
+  LIST -->|"Learner/group update"| LEARNER
+  LIST -->|"Submission / feedback event"| ACTIVITY
+  LIST -->|"Thread reply"| DISC
+  LIST -->|"Mark read if supported"| READ["Service-confirmed read state P"]
+```
+
+**Boundary:** Do not expose private notes or unpublished feedback in notification previews; read/delivery state must come from the notification service.
+
+### Learner Progress: `/esl/progress` (E scaffold)
+
+**Sections:** learner/group selector, date range, evidence by supported language skill/objective, session/activity history, and released feedback links.
+
+```mermaid
+flowchart LR
+  PROG(["Learner Progress /esl/progress E"]) --> PICK["Choose authorized learner/group P"]
+  PICK --> DATA{"Approved progress records available?"}
+  DATA -->|"No"| EMPTY["No connected progress data E"]
+  DATA -->|"Yes"| VIEW["Evidence by lesson/activity/date P"]
+  subgraph EVIDENCE["Tutor-reviewed learning evidence"]
+    SPEAK["Speaking/listening evidence when assessed P"]
+    READ["Reading/writing evidence when assessed P"]
+    ATT["Session attendance history P"]
+    FEED["Published feedback P"]
+  end
+  VIEW --> SPEAK
+  VIEW --> READ
+  VIEW --> ATT
+  VIEW --> FEED
+  VIEW -->|"Open activity source"| ACT["Activities /esl/classwork E"]
+  VIEW -->|"Open lesson source"| LESSON["Lesson Plans /esl/lessons E"]
+```
+
+**Boundary:** Each progress value identifies its source/date/criteria. Do not infer CEFR/proficiency, mastery, or a school grade from sparse activity, attendance, AI output, or in-call whiteboard actions.
+
+### Feedback & Notes: `/esl/feedback-notes` (P)
+
+**Sections:** separate `PrivateTeachingNotes` and `LearnerFeedback` views, learner/group and lesson filters, draft/published state, and explicit publish action.
+
+```mermaid
+flowchart LR
+  FN(["Feedback & Notes D until route; /esl/feedback-notes P"]) --> SCOPE{"Choose record audience"}
+  subgraph PRIVATE["Educator-only notes"]
+    NOTE["Private teaching note P"]
+    SAVE_PRIVATE["Save under approved private-note service P"]
+    NOTE --> SAVE_PRIVATE
+  end
+  subgraph SHARED["Learner-visible feedback"]
+    DRAFT["Feedback draft linked to learner/lesson/activity P"]
+    REVIEW["Review learner + audience before publishing P"]
+    PUBLISH["Explicitly publish after service confirms P"]
+    DRAFT --> REVIEW --> PUBLISH
+  end
+  SCOPE -->|"Private observation"| NOTE
+  SCOPE -->|"Feedback for learner"| DRAFT
+  PUBLISH -->|"Learner can view released feedback"| PROG["Learner Progress /esl/progress E"]
+```
+
+**Boundary:** Private notes never leak into profiles, discussions, notifications, progress, or reports. Published feedback is a distinct record with an explicit audience and release state.
+
+### AI Lesson Assistant: `/esl/ai-assistant` (E scaffold)
+
+**Sections:** teacher-selected skill/objective and learner context, prompt form, draft response, edit/reject/regenerate controls, and explicit handoff to a plan/activity.
+
+```mermaid
+flowchart LR
+  AI(["AI Lesson Assistant /esl/ai-assistant E"]) --> APPROVED{"Provider, privacy, and service approved?"}
+  APPROVED -->|"No"| INFO["Current explanation only; no generation E"]
+  APPROVED -->|"Yes"| INPUT["Teacher supplies allowed learner/lesson context P"]
+  INPUT --> SERVICE["Approved backend AI service creates a draft P"]
+  SERVICE --> REVIEW["Educator reviews and edits suggestion P"]
+  subgraph DECISION["Educator decides"]
+    ACCEPT["Accept selected draft"]
+    REJECT["Reject / regenerate / leave"]
+  end
+  REVIEW --> ACCEPT
+  REVIEW --> REJECT
+  ACCEPT -->|"Add to lesson"| PLAN["Lesson Plans /esl/lessons E"]
+  ACCEPT -->|"Create activity"| ACTIVITY["Activities & Assessments /esl/classwork E"]
+  REJECT --> AI
+```
+
+**Boundary:** AI never silently publishes, evaluates a learner, contacts a learner, assigns a final level, or changes attendance/progress. No private learner/session data is sent directly from the browser.
+
+### Profile & Settings: `/esl/settings` (P)
+
+**Sections:** confirmed identity/profile fields, supported preferences, notification/privacy settings only when backed by a profile API, and account actions.
+
+```mermaid
+flowchart LR
+  SETTINGS(["Profile & Settings D until route/API; /esl/settings P"]) --> READY{"Profile/preferences contract defined?"}
+  READY -->|"No"| WAIT["Keep planned; no editable fake form"]
+  READY -->|"Yes"| PROFILE["View authenticated profile fields P"]
+  subgraph EDIT["Edit supported settings"]
+    FORM["Accessible profile/preferences form P"]
+    RESULT{"Server confirms save?"}
+    ERROR["Keep draft; safe retryable error P"]
+    FORM -->|"Save"| RESULT
+    RESULT -->|"Yes"| PROFILE
+    RESULT -->|"No"| ERROR
+  end
+  PROFILE -->|"Edit supported field"| FORM
+  SETTINGS -->|"Sign out through shared dashboard shell"| LOGIN["/login after logout confirmation"]
+```
+
+**Boundary:** Do not infer ESL role/subtype from a client route or local onboarding choice; profile authorization is server-owned.
+
+### Cross-page navigation and record-state rules
+
+- Learner, group, lesson, activity, attendance, note, feedback, and resource links retain their owning context and audience.
+- Tabs, filters, prompts, and dialogs stay on their current URL unless a flowchart names a destination. Proposed routes are not implicitly registered.
+- Every create/save/publish/check-in/notification action has pending, confirmed-success, and recoverable-error states. Do not claim success until a service confirms it.
+- Loading, empty, filtered-empty, unavailable, error, and permission-denied states are distinct. Sample classroom/session records stay labeled as demo.
+- The whiteboard is visible only in an authorized, connected ESL Meeting Room; live selections clear on room/board end and never alter classwork, attendance, feedback, or progress.
+
 ## Current route, component, and data-flow map
 
 | Area | Current source | Verified implementation status |
 |---|---|---|
-| ESL sidebar | `src/components/common/dashboard-navigation.ts`; renderer `src/components/common/app-sidebar.tsx` | ESL menu currently has Overview, Lessons, Activities & assessments, Attendance, Learners plus shared Classrooms, Schedule, Materials, Communication, Notifications, Progress, AI Assistant. It has no ESL-specific grouped sidebar matching this proposal. |
+| ESL sidebar | `src/components/common/dashboard-navigation.ts`; renderer `src/components/common/app-sidebar.tsx` | ESL now has the grouped sidebar described here. Existing routes are linked; Announcements, Feedback & Notes, and Profile & Settings remain disabled/planned until their route/service exists. Header search contains route-backed items only. |
 | Routes/layout | `src/main.tsx`; `src/pages/dashboard/layout.tsx` | ESL routes are role-prefixed and use the shared layout. Existing `/esl/classrooms/meeting-room` is a full-screen route. Role prefixes are presentation only; `RequireAuth` does not replace backend role/resource authorization. |
 | Overview | `src/pages/dashboard/esl/index.tsx` | Placeholder cards for learner, upcoming, and progress sections; no live dashboard query. |
 | Learners | `src/pages/dashboard/esl/learners/index.tsx` | Explains desired goal/activity/feedback areas but no learner profile or language-progress data is loaded. |
@@ -254,9 +771,10 @@ ACCOUNT
 - Run a LiveKit transport spike for compact board event delivery, authorization, ordering/deduplication, rate/payload limits, late join/reconnect resynchronization, and failed-publish UI. If the existing LiveKit data-packet channel is unsuitable, stop and define an approved realtime service before building.
 - Confirm calendar timezone/recurrence/reminders, material upload rules, communication audience/delivery, and AI provider/privacy before implementation.
 
-### Stage 1 — ESL workspace navigation and learner/lesson foundation
+### Stage 1 - ESL workspace navigation and learner/lesson foundation
 
-- Map the proposed student-facing ESL groups to role-prefixed routes; align sidebar active state, header title, workspace search, and notification shortcut.
+- Map the proposed ESL teacher sidebar to role-prefixed routes; align sidebar active state, header title, workspace search, and notification shortcut.
+- Keep each new/refactored ESL route folder to a thin `index.tsx` adapter; implement screens and state in the `esl-teaching` feature modules mapped above.
 - Improve the Overview and My Learners destinations with real service-backed data or honest first-run/loading/error/permission states.
 - Establish learner/group and lesson plan services before activities are linked to them. Avoid deriving ESL proficiency from unapproved client-side assumptions.
 
@@ -295,6 +813,9 @@ ACCOUNT
 
 - The educator can follow a coherent ESL path: learner/group → lesson plan → materials/activity → scheduled lesson → live meeting → review/attendance/feedback → evidence-based progress.
 - The sidebar contains Lesson Attendance, Discussions, Announcements, and Notifications; direct Messages are not presented as working until separately implemented.
+- Every sidebar page in this blueprint has a route status, feature-component/file map, checked-in UI-wrapper choices, and a branching Mermaid click-flow diagram.
+- Every new/refactored ESL route directory contains only `index.tsx`; substantive UI, forms, schemas, state, and data logic live under `src/components/features/esl-teaching/` or the appropriate shared feature module.
+- All Mermaid diagrams use a visual left-to-right layout with grouped branches, not a table. Each clickable target is an existing registered route or marked proposed/disabled.
 - Lesson Plans and Lesson Schedule are clearly different: reusable instructional preparation versus dated sessions.
 - Meeting Room remains a separate page; the whiteboard exists only inside an active authorized ESL Meeting Room and never appears as a separate page/sidebar destination.
 - In the whiteboard MVP, teacher-authored built-in prompt objects are distinct from learner responses; at least one learner can select/circle/mark a target and all permitted connected participants can see the live action.
@@ -310,9 +831,10 @@ ACCOUNT
 ## Likely application files if implementation is separately approved
 
 - Role navigation and page chrome: `src/components/common/dashboard-navigation.ts`, `src/components/common/app-sidebar.tsx`, and `src/pages/dashboard/layout.tsx`.
-- Route map/adapters: `src/main.tsx`; ESL pages under `src/pages/dashboard/esl/` (overview, lessons, learners, classwork, attendance, plus new feedback/notes or announcement routes if selected).
-- Shared role-prefixed destinations: `src/pages/dashboard/schedule/`, `materials/`, `communication/`, `notifications/`, `progress/`, and `ai-assistant/`; ensure ESL labels/content are context-aware rather than assuming every role has identical actions.
-- Meeting Room and whiteboard: `src/pages/dashboard/classroom/meeting-room.tsx`, with a new ESL whiteboard feature component under `src/components/features/` (recommended focused folder such as `features/esl/meeting-room/`). Keep it role/capability-scoped inside the shared page and do not add a separate whiteboard route.
+- Route registration/adapters: `src/main.tsx`; existing `src/pages/dashboard/esl/{index,learners,lessons,classwork,attendance}/index.tsx`; proposed `announcements/index.tsx`, `feedback-notes/index.tsx`, and `settings/index.tsx`.
+- ESL feature components: `src/components/features/esl-teaching/{overview,learners,lesson-plans,materials,activities,attendance,meeting-room,schedule,communication,notifications,progress,feedback-notes,ai-assistant,settings}/`.
+- Shared role-prefixed adapters: `src/pages/dashboard/{schedule,materials,communication,notifications,progress,ai-assistant}/index.tsx`; extract role-aware view components and preserve all existing role contexts.
+- Meeting Room and whiteboard: keep the route at `/esl/classrooms/meeting-room`; target a thin `src/pages/dashboard/classroom/meeting-room/index.tsx` adapter and `src/components/features/esl-teaching/meeting-room/` board components inside the shared meeting page. Do not add a whiteboard route or modify other roles' meeting experience without approval.
 - Shared class flow/data: `src/components/features/classrooms/classroom-detail-view.tsx`, `classroom-records-view.tsx`, `classroom-prototype-context.ts`, `classroom-prototype-provider.tsx`, and `src/services/api/classroom.service.ts` only as confirmed APIs replace prototype data.
 - API integration: add/extend `src/services/api/meeting.service.ts` or a focused realtime service only after transport, authorization, payload, and privacy contracts are approved. Do not expose short-lived meeting credentials or persist them in browser storage.
 - No application source, dependency, route, or backend changes are included in this planning document.
