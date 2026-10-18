@@ -295,26 +295,38 @@ The component names are target suggestions. Reuse checked-in `src/components/ui`
 
 ## Click-through page flowcharts
 
-Each chart starts at the sidebar destination. `E` is an existing frontend route, `P` a proposed future frontend route/action, and `D` a disabled sidebar entry. "Same page" means a tab, dialog, filter, or local state change rather than a new URL. A chart is a target interaction specification, not proof that a backend action exists.
+Each chart starts at the sidebar destination. `E` is an existing frontend route, `P` a proposed future frontend route/action, and `D` a disabled sidebar entry. Mermaid subgraphs visually group related branches; open this Markdown in a Mermaid-enabled preview to see the diagrams instead of their source. "Same page" means a tab, dialog, filter, or local state change rather than a new URL. A chart is a target interaction specification, not proof that a backend action exists.
 
 ### Overview: `/students` (E)
 
 **Sections:** `StudentOverviewView` welcome/quick actions, `UpcomingItems` split by personal/class, `SubjectsTable`, `ClassworkHighlight`, `ProgressSummary`, and `PersonalSpacePromo`. Show a real next action or a useful empty state, not sample counts.
 
 ```mermaid
-flowchart TD
-  O["Overview /students"] --> Q{"Student selects"}
-  Q -->|"Open personal subjects"| L["My Learning /students/subjects E"]
-  Q -->|"Plan a personal task"| T["Tasks /students/tasks E"]
-  Q -->|"Write a personal note"| N["Notes /students/notes E"]
-  Q -->|"View own deadlines"| C["Calendar /students/schedule E"]
-  Q -->|"Open class / join a class"| CL["My Classes /students/classrooms E"]
-  Q -->|"See assigned work"| CW["Classwork /students/classwork E"]
-  Q -->|"Review progress"| P["Progress /students/progress E"]
-  Q -->|"Peer collaboration"| S["Study Spaces /students/study-spaces E"]
-  CL -->|"Join code form when available"| J["Join result: server-confirmed or labeled demo"]
-  O -->|"No personal work yet"| L
-  O -->|"No class joined"| CL
+flowchart LR
+  O(["Overview /students E"]) --> NEXT{"What should I work on?"}
+  subgraph INDEPENDENT["Independent learning"]
+    ML["My Learning /students/subjects E"]
+    T["Personal tasks /students/tasks E"]
+    N["Personal notes /students/notes E"]
+    C["Calendar /students/schedule E"]
+  end
+  subgraph CONNECTED["Classes and peer learning"]
+    CL["My Classes /students/classrooms E"]
+    CW["Assigned classwork /students/classwork E"]
+    S["Study Spaces /students/study-spaces E"]
+    P["Progress & Grades /students/progress E"]
+  end
+  NEXT -->|"Organize a subject"| ML
+  NEXT -->|"Plan study work"| T
+  NEXT -->|"Capture a note"| N
+  NEXT -->|"Check due dates"| C
+  NEXT -->|"Open or join a class"| CL
+  NEXT -->|"Complete assigned work"| CW
+  NEXT -->|"Study with peers"| S
+  NEXT -->|"Review sourced history"| P
+  CL -->|"Join-code result"| JOIN["Server-confirmed enrollment or clearly labeled demo"]
+  O -->|"No personal work"| EMPTY1["Start in My Learning"]
+  O -->|"No class membership"| EMPTY2["Join a class is optional"]
 ```
 
 **Boundary:** Personal links work without a classroom. Upcoming classroom data, grades, or attendance must be omitted or marked unavailable if no authorized service supplies them.
@@ -324,21 +336,30 @@ flowchart TD
 **Sections:** `MyLearningView` (P) with personal subject list, continue-study panel, notes preview, tasks preview, and personal-resource shortcuts; `SubjectsView` (E) remains the focused subject list. A subject is student-owned and is not an official educator class.
 
 ```mermaid
-flowchart TD
-  M["Sidebar My Learning -> /students/subjects E"] --> F["Subject search / status filter: same page E"]
-  M --> SC["Subject card: read-only sample E"]
-  SC -->|"When subject service exists"| SD["Subject detail /students/subjects/:subjectId P"]
-  SD --> NS["Subject notes /students/notes E"]
-  SD --> TS["Personal tasks /students/tasks E"]
-  SD --> RS["Personal resources /students/materials E"]
-  M -->|"Current quick link"| NS
-  M -->|"Current quick link"| TS
-  NS -->|"Create / edit / pin / delete"| ND["Note dialogs: same page, browser-local E"]
-  TS -->|"Create / edit / complete / delete"| TD["Task dialogs: same page, browser-local E"]
-  M -->|"After hub is registered"| MH["My Learning /students/learning P"]
-  MH --> F
-  MH --> NS
-  MH --> TS
+flowchart LR
+  ML(["My Learning entry /students/subjects E"]) --> HUB{"Choose a personal-learning path"}
+  subgraph SUBJECT["Subject organization"]
+    FILTER["Search / status filter: same page E"]
+    CARD["Subject card: current data is sample E"]
+    DETAIL["Subject detail /students/subjects/:subjectId P"]
+    FILTER --> CARD
+    CARD -->|"When subject service exists"| DETAIL
+  end
+  subgraph PERSONAL_TOOLS["Personal tools"]
+    NOTES["Notes /students/notes E"]
+    TASKS["Tasks /students/tasks E"]
+    LIB["Study Library /students/materials E"]
+  end
+  HUB -->|"Browse a subject"| FILTER
+  HUB -->|"Open notes"| NOTES
+  HUB -->|"Plan a task"| TASKS
+  HUB -->|"Find resources"| LIB
+  DETAIL --> NOTES
+  DETAIL --> TASKS
+  DETAIL --> LIB
+  NOTES -->|"Create/edit/pin/delete"| NOTE_DIALOG["Note dialogs; browser-local E"]
+  TASKS -->|"Create/edit/complete/delete"| TASK_DIALOG["Task dialogs; browser-local E"]
+  ML -.->|"After hub route is approved"| FUTURE["/students/learning P"]
 ```
 
 **Migration:** Update the sidebar from `/students/subjects` to `/students/learning` only when that hub has an `index.tsx` adapter and a real view. Keep `/students/subjects`, `/students/notes`, and `/students/tasks` reachable as focused/deep destinations; do not make a personal subject a classroom.
@@ -348,19 +369,32 @@ flowchart TD
 **Sections:** `ClassroomsView` with enrolled-class cards and join-code form; `ClassroomDetailView` with feed, classwork, materials, people, schedule, attendance, and released-progress tabs; `ClassroomActivityView` for an activity. Tabs currently remain on the same class-detail URL.
 
 ```mermaid
-flowchart TD
-  CL["My Classes /students/classrooms E"] --> CH{"Choose class action"}
-  CH -->|"Enter class code"| J["Join form on /students/classrooms E"]
-  J -->|"Confirmed join API response"| LIST["Updated enrolled list E"]
-  J -->|"Failure / already joined"| ERR["Inline error; remain on list E"]
-  CH -->|"Open enrolled class card"| D["/students/classrooms/:classroomId E"]
-  D -->|"Feed / People / Materials / Schedule"| TAB["Scoped tab on class detail E; data mostly demo"]
-  D -->|"Classwork tab"| A["Assigned activity list in this class E; demo"]
-  A -->|"Open activity"| AD["/students/classrooms/:classroomId/classwork/:activityId E"]
-  AD -->|"Submit when service permits"| SR["Server-confirmed submission P; demo only today"]
-  D -->|"Join linked live room"| R["Meeting Room /students/classrooms/meeting-room?room=CODE E"]
-  D -->|"Back to classes"| CL
-  TAB -->|"Attendance / results"| AUTH["View own permitted records only P"]
+flowchart LR
+  CL(["My Classes /students/classrooms E"]) --> CH{"Choose a class path"}
+  subgraph ENTRY["Find or join"]
+    LIST["Class list: connected + demo entries E"]
+    J["Join code form E"]
+    JOINED["Enrollment result"]
+    CL --> LIST
+    CL -->|"Enter code"| J
+    J -->|"API confirms"| JOINED
+    J -->|"Invalid / already joined"| ERR["Inline error; remain on list E"]
+    JOINED --> LIST
+  end
+  subgraph CLASSROOM["Authorized class"]
+    D["Class detail /students/classrooms/:classroomId E"]
+    TABS["Feed / People / Materials / Schedule tabs E"]
+    ACTLIST["Assigned activity list: demo today E"]
+    D --> TABS
+    D -->|"Classwork tab"| ACTLIST
+  end
+  CH -->|"Open enrolled class"| D
+  LIST -->|"Open class card"| D
+  ACTLIST -->|"Open activity"| ACT["/students/classrooms/:classroomId/classwork/:activityId E"]
+  ACT -->|"Submit when service permits"| SUBMIT["Server-confirmed submission P"]
+  SUBMIT -->|"Released result"| PROGRESS["Progress & Grades /students/progress E"]
+  D -->|"Valid linked room"| ROOM["Meeting Room /students/classrooms/meeting-room?room=CODE E"]
+  TABS -->|"Attendance / results"| OWN["Show only permitted student records P"]
 ```
 
 **Boundary:** The list/create/join classroom API exists, but detail tabs and activity submission/review are in-memory previews. Do not label a demo reply, grade, session, or submission as saved. Join links and invitations remain P until approved.
@@ -370,17 +404,25 @@ flowchart TD
 **Sections:** `StudentLibraryView` (P) with source filter, search, resource list/cards, and a visible owner/context badge. Today's shared page only sends the user to the owning context.
 
 ```mermaid
-flowchart TD
-  LIB["Study Library /students/materials E"] --> SRC{"Select source"}
-  SRC -->|"Personal notes / references"| N["Notes /students/notes E"]
-  SRC -->|"Personal subject"| SUB["My Learning /students/subjects E"]
-  SRC -->|"Educator-published material"| CL["My Classes /students/classrooms E"]
-  CL -->|"Open authorized class"| MAT["Class detail materials tab E; preview"]
-  SRC -->|"Peer-shared material"| SS["Study Spaces /students/study-spaces E"]
-  SS -->|"After verified membership"| SD["Study-space detail /students/study-spaces/:spaceId P"]
-  LIB -->|"Search / kind / source filters when service exists"| RES["Resource results on same route P"]
-  RES -->|"Open"| OWNER["Open authorized owner context; no silent cross-sharing P"]
-  LIB -->|"No resource service"| EMPTY["Context cards + unavailable state E"]
+flowchart LR
+  LIB(["Study Library /students/materials E"]) --> SRC{"Where does it belong?"}
+  subgraph PERSONAL["Student-owned"]
+    NOTES["Notes /students/notes E"]
+    SUBJECT["My Learning /students/subjects E"]
+  end
+  subgraph SHARED["Shared contexts"]
+    CLASS["My Classes /students/classrooms E"]
+    SPACE["Study Spaces /students/study-spaces E"]
+  end
+  SRC -->|"Personal notes / references"| NOTES
+  SRC -->|"Personal subject resources"| SUBJECT
+  SRC -->|"Educator-published resource"| CLASS
+  CLASS -->|"Open authorized class"| CLASS_MAT["Class detail materials tab E; preview only"]
+  SRC -->|"Peer-shared resource"| SPACE
+  SPACE -->|"Verified membership required"| SPACE_DETAIL["/students/study-spaces/:spaceId P"]
+  LIB -->|"Search/filter when library service exists"| RESULTS["Resource results on same route P"]
+  RESULTS -->|"Open item"| OWNER["Open owning authorized context P"]
+  LIB -->|"No resource service today"| EMPTY["Context chooser + unavailable state E"]
 ```
 
 **Boundary:** A personal note, educator-published class file, peer-shared resource, and student submission have different owners. No upload/download, preview, or cross-context sharing should appear operational before the materials contract.
@@ -390,19 +432,28 @@ flowchart TD
 **Sections:** `StudySpacesView` with "Spaces you create" and "Spaces you join" rails, `CreateSpaceDialog`, and `JoinSpaceDialog`; future `StudySpaceDetailView` owns member list, shared resources/tasks, discussions, and space notices.
 
 ```mermaid
-flowchart TD
-  SS["Study Spaces /students/study-spaces E"] --> ACT{"Student selects"}
-  ACT -->|"Create space"| CR["CreateSpaceDialog on same page E"]
-  ACT -->|"Join space"| JR["JoinSpaceDialog on same page E"]
-  CR -->|"Today: save browser-local"| LOCAL["Space rail updated; others cannot join E"]
-  JR -->|"Today: no code verification"| LOCAL
-  CR -->|"After create API confirms"| DETAIL["/students/study-spaces/:spaceId P"]
-  JR -->|"After membership API confirms"| DETAIL
-  DETAIL -->|"Shared tasks / materials"| PEER["Space-scoped content tabs P"]
-  DETAIL -->|"Discussion"| THREAD["Space-scoped discussion P"]
-  DETAIL -->|"Member management if owner"| MEMBERS["Approved member controls P"]
-  DETAIL -->|"Back"| SS
-  SS -->|"No membership or unavailable"| EMPTY["Peer-learning empty / error state"]
+flowchart LR
+  SS(["Study Spaces /students/study-spaces E"]) --> CH{"Choose a space action"}
+  subgraph CURRENT["Current local preview"]
+    CREATE["CreateSpaceDialog E"]
+    JOIN["JoinSpaceDialog E"]
+    LOCAL["Browser rail updates; no server membership E"]
+  end
+  CH -->|"Create"| CREATE
+  CH -->|"Join by code/link"| JOIN
+  CREATE -->|"Today: localStorage only"| LOCAL
+  JOIN -->|"Today: code is not verified"| LOCAL
+  subgraph FUTURE["After membership service confirms"]
+    DETAIL["Space detail /students/study-spaces/:spaceId P"]
+    CONTENT["Shared tasks / materials / discussions P"]
+    MEMBERS["Owner-only member controls P"]
+    DETAIL --> CONTENT
+    DETAIL --> MEMBERS
+  end
+  CREATE -.->|"API-backed flow"| DETAIL
+  JOIN -.->|"Verified membership"| DETAIL
+  DETAIL -->|"Back to spaces"| SS
+  SS -->|"No memberships / service unavailable"| EMPTY["Peer-learning empty or unavailable state"]
 ```
 
 **Boundary:** Current "joined" records are local and do not prove membership. A peer space never creates official grades, educator feedback, or attendance; personal content is shared only through an explicit approved action.
@@ -412,17 +463,28 @@ flowchart TD
 **Sections:** Full-screen `MeetingLobby`, `ParticipantGrid`, `RoomControls`, `MeetingChatPanel`, and `PeoplePanel`. The sidebar entry opens the separate lobby; an eligible classroom/session may link to the same route with a room code. The connected room is LiveKit-backed.
 
 ```mermaid
-flowchart TD
-  R["Meeting Room /students/classrooms/meeting-room E"] --> ENTRY{"How did student arrive?"}
-  ENTRY -->|"Sidebar"| FORM["Enter invite / room code in lobby E"]
-  ENTRY -->|"Authorized class link"| PREFILL["Room code prefilled from class E"]
-  FORM --> JOIN["Join request to existing meeting API E"]
-  PREFILL --> JOIN
-  JOIN -->|"Denied / invalid / offline"| ERROR["Visible error; stay in lobby E"]
-  JOIN -->|"Authorized token + connected"| LIVE["LiveKit connected room E"]
-  LIVE -->|"Enable mic / camera"| MEDIA["Browser permission requested only by control E"]
-  LIVE -->|"Chat / raise hand"| TRANSIENT["Transient LiveKit packet E"]
-  LIVE -->|"People panel"| PRESENCE["Connected roster, not attendance E"]
+flowchart LR
+  R(["Meeting Room /students/classrooms/meeting-room E"]) --> ENTRY{"Arrival path"}
+  subgraph LOBBY["Standalone lobby"]
+    FORM["Enter invite / room code E"]
+    PREFILL["Room code from authorized class link E"]
+    JOIN["Meeting API join E"]
+    FORM --> JOIN
+    PREFILL --> JOIN
+  end
+  ENTRY -->|"Sidebar"| FORM
+  ENTRY -->|"Class/session link"| PREFILL
+  JOIN -->|"Denied / invalid / offline"| ERROR["Show error; remain in lobby E"]
+  JOIN -->|"Authorized token + connected"| LIVE["LiveKit room E"]
+  subgraph IN_ROOM["During live room"]
+    MEDIA["Opt-in mic / camera / screen share E"]
+    CHAT["Transient chat / hand raise E"]
+    PEOPLE["Connected people panel E"]
+  end
+  LIVE --> MEDIA
+  LIVE --> CHAT
+  LIVE --> PEOPLE
+  PEOPLE -.->|"Presence is not attendance"| NOT_ATT["No official attendance inference"]
   LIVE -->|"Leave / disconnect"| CLEAR["Clear transient room state E"]
   CLEAR --> R
   R -->|"Back to classes"| CL["My Classes /students/classrooms E"]
@@ -435,16 +497,26 @@ flowchart TD
 **Sections:** `DiscussionContextFilter`, classroom/peer thread list, thread detail with author/time/context, and an accessible reply composer (P). The current page previews discussions, announcements, and polls without saved posts.
 
 ```mermaid
-flowchart TD
-  DISC["Discussions /students/communication E"] --> CTX{"Select context"}
-  CTX -->|"Joined class"| CL["My Classes /students/classrooms E"]
-  CL -->|"Open class feed"| FEED["Classroom detail feed tab E; demo only"]
-  CTX -->|"Peer space"| SS["Study Spaces /students/study-spaces E"]
-  SS -->|"Verified space detail"| SP["/students/study-spaces/:spaceId P"]
-  CTX -->|"When discussion API exists"| LIST["Scoped thread list on same route P"]
-  LIST -->|"Open thread"| THREAD["Thread detail on same route or approved deep link P"]
-  THREAD -->|"Reply / vote if permitted"| SAVE["Server-confirmed action or inline error P"]
-  DISC -->|"Current not-connected state"| INFO["Context links and explanatory empty state E"]
+flowchart LR
+  DISC(["Discussions /students/communication E"]) --> CTX{"Choose authorized context"}
+  subgraph CLASS_CONTEXT["Instructor class"]
+    CL["My Classes /students/classrooms E"]
+    FEED["Class detail feed tab E; demo only"]
+    CL --> FEED
+  end
+  subgraph PEER_CONTEXT["Student-created peer space"]
+    SS["Study Spaces /students/study-spaces E"]
+    SP["Verified space detail /students/study-spaces/:spaceId P"]
+    SS --> SP
+  end
+  CTX -->|"Class discussion"| CL
+  CTX -->|"Peer discussion"| SS
+  CTX -->|"When thread API exists"| LIST["Context-scoped thread list P"]
+  FEED --> LIST
+  SP --> LIST
+  LIST -->|"Open a thread"| THREAD["Thread detail on same page or approved deep link P"]
+  THREAD -->|"Reply / vote if allowed"| SAVE["Server confirms or returns safe error P"]
+  DISC -->|"No communication service today"| INFO["Preview and context links E"]
 ```
 
 **Boundary:** Only authorized class/space members see content. A student cannot publish an educator announcement, alter official records, or treat in-room chat as a saved discussion. Direct Messages remain out of scope.
@@ -454,16 +526,22 @@ flowchart TD
 **Sections:** `NotificationFilters`, list grouped by source/date, item details, and source links (P). Current route has category cards and no delivered events or read state.
 
 ```mermaid
-flowchart TD
-  N["Notifications /students/notifications E"] --> DATA{"Notification service available?"}
-  DATA -->|"No"| EMPTY["Category guidance + no live activity E"]
-  DATA -->|"Yes"| LIST["Authorized event list P"]
-  LIST -->|"Class invite / announcement"| CL["Class detail or My Classes /students/classrooms E"]
-  LIST -->|"New work / released result"| ACT["/students/classrooms/:classroomId/classwork/:activityId E"]
-  LIST -->|"Deadline / changed session"| CAL["Calendar /students/schedule E"]
-  LIST -->|"Peer reply"| SS["Study Spaces /students/study-spaces E"]
-  LIST -->|"Mark read if supported"| READ["Read-state mutation confirmed by service P"]
-  LIST -->|"Permission revoked"| UNAV["Unavailable message; do not expose private payload P"]
+flowchart LR
+  N(["Notifications /students/notifications E"]) --> DATA{"Service available?"}
+  DATA -->|"No"| EMPTY["Category guidance; no live inbox E"]
+  DATA -->|"Yes"| LIST["Authorized event inbox P"]
+  subgraph SOURCES["Open the event's source"]
+    CL["Class / invitation / announcement E"]
+    ACT["Activity / released result E"]
+    CAL["Calendar / session / deadline E"]
+    SS["Peer-space context E"]
+  end
+  LIST -->|"Class invite / update"| CL
+  LIST -->|"New work / released feedback"| ACT
+  LIST -->|"Deadline / session change"| CAL
+  LIST -->|"Peer reply"| SS
+  LIST -->|"Mark read if supported"| READ["Service-confirmed read state P"]
+  LIST -->|"Access removed"| UNAV["Safe unavailable state; hide private details P"]
 ```
 
 **Boundary:** Every event opens its owner context. Do not expose private grades/feedback to other members or claim delivery/read state from client-only changes.
@@ -473,18 +551,28 @@ flowchart TD
 **Sections:** `CalendarGrid`, selected-day `DayAgenda`, source legend/filter, and event details. The current calendar only navigates dates; it does not save or load events.
 
 ```mermaid
-flowchart TD
-  CAL["Calendar /students/schedule E"] --> DATE["Select month / date: same page E"]
-  DATE --> SERVICE{"Approved event sources loaded?"}
-  SERVICE -->|"No"| EMPTY["No connected events E"]
-  SERVICE -->|"Yes"| AGENDA["Day agenda with owner badges P"]
-  AGENDA -->|"Personal task deadline"| TASK["Personal tasks /students/tasks E"]
-  AGENDA -->|"Assigned activity deadline"| CW["Classwork /students/classwork E"]
-  CW -->|"Open class activity"| ACT["/students/classrooms/:classroomId/classwork/:activityId E"]
-  AGENDA -->|"Class / tutoring session"| CLASS["/students/classrooms/:classroomId E"]
-  CLASS -->|"Eligible live meeting"| ROOM["/students/classrooms/meeting-room?room=CODE E"]
-  CAL -->|"Add personal study block if supported"| FORM["Personal event form; same page P"]
-  FORM -->|"Save success / failure"| DATE
+flowchart LR
+  CAL(["Calendar & Schedule /students/schedule E"]) --> DATE["Select month/day: same page E"]
+  DATE --> DATA{"Authorized event sources loaded?"}
+  DATA -->|"No"| EMPTY["No connected events E"]
+  DATA -->|"Yes"| AGENDA["Day agenda; source/owner label on each item P"]
+  subgraph PERSONAL["Student-owned schedule"]
+    TASK["Personal task /students/tasks E"]
+    STUDY["Personal study block P"]
+  end
+  subgraph CLASSROOM["Educator-owned schedule"]
+    CW["Classwork /students/classwork E"]
+    ACT["Class activity /students/classrooms/:classroomId/classwork/:activityId E"]
+    CLASS["Class/session /students/classrooms/:classroomId E"]
+    ROOM["Valid online meeting /students/classrooms/meeting-room?room=CODE E"]
+  end
+  AGENDA -->|"Personal due date"| TASK
+  AGENDA -->|"Add study block if supported"| STUDY
+  AGENDA -->|"Assigned deadline"| CW
+  CW -->|"Open activity"| ACT
+  AGENDA -->|"Class or lesson"| CLASS
+  CLASS -->|"Room attached"| ROOM
+  STUDY -->|"Save result"| DATE
 ```
 
 **Boundary:** A student may edit only their own events. Classroom sessions and educator deadlines stay read-only unless an approved contract says otherwise. Confirm timezone, recurrence, and reminder behavior before event CRUD.
@@ -494,18 +582,28 @@ flowchart TD
 **Sections:** A target `TasksAndAssessmentsView` can provide distinct "Personal tasks" and "Assigned classwork" scope tabs/links. Existing `TasksView` owns personal task dialogs and browser-local persistence; `ClassworkView` displays sample assigned work and has no submission action.
 
 ```mermaid
-flowchart TD
-  WORK["Tasks & Assessments sidebar -> /students/tasks E"] --> SCOPE{"Choose scope"}
-  SCOPE -->|"Personal tasks"| T["Tasks list /students/tasks E"]
-  T -->|"Create / edit"| FORM["TaskComposerDialog; same route E"]
-  FORM -->|"Save"| LOCAL["Browser-local task list E"]
-  T -->|"Open / complete / delete"| DETAIL["TaskDetailDialog or DeleteDialog; same route E"]
-  SCOPE -->|"Assigned classwork"| CW["View classwork link -> /students/classwork E"]
-  CW -->|"Search / status filter"| LIST["Sample classwork list; same route E"]
-  LIST -->|"When classwork API exists"| CLASS["Open authorized class /students/classrooms/:classroomId E"]
-  CLASS -->|"Open activity"| ACT["/students/classrooms/:classroomId/classwork/:activityId E"]
-  ACT -->|"Submit / revise when permitted"| CONFIRM["Server-confirmed status or recoverable error P"]
-  CONFIRM -->|"Released result"| PROG["Progress /students/progress E"]
+flowchart LR
+  WORK(["Tasks & Assessments -> /students/tasks E"]) --> SCOPE{"Choose work owner"}
+  subgraph PERSONAL["My personal tasks"]
+    T["Tasks list /students/tasks E"]
+    FORM["TaskComposerDialog: same page E"]
+    LOCAL["Browser-local task list E"]
+    DETAIL["Task detail/delete dialog: same page E"]
+    T -->|"Create / edit"| FORM
+    FORM -->|"Save today"| LOCAL
+    T -->|"Open / complete / delete"| DETAIL
+  end
+  subgraph ASSIGNED["Educator-assigned classwork"]
+    CW["Classwork /students/classwork E"]
+    LIST["Sample list + filters E"]
+    CLASS["Authorized class /students/classrooms/:classroomId E"]
+    ACT["Activity detail /students/classrooms/:classroomId/classwork/:activityId E"]
+    SUBMIT["Server-confirmed submit / revise P"]
+    CW --> LIST --> CLASS --> ACT --> SUBMIT
+  end
+  SCOPE -->|"Student-owned"| T
+  SCOPE -->|"Educator-owned"| CW
+  SUBMIT -->|"Released result"| PROG["Progress /students/progress E"]
 ```
 
 **Boundary:** Personal task completion is not an educator submission; a localStorage task is not account-synced. Keep the existing classwork link discoverable until a service-backed combined hub can show both scopes honestly.
@@ -515,16 +613,26 @@ flowchart TD
 **Sections:** Separate `PersonalProgressSection` for student-owned task/study history and `ClassroomResultsSection` for the student's released educator results, feedback, and permitted attendance. The current page explains the distinction but loads no records.
 
 ```mermaid
-flowchart TD
-  P["Progress /students/progress E"] --> SCOPE{"Select record scope"}
-  SCOPE -->|"Personal learning"| OWN["Personal tasks / study activity section P"]
-  OWN -->|"Open task"| TASK["/students/tasks E; task detail dialog"]
-  OWN -->|"Open subject"| SUB["/students/subjects E"]
-  SCOPE -->|"Classroom results"| OFF["Own released grades / feedback / attendance P"]
-  OFF -->|"Open result or feedback"| ACT["/students/classrooms/:classroomId/classwork/:activityId E"]
-  OFF -->|"Open permitted attendance"| CL["/students/classrooms/:classroomId E; attendance tab"]
-  OFF -->|"No released record or no permission"| EMPTY["Clear unavailable / empty state P"]
-  P -->|"No progress service today"| PREVIEW["Existing explanatory page E"]
+flowchart LR
+  P(["Progress & Grades /students/progress E"]) --> SCOPE{"Choose record owner"}
+  subgraph PERSONAL["Personal learning history"]
+    OWN["Student-owned task/study evidence P"]
+    TASK["Personal task /students/tasks E"]
+    SUB["Personal subjects /students/subjects E"]
+    OWN -->|"Open task"| TASK
+    OWN -->|"Open subject"| SUB
+  end
+  subgraph OFFICIAL["Educator-controlled records"]
+    OFF["Only own released results / feedback / permitted attendance P"]
+    ACT["Activity /students/classrooms/:classroomId/classwork/:activityId E"]
+    CL["Class attendance /students/classrooms/:classroomId E"]
+    OFF -->|"Open result"| ACT
+    OFF -->|"Open permitted attendance"| CL
+  end
+  SCOPE -->|"Personal"| OWN
+  SCOPE -->|"Classroom"| OFF
+  OFF -->|"No release / no permission"| EMPTY["Safe unavailable or empty state P"]
+  P -->|"No service today"| PREVIEW["Explanatory preview E"]
 ```
 
 **Boundary:** No aggregate "grade" should be computed from personal tasks or peer collaboration. Official evaluation and attendance remain educator-controlled and are visible only to the authorized learner after release.
@@ -534,15 +642,21 @@ flowchart TD
 **Sections when approved:** `StudentAiView`, concise scope/safety guidance, prompt form, editable suggestion or practice output, and explicit optional actions for the student's own work. The current shared page describes educator AI and has no provider.
 
 ```mermaid
-flowchart TD
-  D["AI Study Assistant: sidebar disabled D"] --> APPROVAL{"Student AI capability + privacy contract approved?"}
-  APPROVAL -->|"No"| WAIT["No prompt input; keep planned status"]
-  APPROVAL -->|"Yes"| AI["Student AI /students/ai-assistant E route, new view P"]
-  AI -->|"Enter allowed study prompt"| SEND["Approved backend service request P"]
-  SEND -->|"Error / unsafe / unavailable"| FEED["Safe feedback + retry guidance P"]
-  SEND -->|"Response"| REVIEW["Student reviews suggestion; not an official answer P"]
-  REVIEW -->|"Explicitly create own note"| NOTES["Personal Notes /students/notes E"]
-  REVIEW -->|"Return to study"| LEARN["My Learning /students/subjects E"]
+flowchart LR
+  D(["AI Study Assistant: Planned D"]) --> APPROVAL{"Student AI scope + privacy approved?"}
+  APPROVAL -->|"Not yet"| WAIT["No prompt input; remain disabled"]
+  APPROVAL -->|"Approved"| AI["Student AI view /students/ai-assistant P"]
+  subgraph SERVICE["Approved service only"]
+    SEND["Submit allowed study prompt P"]
+    RESPONSE["Return safe suggestion P"]
+    ERROR["Safe unavailable/error/retry state P"]
+    SEND -->|"Success"| RESPONSE
+    SEND -->|"Failure / unsafe"| ERROR
+  end
+  AI --> SEND
+  RESPONSE --> REVIEW["Student reviews; output is not authoritative P"]
+  REVIEW -->|"Explicitly save own note"| NOTES["Personal Notes /students/notes E"]
+  REVIEW -->|"Continue studying"| LEARN["My Learning /students/subjects E"]
 ```
 
 **Boundary:** No direct provider call from the browser, silent learner-data upload, classroom submission, published grade, or AI-generated official evaluation. Keep the sidebar disabled until a student-appropriate page and service exist.
@@ -552,16 +666,22 @@ flowchart TD
 **Sections when approved:** `StudentHelpView` with searchable help topics for personal workspace, class joining, peer spaces, submission guidance, meeting troubleshooting, and account recovery. A support-contact flow needs an approved delivery channel.
 
 ```mermaid
-flowchart TD
-  D["Help & Support: sidebar disabled D"] --> READY{"Help route + content approved?"}
-  READY -->|"No"| WAIT["Planned status; no dead link"]
-  READY -->|"Yes"| HELP["Help /students/help P"]
-  HELP -->|"Find personal-workspace guide"| LEARN["My Learning /students/subjects E"]
-  HELP -->|"Find joining guide"| CL["My Classes /students/classrooms E"]
-  HELP -->|"Find meeting guide"| ROOM["Meeting Room /students/classrooms/meeting-room E"]
-  HELP -->|"Account recovery"| RECOVER["/forgot-password E"]
-  HELP -->|"Still need help, channel approved"| CONTACT["Approved support handoff P"]
-  HELP -->|"No matching topic"| EMPTY["Search empty state and clear query P"]
+flowchart LR
+  D(["Help & Support: Planned D"]) --> READY{"Help route/content approved?"}
+  READY -->|"Not yet"| WAIT["Keep disabled; no dead link"]
+  READY -->|"Approved"| HELP["Help /students/help P"]
+  subgraph TOPICS["Find a help topic"]
+    LEARN["My Learning /students/subjects E"]
+    CL["My Classes /students/classrooms E"]
+    ROOM["Meeting Room /students/classrooms/meeting-room E"]
+    RECOVER["Account recovery /forgot-password E"]
+  end
+  HELP -->|"Personal workspace guide"| LEARN
+  HELP -->|"Join-class guide"| CL
+  HELP -->|"Meeting troubleshooting"| ROOM
+  HELP -->|"Reset password"| RECOVER
+  HELP -->|"No matching topic"| EMPTY["Search empty state / clear query P"]
+  HELP -->|"Contact path approved"| CONTACT["Approved support handoff P"]
 ```
 
 **Boundary:** An FAQ does not create a support ticket or send an email. Only show contact/send success after an approved service confirms it.
@@ -571,17 +691,23 @@ flowchart TD
 **Sections when approved:** `StudentSettingsView` with server-backed account profile, privacy/preferences, and notification choices only if those fields are in the identity/profile contract. Sign-out already exists in the shared header.
 
 ```mermaid
-flowchart TD
-  D["Profile & Settings: sidebar disabled D"] --> READY{"Profile/settings route + API approved?"}
-  READY -->|"No"| WAIT["Planned status; header account + sign-out remain"]
-  READY -->|"Yes"| SETTINGS["Settings /students/settings P"]
-  SETTINGS -->|"Review identity"| PROFILE["Server-supplied profile; read-only if no update contract P"]
-  SETTINGS -->|"Edit supported fields"| FORM["Labeled profile / preference form P"]
-  FORM -->|"Save"| RESULT{"Server confirms?"}
-  RESULT -->|"Yes"| PROFILE
-  RESULT -->|"No"| ERROR["Keep draft + safe error; no false saved state P"]
+flowchart LR
+  D(["Profile & Settings: Planned D"]) --> READY{"Profile/settings API approved?"}
+  READY -->|"Not yet"| WAIT["Keep disabled; header sign-out remains"]
+  READY -->|"Approved"| SETTINGS["Settings /students/settings P"]
+  subgraph PROFILE_FLOW["Account and preferences"]
+    PROFILE["View server-supplied identity P"]
+    FORM["Edit supported fields / preferences P"]
+    RESULT{"Server confirms save?"}
+    ERROR["Keep draft; safe error and retry P"]
+    FORM -->|"Save"| RESULT
+    RESULT -->|"Yes"| PROFILE
+    RESULT -->|"No"| ERROR
+  end
+  SETTINGS -->|"Review identity"| PROFILE
+  SETTINGS -->|"Edit preferences"| FORM
   SETTINGS -->|"Back to learning"| OVER["Overview /students E"]
-  SETTINGS -->|"Sign out through shared header"| LOGIN["/login E after confirmed logout"]
+  SETTINGS -->|"Sign out in shared header"| LOGIN["/login after logout confirms E"]
 ```
 
 **Boundary:** Never expose authentication or email-link tokens in the DOM, localStorage, logs, or a screenshot. Route visibility and local form validation do not replace backend ownership/authorization.
