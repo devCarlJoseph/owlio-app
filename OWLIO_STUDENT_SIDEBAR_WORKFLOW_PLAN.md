@@ -598,14 +598,14 @@ flowchart TD
 
 | Area | Current source | Current state |
 |---|---|---|
-| Student nav and shared nav data | `src/components/common/dashboard-navigation.ts`; renderer `src/components/common/app-sidebar.tsx` | Current student menu has Overview, Subjects, Tasks, Notes, Study spaces, Classwork plus shared pages. The proposed IA requires grouping/label/href changes and attention to the layout's page-title/search mapping. |
-| Routes and shared layout | `src/main.tsx`; `src/pages/dashboard/layout.tsx` | Role-prefixed nested routes; navigation is presentation context, not authorization. Existing route adapters should remain thin. |
+| Student nav and shared nav data | `src/components/common/dashboard-navigation.ts`; renderer `src/components/common/app-sidebar.tsx` | The grouped student sidebar now shows the proposed labels. My Learning temporarily links to `/students/subjects`; Tasks & Assessments links to `/students/tasks`. Student AI, Help, and Settings are disabled Planned items. Header search includes route-backed items only; Meeting Room has the most-specific active item/title. |
+| Routes and shared layout | `src/main.tsx`; `src/pages/dashboard/layout.tsx` | Role-prefixed nested routes remain unchanged; navigation is presentation context, not authorization. Student route adapters are thin; the shared classroom folder and dashboard layout still contain legacy non-index page files. |
 | Student Overview | `src/pages/dashboard/students/index.tsx`; `src/components/features/personal-workspace/student-overview/` | Scaffold links and explanatory states; no student dashboard query. |
 | Subjects | `src/pages/dashboard/students/subjects/`; `src/components/features/personal-workspace/subjects/` | Fixed sample dataset, read-only; no subject API. |
 | Tasks and Notes | `src/components/features/personal-workspace/tasks/`; `.../notes/` | CRUD is localStorage/browser-only, initialized with sample data; not account-synced. |
 | Study Spaces | `src/components/features/personal-workspace/study-spaces/` | localStorage/demo preview; membership and invite code are not server-verified. |
 | Classrooms | `src/services/api/classroom.service.ts`; `src/components/features/classrooms/`; `src/pages/dashboard/classroom/` | List/create/join API endpoints exist; prototype provider blends API classroom headers with mock classroom records and in-memory detail state. Verify backend payloads/authorization before expanding. |
-| Meeting Room | `src/services/api/meeting.service.ts`; `src/pages/dashboard/classroom/meeting-room.tsx` | Create/join/end API calls and LiveKit media/presence are connected. This is already a separate full page at a nested route; the proposed sidebar should link directly to it. Chat/raised hands are transient LiveKit packets, not persistent class communication or attendance. Room route accepts a room query/invite or explicit room-code interaction. |
+| Meeting Room | `src/services/api/meeting.service.ts`; `src/pages/dashboard/classroom/meeting-room.tsx` | Create/join/end API calls and LiveKit media/presence are connected. The sidebar links to this separate full page at a nested route. Chat/raised hands are transient packets, not persistent communication or attendance. Room route accepts a room query/invite or explicit room-code interaction. |
 | Classwork/submissions | `src/components/features/classrooms/classroom-classwork-view.tsx`, `classroom-activity-view.tsx`; `src/components/features/personal-workspace/classwork/` | Mock or in-memory preview only; no classwork/submission service. |
 | Schedule, materials, communication, notifications, progress, AI | `src/pages/dashboard/{schedule,materials,communication,notifications,progress,ai-assistant}/` | UI scaffolds/context previews; no event, material, discussion, notification, progress, or AI data service. |
 | Profile/settings/help | Dashboard layout/auth session | Authenticated user name/role and sign-out exist; profile editing, support, and preferences do not have routes/services. |
@@ -626,6 +626,7 @@ Before implementation, re-check the route tree and service contracts because thi
 ### Stage 1 — Student independence first
 
 - Establish Overview versus My Learning as distinct destinations and make independent learning the default no-class path.
+- Add `students/learning/index.tsx` as a thin adapter to `personal-workspace/learning/my-learning-view.tsx` before changing the My Learning href; preserve focused Subjects, Notes, and Tasks routes and their deep links.
 - Implement real personal subject CRUD, then wire personal notes and tasks to an approved account-scoped persistence service. Retire sample-only metrics as live-looking values.
 - Keep current notes/task functionality clearly labeled browser-only until service persistence ships; handle empty, loading, validation, save failure, and offline/storage-unavailable states.
 - Make personal resources discoverable in Study Library while keeping personal notes and files distinct.
@@ -633,6 +634,7 @@ Before implementation, re-check the route tree and service contracts because thi
 ### Stage 2 — Classroom participation
 
 - Build My Classes around API-backed class list and join flows, with loading/empty/error/duplicate-code states.
+- If the shared classroom adapters are migrated to the index-only convention, move detail, activity, and Meeting Room adapters into their own `index.tsx` route folders without changing existing URLs or LiveKit behavior.
 - Replace demo detail data with authorized class/lesson, materials, classwork, session, discussion, attendance, and released-result APIs as contracts become available.
 - Keep Meeting Room as a standalone page reachable from the sidebar, and allow class/session actions to deep-link into that page with a valid room selected. Reuse the existing meeting service and LiveKit room; do not use meeting chat or room presence as persistent class communication/attendance.
 
@@ -662,15 +664,19 @@ Before implementation, re-check the route tree and service contracts because thi
 - Sidebar items lead to real student-prefixed routes; active state, page title, search result labels, mobile behavior, and keyboard/focus behavior remain coherent.
 - Meeting Room is reachable as a standalone sidebar page, with optional deep links from relevant classes/sessions; meeting presence/chat is not described as saved communication or official attendance.
 - Direct Messages are clearly future, not represented by the current contextual communication preview.
+- Every student route folder added or refactored contains only `index.tsx`; it is a thin adapter to a feature view. Feature sections, local state, forms, schemas, and data access are outside `src/pages/`.
+- Every page flowchart routes to a registered path or labels the target `P`/disabled; dialog, tab, filter, and panel actions are explicitly same-page interactions rather than fake routes.
+- Each page's component inventory maps to wrappers that actually exist under `src/components/ui/`; no Radix-only `asChild` API or nonexistent Popover wrapper is assumed.
 - Every unfinished feature is labeled accurately; sample/demo data, localStorage data, and server-confirmed data are not conflated.
 - Pages define useful loading, empty, error/unavailable, and permission states; sensitive record visibility remains backend-authorized.
 - No new dependencies or invented endpoints/permissions are introduced without explicit approval.
 
 ## Likely application files if implementation is separately approved
 
-- Navigation and layout mapping: `src/components/common/dashboard-navigation.ts`, `src/components/common/app-sidebar.tsx`, `src/pages/dashboard/layout.tsx`. Add Meeting Room as its own item and ensure the nested meeting route gets the correct active item/page title rather than inheriting My Classes.
-- Route registration/adapters: `src/main.tsx`, plus a new role-specific route module under `src/pages/dashboard/students/` for the My Learning hub if selected.
-- Student workspace: `src/components/features/personal-workspace/student-overview/`, `subjects/`, `tasks/`, `notes/`, `study-spaces/`, and `classwork/`.
-- Shared student-visible experiences: `src/pages/dashboard/classroom/`, `schedule/`, `materials/`, `communication/`, `notifications/`, `progress/`, and `ai-assistant/`; classroom subviews under `src/components/features/classrooms/`.
+- Navigation/search/title mapping: `src/components/common/dashboard-navigation.ts`, `src/components/common/app-sidebar.tsx`, `src/pages/dashboard/layout.tsx`.
+- Route registration: `src/main.tsx`; student adapters in `src/pages/dashboard/students/**/index.tsx`; proposed My Learning, Subject Detail, Study Space Detail, Help, and Settings route folders are listed in the implementation blueprint above.
+- Student feature modules: `src/components/features/personal-workspace/student-overview/`, `learning/` (P), `subjects/`, `tasks/`, `notes/`, `study-spaces/`, and `classwork/`.
+- Shared student-visible feature views: `src/components/features/classrooms/`, `meeting-room/` (P extraction), `materials/`, `schedule/`, `communication/`, `notifications/`, `progress/`, `student-ai/`, `student-help/`, and `student-settings/`.
+- Existing shared route adapters: `src/pages/dashboard/classroom/`, `schedule/`, `materials/`, `communication/`, `notifications/`, `progress/`, and `ai-assistant/`. Their substantive JSX should be extracted when those features are implemented; do not edit them as part of this plan.
 - New API modules/types only after backend contracts are confirmed: `src/services/api/`.
 - No source edits, dependency changes, API calls, or configuration changes are part of this proposal/roadmap plan.
