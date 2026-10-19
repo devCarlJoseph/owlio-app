@@ -10,7 +10,9 @@ import LoginPage from "@/pages/auth/login";
 import EmailVerificationPage from "@/pages/auth/email-verification";
 import ForgotPasswordPage from "@/pages/auth/forgot-password";
 import PasswordResetPage from "@/pages/auth/password-reset";
+import GoogleOAuthCallbackPage from "@/pages/auth/google-oauth-callback";
 import PlatformLayout from "@/pages/dashboard/layout";
+import AccountSecurityPage from "@/pages/dashboard/account-security";
 import StudentsPage from "@/pages/dashboard/students";
 import EducatorsPage from "@/pages/dashboard/educators";
 import TutorsPage from "@/pages/dashboard/tutors";
@@ -57,6 +59,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/email-verification" element={<EmailVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/oauth/google/callback" element={<GoogleOAuthCallbackPage />} />
         <Route path="/auth/*" element={<AuthRouteRedirect />} />
 
         {/*App Pages */}
@@ -103,6 +106,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/educators">
             <Route index element={<EducatorsPage />} />
@@ -138,6 +142,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/tutors">
             <Route index element={<TutorsPage />} />
@@ -174,6 +179,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/esl">
             <Route index element={<EslPage />} />
@@ -210,6 +216,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
         </Route>
 

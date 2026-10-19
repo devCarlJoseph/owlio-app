@@ -89,7 +89,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Account",
       placement: "footer",
-      items: [{ label: "Profile & Settings", icon: UserRound }],
+      items: [{ label: "Account security", href: "/students/account/security", icon: UserRound }],
     },
   ],
   educators: [
@@ -135,7 +135,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Account",
       placement: "footer",
-      items: [{ label: "Profile & Settings", icon: UserRound }],
+      items: [{ label: "Account security", href: "/educators/account/security", icon: UserRound }],
     },
   ],
   tutors: [
@@ -175,7 +175,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Account",
       placement: "footer",
-      items: [{ label: "Profile & Settings", icon: UserRound }],
+      items: [{ label: "Account security", href: "/tutors/account/security", icon: UserRound }],
     },
   ],
   esl: [
@@ -220,7 +220,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Account",
       placement: "footer",
-      items: [{ label: "Profile & Settings", icon: UserRound }],
+      items: [{ label: "Account security", href: "/esl/account/security", icon: UserRound }],
     },
   ],
 }

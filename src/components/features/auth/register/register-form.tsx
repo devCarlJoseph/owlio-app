@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { AuthPasswordInput } from "../shared/auth-password-input"
 import { authInputClassName, authLinkClassName, authPrimaryButtonClassName } from "../shared/auth-input-styles"
 import { PasswordGuidance } from "../shared/password-guidance"
+import { GoogleAuthButton } from "../shared/google-auth-button"
 import { AccountTypeSelector } from "./account-type-selector"
 import type { RegisterValues } from "./register.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
@@ -12,11 +13,27 @@ import { Label } from "@/components/ui/label"
 
 type RegisterFormProps = {
   onSubmit: (values: RegisterValues) => void
+  onGoogle: (accountType: 'student' | 'educator') => void
+  googlePending: boolean
 }
 
-export function RegisterForm({ onSubmit }: RegisterFormProps) {
+export function RegisterForm({ onSubmit, onGoogle, googlePending }: RegisterFormProps) {
   const form = useFormContext<RegisterValues>()
   const errors = form.formState.errors
+
+  const continueWithGoogle = () => {
+    const accountType = form.getValues('accountType')
+    const termsAccepted = form.getValues('acceptTerms')
+    if (!accountType) {
+      form.setError('accountType', { type: 'manual', message: 'Choose an account type to continue with Google.' })
+      return
+    }
+    if (!termsAccepted) {
+      form.setError('acceptTerms', { type: 'manual', message: 'Accept the terms to continue.' })
+      return
+    }
+    onGoogle(accountType)
+  }
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -45,6 +62,10 @@ export function RegisterForm({ onSubmit }: RegisterFormProps) {
           <FieldError id="acceptTerms-error" errors={[errors.acceptTerms]} />
         </div>
       </FieldGroup>
+      <div className="space-y-5">
+        <p className="text-center text-xs text-slate-500">Or continue without an Owlio password. Choose a role and accept the terms above.</p>
+        <GoogleAuthButton onClick={continueWithGoogle} disabled={googlePending} label={googlePending ? 'Connecting to Google…' : 'Sign up with Google'} />
+      </div>
       <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Creating account…' : 'Create account'}</Button>
       <p className="text-center text-sm text-slate-500">
         Already have an account? <Link to="/login" className={authLinkClassName}>Log in</Link>

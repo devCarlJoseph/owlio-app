@@ -94,7 +94,7 @@ export const authShowcaseContent: Record<AuthShowcaseContext, AuthShowcaseConten
     asideLabel: "Email verification guide",
     features: [
       { icon: MailCheck, eyebrow: "VERIFY YOUR EMAIL", title: "Connect your Owlio account.", description: "Confirm your email address to keep your learning space secure.", badge: "Email confirmation" },
-      { icon: KeyRound, eyebrow: "OPEN YOUR LINK", title: "One quick step to verify.", description: "Find the Owlio message and open its verification link.", badge: "Check your inbox" },
+      { icon: KeyRound, eyebrow: "ENTER YOUR CODE", title: "One quick step to verify.", description: "Find the six-digit code in your Owlio email.", badge: "Check your inbox" },
       { icon: BookOpenCheck, eyebrow: "READY TO LEARN", title: "Your space is waiting.", description: "After confirming your address, continue to your Owlio workspace.", badge: "Continue to Owlio" },
     ],
     footer: "A verified email keeps your account connected.",
@@ -103,7 +103,7 @@ export const authShowcaseContent: Record<AuthShowcaseContext, AuthShowcaseConten
       title: "Verify your email",
       steps: [
         { title: "Check your inbox", description: "Look for a message from Owlio." },
-        { title: "Open the verification link", description: "Confirm the address on your account." },
+        { title: "Enter the six-digit code", description: "Confirm the address on your account." },
         { title: "Return to Owlio", description: "Continue setting up your learning space." },
       ],
     },

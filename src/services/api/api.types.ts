@@ -25,6 +25,7 @@ export type AuthMessage = {
   message: string
   developmentActionUrl?: string
   csrfToken?: string
+  resendCooldownSeconds?: number
 }
 
 export type AuthSession = {
@@ -45,4 +46,17 @@ export type LoginRequest = {
   email: string
   password: string
   rememberMe: boolean
+}
+
+export type GoogleStartRequest =
+  | { intent: "login"; rememberMe: boolean }
+  | { intent: "register"; accountType: "student" | "educator"; termsAccepted: true }
+
+export type GoogleStartResponse = {
+  authorizationUrl: string
+}
+
+export type GoogleLinkStatus = {
+  linked: boolean
+  email: string | null
 }

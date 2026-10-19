@@ -5,6 +5,9 @@ import type {
   AuthMessage,
   AuthSession,
   AuthUser,
+  GoogleLinkStatus,
+  GoogleStartRequest,
+  GoogleStartResponse,
   LoginRequest,
   RegisterRequest,
 } from './api.types'
@@ -90,6 +93,10 @@ export function verifyEmail(token: string) {
   return postAuth<AuthMessage>('/verify-email', { token })
 }
 
+export function verifyEmailCode(email: string, code: string) {
+  return postAuth<AuthMessage>('/verify-email', { email, code })
+}
+
 export function resendVerification(email: string) {
   return postAuth<AuthMessage>('/resend-verification', { email })
 }
@@ -100,4 +107,16 @@ export function requestPasswordReset(email: string) {
 
 export function resetPassword(token: string, password: string, confirmPassword: string) {
   return postAuth<AuthMessage>('/reset-password', { token, password, confirmPassword })
+}
+
+export function startGoogleOAuth(input: GoogleStartRequest) {
+  return postAuth<GoogleStartResponse>('/google/start', input)
+}
+
+export function getGoogleLinkStatus() {
+  return api.get<ApiSuccess<GoogleLinkStatus>>(`${authPath}/google/link-status`).then(({ data }) => data.data)
+}
+
+export function startGoogleLink() {
+  return postAuth<GoogleStartResponse>('/google/link/start', {})
 }

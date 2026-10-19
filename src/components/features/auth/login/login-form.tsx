@@ -1,6 +1,5 @@
 import { Link } from "react-router"
 import { useFormContext } from "react-hook-form"
-import StackIcon from "tech-stack-icons"
 import { Button } from "@/components/ui/button"
 import type { LoginValues } from "./login.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
@@ -8,21 +7,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AuthPasswordInput } from "../shared/auth-password-input"
 import { authInputClassName, authLinkClassName, authPrimaryButtonClassName } from "../shared/auth-input-styles"
+import { GoogleAuthButton } from "../shared/google-auth-button"
 
 type LoginFormProps = {
   onSubmit: (values: LoginValues) => void
+  onGoogle: () => void
+  googlePending: boolean
 }
 
-export function LoginForm({ onSubmit }: LoginFormProps) {
+export function LoginForm({ onSubmit, onGoogle, googlePending }: LoginFormProps) {
   const form = useFormContext<LoginValues>()
   const errors = form.formState.errors
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      <Button type="button" variant="outline" className="h-11 w-full justify-center rounded-lg border-slate-200 bg-white text-sm font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.06)] hover:bg-slate-50">
-        <StackIcon name="google" className="size-4" aria-hidden="true" />
-        Continue with Google
-      </Button>
+      <GoogleAuthButton onClick={onGoogle} disabled={googlePending} label={googlePending ? 'Connecting to Google…' : 'Continue with Google'} />
       <div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />or with email<span className="h-px flex-1 bg-slate-200" /></div>
       <FieldGroup className="gap-3.5">
         <div className="space-y-1.5">

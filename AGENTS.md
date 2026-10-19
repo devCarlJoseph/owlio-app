@@ -134,17 +134,19 @@ For exact page behavior, follow the matching plan and inspect current source. Do
 |---|---|---|
 | `/` | `src/pages/App.tsx` | Placeholder heading. |
 | `/onboarding` | `OnboardingView` in `src/components/features/onboarding/` | Local React Hook Form wizard; the route passes `needsOnboarding={true}` explicitly. This is not server-driven onboarding gating. |
-| `/register` | Registration view/form/schema | Calls `POST /api/v1/auth/register`; accepted account types are `student` and `educator`. Successful registration proceeds to email verification. |
-| `/login` | Login view/form/schema | Calls `POST /api/v1/auth/login`; JWT/refresh cookies are HttpOnly and the in-memory auth session is established. Google mark/button remains a visual placeholder, not OAuth. |
-| `/email-verification` | Verification/resend view | Reads a verification token from the email-link query, removes it from the visible URL, then posts it to the API; resend calls the API. |
+| `/register` | Registration view/form/schema | Calls `POST /api/v1/auth/register` for email/password or starts Google registration after explicit account-type and terms selection. Accepted roles are `student` and `educator`. Email/password registration proceeds to OTP verification. |
+| `/login` | Login view/form/schema | Calls `POST /api/v1/auth/login` or starts the backend Google OIDC flow; API JWT/refresh cookies are HttpOnly and the in-memory auth session is established after callback. |
+| `/email-verification` | Verification/resend view | Verifies a six-digit code via `POST /api/v1/auth/verify-email`; still accepts unexpired legacy verification links, removes their tokens from the visible URL, and sends them only in the API request body. |
 | `/forgot-password` | Recovery form | Calls `POST /api/v1/auth/forgot-password` and shows the generic account-safe response. |
 | `/password-reset` | Password-reset form when a `token` query parameter exists; otherwise a request-link CTA | Captures and removes the token from the URL, then posts the new password to the API. |
+| `/oauth/google/callback` | Google OAuth callback result handler | Clears callback query state, refreshes the API session, and routes to the workspace, OTP verification, registration, or login as directed by a safe API status. |
 | `/students/*`, `/educators/*`, `/tutors/*`, `/esl/*` | Role-specific and role-prefixed shared pages inside `PlatformLayout` | Protected by the frontend auth-session check; feature-specific pages remain UI scaffolds with no dashboard data services wired. Frontend guards are not backend authorization. See the route/file map in section 3. |
+| `/{role}/account/security` | Account security page | Reads Google link status and starts authenticated Google account linking through the API. |
 | `/auth/*` | `AuthRouteRedirect` compatibility handler | Redirects known legacy auth URLs to canonical top-level paths and preserves search/hash; unknown `/auth/*` paths return to `/`. |
 
 The authentication views use `AuthShowcaseLayout` and `AuthShowcase`. Pass the correct `AuthShowcaseContext` (`login`, `register`, `forgot-password`, `email-verification`, or `password-reset`). The owl/art panel stays shared; page-specific carousel/guide copy lives in `auth-showcase-content.ts`. Preserve each left-side page's own heading, copy, and form.
 
-Current auth navigation is navbar → `/login` or `/register`; login links to `/forgot-password` and `/register`; forgot-password, password-reset, and email-verification screens link back to `/login`. Password-reset without a `token` offers a link back to recovery. Auth forms now call the backend v1 auth API; successful registration proceeds to verification, verification/reset query tokens are consumed through API requests, and login/logout update the in-memory session context. The Google button remains a visual placeholder, not OAuth. Onboarding remains a local-only wizard.
+Current auth navigation is navbar → `/login` or `/register`; login links to `/forgot-password` and `/register`; forgot-password, password-reset, and email-verification screens link back to `/login`. Password-reset without a `token` offers a link back to recovery. Auth forms call the backend v1 auth API; registration uses email OTP, legacy verification/reset query tokens are removed from the URL before API use, and login/logout update the in-memory session context. Google login/registration use the API's authorization-code callback; Google credentials remain exclusively in the API environment. Account Security is the explicit Google-linking entry point. Onboarding remains a local-only wizard.
 
 Onboarding's current UX is a four-step local wizard: entity selection → profile basics → entity details → review → local Done screen. `onboarding-view.tsx` owns step state and navigation; constants/types/schemas and step components live beside it. Finish currently changes local state after a short delay; it does not save to an API or browser storage.
 
@@ -156,7 +158,7 @@ Registration now uses `student` and `educator`, matching the v1 auth API. Onboar
 
 `src/services/api/` contains API types/error handling, health, authentication, classroom, and meeting services. The confirmed dashboard operations include classroom list/create/join and meeting create/join/end; verify each service before adding behavior. Other role workflows (including learner records, classwork/submissions, attendance, gradebook/evaluations, schedules, materials, discussions, announcements, notifications, progress, AI, and profile settings) must not be presented as API-backed unless a current service and approved contract support them. `src/lib/axios.ts` configures Axios with `VITE_API_URL` and `withCredentials`. `AuthSessionProvider` restores the user through `/me` and refresh, auth mutations use the CSRF header and HttpOnly cookies, and dashboard routes are guarded against anonymous access. These are frontend session/UX controls only; they do not replace backend authorization. Onboarding remains local-only.
 
-- Never expose secrets in source, documentation, client-side environment variables, logs, commits, or screenshots. Never inspect `.env` values during routine work.
+- Never expose secrets in source, documentation, client-side environment variables, logs, commits, or screenshots. Never inspect `.env` values during routine work. Resend and Google OAuth secrets belong only in the API's server environment, never in `VITE_*` variables.
 - Verification/reset tokens are sensitive. Read tokens from approved email-link query parameters, remove them from the visible URL, send them only in the corresponding API request body, and never log or store them in local storage. Preserve query parameters through the legacy auth redirect so email links continue to work.
 - Client-side role selection, form validation, route visibility, and onboarding guards are UX only. Backend authorization must enforce access when API integration is implemented.
 - Keep error copy generic where account existence could be disclosed. Never display raw server payloads or stack traces to users.
@@ -177,6 +179,7 @@ Project agent skills live under `.agents/skills/<name>/SKILL.md`. Role-specific 
 | Activity creation, submissions, grading, and feedback | `.agents/skills/classwork-assessment/SKILL.md` | Form and non-form classwork and evaluation. |
 | Role-aware AI assistance | `.agents/skills/ai-assistant/SKILL.md` | Educator/ESL/tutor reviewable drafts and the separately scoped, future student assistant. |
 | Authentication UX and security-conscious states | `.agents/skills/owlio-authentication/SKILL.md` | Registration, login, verification, and recovery UI. |
+| Current API-aligned authentication implementation guidance | `.devin/skills/owlio-auth-app/SKILL.md` | OTP, Google OIDC callback, cookie/CSRF integration, and explicit provider linking. |
 | Local onboarding wizard | `.agents/skills/owlio-onboarding/SKILL.md` | Entity selection, profile setup, validation, and local completion. |
 | Calendar, schedules, and deadlines | `.agents/skills/schedule-calendar/SKILL.md` | Personal, classroom, and tutoring time workflows. |
 | Learning resources | `.agents/skills/learning-materials/SKILL.md` | Personal, shared, classroom, and lesson materials. |
@@ -208,9 +211,10 @@ npm run dev       # Vite development server
 npm run build     # TypeScript project build, then Vite production build
 npm run lint      # ESLint across the repository
 npm run preview   # Preview the Vite production output
+npm test          # Vitest unit/component tests
 ```
 
-There is no test script and no test/spec files were found in this snapshot. Do not claim tests passed when none ran. For every change:
+For every change:
 
 1. Run focused ESLint on touched TS/TSX files.
 2. Run `npm run build` for TypeScript and production bundling when feasible.
