@@ -5,7 +5,7 @@ description: Build the Owlio classroom meeting-room experience with LiveKit whil
 
 # Meeting Room
 
-Use this skill for the classroom meeting route and its in-call controls. The room is a live learning session, not a source of official attendance or a substitute for classroom authorization.
+Use this skill for the shared, standalone Meeting Room used from the student, educator, ESL teacher, and tutor workflows. The room is a live learning session, not a source of official attendance or a substitute for classroom authorization. See the role plans for navigation and contextual entry: [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), and [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md).
 
 ## Current implementation
 
@@ -15,6 +15,7 @@ Use this skill for the classroom meeting route and its in-call controls. The roo
 - Chat and raised hands use small, reliable LiveKit data packets in the connected room. They are transient UI state, not persisted chat or official participation records. Do not claim delivery or retention guarantees.
 - Publishing data requires the issued LiveKit token to permit it. Surface a recoverable message when the service rejects a packet; never work around server permissions in the client.
 - The attendee list reflects LiveKit's connected participants. It is not an attendance register and must not be used to create official attendance.
+- A tutor session should link here only when it is an online session with a valid meeting room. A role-prefixed URL is not permission to create or end a room.
 
 ## Interaction and privacy rules
 
@@ -25,6 +26,17 @@ Use this skill for the classroom meeting route and its in-call controls. The roo
 - Represent hand-raise state as a request to speak; do not treat it as a permission change or educator approval.
 - Never infer classroom membership, host authority, or educator permissions from route prefixes or hidden controls. The backend remains the authorization boundary.
 - Do not record, persist, export, or notify about meeting activity unless an approved API and privacy contract supports it.
+
+## Proposed ESL whiteboard boundary
+
+The ESL plan proposes a constrained shared whiteboard inside an authorized, connected ESL Meeting Room. It is not part of the current meeting implementation and is not a generic Meeting Room feature:
+
+- Limit the initial proposal to teacher-authored built-in prompts/simple objects and learner select/click/circle/mark responses.
+- Keep teacher prompts separate from participant responses. Attribute responses using authenticated room identity, not color alone.
+- Keep board state temporary and room-scoped. Do not persist, export, replay, grade, notify, or use it to mutate attendance, classwork, feedback, progress, or AI context.
+- Do not add uploads, screenshots, or unrestricted freehand drawing to the initial scope. Support keyboard and touch interactions.
+- Do not implement until the owner approves the changed product priority and the realtime contract defines authorization, ordering/deduplication, payload/rate limits, late-join/reconnect synchronization, concurrent actions, and failed-publish behavior. If the current LiveKit packet channel cannot support the contract, agree on a suitable transport first.
+- Do not show the whiteboard for students, school educators, or tutors unless a separate role-specific plan approves it.
 
 ## UI and accessibility
 

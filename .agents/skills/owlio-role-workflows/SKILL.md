@@ -50,6 +50,8 @@ The target sidebar groups are:
 
 Students must be able to use personal learning without joining a class. Keep personal notes, tasks, resources, and personal progress distinct from peer-space content and educator-controlled classwork, attendance, released grades, and feedback. Students view only records released or otherwise permitted to them; do not add educator record-editing actions.
 
+The student plan scopes Study Spaces as student-created peer contexts. The broader product plan leaves creator eligibility outside student roles open; do not add Study Space creation/admin controls to other workspaces without an explicit product decision.
+
 ### School educator
 
 The target sidebar groups are:

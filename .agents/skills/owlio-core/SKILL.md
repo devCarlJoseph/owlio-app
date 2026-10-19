@@ -11,23 +11,37 @@ Use this skill for cross-cutting product decisions or when work touches multiple
 
 Owlio supports four connected experiences:
 
-1. Student personal workspace, useful without an instructor.
-2. Student-created study spaces for peer collaboration.
-3. Educator-led classrooms for formal teaching.
-4. Flexible tutoring and ESL classrooms for independent or group instruction.
+1. Student workspace, useful without an instructor and including a distinct peer study-space context.
+2. School educator classrooms for formal teaching and official class records.
+3. ESL teacher workflows for flexible language lessons and learner feedback.
+4. Tutor workflows for flexible one-to-one/group instruction outside a school-only model.
 
-Keep a student's personal work and peer study-space content distinct from educator-controlled classroom records. Official grades, attendance, feedback, classwork, and classroom progress belong to authorized classroom workflows. Backend authorization—not hidden controls, role selection, or client validation—is the security boundary.
+Keep student personal work and peer study-space content distinct from educator-controlled classroom records. Official school grades, attendance, feedback, classwork, and classroom progress belong to authorized educator workflows. Tutoring evaluations are not automatically institutional grades; private ESL/tutor notes are not learner-visible feedback. Backend authorization—not hidden controls, route prefixes, or client validation—is the security boundary.
+
+## Four workflow specifications
+
+Read the page-specific plan before changing a role workflow:
+
+- [Student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md): independent learning, My Classes, student-created Study Spaces, and distinct personal/peer/official records.
+- [School educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md): class ownership, classwork, separate Attendance and Gradebook, lesson planning, communication, AI drafts, and sourced insights.
+- [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md): flexible language lessons, separate Lesson Plans and Lesson Schedule, private notes vs published feedback, and a proposed temporary in-room whiteboard.
+- [Tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md): individual/group tutoring, flexible session modes where supported, Session Attendance, private Session Notes, published feedback, and non-school evaluations.
+
+These plans define intended behavior, not current implementation. `AGENTS.md`, source, and confirmed backend/security contracts take precedence for what exists. Ask rather than resolving a conflict by guess.
 
 ## Current implementation guardrails
 
 - The current app is a React/TypeScript Vite SPA. Keep route adapters thin, put domain behavior beside its feature, and reuse existing UI primitives.
 - Dashboard role roots are `/students`, `/educators`, `/tutors`, and `/esl`. Put role-specific pages under `src/pages/dashboard/<role>/<feature>/index.tsx`; put shared page components under `src/pages/dashboard/<feature>/index.tsx` and mount them beneath each role-prefixed route so the sidebar keeps its workspace context. These route prefixes are UX context, not authorization.
-- Dashboard pages are feature-specific UI scaffolds/empty states; feature data services and an auth role/session provider are not wired in this snapshot. Do not present sample values as live activity. Auth/onboarding submissions are UI-only unless current source and an approved API contract show otherwise.
-- Registration currently uses `student`/`teacher`/`other`; onboarding uses `student`/`educator`/`others` with educator subtypes. Do not normalize or choose a canonical backend role without owner/backend confirmation.
+- Keep new/refactored route folders to thin `index.tsx` adapters and place page behavior in the role-plan feature locations. Keep URLs role-prefixed; route prefixes are workspace context, not authorization.
+- Authentication is API-backed through `auth.service.ts` and `AuthSessionProvider`; onboarding remains a local-only wizard. Verify current source before describing either flow.
+- Current registration account types are `student` and `educator`. Onboarding has `student`, `educator`, and `others` (including tutor/ESL subtypes); those subtype selections are not persisted auth roles or backend authorization.
+- Current dashboard services cover authentication, health, classroom list/create/join, and meeting create/join/end. Other workflow features remain proposals, local prototypes, or UI scaffolds unless current source and an approved contract show otherwise. Do not present sample values as live activity.
 - Do not invent endpoints, permissions, supported upload types, integrations, or product states. Label proposals and future functionality clearly.
 - Preserve Owlio branding, existing theme tokens, responsive behavior, keyboard access, visible focus, associated labels, and useful status/error feedback.
 - Never expose secrets, credentials, verification/reset tokens, raw server payloads, or private learner data in UI, logs, docs, or examples.
 - AI-generated instructional or evaluation content must remain reviewable and editable by an educator; AI must not silently establish final official grades.
+- Student AI is a separate proposed assistant, not a relabelled educator tool. ESL/tutor/educator AI remains role-specific, service-backed only when approved, and human-reviewed.
 
 ## Workflow
 

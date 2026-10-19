@@ -5,13 +5,15 @@ description: Guide personal, classroom, lesson, tutoring-session, and deadline c
 
 # Schedule and Calendar
 
-Use when designing scheduling, calendar, deadline, or reminder experiences. The product plan describes a shared view of personal schedules, classroom calendars, tutoring sessions, activities, and due dates; confirm which scope is implemented for the current task.
+Use when designing scheduling, calendar, deadline, or reminder experiences. Read the relevant [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), or [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md) plan. The product plans describe target views; confirm actual route and service support before implementing behavior.
 
 ## User workflows
 
-Students may organize personal study sessions, exams, tasks, and deadlines, and view schedules from joined classrooms. Educators may schedule classes, tutoring sessions, recurring lessons, meetings, and activity deadlines. Tutoring/ESL flows must support flexible formats and must not assume a school timetable.
+Students may organize personal study sessions, deadlines, and view joined-class schedules while keeping personal and educator-assigned events distinct. School educators may manage class lessons/sessions and activity deadlines. ESL Lesson Plans are reusable preparation, while Lesson Schedule entries are dated sessions. Tutor Learning Plans are multi-session goals, while Sessions & Schedule represents appointments; online, in-person, and hybrid modes exist only where supported by contract.
 
 Keep event ownership and context explicit: personal event, official classroom session, or tutoring/lesson session. A personal reminder must not become an official class deadline without an educator action and supported workflow.
+
+Do not make one workspace's schedule assumptions global: school terms are not required for tutors or ESL teachers, and not every tutoring appointment is a Meeting Room session.
 
 ## Date and integration rules
 

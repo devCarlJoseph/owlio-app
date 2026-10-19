@@ -5,13 +5,15 @@ description: Guide student-created peer study spaces, collaboration workflows, a
 
 # Student-Created Study Spaces
 
-Use for peer learning spaces created by students without an instructor. A study space supports collaboration; it is not an official classroom and must not be represented as an academic record source.
+Use for the student-created peer-learning workflow described in the [student workflow plan](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md). A study space supports collaboration without an instructor; it is not an official classroom and must not be represented as an academic record source.
 
 ## Product workflow
 
-The product plan describes creating a space, inviting or admitting peers through a join code, link, or invitation, and managing members/basic permissions. It also describes shared resources, tasks, discussions, file/link contributions, polls, announcements, and study notes. Treat these as planned capabilities until implemented and backed by an approved contract.
+The product plans describe spaces the student creates or joins, and possible member management, shared resources, tasks, discussions, polls, announcements, and study notes. Treat each operation as planned until implemented and backed by an approved contract. The main product plan has an open decision about whether non-student roles may create or administer study spaces; do not grant those controls to educator, ESL, or tutor workspaces without an explicit decision.
 
 Keep membership and shared content attached to the specific space so participants understand the context. The creator may have space-management actions, but do not invent detailed permissions or moderation powers without a product/API contract.
+
+At the student-plan snapshot, create/join and space state are browser-local prototypes; invite codes are not server-verified. Do not describe local membership, contributions, or activity as shared with other users or persisted to an account.
 
 ## Boundaries
 

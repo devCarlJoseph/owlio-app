@@ -9,9 +9,14 @@ Use for progress summaries, learner insights, histories, and classroom report/ex
 
 ## Views and records
 
-Students may view their personal tasks, study activity, released grades, permitted attendance, feedback, deadlines, and learning history. Educators may monitor classroom submissions, assessment results, attendance, participation, and progress for learners in classrooms they are authorized to manage. Tutors may track session history, attendance, evaluations, feedback, and progress in their learning context without assuming school grade structures.
+Follow the [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), and [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md) workflow boundaries:
 
-Do not combine student-entered personal goals or study activity with official grades, attendance, or educator feedback as though they had the same owner or authority. AI-suggested scores/feedback are not final records; educators retain the final decision.
+- Students may review personal learning history separately from permitted attendance, released grades/evaluations, and published feedback. Never infer official results from personal tasks or peer-space activity.
+- School educators may review sourced classroom submissions, assessment results, attendance, and progress for classes they are authorized to manage. Teaching Insights are decision support and remain separate from Gradebook results.
+- ESL progress may describe supported activity/skill evidence with dates and source context. Do not infer CEFR or another proficiency level from attendance, meeting behavior, a small sample, or AI output.
+- Tutors may review authorized sessions, attendance, learning-plan milestones, activities, evaluations, and published feedback. Tutoring evaluations are not institutional grades, and private Session Notes are not learner progress or group-visible evidence.
+
+Do not combine student-entered personal goals or study activity with official grades, attendance, or educator feedback as though they had the same owner or authority. AI-suggested scores/feedback are not final records; educators/tutors retain the decision defined by their role workflow. Keep private teacher/tutor notes out of learner-visible progress and reports.
 
 ## Reporting and safeguards
 

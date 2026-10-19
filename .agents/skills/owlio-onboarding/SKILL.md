@@ -30,7 +30,8 @@ Keep a visible textual step count and accessible stepper; entity selection must 
 - Keep the flow local unless API integration is explicitly requested and backend contracts are confirmed.
 - Do not claim onboarding completion was saved or that the route is a real auth/session guard.
 - Do not make class joining, classroom creation, avatar upload, OAuth, or persistence functional without an approved contract.
-- Registration currently uses `student`/`teacher`/`other`; do not silently align it with onboarding's `student`/`educator`/`others`.
+- Registration currently accepts `student`/`educator`; onboarding locally uses `student`/`educator`/`others`. Do not silently align or reinterpret these values. `others` subtypes do not grant tutor/ESL backend authorization.
+- The four role workflow plans define target dashboard behavior after setup; a local onboarding selection does not establish a persisted role, profile subtype, or route permission.
 - Confirm role-appropriate Done destinations before replacing placeholders.
 - When using `public/onboarding-inspiration-design/`, treat screenshots as composition references only. Keep Owlio terminology/branding and do not add MFA/QR steps or unrelated demo content from references.
 

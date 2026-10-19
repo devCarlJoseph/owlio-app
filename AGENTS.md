@@ -1,6 +1,6 @@
 # Owlio App — Agent Context
 
-This is the repository-specific guide for work in `owlio-app`. Keep it aligned with the current source tree. `OWLIO_PRODUCT_PLAN.md` documents the product vision and target workflows; source code, confirmed backend contracts, and explicit product-owner decisions are authoritative when implementation status or requirements differ. Do not treat marketing previews, placeholder pages, or TODO-shaped UI as working backend features.
+This is the repository-specific guide for work in `owlio-app`. Keep it aligned with the current source tree. `OWLIO_PRODUCT_PLAN.md` documents the product vision; the four `OWLIO_*_WORKFLOW_PLAN.md` documents define role-specific target navigation and page workflows. Source code, confirmed backend contracts, and explicit product-owner decisions are authoritative for implementation status and permissions. Do not treat plans, marketing previews, placeholder pages, or TODO-shaped UI as proof of working backend features.
 
 ## 1. Working rules
 
@@ -123,7 +123,7 @@ Use the role-specific plans for page purpose, sidebar structure, routes, compone
 
 | Workspace | Workflow document | Core boundary |
 |---|---|---|
-| Student | `OWLIO_STUDENT__WORKFLOW_PLAN.md` | Personal learning, student-created peer spaces, and official classroom records remain separate. Students see only permitted/released official records. |
+| Student | `OWLIO_STUDENT__WORKFLOW_PLAN.md` | Personal learning, student-created peer spaces, and official classroom records remain separate. The broader creator/access policy for study spaces is still an open product decision. |
 | School educator | `OWLIO_EDUCATOR_WORKFLOW_PLAN.md` | Official classwork, submissions, attendance, grades, feedback, and progress are scoped to classes the educator is authorized to manage. |
 | ESL teacher | `OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md` | Flexible language lessons share the educator model; the planned whiteboard is temporary and only inside an authorized live ESL Meeting Room. |
 | Tutor | `OWLIO_TUTOR_WORKFLOW_PLAN.md` | Support one-to-one/group tutoring without assuming school terms or grades; keep private session notes separate from learner-visible feedback. |
@@ -163,7 +163,7 @@ Registration now uses `student` and `educator`, matching the v1 auth API. Onboar
 
 ## 5. Skills and when to consult them
 
-Project agent skills live under `.agents/skills/<name>/SKILL.md`. They provide focused workflow guidance; they do not override this file, current source, or confirmed backend contracts. Treat roadmap capabilities as planned until their implementation and API support are verified.
+Project agent skills live under `.agents/skills/<name>/SKILL.md`. Role-specific skills interpret the corresponding workflow plan; shared domain skills add cross-cutting safeguards. No skill creates a role, route, permission, API, or capability. `AGENTS.md`, current source, and confirmed backend contracts take precedence for repository conventions and implementation status; ask the owner when two approved workflow documents conflict.
 
 | Work area | Skill file | Use it for |
 |---|---|---|
@@ -171,11 +171,11 @@ Project agent skills live under `.agents/skills/<name>/SKILL.md`. They provide f
 | Page-level workflows across all four dashboard workspaces | `.agents/skills/owlio-role-workflows/SKILL.md` | Implement or modify student, educator, ESL teacher, and tutor pages from their detailed workflow plans. |
 | Student personal workspace and classroom participation | `.agents/skills/student-workflows/SKILL.md` | Student-owned work and learner-facing classroom flows. |
 | Student-created peer collaboration | `.agents/skills/study-spaces/SKILL.md` | Shared study-space membership, content, and boundaries. |
-| Educator-led classroom lifecycle | `.agents/skills/educator-classroom/SKILL.md` | Classroom and lesson workflows across educator types. |
+| School educator classroom workflow | `.agents/skills/educator-classroom/SKILL.md` | Formal class ownership, classwork, separate attendance/gradebook, planning, communication, and insights. Use tutoring/ESL skills for those role variants. |
 | Flexible tutoring | `.agents/skills/tutoring-workflows/SKILL.md` | One-to-one/group sessions and non-institutional teaching. |
 | Language-learning workflows | `.agents/skills/esl-teaching/SKILL.md` | ESL activities and language-specific learner needs. |
 | Activity creation, submissions, grading, and feedback | `.agents/skills/classwork-assessment/SKILL.md` | Form and non-form classwork and evaluation. |
-| Educator-facing AI assistance | `.agents/skills/ai-assistant/SKILL.md` | AI-generated teaching/assessment drafts and human review. |
+| Role-aware AI assistance | `.agents/skills/ai-assistant/SKILL.md` | Educator/ESL/tutor reviewable drafts and the separately scoped, future student assistant. |
 | Authentication UX and security-conscious states | `.agents/skills/owlio-authentication/SKILL.md` | Registration, login, verification, and recovery UI. |
 | Local onboarding wizard | `.agents/skills/owlio-onboarding/SKILL.md` | Entity selection, profile setup, validation, and local completion. |
 | Calendar, schedules, and deadlines | `.agents/skills/schedule-calendar/SKILL.md` | Personal, classroom, and tutoring time workflows. |
