@@ -41,97 +41,179 @@ import CommunicationPage from "@/pages/dashboard/communication";
 import NotificationsPage from "@/pages/dashboard/notifications";
 import ProgressPage from "@/pages/dashboard/progress";
 import AiAssistantPage from "@/pages/dashboard/ai-assistant";
-import { AuthRouteRedirect } from "@/components/common/auth-route-redirect"
-import { AuthSessionProvider } from "@/components/features/auth/auth-session-provider"
+import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
+import { AuthSessionProvider } from "@/components/features/auth/auth-session-provider";
 import { RequireAuth } from "@/components/features/auth/require-auth";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <AuthSessionProvider>
       <Routes>
-      <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
 
-      {/*Auth Pages */}
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/email-verification" element={<EmailVerificationPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/password-reset" element={<PasswordResetPage />} />
-      <Route path="/auth/*" element={<AuthRouteRedirect />} />
+        {/*Auth Pages */}
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/email-verification" element={<EmailVerificationPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route path="/auth/*" element={<AuthRouteRedirect />} />
 
-      {/*App Pages */}
-      <Route element={<RequireAuth><PlatformLayout /></RequireAuth>}>
-        <Route path="/students">
-          <Route index element={<StudentsPage />} />
-          <Route path="subjects" element={<StudentSubjectsPage />} />
-          <Route path="tasks" element={<StudentTasksPage />} />
-          <Route path="notes" element={<StudentNotesPage />} />
-          <Route path="study-spaces" element={<StudentStudySpacesPage />} />
-          <Route path="classwork" element={<StudentClassworkPage />} />
-          <Route path="classrooms" element={<ClassroomsPage />} />
-          <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
-          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
-          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
-          <Route path="schedule" element={<SchedulePage />} />
-          <Route path="materials" element={<MaterialsPage />} />
-          <Route path="communication" element={<CommunicationPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="progress" element={<ProgressPage />} />
-          <Route path="ai-assistant" element={<AiAssistantPage />} />
+        {/*App Pages */}
+        <Route
+          element={
+            <RequireAuth>
+              <PlatformLayout />
+            </RequireAuth>
+          }
+        >
+          <Route path="/students">
+            <Route index element={<StudentsPage />} />
+            <Route path="subjects" element={<StudentSubjectsPage />} />
+            <Route path="tasks" element={<StudentTasksPage />} />
+            <Route path="notes" element={<StudentNotesPage />} />
+            <Route path="study-spaces" element={<StudentStudySpacesPage />} />
+            <Route path="classwork" element={<StudentClassworkPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <p className="p-6 text-sm text-slate-500">
+                      Loading meeting room…
+                    </p>
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+          </Route>
+          <Route path="/educators">
+            <Route index element={<EducatorsPage />} />
+            <Route path="classwork" element={<EducatorClassworkPage />} />
+            <Route path="attendance" element={<EducatorAttendancePage />} />
+            <Route path="learners" element={<EducatorLearnersPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <p className="p-6 text-sm text-slate-500">
+                      Loading meeting room…
+                    </p>
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+          </Route>
+          <Route path="/tutors">
+            <Route index element={<TutorsPage />} />
+            <Route path="sessions" element={<TutorSessionsPage />} />
+            <Route path="classwork" element={<TutorClassworkPage />} />
+            <Route path="attendance" element={<TutorAttendancePage />} />
+            <Route path="learners" element={<TutorLearnersPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <p className="p-6 text-sm text-slate-500">
+                      Loading meeting room…
+                    </p>
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+          </Route>
+          <Route path="/esl">
+            <Route index element={<EslPage />} />
+            <Route path="lessons" element={<EslLessonsPage />} />
+            <Route path="classwork" element={<EslClassworkPage />} />
+            <Route path="attendance" element={<EslAttendancePage />} />
+            <Route path="learners" element={<EslLearnersPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <p className="p-6 text-sm text-slate-500">
+                      Loading meeting room…
+                    </p>
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+          </Route>
         </Route>
-        <Route path="/educators">
-          <Route index element={<EducatorsPage />} />
-          <Route path="classwork" element={<EducatorClassworkPage />} />
-          <Route path="attendance" element={<EducatorAttendancePage />} />
-          <Route path="learners" element={<EducatorLearnersPage />} />
-          <Route path="classrooms" element={<ClassroomsPage />} />
-          <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
-          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
-          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
-          <Route path="schedule" element={<SchedulePage />} />
-          <Route path="materials" element={<MaterialsPage />} />
-          <Route path="communication" element={<CommunicationPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="progress" element={<ProgressPage />} />
-          <Route path="ai-assistant" element={<AiAssistantPage />} />
-        </Route>
-        <Route path="/tutors">
-          <Route index element={<TutorsPage />} />
-          <Route path="sessions" element={<TutorSessionsPage />} />
-          <Route path="classwork" element={<TutorClassworkPage />} />
-          <Route path="attendance" element={<TutorAttendancePage />} />
-          <Route path="learners" element={<TutorLearnersPage />} />
-          <Route path="classrooms" element={<ClassroomsPage />} />
-          <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
-          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
-          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
-          <Route path="schedule" element={<SchedulePage />} />
-          <Route path="materials" element={<MaterialsPage />} />
-          <Route path="communication" element={<CommunicationPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="progress" element={<ProgressPage />} />
-          <Route path="ai-assistant" element={<AiAssistantPage />} />
-        </Route>
-        <Route path="/esl">
-          <Route index element={<EslPage />} />
-          <Route path="lessons" element={<EslLessonsPage />} />
-          <Route path="classwork" element={<EslClassworkPage />} />
-          <Route path="attendance" element={<EslAttendancePage />} />
-          <Route path="learners" element={<EslLearnersPage />} />
-          <Route path="classrooms" element={<ClassroomsPage />} />
-          <Route path="classrooms/meeting-room" element={<Suspense fallback={<p className="p-6 text-sm text-slate-500">Loading meeting room…</p>}><MeetingRoomPage /></Suspense>} />
-          <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
-          <Route path="classrooms/:classroomId/classwork/:activityId" element={<ClassroomActivityPage />} />
-          <Route path="schedule" element={<SchedulePage />} />
-          <Route path="materials" element={<MaterialsPage />} />
-          <Route path="communication" element={<CommunicationPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="progress" element={<ProgressPage />} />
-          <Route path="ai-assistant" element={<AiAssistantPage />} />
-        </Route>
-      </Route>
 
-      <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
       </Routes>
     </AuthSessionProvider>
   </BrowserRouter>,

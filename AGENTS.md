@@ -86,7 +86,14 @@ src/
     features/onboarding/
     ui/                            Domain-neutral Base UI/shadcn wrappers
   lib/
-  services/api/                    Health/error/types foundation only
+  services/
+    api/
+      api.types.ts
+      api-error.ts
+      api-health.service.ts
+      auth.service.ts
+      classroom.service.ts
+      meeting.service.ts
   styles/global.css
 ```
 
@@ -97,8 +104,10 @@ Conventions:
 - Use the `@/*` alias for `src/*`. `components.json` configures Tailwind CSS at `src/styles/global.css`, Lucide icons, and the `base-vega` style.
 - Role dashboards share `src/pages/dashboard/layout.tsx` through a pathless React Router layout route. Workspace roots are `/students`, `/educators`, `/tutors`, and `/esl`; each role owns a page tree under `src/pages/dashboard/<role>/`.
 - Put role-specific page modules under `src/pages/dashboard/<role>/<feature>/index.tsx`. Current student modules are `subjects`, `tasks`, `notes`, `study-spaces`, and `classwork`; educator modules are `classwork`, `attendance`, and `learners`; tutor modules are `sessions`, `classwork`, `attendance`, and `learners`; ESL modules are `lessons`, `classwork`, `attendance`, and `learners`.
+- Keep new/refactored route directories to a thin `index.tsx` adapter that imports a feature view. Put substantive UI, state, forms, schemas, and data orchestration under the relevant `src/components/features/<domain>/` location described by the role workflow plan. Existing shared route files are migration exceptions; do not restructure them outside an approved task.
 - Shared dashboard page components live at `src/pages/dashboard/<feature>/index.tsx` (currently `classroom`, `schedule`, `materials`, `communication`, `notifications`, `progress`, and `ai-assistant`). The same shared component is mounted below each role path, for example `/students/classrooms` and `/tutors/classrooms`. Keep the role prefix so the sidebar retains its workspace context; do not replace these with root-level shared URLs unless a persistent user-role/session model is added.
 - `src/components/common/dashboard-navigation.ts` is the navigation source for role and shared items. `getDashboardRole` derives the menu context from the URL prefix for presentation only; it is not authentication or authorization. Keep its hrefs in sync with `src/main.tsx`.
+- The grouped sidebar definitions follow the four role workflow plans. Existing registered routes are navigable; missing destinations remain disabled/planned and are excluded from route-backed header search. Keep sidebar labels, route registration, page title, active matching, and search in sync.
 - The header in `src/pages/dashboard/layout.tsx` uses existing shadcn-style wrappers, a date, a search that filters the current workspace's navigation links, a Ctrl/Meta+K focus shortcut, and a role-scoped notifications link. The avatar/account label is generic presentation, not authenticated user data.
 - Most dashboard pages currently provide role-specific UI scaffolds and empty states; feature data services and dashboard queries are not generally wired in this snapshot. The classroom meeting room is an exception: `meeting.service.ts` creates/joins/ends meetings and LiveKit supplies connected media and participant presence. Its room chat and hand raises are transient LiveKit data packets, not persisted classroom communication or official attendance. Do not add sample metrics/activity as live data or claim CRUD, notifications, search over content, classroom management, or AI generation works unless the relevant service/API is implemented and approved. Add future role features as nested routes/files under the relevant role instead of restoring a catch-all content file.
 - The `/` page in `src/pages/App.tsx` is currently a placeholder, not a complete marketing site or authenticated dashboard.
@@ -107,6 +116,19 @@ Conventions:
 ## 4. Current routes and application workflows
 
 Routes are defined in `src/main.tsx`:
+
+### Four role workflow specifications
+
+Use the role-specific plans for page purpose, sidebar structure, routes, components, click flows, and acceptance criteria. They describe target workflows, not proof of an implemented API or permission.
+
+| Workspace | Workflow document | Core boundary |
+|---|---|---|
+| Student | `OWLIO_STUDENT__WORKFLOW_PLAN.md` | Personal learning, student-created peer spaces, and official classroom records remain separate. Students see only permitted/released official records. |
+| School educator | `OWLIO_EDUCATOR_WORKFLOW_PLAN.md` | Official classwork, submissions, attendance, grades, feedback, and progress are scoped to classes the educator is authorized to manage. |
+| ESL teacher | `OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md` | Flexible language lessons share the educator model; the planned whiteboard is temporary and only inside an authorized live ESL Meeting Room. |
+| Tutor | `OWLIO_TUTOR_WORKFLOW_PLAN.md` | Support one-to-one/group tutoring without assuming school terms or grades; keep private session notes separate from learner-visible feedback. |
+
+For exact page behavior, follow the matching plan and inspect current source. Do not invent fields, routes, APIs, permissions, status models, file rules, or integrations when the plan or backend contract is silent.
 
 | URL | Current page/flow | Current integration status |
 |---|---|---|
@@ -132,7 +154,7 @@ Registration now uses `student` and `educator`, matching the v1 auth API. Onboar
 
 ### API foundation and security
 
-`src/services/api/` contains API types, error extraction, health, and authentication services. `src/lib/axios.ts` configures Axios with `VITE_API_URL` and `withCredentials`. `AuthSessionProvider` restores the user through `/me` and refresh, auth mutations use the CSRF header and HttpOnly cookies, and dashboard routes are guarded against anonymous access. These are frontend session/UX controls only; they do not replace backend authorization. Onboarding remains local-only, and dashboard feature data is still not API-backed.
+`src/services/api/` contains API types/error handling, health, authentication, classroom, and meeting services. The confirmed dashboard operations include classroom list/create/join and meeting create/join/end; verify each service before adding behavior. Other role workflows (including learner records, classwork/submissions, attendance, gradebook/evaluations, schedules, materials, discussions, announcements, notifications, progress, AI, and profile settings) must not be presented as API-backed unless a current service and approved contract support them. `src/lib/axios.ts` configures Axios with `VITE_API_URL` and `withCredentials`. `AuthSessionProvider` restores the user through `/me` and refresh, auth mutations use the CSRF header and HttpOnly cookies, and dashboard routes are guarded against anonymous access. These are frontend session/UX controls only; they do not replace backend authorization. Onboarding remains local-only.
 
 - Never expose secrets in source, documentation, client-side environment variables, logs, commits, or screenshots. Never inspect `.env` values during routine work.
 - Verification/reset tokens are sensitive. Read tokens from approved email-link query parameters, remove them from the visible URL, send them only in the corresponding API request body, and never log or store them in local storage. Preserve query parameters through the legacy auth redirect so email links continue to work.
@@ -146,6 +168,7 @@ Project agent skills live under `.agents/skills/<name>/SKILL.md`. They provide f
 | Work area | Skill file | Use it for |
 |---|---|---|
 | Cross-product principles, security, architecture, and ownership boundaries | `.agents/skills/owlio-core/SKILL.md` | Shared decisions across Owlio experiences. |
+| Page-level workflows across all four dashboard workspaces | `.agents/skills/owlio-role-workflows/SKILL.md` | Implement or modify student, educator, ESL teacher, and tutor pages from their detailed workflow plans. |
 | Student personal workspace and classroom participation | `.agents/skills/student-workflows/SKILL.md` | Student-owned work and learner-facing classroom flows. |
 | Student-created peer collaboration | `.agents/skills/study-spaces/SKILL.md` | Shared study-space membership, content, and boundaries. |
 | Educator-led classroom lifecycle | `.agents/skills/educator-classroom/SKILL.md` | Classroom and lesson workflows across educator types. |
@@ -168,7 +191,7 @@ Verify skill guidance against current source because role contracts, API capabil
 
 - Preserve the Owlio owl/wordmark, Inter, existing Auth Showcase/layout patterns, current palette/theme tokens, and responsive behavior unless the request asks for a design change.
 - Keep auth showcase context-specific copy in its content configuration; do not duplicate or replace the shared owl artwork when only the page guidance should change.
-- Keep student personal work distinct from official educator-controlled class records. A student-created study space is not an official classroom. Tutors/ESL need flexible wording and must not be forced into a school-only model.
+- Keep student personal work distinct from official educator-controlled class records. A student-created study space is not an official classroom. Tutors/ESL need flexible wording and must not be forced into a school-only model. Keep tutor evaluations distinct from institutional grades, private tutor/teacher notes distinct from published feedback, and LiveKit presence distinct from official attendance.
 - Use `src/components/ui` wrappers with their actual Base UI APIs. Keep focus visible, labels associated, errors described, controls keyboard-operable, and decorative icons hidden from assistive technology.
 - Use React Hook Form/Zod for complex forms where consistent with adjacent code. Keep schemas next to their feature. Client validation does not replace server validation.
 - Current registration password UX requires at least 8 characters and caps input at 72 UTF-8 bytes. Do not weaken or contradict these rules without contract review.
