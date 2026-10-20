@@ -36,7 +36,7 @@ Use this skill for authentication UI in `owlio-app`. The app is a React/TypeScri
 
 - Reuse `AuthShowcaseLayout`, existing form schemas/primitives, theme tokens, and project conventions. Keep route adapters thin and use feature components for form/state logic.
 - Keep forms keyboard accessible with labels, visible focus, numeric input mode and `autocomplete="one-time-code"` for OTP, linked validation errors, loading states, and screen-reader status feedback.
-- Preserve generic login/recovery responses. Never display raw server payloads, Resend errors, OAuth codes, ID tokens, OTPs, passwords, or cookies.
+- Preserve generic login/recovery responses. Never display raw server payloads, Brevo errors, OAuth codes, ID tokens, OTPs, passwords, or cookies.
 - Google-only accounts may have no local password; do not assume a password login is available for every account.
 - The frontend is a UX boundary only. Server validation, session checks, email verification, provider-token validation, and role authorization remain API responsibilities.
 - Run app checks from the repository root: `npm run lint`, `npm run build`, and `npm test` when configured. Do not report unrun tests as passing.

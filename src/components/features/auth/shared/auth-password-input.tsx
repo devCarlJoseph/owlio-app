@@ -29,7 +29,7 @@ export function AuthPasswordInput({ id, label, placeholder, autoComplete, regist
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-500"
+          className="absolute right-1.5 top-0 bottom-0 my-auto text-slate-500 active:!translate-y-0"
           aria-label={visible ? `Hide ${label.toLocaleLowerCase()}` : `Show ${label.toLocaleLowerCase()}`}
           aria-pressed={visible}
           onClick={() => setVisible((value) => !value)}
