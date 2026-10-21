@@ -42,26 +42,68 @@ const disconnectedPages: [string, ComponentType, string][] = [
 ]
 
 describe("tutor workspace pages", () => {
-  it("shows the overview without fabricated metrics and links to tutor workflows", () => {
+  it("shows an honest overview and links to tutor workspaces", () => {
     renderPage(<TutorOverviewView />)
 
-    expect(screen.getByRole("heading", { name: "Your tutoring at a glance" })).toBeTruthy()
-    expect(screen.getByRole("heading", { name: "Upcoming sessions are unavailable" })).toBeTruthy()
-    expect(screen.getByRole("link", { name: /Review learners/ }).getAttribute("href")).toBe("/tutors/learners")
-    expect(screen.getByRole("link", { name: /Prepare a learning plan/ }).getAttribute("href")).toBe("/tutors/learning-plans")
-    expect(screen.getByRole("link", { name: /Meeting Room/ }).getAttribute("href")).toBe("/tutors/classrooms/meeting-room")
+    expect(screen.getByRole("heading", { name: "Your day, in focus" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Upcoming sessions" })).toBeTruthy()
+    expect(screen.getByText("Session details aren't available yet")).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Activity review" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Learner follow-ups" })).toBeTruthy()
+    expect(screen.getByRole("link", { name: /Open sessions/ }).getAttribute("href")).toBe("/tutors/sessions")
+    expect(screen.getByRole("link", { name: /Open activities/ }).getAttribute("href")).toBe("/tutors/classwork")
+    expect(screen.getByRole("link", { name: /Open learners/ }).getAttribute("href")).toBe("/tutors/learners")
+    expect(screen.getByRole("link", { name: /Learning Plans/ }).getAttribute("href")).toBe("/tutors/learning-plans")
     expect(screen.queryByText("--")).toBeNull()
     expect(screen.queryByText("Active learners")).toBeNull()
+    expect(screen.queryByRole("link", { name: /Meeting Room/ })).toBeNull()
   })
 
-  it("does not display fabricated learner groups or learner metrics", () => {
+  it("keeps individual learners and groups distinct without implying connected records", () => {
     renderPage(<TutorLearnersView />)
 
     expect(screen.getByRole("heading", { name: "Individual learners" })).toBeTruthy()
     expect(screen.getByRole("heading", { name: "Learning groups" })).toBeTruthy()
+    expect(screen.getByText("Directory unavailable")).toBeTruthy()
+    expect(screen.getByText("Individual learner profiles are not connected.")).toBeTruthy()
+    expect(screen.getByText("Group records and membership are not connected.")).toBeTruthy()
+    expect(screen.getByText(/each member's private records/)).toBeTruthy()
     expect(screen.queryByText("Group A")).toBeNull()
     expect(screen.queryByText("Attendance rate")).toBeNull()
-    expect(screen.getByText(/No learner profiles are available/)).toBeTruthy()
+    expect(screen.queryByRole("textbox")).toBeNull()
+    expect(screen.queryByRole("button", { name: /add learner/i })).toBeNull()
+    expect(screen.getByRole("link", { name: /Learning Plans/ }).getAttribute("href")).toBe("/tutors/learning-plans")
+    expect(screen.getByRole("link", { name: /Sessions & Schedule/ }).getAttribute("href")).toBe("/tutors/sessions")
+    expect(screen.getByRole("link", { name: /Activities & Evaluations/ }).getAttribute("href")).toBe("/tutors/classwork")
+  })
+
+  it("shows a plan-list and detail layout without fabricated plan data", () => {
+    renderPage(<LearningPlansView />)
+
+    expect(screen.getByRole("heading", { name: "Your plans" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Plan details" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Learning Plans are not connected" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Goals and outcomes" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Milestones and next steps" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Related sessions and materials" })).toBeTruthy()
+    expect(screen.getByText(/Plan details, creation, and saving are unavailable/)).toBeTruthy()
+    expect(screen.queryByText("65%")).toBeNull()
+    expect(screen.queryByRole("button", { name: /create|save/i })).toBeNull()
+  })
+
+  it("shows an activity-list and detail layout without fabricated evaluation data", () => {
+    renderPage(<TutorActivitiesView />)
+
+    expect(screen.getByRole("heading", { name: "Activity library" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Activity details" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Activities and learner work are unavailable" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Practice and activities" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Learner responses" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Evaluation and feedback" })).toBeTruthy()
+    expect(screen.queryByText("75%")).toBeNull()
+    expect(screen.queryByText("Evaluated")).toBeNull()
+    expect(screen.queryByRole("textbox")).toBeNull()
+    expect(screen.queryByRole("button", { name: /create|publish|evaluate/i })).toBeNull()
   })
 
   it("keeps private notes and learner-visible feedback distinct", () => {
