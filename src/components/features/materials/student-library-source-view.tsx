@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react"
 import { ChevronLeft, FolderOpen, Info } from "lucide-react"
 import { Link } from "react-router"
+import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { LibrarySearchField } from "./library-search-field"
 import { ResourceCard } from "./resource-card"
@@ -84,25 +85,26 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Button
-            nativeButton={false}
-            render={<Link to={meta.ownerHref} />}
-            className="bg-blue-700 text-white hover:bg-blue-800"
+          <Link
+            to={meta.ownerHref}
+            className={cn(
+              buttonVariants({ variant: "default", size: "default" }),
+              "bg-blue-700 text-white hover:bg-blue-800",
+            )}
           >
             {meta.ownerAction}
-          </Button>
+          </Link>
 
           {sourceSecondaryLinks[source]
             .filter((link) => link.href !== meta.ownerHref)
             .map((link) => (
-              <Button
+              <Link
                 key={link.href}
-                variant="outline"
-                nativeButton={false}
-                render={<Link to={link.href} />}
+                to={link.href}
+                className={buttonVariants({ variant: "outline", size: "default" })}
               >
                 {link.label}
-              </Button>
+              </Link>
             ))}
         </div>
       </section>

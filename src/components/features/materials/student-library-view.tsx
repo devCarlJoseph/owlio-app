@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { CircleHelp, FolderOpen, Info } from "lucide-react"
+import { BookOpenCheck, CircleHelp, FolderOpen, Info, Sparkles } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { LibraryContextCards } from "./library-context-cards"
@@ -47,20 +47,24 @@ export function StudentLibraryView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <section className="relative isolate overflow-hidden rounded-3xl bg-slate-950 px-6 py-8 text-white shadow-sm sm:px-9 sm:py-10 lg:px-11">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 px-6 py-8 text-white shadow-lg shadow-sky-950/10 sm:px-9 sm:py-10 lg:px-11">
         <div
           aria-hidden="true"
-          className="absolute -right-24 -top-40 -z-10 size-96 rounded-full bg-emerald-400/20 blur-3xl"
+          className="absolute -right-24 -top-40 -z-10 size-96 rounded-full bg-emerald-400/25 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="absolute -bottom-52 left-1/3 -z-10 size-96 rounded-full bg-sky-500/10 blur-3xl"
+          className="absolute -bottom-52 left-1/3 -z-10 size-96 rounded-full bg-cyan-400/15 blur-3xl"
         />
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.65fr)] lg:items-end">
+        <div aria-hidden="true" className="absolute right-[28%] top-8 -z-10 hidden rotate-12 text-white/[0.04] lg:block">
+          <BookOpenCheck className="size-56" strokeWidth={1} />
+        </div>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.65fr)] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-200/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
+              <Sparkles aria-hidden="true" className="size-3.5" />
               Learning library
-            </p>
+            </span>
             <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
               Study Library
             </h2>
@@ -69,22 +73,25 @@ export function StudentLibraryView() {
               class you joined, or a study space you are part of.
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-              Keep context clear
-            </p>
-            <ul className="mt-4 space-y-3 text-sm text-slate-200">
-              <li className="flex items-center gap-3">
-                <span className="size-2 rounded-full bg-amber-300" aria-hidden="true" />
-                Personal work stays yours
+          <div className="rounded-2xl border border-white/15 bg-white/[0.08] p-5 shadow-inner shadow-white/[0.04] backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+                Three learning spaces
+              </p>
+              <BookOpenCheck aria-hidden="true" className="size-4 text-cyan-200" />
+            </div>
+            <ul className="mt-4 space-y-2.5 text-sm text-slate-100">
+              <li className="flex items-center gap-3 rounded-xl bg-amber-300/10 px-3 py-2.5">
+                <span className="inline-flex size-7 items-center justify-center rounded-lg bg-amber-300/20 text-xs font-bold text-amber-200" aria-hidden="true">01</span>
+                Your personal resources
               </li>
-              <li className="flex items-center gap-3">
-                <span className="size-2 rounded-full bg-sky-300" aria-hidden="true" />
-                Classroom materials stay with the class
+              <li className="flex items-center gap-3 rounded-xl bg-sky-300/10 px-3 py-2.5">
+                <span className="inline-flex size-7 items-center justify-center rounded-lg bg-sky-300/20 text-xs font-bold text-sky-200" aria-hidden="true">02</span>
+                Classroom materials
               </li>
-              <li className="flex items-center gap-3">
-                <span className="size-2 rounded-full bg-emerald-300" aria-hidden="true" />
-                Peer resources stay with the study space
+              <li className="flex items-center gap-3 rounded-xl bg-emerald-300/10 px-3 py-2.5">
+                <span className="inline-flex size-7 items-center justify-center rounded-lg bg-emerald-300/20 text-xs font-bold text-emerald-200" aria-hidden="true">03</span>
+                Peer-shared resources
               </li>
             </ul>
           </div>
@@ -93,12 +100,14 @@ export function StudentLibraryView() {
 
       <section
         aria-label="Study Library guidance"
-        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3"
+        className="flex flex-wrap items-start gap-3 rounded-2xl border border-cyan-100 bg-gradient-to-r from-sky-50 via-white to-emerald-50 px-4 py-3"
       >
-        <FolderOpen className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
-        <p className="flex-1 text-sm leading-6 text-blue-800">{libraryGuidance}</p>
-        <p className="flex w-full items-start gap-2 border-t border-blue-100 pt-2 text-xs leading-5 text-blue-800 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
-          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+        <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-800">
+          <FolderOpen className="size-4" aria-hidden="true" />
+        </span>
+        <p className="flex-1 text-sm leading-6 text-sky-950">{libraryGuidance}</p>
+        <p className="flex w-full items-start gap-2 border-t border-cyan-100 pt-2 text-xs leading-5 text-slate-600 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
+          <Info className="mt-0.5 size-3.5 shrink-0 text-emerald-700" aria-hidden="true" />
           {libraryStorageNotice}
         </p>
       </section>
@@ -106,8 +115,8 @@ export function StudentLibraryView() {
       <section aria-labelledby="library-contexts-heading" className="space-y-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Start with the right context
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+              Pick up where you left off
             </p>
             <h3 id="library-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
               Where are you learning?
@@ -122,14 +131,19 @@ export function StudentLibraryView() {
         <LibraryContextCards resources={previewLibraryResources} />
       </section>
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+      <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm ring-0">
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-slate-900">Everything you can reach</h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Search by title, resource kind, class, space, or who shared it.
-              </p>
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-emerald-100 text-sky-800">
+                <FolderOpen aria-hidden="true" className="size-5" />
+              </span>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">Everything you can reach</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Search by title, resource kind, class, space, or who shared it.
+                </p>
+              </div>
             </div>
 
             <LibrarySearchField
@@ -179,8 +193,8 @@ export function StudentLibraryView() {
         </CardContent>
       </Card>
 
-      <aside className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5 sm:p-6">
-        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+      <aside className="flex items-start gap-3 rounded-2xl border border-dashed border-amber-300 bg-gradient-to-r from-amber-50 via-white to-sky-50 p-5 sm:p-6">
+        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
           <CircleHelp aria-hidden="true" className="size-4" />
         </span>
         <div className="space-y-1">

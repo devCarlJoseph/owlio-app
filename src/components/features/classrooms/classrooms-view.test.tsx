@@ -1,6 +1,6 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { MemoryRouter } from "react-router"
+import { MemoryRouter, useLocation } from "react-router"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   getClassrooms,
@@ -57,16 +57,64 @@ describe("student My Classes", () => {
     cleanup()
   })
 
-  it("separates service-confirmed classes from demo previews", async () => {
+  it("shows service-confirmed classes and demo previews in one gallery", async () => {
     mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
     renderView()
 
     expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
-    expect(screen.getByText("Your connected classes")).toBeTruthy()
-    expect(screen.getByText("Demo previews")).toBeTruthy()
-    expect(screen.getByText("Connected")).toBeTruthy()
-    expect(screen.getAllByText("Demo preview").length).toBeGreaterThan(0)
-    expect(screen.getByText(/not real enrollments/)).toBeTruthy()
+    expect(screen.getByText("My Classes")).toBeTruthy()
+    expect(screen.getByText(/1 connected · 3 demo previews/)).toBeTruthy()
+    expect(screen.getByText("Enrolled")).toBeTruthy()
+    expect(screen.getAllByText("Demo").length).toBeGreaterThan(0)
+    expect(screen.getByText(/Membership comes from the classroom service/)).toBeTruthy()
+  })
+
+  it("gives every class card classwork and materials shortcuts", async () => {
+    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
+    renderView()
+
+    const classworkLink = await screen.findByRole("link", {
+      name: "Open Foundations of Biology classwork",
+    })
+    const materialsLink = screen.getByRole("link", {
+      name: "Open Foundations of Biology materials",
+    })
+
+    expect(classworkLink.getAttribute("href")).toBe(
+      "/students/classrooms/class-biology?tab=classwork",
+    )
+    expect(materialsLink.getAttribute("href")).toBe(
+      "/students/classrooms/class-biology?tab=materials",
+    )
+  })
+
+  it("navigates to the classwork tab from the card menu", async () => {
+    const user = userEvent.setup()
+    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
+
+    let currentPath = ""
+    function LocationProbe() {
+      const location = useLocation()
+      currentPath = `${location.pathname}${location.search}`
+      return null
+    }
+
+    render(
+      <MemoryRouter initialEntries={["/students/classrooms"]}>
+        <ClassroomPrototypeProvider>
+          <ClassroomsView />
+          <LocationProbe />
+        </ClassroomPrototypeProvider>
+      </MemoryRouter>,
+    )
+
+    await user.click(
+      await screen.findByRole("button", { name: "More options for Foundations of Biology" }),
+    )
+    const menu = await screen.findByRole("menu")
+    await user.click(within(menu).getByRole("menuitem", { name: "Classwork" }))
+
+    expect(currentPath).toBe("/students/classrooms/class-biology?tab=classwork")
   })
 
   it("confirms a join only after the classroom service responds", async () => {
@@ -114,7 +162,7 @@ describe("student My Classes", () => {
     await user.click(screen.getByRole("button", { name: /^Join class$/ }))
 
     expect(await screen.findByText("Invite code not found")).toBeTruthy()
-    expect(screen.getByText("No connected classes yet")).toBeTruthy()
+    expect(screen.getAllByText("Biology 101").length).toBeGreaterThan(0)
     expect((input as HTMLInputElement).value).toBe("OWLIO-ABCD")
   })
 })

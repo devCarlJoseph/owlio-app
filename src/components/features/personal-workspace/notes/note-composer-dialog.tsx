@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel, FieldTitle } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -30,17 +30,25 @@ import {
 type NoteComposerDialogProps = {
   open: boolean
   note: NoteRecord | null
+  initialTags?: string[]
   onOpenChange: (open: boolean) => void
   onSubmit: (draft: NoteDraft) => void
 }
 
-export function NoteComposerDialog({ open, note, onOpenChange, onSubmit }: NoteComposerDialogProps) {
+export function NoteComposerDialog({
+  open,
+  note,
+  initialTags,
+  onOpenChange,
+  onSubmit,
+}: NoteComposerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <NoteComposerForm
           key={note?.id ?? "new-note"}
           note={note}
+          initialTags={initialTags}
           onCancel={() => onOpenChange(false)}
           onSubmit={onSubmit}
         />
@@ -51,20 +59,28 @@ export function NoteComposerDialog({ open, note, onOpenChange, onSubmit }: NoteC
 
 type NoteComposerFormProps = {
   note: NoteRecord | null
+  initialTags?: string[]
   onCancel: () => void
   onSubmit: (draft: NoteDraft) => void
 }
 
-function NoteComposerForm({ note, onCancel, onSubmit }: NoteComposerFormProps) {
+function NoteComposerForm({
+  note,
+  initialTags,
+  onCancel,
+  onSubmit,
+}: NoteComposerFormProps) {
   const [draft, setDraft] = useState<NoteDraft>({
     title: note?.title ?? "",
     body: note?.body ?? "",
-    tags: note?.tags ?? [],
+    tags: note?.tags ?? initialTags ?? [],
     kind: note?.kind ?? "text",
     color: note?.color ?? "default",
     items: note?.items ?? [],
   })
-  const [tagInput, setTagInput] = useState(() => (note?.tags ?? []).map((tag) => `#${tag}`).join(" "))
+  const [tagInput, setTagInput] = useState(() =>
+    (note?.tags ?? initialTags ?? []).map((tag) => `#${tag}`).join(" ")
+  )
   const [contentError, setContentError] = useState<string | null>(null)
   const itemInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
@@ -205,22 +221,23 @@ function NoteComposerForm({ note, onCancel, onSubmit }: NoteComposerFormProps) {
           </Field>
         ) : (
           <Field data-invalid={contentError !== null}>
-            <FieldLabel htmlFor="note-item-0" className="text-slate-700">
-              Checklist
-            </FieldLabel>
+            <FieldTitle className="text-slate-700">Checklist</FieldTitle>
             <div className="space-y-2">
               {draft.items.map((item, index) => (
                 <div key={item.id} className="flex items-center gap-2">
                   <Checkbox
                     checked={item.done}
                     onCheckedChange={(checked) => updateItem(item.id, { done: checked })}
-                    aria-label={item.text.length > 0 ? item.text : `Checklist item ${index + 1}`}
+                    aria-label={
+                      item.text.length > 0
+                        ? `Mark ${item.text} as done`
+                        : `Mark checklist item ${index + 1} as done`
+                    }
                   />
                   <Input
                     ref={(element) => {
                       itemInputRefs.current[item.id] = element
                     }}
-                    id={index === 0 ? "note-item-0" : undefined}
                     value={item.text}
                     onChange={(event) => updateItem(item.id, { text: event.target.value })}
                     aria-label={`Checklist item ${index + 1}`}

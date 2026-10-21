@@ -31,10 +31,9 @@ import {
 
 const noteBuckets: NoteBucket[] = ["notes", "archive", "trash"]
 
-type UndoState = {
-  message: string
-  note: NoteRecord
-}
+type UndoState =
+  | { message: string; kind: "restore"; note: NoteRecord }
+  | { message: string; kind: "remove"; noteId: string }
 
 export function NotesView() {
   const [notes, setNotes] = useState<NoteRecord[]>(() => loadNotes())
@@ -52,16 +51,14 @@ export function NotesView() {
     saveNotes(notes)
   }, [notes])
 
-  const bucketNotes = useMemo(() => {
-    const scoped =
-      bucket === "trash"
-        ? notes.filter((note) => note.trashed)
-        : bucket === "archive"
-          ? notes.filter((note) => note.archived && !note.trashed)
-          : notes.filter((note) => !note.archived && !note.trashed)
+  const scopedNotes = useMemo(() => {
+    if (bucket === "trash") return notes.filter((note) => note.trashed)
+    if (bucket === "archive") return notes.filter((note) => note.archived && !note.trashed)
 
-    return sortNotes(scoped)
+    return notes.filter((note) => !note.archived && !note.trashed)
   }, [notes, bucket])
+
+  const bucketNotes = useMemo(() => sortNotes(scopedNotes), [scopedNotes])
 
   const visibleNotes = useMemo(
     () =>
@@ -72,13 +69,7 @@ export function NotesView() {
     [bucketNotes, activeTag, query]
   )
 
-  const tagGroups = useMemo(
-    () =>
-      groupNotesByTag(
-        notes.filter((note) => (bucket === "trash" ? note.trashed : !note.trashed))
-      ),
-    [notes, bucket]
-  )
+  const tagGroups = useMemo(() => groupNotesByTag(scopedNotes), [scopedNotes])
 
   const editingNote = useMemo(
     () => notes.find((note) => note.id === editingNoteId) ?? null,
@@ -173,8 +164,9 @@ export function NotesView() {
   }
 
   function handleDuplicate(note: NoteRecord) {
-    setNotes((current) => [duplicateNote(note), ...current])
-    setUndo({ message: "Note duplicated.", note })
+    const copy = duplicateNote(note)
+    setNotes((current) => [copy, ...current])
+    setUndo({ message: "Note duplicated.", kind: "remove", noteId: copy.id })
   }
 
   function handleArchive(note: NoteRecord) {
@@ -185,8 +177,14 @@ export function NotesView() {
     )
     setUndo({
       message: note.archived ? "Note moved back to your notes." : "Note archived.",
+      kind: "restore",
       note,
     })
+  }
+
+  function requestDelete(note: NoteRecord) {
+    setDetailNoteId(null)
+    setDeleteTarget(note)
   }
 
   function handleDelete(note: NoteRecord) {
@@ -195,12 +193,14 @@ export function NotesView() {
     )
     setDeleteTarget(null)
     setDetailNoteId(null)
-    setUndo({ message: "Note moved to trash.", note })
+    setUndo({ message: "Note moved to trash.", kind: "restore", note })
   }
 
   function handleRestore(note: NoteRecord) {
     setNotes((current) =>
-      current.map((item) => (item.id === note.id ? { ...item, trashed: false } : item))
+      current.map((item) =>
+        item.id === note.id ? { ...item, trashed: false, archived: false } : item
+      )
     )
   }
 
@@ -212,9 +212,14 @@ export function NotesView() {
   function handleUndo() {
     if (!undo) return
 
-    setNotes((current) =>
-      current.map((item) => (item.id === undo.note.id ? undo.note : item))
-    )
+    if (undo.kind === "remove") {
+      setNotes((current) => current.filter((note) => note.id !== undo.noteId))
+    } else {
+      setNotes((current) =>
+        current.map((item) => (item.id === undo.note.id ? undo.note : item))
+      )
+    }
+
     setUndo(null)
   }
 
@@ -231,7 +236,7 @@ export function NotesView() {
     onTogglePin: handleTogglePin,
     onDuplicate: handleDuplicate,
     onArchive: handleArchive,
-    onDelete: handleDelete,
+    onDelete: requestDelete,
   }
 
   return (
@@ -272,7 +277,7 @@ export function NotesView() {
         </p>
       </section>
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+      <Card className="overflow-visible border border-slate-200 bg-white shadow-sm ring-0">
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -459,7 +464,7 @@ export function NotesView() {
         onEdit={openEditDialog}
         onDuplicate={handleDuplicate}
         onArchive={handleArchive}
-        onDelete={handleDelete}
+        onDelete={requestDelete}
       />
 
       <NoteComposerDialog

@@ -1,7 +1,8 @@
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
+import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { librarySourceMeta, librarySources } from "./library-records"
 import { ResourceContextLink } from "./resource-context-link"
@@ -56,15 +57,16 @@ export function LibraryContextCards({ resources }: LibraryContextCardsProps) {
                     {count} {count === 1 ? "resource" : "resources"} listed
                   </p>
 
-                  <Button
-                    size="sm"
-                    nativeButton={false}
-                    render={<Link to={meta.libraryHref} />}
-                    className="bg-blue-700 text-white hover:bg-blue-800"
+                  <Link
+                    to={meta.libraryHref}
+                    className={cn(
+                      buttonVariants({ variant: "default", size: "sm" }),
+                      "bg-blue-700 text-white hover:bg-blue-800",
+                    )}
                   >
                     Open {meta.shortLabel.toLowerCase()} library
                     <ArrowRight aria-hidden="true" />
-                  </Button>
+                  </Link>
                 </div>
 
                 <ResourceContextLink href={meta.ownerHref} label={meta.ownerAction} />

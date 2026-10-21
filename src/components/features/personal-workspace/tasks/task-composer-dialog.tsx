@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,22 +19,30 @@ import {
   type TaskRecord,
   type TaskStatus,
 } from "./task-records"
-import { activeSubjectNames } from "../subjects/sample-subjects"
+import { loadSubjects } from "../subjects/subject-records"
 
 type TaskComposerDialogProps = {
   open: boolean
   task: TaskRecord | null
+  initialSubject?: string
   onOpenChange: (open: boolean) => void
   onSubmit: (draft: TaskDraft) => void
 }
 
-export function TaskComposerDialog({ open, task, onOpenChange, onSubmit }: TaskComposerDialogProps) {
+export function TaskComposerDialog({
+  open,
+  task,
+  initialSubject,
+  onOpenChange,
+  onSubmit,
+}: TaskComposerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <TaskComposerForm
           key={task?.id ?? "new-task"}
           task={task}
+          initialSubject={initialSubject}
           onCancel={() => onOpenChange(false)}
           onSubmit={onSubmit}
         />
@@ -45,20 +53,25 @@ export function TaskComposerDialog({ open, task, onOpenChange, onSubmit }: TaskC
 
 type TaskComposerFormProps = {
   task: TaskRecord | null
+  initialSubject?: string
   onCancel: () => void
   onSubmit: (draft: TaskDraft) => void
 }
 
-function TaskComposerForm({ task, onCancel, onSubmit }: TaskComposerFormProps) {
+function TaskComposerForm({ task, initialSubject, onCancel, onSubmit }: TaskComposerFormProps) {
   const [draft, setDraft] = useState<TaskDraft>({
     title: task?.title ?? "",
-    subject: task?.subject ?? "",
+    subject: task?.subject ?? initialSubject ?? "",
     dueDate: task?.dueDate ?? "",
     priority: task?.priority ?? "medium",
     status: task?.status ?? "todo",
     notes: task?.notes ?? "",
   })
   const [titleError, setTitleError] = useState<string | null>(null)
+  const subjectNames = useMemo(
+    () => loadSubjects().map((subject) => subject.name).filter((name) => name.length > 0),
+    []
+  )
 
   function handleSubmit() {
     const nextTitleError =
@@ -121,7 +134,7 @@ function TaskComposerForm({ task, onCancel, onSubmit }: TaskComposerFormProps) {
             className="border-slate-200 bg-slate-50"
           />
           <datalist id="student-subjects">
-            {activeSubjectNames.map((subject) => (
+            {subjectNames.map((subject) => (
               <option key={subject} value={subject} />
             ))}
           </datalist>

@@ -18,6 +18,7 @@ import EducatorsPage from "@/pages/dashboard/educators";
 import TutorsPage from "@/pages/dashboard/tutors";
 import EslPage from "@/pages/dashboard/esl";
 import StudentSubjectsPage from "@/pages/dashboard/students/subjects";
+import StudentSubjectDetailPage from "@/pages/dashboard/students/subjects/detail";
 import StudentTasksPage from "@/pages/dashboard/students/tasks";
 import StudentNotesPage from "@/pages/dashboard/students/notes";
 import StudentStudySpacesPage from "@/pages/dashboard/students/study-spaces";
@@ -87,6 +88,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/students">
             <Route index element={<StudentsPage />} />
             <Route path="subjects" element={<StudentSubjectsPage />} />
+            <Route path="subjects/:subjectId" element={<StudentSubjectDetailPage />} />
             <Route path="tasks" element={<StudentTasksPage />} />
             <Route path="notes" element={<StudentNotesPage />} />
             <Route path="study-spaces" element={<StudentStudySpacesPage />} />

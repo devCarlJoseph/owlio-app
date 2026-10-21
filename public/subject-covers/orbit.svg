@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <defs>
+    <linearGradient id="orbit-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e6e1ff" />
+      <stop offset="1" stop-color="#cfc6fb" />
+    </linearGradient>
+    <linearGradient id="orbit-sphere" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" />
+      <stop offset="1" stop-color="#b9a8f7" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#orbit-bg)" />
+  <ellipse cx="470" cy="230" rx="190" ry="52" fill="#ffffff" opacity="0.35" />
+  <ellipse cx="470" cy="196" rx="160" ry="44" fill="none" stroke="#ffffff" stroke-width="14" opacity="0.85" transform="rotate(-12 470 196)" />
+  <circle cx="470" cy="176" r="66" fill="url(#orbit-sphere)" />
+  <circle cx="448" cy="156" r="20" fill="#ffffff" opacity="0.7" />
+  <circle cx="596" cy="132" r="16" fill="#ffffff" opacity="0.9" />
+  <circle cx="356" cy="248" r="11" fill="#ffffff" opacity="0.75" />
+</svg>
