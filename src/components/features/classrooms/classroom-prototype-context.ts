@@ -8,16 +8,19 @@ import type {
   WorkspaceRole,
 } from "./classroom-types"
 
-type JoinClassroomResult =
-  | { classroomId: string; classroomName: string }
-  | { error: "not-found" | "already-enrolled" }
+export type JoinClassroomResult =
+  | { status: "joined"; classroomId: string; classroomName: string; source: "connected" | "demo" }
+  | { status: "already-previewed"; classroomName: string }
+  | { status: "unavailable" }
 
 export type ClassroomPrototypeContextValue = {
   classrooms: Classroom[]
   classroomsLoading: boolean
   classroomsError: string | null
+  connectedModeEnabled: boolean
   getClassroom: (classroomId: string) => Classroom | undefined
   getClassroomsForWorkspace: (role: WorkspaceRole) => Classroom[]
+  reloadClassrooms: () => void
   createClassroom: (input: CreateClassroomInput, ownerWorkspace: Exclude<WorkspaceRole, "students">) => Promise<Classroom>
   joinClassroom: (joinCode: string) => Promise<JoinClassroomResult>
   createMeetingLink: (classroomId: string, meetingId: string) => void

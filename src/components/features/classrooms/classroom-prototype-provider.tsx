@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { API_INTEGRATION_ENABLED } from "@/lib/api-mode"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import {
@@ -97,13 +97,12 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
   const [classrooms, setClassrooms] = useState<Classroom[]>(initialClassrooms)
   const [classroomsLoading, setClassroomsLoading] = useState(API_INTEGRATION_ENABLED)
   const [classroomsError, setClassroomsError] = useState<string | null>(null)
+  const mountedRef = useRef(true)
 
-  useEffect(() => {
-    if (!API_INTEGRATION_ENABLED) return
-    let active = true
-    getClassrooms()
+  const requestClassrooms = useCallback(() => {
+    return getClassrooms()
       .then((records) => {
-        if (!active) return
+        if (!mountedRef.current) return
         const apiClassrooms = records.map(fromApiClassroom)
         const apiIds = new Set(apiClassrooms.map((classroom) => classroom.id))
         setClassrooms((current) => [
@@ -113,13 +112,28 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
         setClassroomsError(null)
       })
       .catch((error) => {
-        if (active) setClassroomsError(getApiErrorMessage(error, "Connected classrooms are unavailable."))
+        if (mountedRef.current) setClassroomsError(getApiErrorMessage(error, "Connected classrooms are unavailable."))
       })
-      .finally(() => {
-        if (active) setClassroomsLoading(false)
-      })
-    return () => { active = false }
   }, [])
+
+  const loadClassrooms = useCallback(() => {
+    if (!API_INTEGRATION_ENABLED) return
+    void requestClassrooms().finally(() => {
+      if (mountedRef.current) setClassroomsLoading(false)
+    })
+  }, [requestClassrooms])
+
+  const reloadClassrooms = useCallback(() => {
+    if (!API_INTEGRATION_ENABLED) return
+    setClassroomsLoading(true)
+    void requestClassrooms().finally(() => setClassroomsLoading(false))
+  }, [requestClassrooms])
+
+  useEffect(() => {
+    mountedRef.current = true
+    loadClassrooms()
+    return () => { mountedRef.current = false }
+  }, [loadClassrooms])
 
   const value = useMemo<ClassroomPrototypeContextValue>(() => {
     const updateClassroom = (classroomId: string, update: (classroom: Classroom) => Classroom) => {
@@ -132,6 +146,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
       classrooms,
       classroomsLoading,
       classroomsError,
+      connectedModeEnabled: API_INTEGRATION_ENABLED,
       getClassroom: (classroomId) => classrooms.find((classroom) => classroom.id === classroomId),
       getClassroomsForWorkspace: (role) => classrooms.filter((classroom) =>
         classroom.isMock
@@ -142,6 +157,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
             ? classroom.access === "student"
             : classroom.access === "owner",
       ),
+      reloadClassrooms,
       createClassroom: async (input, ownerWorkspace) => {
         const classroom = fromApiClassroom(await createClassroomRequest(input))
         classroom.ownerWorkspace = ownerWorkspace
@@ -150,23 +166,28 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
         return classroom
       },
       joinClassroom: async (joinCode) => {
+        const requestedCode = joinCode.trim().toLowerCase()
         const mockClassroom = classrooms.find((item) =>
-          item.isMock && item.joinCode?.toLowerCase() === joinCode.trim().toLowerCase(),
+          item.isMock && item.joinCode?.toLowerCase() === requestedCode,
         )
         if (mockClassroom) {
-          if (mockClassroom.enrolledLearnerIds.includes(DEMO_LEARNER_ID)) return { error: "already-enrolled" }
+          if (mockClassroom.enrolledLearnerIds.includes(DEMO_LEARNER_ID)) {
+            return { status: "already-previewed", classroomName: mockClassroom.name }
+          }
           updateClassroom(mockClassroom.id, (current) => ({
             ...current,
             enrolledLearnerIds: [...current.enrolledLearnerIds, DEMO_LEARNER_ID],
             members: [...current.members, { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" }],
           }))
-          return { classroomId: mockClassroom.id, classroomName: mockClassroom.name }
+          return { status: "joined", classroomId: mockClassroom.id, classroomName: mockClassroom.name, source: "demo" }
         }
 
-        const classroom = fromApiClassroom(await joinClassroomByCode(joinCode))
+        if (!API_INTEGRATION_ENABLED) return { status: "unavailable" }
+
+        const classroom = fromApiClassroom(await joinClassroomByCode(joinCode.trim()))
         setClassrooms((current) => [classroom, ...current.filter((item) => item.id !== classroom.id)])
         setClassroomsError(null)
-        return { classroomId: classroom.id, classroomName: classroom.name }
+        return { status: "joined", classroomId: classroom.id, classroomName: classroom.name, source: "connected" }
       },
       createMeetingLink: (classroomId, meetingId) => {
         updateClassroom(classroomId, (classroom) => ({ ...classroom, meetingId }))
@@ -289,7 +310,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
         }))
       },
     }
-  }, [classrooms, classroomsError, classroomsLoading])
+  }, [classrooms, classroomsError, classroomsLoading, reloadClassrooms])
 
   return <ClassroomPrototypeContext.Provider value={value}>{children}</ClassroomPrototypeContext.Provider>
 }
