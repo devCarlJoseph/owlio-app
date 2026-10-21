@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_INTEGRATION_ENABLED } from "./api-mode";
 
 function getApiBaseUrl() {
   const configuredUrl = import.meta.env.VITE_API_URL || "http://localhost:7000";
@@ -19,6 +20,13 @@ const api = axios.create({
     Accept: "application/json",
     "Content-Type": "application/json",
   },
+});
+
+api.interceptors.request.use((config) => {
+  if (!API_INTEGRATION_ENABLED) {
+    return Promise.reject(new Error("API integrations are paused while the UI is being built."));
+  }
+  return config;
 });
 
 export default api;

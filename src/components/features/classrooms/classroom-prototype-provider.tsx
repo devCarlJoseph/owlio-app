@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { API_INTEGRATION_ENABLED } from "@/lib/api-mode"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import {
   createClassroom as createClassroomRequest,
@@ -94,10 +95,11 @@ function buildActivity(input: CreateActivityInput): ClassroomActivity {
 
 export function ClassroomPrototypeProvider({ children }: { children: ReactNode }) {
   const [classrooms, setClassrooms] = useState<Classroom[]>(initialClassrooms)
-  const [classroomsLoading, setClassroomsLoading] = useState(true)
+  const [classroomsLoading, setClassroomsLoading] = useState(API_INTEGRATION_ENABLED)
   const [classroomsError, setClassroomsError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!API_INTEGRATION_ENABLED) return
     let active = true
     getClassrooms()
       .then((records) => {

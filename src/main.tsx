@@ -46,10 +46,16 @@ import AiAssistantPage from "@/pages/dashboard/ai-assistant";
 import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
 import { AuthSessionProvider } from "@/components/features/auth/auth-session-provider";
 import { RequireAuth } from "@/components/features/auth/require-auth";
+import { API_INTEGRATION_ENABLED } from "@/lib/api-mode";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <AuthSessionProvider>
+      {!API_INTEGRATION_ENABLED && (
+        <div role="status" className="bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-950">
+          UI preview mode: API integrations are paused. API-backed actions are unavailable and changes are not saved.
+        </div>
+      )}
       <Routes>
         <Route path="/onboarding" element={<OnboardingPage />} />
 
@@ -65,9 +71,13 @@ createRoot(document.getElementById("root")!).render(
         {/*App Pages */}
         <Route
           element={
-            <RequireAuth>
+            API_INTEGRATION_ENABLED ? (
+              <RequireAuth>
+                <PlatformLayout />
+              </RequireAuth>
+            ) : (
               <PlatformLayout />
-            </RequireAuth>
+            )
           }
         >
           <Route path="/students">
