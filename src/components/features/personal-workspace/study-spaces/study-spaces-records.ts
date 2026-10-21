@@ -9,7 +9,16 @@ export type StudySpaceRecord = {
   inviteCode?: string
 }
 
+export type StudySpaceCharacter = {
+  name: string
+  bodyColor: string
+  accentColor: string
+  createdAt: string
+}
+
 export const studySpacesStorageKey = "owlio.student-study-spaces.v1"
+
+export const studySpaceCharacterStoragePrefix = "owlio.study-space-character."
 
 export const studySpacesGuidance =
   "A study space is for peer collaboration, not an official classroom. It never carries official grades, attendance, or educator feedback."
@@ -21,7 +30,13 @@ export const studySpacesJoinHint =
   "Joining by code or invitation is not connected yet. The code you enter is not verified by a service, and the space stays in this browser."
 
 export const studySpacesOpenHint =
-  "Opening a space is not connected yet. Created spaces cannot be joined by others yet either."
+  "Select a space to open its local room preview. The room is not connected to a service, so no other students can see or join it."
+
+export const studySpaceRoomPreviewNotice =
+  "Local preview — only you are in this room. Other students cannot see your character or messages."
+
+export const studySpaceChatLocalNotice =
+  "Messages stay on this device for this visit and are not sent to other students."
 
 export const sampleCreatedSpaces: StudySpaceRecord[] = [
   {
@@ -105,6 +120,42 @@ export function saveStudySpaces(spaces: StudySpaceRecord[]): void {
 
   try {
     window.localStorage.setItem(studySpacesStorageKey, JSON.stringify(spaces))
+  } catch {
+    return
+  }
+}
+
+function isStudySpaceCharacter(value: unknown): value is StudySpaceCharacter {
+  if (typeof value !== "object" || value === null) return false
+  const character = value as Record<string, unknown>
+
+  return (
+    typeof character.name === "string" &&
+    typeof character.bodyColor === "string" &&
+    typeof character.accentColor === "string" &&
+    typeof character.createdAt === "string"
+  )
+}
+
+export function loadSpaceCharacter(spaceId: string): StudySpaceCharacter | null {
+  if (typeof window === "undefined") return null
+
+  try {
+    const stored = window.localStorage.getItem(`${studySpaceCharacterStoragePrefix}${spaceId}`)
+    if (!stored) return null
+
+    const parsed: unknown = JSON.parse(stored)
+    return isStudySpaceCharacter(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+export function saveSpaceCharacter(spaceId: string, character: StudySpaceCharacter): void {
+  if (typeof window === "undefined") return
+
+  try {
+    window.localStorage.setItem(`${studySpaceCharacterStoragePrefix}${spaceId}`, JSON.stringify(character))
   } catch {
     return
   }

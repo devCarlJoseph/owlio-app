@@ -1,3 +1,4 @@
+import { Link } from "react-router"
 import { Plus, Users } from "lucide-react"
 import type { StudySpaceRecord } from "./study-spaces-records"
 
@@ -29,10 +30,14 @@ export function SpaceActionCircle({
 
 function SpaceCircle({ space }: { space: StudySpaceRecord }) {
   return (
-    <div className="flex w-20 shrink-0 flex-col items-center gap-2">
+    <Link
+      to={`/students/study-spaces/${space.id}`}
+      aria-label={`Open ${space.name} study space`}
+      className="flex w-20 shrink-0 flex-col items-center gap-2 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+    >
       <span
         aria-hidden="true"
-        className={`flex size-16 items-center justify-center rounded-full text-lg font-semibold ${
+        className={`flex size-16 items-center justify-center rounded-full text-lg font-semibold transition-transform hover:scale-105 ${
           space.role === "owner"
             ? "bg-blue-700 text-white"
             : "border border-blue-100 bg-blue-50 text-blue-700"
@@ -43,7 +48,7 @@ function SpaceCircle({ space }: { space: StudySpaceRecord }) {
       <span className="w-full truncate text-center text-xs font-medium leading-4 text-slate-700" title={space.name}>
         {space.name}
       </span>
-    </div>
+    </Link>
   )
 }
 

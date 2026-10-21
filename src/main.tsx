@@ -22,6 +22,7 @@ import StudentSubjectDetailPage from "@/pages/dashboard/students/subjects/detail
 import StudentTasksPage from "@/pages/dashboard/students/tasks";
 import StudentNotesPage from "@/pages/dashboard/students/notes";
 import StudentStudySpacesPage from "@/pages/dashboard/students/study-spaces";
+import StudentStudySpaceDetailPage from "@/pages/dashboard/students/study-spaces/detail/lazy";
 import StudentClassworkPage from "@/pages/dashboard/students/classwork";
 import StudentMaterialsPage from "@/pages/dashboard/students/materials";
 import StudentPersonalMaterialsPage from "@/pages/dashboard/students/materials/personal";
@@ -103,6 +104,20 @@ createRoot(document.getElementById("root")!).render(
             <Route path="tasks" element={<StudentTasksPage />} />
             <Route path="notes" element={<StudentNotesPage />} />
             <Route path="study-spaces" element={<StudentStudySpacesPage />} />
+            <Route
+              path="study-spaces/:spaceId"
+              element={
+                <Suspense
+                  fallback={
+                    <p className="p-6 text-sm text-slate-500">
+                      Loading study space…
+                    </p>
+                  }
+                >
+                  <StudentStudySpaceDetailPage />
+                </Suspense>
+              }
+            />
             <Route path="classwork" element={<StudentClassworkPage />} />
             <Route path="classrooms" element={<ClassroomsPage />} />
             <Route

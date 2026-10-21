@@ -1,0 +1,107 @@
+import { cleanup, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { MemoryRouter, Route, Routes } from "react-router"
+import { StudySpaceDetailView } from "./study-space-detail-view"
+import { studySpaceCharacterStoragePrefix } from "../study-spaces-records"
+
+vi.mock("./space-room-scene", () => ({
+  SpaceRoomScene: (props: {
+    character: { name: string }
+    showNameTag: boolean
+    bubbleText: string | null
+  }) => (
+    <div data-testid="room-scene">
+      {props.showNameTag ? <span data-testid="name-tag">{props.character.name}</span> : null}
+      {props.bubbleText ? <span data-testid="chat-bubble">{props.bubbleText}</span> : null}
+    </div>
+  ),
+}))
+
+afterEach(cleanup)
+
+beforeEach(() => {
+  window.localStorage.clear()
+})
+
+function renderAt(spaceId: string) {
+  return render(
+    <MemoryRouter initialEntries={[`/students/study-spaces/${spaceId}`]}>
+      <Routes>
+        <Route path="/students/study-spaces/:spaceId" element={<StudySpaceDetailView />} />
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
+const sampleSpaceId = "sample-space-physics"
+
+describe("study space detail room", () => {
+  it("shows a not-found state for an unknown space id", () => {
+    renderAt("missing-space-id")
+
+    expect(screen.getByRole("heading", { name: "Study space not found" })).toBeTruthy()
+    const backLink = screen.getByRole("button", { name: "Back to study spaces" })
+    expect(backLink.tagName).toBe("A")
+  })
+
+  it("asks for a character before entering the room", async () => {
+    const user = userEvent.setup()
+    renderAt(sampleSpaceId)
+
+    expect(screen.getByRole("dialog")).toBeTruthy()
+    expect(screen.getByText("Create your character")).toBeTruthy()
+    expect(screen.queryByTestId("room-scene")).toBeNull()
+
+    await user.type(screen.getByLabelText("Display name"), "Alex")
+    await user.click(screen.getByRole("button", { name: /Enter room/ }))
+
+    expect(screen.getByTestId("room-scene")).toBeTruthy()
+    expect(screen.getByTestId("name-tag").textContent).toBe("Alex")
+  })
+
+  it("remembers a saved character and skips the dialog", () => {
+    window.localStorage.setItem(
+      `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
+      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+
+    renderAt(sampleSpaceId)
+
+    expect(screen.queryByRole("dialog")).toBeNull()
+    expect(screen.getByTestId("name-tag").textContent).toBe("Sam")
+    expect(screen.getByRole("button", { name: /Edit character/ })).toBeTruthy()
+  })
+
+  it("shows sent messages in the chat panel and as a bubble", async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
+      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    renderAt(sampleSpaceId)
+
+    await user.type(screen.getByLabelText(/Message in/), "Anyone up for calculus review?")
+    await user.click(screen.getByRole("button", { name: /Send/ }))
+
+    expect(screen.getByTestId("chat-bubble").textContent).toBe("Anyone up for calculus review?")
+    expect(screen.getByRole("complementary", { name: "Space chat" }).textContent).toContain(
+      "Anyone up for calculus review?"
+    )
+  })
+
+  it("toggles name tags and labels the room as a local preview", async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
+      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    renderAt(sampleSpaceId)
+
+    expect(screen.getByText(/only you are in this room/)).toBeTruthy()
+    expect(screen.getByTestId("name-tag")).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: /Name tags/ }))
+    expect(screen.queryByTestId("name-tag")).toBeNull()
+  })
+})
