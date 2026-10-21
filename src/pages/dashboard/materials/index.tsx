@@ -88,8 +88,8 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
     {
       title: "Classroom materials",
       description: "Keep resources connected to the class or language lesson they support.",
-      action: "Browse classrooms",
-      href: "/esl/classrooms",
+      action: "Explore classroom context",
+      href: "/esl/materials/classrooms",
       icon: GraduationCap,
       iconClassName: "bg-sky-100 text-sky-800",
       eyebrow: "Teaching",
@@ -97,8 +97,8 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
     {
       title: "Lesson resources",
       description: "Language-learning resources belong with the lesson or skill they support.",
-      action: "View lessons",
-      href: "/esl/lessons",
+      action: "Explore lesson context",
+      href: "/esl/materials/lessons",
       icon: BookOpenText,
       iconClassName: "bg-amber-100 text-amber-800",
       eyebrow: "ESL",
@@ -125,28 +125,28 @@ export default function MaterialsPage() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.65fr)] lg:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-              Learning library
+              ESL teaching workspace
             </p>
             <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              Every resource has a home.
+              Teaching materials, kept in context.
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-              Start in the place that owns the material: your workspace, a classroom, a lesson, or a
-              study space.
+              Find classroom and lesson resource areas while keeping ownership and audience clear. Your
+              material library is not connected yet, so no resources are being shown as saved or shared.
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-              Keep context clear
+              Resource boundaries
             </p>
             <ul className="mt-4 space-y-3 text-sm text-slate-200">
               <li className="flex items-center gap-3">
                 <span className="size-2 rounded-full bg-amber-300" aria-hidden="true" />
-                Personal work stays yours
+                Teacher-owned materials stay private by default
               </li>
               <li className="flex items-center gap-3">
                 <span className="size-2 rounded-full bg-sky-300" aria-hidden="true" />
-                Classroom materials stay with the class
+                Classroom resources stay with their class context
               </li>
               {role === "students" && (
                 <li className="flex items-center gap-3">
@@ -166,11 +166,11 @@ export default function MaterialsPage() {
               Start with the right context
             </p>
             <h3 id="material-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
-              Where are you learning?
+              Choose a resource context
             </h3>
           </div>
           <p className="max-w-lg text-sm leading-6 text-slate-500">
-            Personal resources, peer-shared files, and educator-published classroom materials are kept distinct.
+            Choose a context to see its materials area. Sharing or attaching a resource requires an available service.
           </p>
         </div>
 
