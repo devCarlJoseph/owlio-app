@@ -22,6 +22,10 @@ import StudentTasksPage from "@/pages/dashboard/students/tasks";
 import StudentNotesPage from "@/pages/dashboard/students/notes";
 import StudentStudySpacesPage from "@/pages/dashboard/students/study-spaces";
 import StudentClassworkPage from "@/pages/dashboard/students/classwork";
+import StudentMaterialsPage from "@/pages/dashboard/students/materials";
+import StudentPersonalMaterialsPage from "@/pages/dashboard/students/materials/personal";
+import StudentClassroomMaterialsPage from "@/pages/dashboard/students/materials/classroom";
+import StudentStudySpaceMaterialsPage from "@/pages/dashboard/students/materials/study-spaces";
 import EducatorClassworkPage from "@/pages/dashboard/educators/classwork";
 import EducatorAttendancePage from "@/pages/dashboard/educators/attendance";
 import EducatorLearnersPage from "@/pages/dashboard/educators/learners";
@@ -111,7 +115,10 @@ createRoot(document.getElementById("root")!).render(
               element={<ClassroomActivityPage />}
             />
             <Route path="schedule" element={<SchedulePage />} />
-            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="materials" element={<StudentMaterialsPage />} />
+            <Route path="materials/personal" element={<StudentPersonalMaterialsPage />} />
+            <Route path="materials/classroom" element={<StudentClassroomMaterialsPage />} />
+            <Route path="materials/study-spaces" element={<StudentStudySpaceMaterialsPage />} />
             <Route path="communication" element={<CommunicationPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
