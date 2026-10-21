@@ -12,10 +12,19 @@ import {
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  defaultSpaceCapacity,
+  maxSpaceCapacity,
+  minSpaceCapacity,
+  studySpaceKinds,
+  type StudySpaceKind,
+} from "./study-spaces-records"
 
 export type SpaceDraft = {
   name: string
   about: string
+  kind: StudySpaceKind
+  capacity: number
 }
 
 type CreateSpaceDialogProps = {
@@ -39,16 +48,32 @@ export function CreateSpaceDialog({ open, onOpenChange, onSubmit }: CreateSpaceD
 }
 
 function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (draft: SpaceDraft) => void }) {
-  const [draft, setDraft] = useState<SpaceDraft>({ name: "", about: "" })
+  const [draft, setDraft] = useState<SpaceDraft>({
+    name: "",
+    about: "",
+    kind: "collaborative",
+    capacity: defaultSpaceCapacity,
+  })
   const [nameError, setNameError] = useState<string | null>(null)
+  const [capacityError, setCapacityError] = useState<string | null>(null)
 
   function handleSubmit() {
     const nextNameError = draft.name.trim().length < 3 ? "Add a space name of at least 3 characters." : null
+    const nextCapacityError =
+      !Number.isInteger(draft.capacity) || draft.capacity < minSpaceCapacity || draft.capacity > maxSpaceCapacity
+        ? `Choose between ${minSpaceCapacity} and ${maxSpaceCapacity} seats.`
+        : null
 
     setNameError(nextNameError)
-    if (nextNameError) return
+    setCapacityError(nextCapacityError)
+    if (nextNameError || nextCapacityError) return
 
-    onSubmit({ name: draft.name.trim(), about: draft.about.trim() })
+    onSubmit({
+      name: draft.name.trim(),
+      about: draft.about.trim(),
+      kind: draft.kind,
+      capacity: draft.capacity,
+    })
   }
 
   return (
@@ -90,6 +115,53 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
             placeholder="Weekly problem sets and past paper review."
             className="border-slate-200 bg-slate-50"
           />
+        </Field>
+
+        <div role="radiogroup" aria-label="Room type" className="grid gap-2">
+          <span className="text-sm font-medium text-slate-700">Room type</span>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {studySpaceKinds.map((kind) => (
+              <button
+                key={kind.value}
+                type="button"
+                role="radio"
+                aria-checked={draft.kind === kind.value}
+                onClick={() => setDraft((current) => ({ ...current, kind: kind.value }))}
+                className={`rounded-xl border p-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                  draft.kind === kind.value
+                    ? "border-blue-600 bg-blue-50"
+                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                }`}
+              >
+                <span className="block text-sm font-medium text-slate-900">{kind.label}</span>
+                <span className="mt-1 block text-xs leading-4 text-slate-600">{kind.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Field data-invalid={capacityError !== null}>
+          <FieldLabel htmlFor="space-capacity" className="text-slate-700">
+            Seats in the room
+          </FieldLabel>
+          <Input
+            id="space-capacity"
+            type="number"
+            min={minSpaceCapacity}
+            max={maxSpaceCapacity}
+            value={draft.capacity}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, capacity: Number(event.target.value) }))
+            }
+            aria-invalid={capacityError !== null}
+            aria-describedby="space-capacity-hint space-capacity-error"
+            className="w-28 border-slate-200 bg-slate-50"
+          />
+          <p id="space-capacity-hint" className="text-xs leading-5 text-slate-500">
+            {minSpaceCapacity}–{maxSpaceCapacity} seats. This sets how many desks or chairs appear in the room
+            preview.
+          </p>
+          <FieldError id="space-capacity-error">{capacityError}</FieldError>
         </Field>
       </div>
 

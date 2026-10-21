@@ -95,7 +95,7 @@ export function StudySpaceDetailView() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4">
+    <div className="mx-auto flex h-full min-h-0 w-full flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -166,10 +166,12 @@ export function StudySpaceDetailView() {
         </div>
       </div>
 
-      <div className="relative h-[72vh] min-h-[480px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-sm">
+      <div className="relative min-h-[420px] flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-sm">
         {character ? (
           <SpaceRoomScene
             character={character}
+            kind={space.kind}
+            capacity={space.capacity}
             showNameTag={showNameTags}
             bubbleText={bubble?.text ?? null}
             cameraResetRef={cameraResetRef}

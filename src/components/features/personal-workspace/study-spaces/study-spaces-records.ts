@@ -1,13 +1,39 @@
 export type StudySpaceRole = "owner" | "member"
 
+export type StudySpaceKind = "focused" | "collaborative" | "lounge"
+
 export type StudySpaceRecord = {
   id: string
   name: string
   about: string
   role: StudySpaceRole
+  kind: StudySpaceKind
+  capacity: number
   createdAt: string
   inviteCode?: string
 }
+
+export const studySpaceKinds: { value: StudySpaceKind; label: string; description: string }[] = [
+  {
+    value: "focused",
+    label: "Focused desks",
+    description: "Individual desks facing the board for quiet, independent study.",
+  },
+  {
+    value: "collaborative",
+    label: "Shared tables",
+    description: "Paired desks facing each other for group work and discussion.",
+  },
+  {
+    value: "lounge",
+    label: "Study lounge",
+    description: "Round tables with casual seating for relaxed reading and review.",
+  },
+]
+
+export const minSpaceCapacity = 2
+export const maxSpaceCapacity = 8
+export const defaultSpaceCapacity = 4
 
 export type StudySpaceCharacter = {
   name: string
@@ -44,6 +70,8 @@ export const sampleCreatedSpaces: StudySpaceRecord[] = [
     name: "Physics Group",
     about: "Weekly problem sets and past paper review.",
     role: "owner",
+    kind: "collaborative",
+    capacity: 6,
     createdAt: "2026-09-28T09:00:00.000Z",
   },
   {
@@ -51,6 +79,8 @@ export const sampleCreatedSpaces: StudySpaceRecord[] = [
     name: "Essay Writers",
     about: "Peer review of argument outlines.",
     role: "owner",
+    kind: "lounge",
+    capacity: 4,
     createdAt: "2026-10-02T17:30:00.000Z",
   },
   {
@@ -58,6 +88,8 @@ export const sampleCreatedSpaces: StudySpaceRecord[] = [
     name: "Maths Club",
     about: "Calculus drills before Friday.",
     role: "owner",
+    kind: "focused",
+    capacity: 6,
     createdAt: "2026-10-09T13:10:00.000Z",
   },
 ]
@@ -68,6 +100,8 @@ export const sampleJoinedSpaces: StudySpaceRecord[] = [
     name: "History Circle",
     about: "Source analysis discussion.",
     role: "member",
+    kind: "lounge",
+    capacity: 8,
     createdAt: "2026-09-20T08:00:00.000Z",
   },
   {
@@ -75,9 +109,15 @@ export const sampleJoinedSpaces: StudySpaceRecord[] = [
     name: "Language Exchange",
     about: "Conversation practice twice a week.",
     role: "member",
+    kind: "collaborative",
+    capacity: 4,
     createdAt: "2026-10-05T19:45:00.000Z",
   },
 ]
+
+function isStudySpaceKind(value: unknown): value is StudySpaceKind {
+  return value === "focused" || value === "collaborative" || value === "lounge"
+}
 
 function isStudySpaceRecord(value: unknown): value is StudySpaceRecord {
   if (typeof value !== "object" || value === null) return false
@@ -92,6 +132,21 @@ function isStudySpaceRecord(value: unknown): value is StudySpaceRecord {
     typeof space.createdAt === "string" &&
     (space.role === "owner" || space.role === "member")
   )
+}
+
+// Records saved before room type/capacity existed get sensible defaults so the room still renders.
+function normalizeStudySpace(space: StudySpaceRecord): StudySpaceRecord {
+  const raw = space as Partial<StudySpaceRecord>
+  const capacity =
+    typeof raw.capacity === "number" && Number.isFinite(raw.capacity)
+      ? Math.min(Math.max(Math.round(raw.capacity), minSpaceCapacity), maxSpaceCapacity)
+      : defaultSpaceCapacity
+
+  return {
+    ...space,
+    kind: isStudySpaceKind(raw.kind) ? raw.kind : "collaborative",
+    capacity,
+  }
 }
 
 export function createStudySpaceId(): string {
@@ -109,7 +164,7 @@ export function loadStudySpaces(): StudySpaceRecord[] {
     const parsed: unknown = JSON.parse(stored)
     if (!Array.isArray(parsed)) return [...sampleCreatedSpaces, ...sampleJoinedSpaces]
 
-    return parsed.filter(isStudySpaceRecord)
+    return parsed.filter(isStudySpaceRecord).map(normalizeStudySpace)
   } catch {
     return [...sampleCreatedSpaces, ...sampleJoinedSpaces]
   }

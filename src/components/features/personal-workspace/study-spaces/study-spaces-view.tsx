@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router"
 import { Info, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,6 +17,7 @@ import {
 } from "./study-spaces-records"
 
 export function StudySpacesView() {
+  const navigate = useNavigate()
   const [spaces, setSpaces] = useState<StudySpaceRecord[]>(() => loadStudySpaces())
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
@@ -35,17 +37,18 @@ export function StudySpacesView() {
   )
 
   function handleCreate(draft: SpaceDraft) {
-    setSpaces((current) => [
-      ...current,
-      {
-        id: createStudySpaceId(),
-        name: draft.name,
-        about: draft.about,
-        role: "owner",
-        createdAt: new Date().toISOString(),
-      },
-    ])
+    const space: StudySpaceRecord = {
+      id: createStudySpaceId(),
+      name: draft.name,
+      about: draft.about,
+      role: "owner",
+      kind: draft.kind,
+      capacity: draft.capacity,
+      createdAt: new Date().toISOString(),
+    }
+    setSpaces((current) => [...current, space])
     setCreateOpen(false)
+    navigate(`/students/study-spaces/${space.id}`)
   }
 
   function handleJoin(draft: JoinSpaceDraft) {
@@ -56,6 +59,8 @@ export function StudySpacesView() {
         name: draft.name,
         about: "",
         role: "member",
+        kind: "collaborative",
+        capacity: 4,
         createdAt: new Date().toISOString(),
         inviteCode: draft.inviteCode.length > 0 ? draft.inviteCode : undefined,
       },
