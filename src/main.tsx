@@ -33,6 +33,7 @@ import EslLessonsPage from "@/pages/dashboard/esl/lessons";
 import EslClassworkPage from "@/pages/dashboard/esl/classwork";
 import EslAttendancePage from "@/pages/dashboard/esl/attendance";
 import EslLearnersPage from "@/pages/dashboard/esl/learners";
+import EslMaterialContextPage from "@/pages/dashboard/esl/materials";
 import ClassroomsPage from "@/pages/dashboard/classroom";
 import ClassroomDetailPage from "@/pages/dashboard/classroom/detail";
 import ClassroomActivityPage from "@/pages/dashboard/classroom/activity";
@@ -222,6 +223,7 @@ createRoot(document.getElementById("root")!).render(
             />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="materials" element={<MaterialsPage />} />
+            <Route path="materials/:context" element={<EslMaterialContextPage />} />
             <Route path="communication" element={<CommunicationPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
