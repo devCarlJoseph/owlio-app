@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <defs>
+    <linearGradient id="globe-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d8f3e2" />
+      <stop offset="1" stop-color="#a6dfc1" />
+    </linearGradient>
+    <radialGradient id="globe-sphere" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#ffffff" />
+      <stop offset="1" stop-color="#5cc79a" />
+    </radialGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#globe-bg)" />
+  <ellipse cx="470" cy="296" rx="150" ry="24" fill="#ffffff" opacity="0.4" />
+  <circle cx="470" cy="176" r="104" fill="url(#globe-sphere)" />
+  <ellipse cx="470" cy="176" rx="104" ry="38" fill="none" stroke="#ffffff" stroke-width="7" opacity="0.7" />
+  <ellipse cx="470" cy="176" rx="40" ry="104" fill="none" stroke="#ffffff" stroke-width="7" opacity="0.7" />
+  <circle cx="434" cy="136" r="20" fill="#ffffff" opacity="0.55" />
+  <circle cx="598" cy="96" r="13" fill="#ffffff" opacity="0.8" />
+  <circle cx="342" cy="248" r="9" fill="#ffffff" opacity="0.7" />
+</svg>

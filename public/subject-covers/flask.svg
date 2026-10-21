@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <defs>
+    <linearGradient id="flask-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9f5f0" />
+      <stop offset="1" stop-color="#a8e2da" />
+    </linearGradient>
+    <linearGradient id="flask-liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fd6c9" />
+      <stop offset="1" stop-color="#3fb3a3" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#flask-bg)" />
+  <ellipse cx="470" cy="300" rx="150" ry="26" fill="#ffffff" opacity="0.4" />
+  <path d="M438 92 h44 v96 l70 108 a16 16 0 0 1 -14 24 h-156 a16 16 0 0 1 -14 -24 l70 -108 z" fill="#ffffff" opacity="0.9" />
+  <path d="M416 214 h88 l54 82 a16 16 0 0 1 -14 24 h-168 a16 16 0 0 1 -14 -24 z" fill="url(#flask-liquid)" />
+  <circle cx="470" cy="66" r="14" fill="#ffffff" opacity="0.85" />
+  <circle cx="540" cy="120" r="9" fill="#ffffff" opacity="0.7" />
+  <circle cx="566" cy="70" r="6" fill="#ffffff" opacity="0.6" />
+</svg>

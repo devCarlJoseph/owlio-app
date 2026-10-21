@@ -22,10 +22,10 @@ export function NoteDeleteDialog({ open, note, onOpenChange, onConfirm }: NoteDe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-900">Delete this note?</DialogTitle>
+          <DialogTitle className="text-lg font-semibold text-slate-900">Move this note to trash?</DialogTitle>
           <DialogDescription className="text-slate-600">
-            {note ? `“${note.title}” will be removed from this browser.` : "This note will be removed."} This
-            cannot be undone.
+            {note ? `“${note.title || "Untitled note"}”` : "This note"} will be moved to the trash in this
+            browser. You can restore it from the trash afterwards.
           </DialogDescription>
         </DialogHeader>
 
@@ -42,7 +42,7 @@ export function NoteDeleteDialog({ open, note, onOpenChange, onConfirm }: NoteDe
             }}
           >
             <Trash aria-hidden="true" />
-            Delete note
+            Move to trash
           </Button>
         </DialogFooter>
       </DialogContent>

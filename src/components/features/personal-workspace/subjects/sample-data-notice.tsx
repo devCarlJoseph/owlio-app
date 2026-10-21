@@ -8,10 +8,10 @@ export function SampleDataNotice() {
     >
       <Info className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
       <div>
-        <p className="text-sm font-semibold text-blue-900">Sample data — layout preview only</p>
+        <p className="text-sm font-semibold text-blue-900">Example subjects — add your own</p>
         <p className="mt-0.5 text-sm leading-5 text-blue-800">
-          Subjects are not connected to a service yet. Every name, code, chapter, lesson, and percentage
-          below is placeholder content for reviewing how this page will look.
+          The subjects below are examples for reviewing the layout. Subjects you create are kept in
+          this browser, are never sent to a server, and are not shared with any classroom.
         </p>
       </div>
     </section>

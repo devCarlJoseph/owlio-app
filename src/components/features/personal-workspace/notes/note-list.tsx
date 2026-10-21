@@ -1,143 +1,155 @@
-import { Hash } from "lucide-react"
+import { Archive, ArchiveRestore, NotebookPen, Search, Trash } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { getNoteTags, type NoteRecord } from "./note-records"
-
-const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
-  day: "2-digit",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-})
-
-function formatUpdatedAt(value: string) {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return "Updated just now"
-  return `Updated ${dateTimeFormatter.format(parsed)}`
-}
-
-type NoteListItemProps = {
-  note: NoteRecord
-  activeTag: string | null
-  onOpen: (note: NoteRecord) => void
-  onSelectTag: (tag: string) => void
-}
-
-function NoteListItem({ note, activeTag, onOpen, onSelectTag }: NoteListItemProps) {
-  const tags = getNoteTags(note)
-
-  return (
-    <Card size="sm" className="relative h-full border border-slate-200 bg-white shadow-sm ring-0">
-      <CardContent className="h-full gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h4 className="truncate text-base font-semibold text-slate-900">{note.title}</h4>
-            <p className="mt-0.5 text-xs text-slate-500">
-              {note.pinned ? "Pinned · " : ""}
-              {formatUpdatedAt(note.updatedAt)}
-            </p>
-          </div>
-          {tags.length > 0 ? (
-            <ul className="flex shrink-0 flex-wrap justify-end gap-2">
-              {tags.slice(0, 2).map((tag) => (
-                <li key={tag}>
-                  <button
-                    type="button"
-                    onClick={() => onSelectTag(tag)}
-                    aria-pressed={activeTag === tag}
-                    className={`relative z-10 inline-flex items-center gap-1 rounded-4xl px-2 py-0.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      activeTag === tag
-                        ? "bg-blue-700 text-white"
-                        : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                    }`}
-                  >
-                    <Hash className="size-3" aria-hidden="true" />
-                    {tag}
-                  </button>
-                </li>
-              ))}
-              {tags.length > 2 ? (
-                <li className="inline-flex items-center rounded-4xl bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                  +{tags.length - 2}
-                </li>
-              ) : null}
-            </ul>
-          ) : null}
-        </div>
-
-        <p className="line-clamp-3 text-sm leading-6 text-slate-600">{note.body}</p>
-
-        <button
-          type="button"
-          onClick={() => onOpen(note)}
-          className="absolute inset-0 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          <span className="sr-only">Open note {note.title}</span>
-        </button>
-      </CardContent>
-    </Card>
-  )
-}
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { NoteCard } from "./note-card"
+import type { NoteCardActions } from "./note-card-actions"
+import { getNoteTitle, type NoteBucket, type NoteRecord } from "./note-records"
 
 type NoteListProps = {
   notes: NoteRecord[]
   totalCount: number
+  variant: "grid" | "list"
+  bucket: NoteBucket
   activeTag: string | null
   query: string
+  actions: NoteCardActions
   onCreate: () => void
-  onOpen: (note: NoteRecord) => void
-  onSelectTag: (tag: string) => void
   onClearFilters: () => void
+  onRestore: (note: NoteRecord) => void
+  onEmptyTrash: () => void
+}
+
+const bucketEmptyCopy: Record<
+  NoteBucket,
+  { title: string; description: string; media: typeof NotebookPen }
+> = {
+  notes: {
+    title: "No notes yet.",
+    description: "Create your first note to start building your personal study record.",
+    media: NotebookPen,
+  },
+  archive: {
+    title: "Nothing in the archive.",
+    description:
+      "Archived notes are set aside but kept in this browser. Move a note back when you want to keep working on it.",
+    media: Archive,
+  },
+  trash: {
+    title: "Trash is empty.",
+    description: "Deleted notes stay in this browser until you empty the trash.",
+    media: Trash,
+  },
 }
 
 export function NoteList({
   notes,
   totalCount,
+  variant,
+  bucket,
   activeTag,
   query,
+  actions,
   onCreate,
-  onOpen,
-  onSelectTag,
   onClearFilters,
+  onRestore,
+  onEmptyTrash,
 }: NoteListProps) {
   const isFiltered = activeTag !== null || query.trim().length > 0
+  const emptyCopy = bucketEmptyCopy[bucket]
+
+  if (notes.length === 0) {
+    const Media = isFiltered ? Search : emptyCopy.media
+    const title = isFiltered ? "No notes match this view." : emptyCopy.title
+    const description = isFiltered
+      ? "Try another group or clear the filters to see every note."
+      : emptyCopy.description
+
+    return (
+      <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-8 sm:p-10">
+        <EmptyHeader>
+          <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+            <Media aria-hidden="true" />
+          </EmptyMedia>
+          <EmptyTitle className="text-base text-slate-900">{title}</EmptyTitle>
+          <EmptyDescription className="text-slate-600">{description}</EmptyDescription>
+        </EmptyHeader>
+
+        <EmptyContent>
+          {isFiltered ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClearFilters}
+              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+            >
+              Clear filters
+            </Button>
+          ) : bucket === "notes" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCreate}
+              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+            >
+              Create a note
+            </Button>
+          ) : null}
+        </EmptyContent>
+      </Empty>
+    )
+  }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {notes.map((note) => (
-        <NoteListItem
-          key={note.id}
-          note={note}
-          activeTag={activeTag}
-          onOpen={onOpen}
-          onSelectTag={onSelectTag}
-        />
-      ))}
+    <div className="space-y-3">
+      {bucket === "trash" ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
+            <p className="text-xs leading-5 text-slate-600">
+              Deleted notes stay in this browser until you empty the trash. Nothing is sent to a server.
+            </p>
+            <Button type="button" variant="outline" size="sm" onClick={onEmptyTrash}>
+              <Trash aria-hidden="true" />
+              Empty trash
+            </Button>
+          </div>
 
-      {notes.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-8 text-center sm:col-span-2">
-          <p className="text-sm font-semibold text-slate-900">
-            {isFiltered ? "No notes match this view." : "No notes yet."}
-          </p>
-          <p className="mt-1 text-sm leading-5 text-slate-500">
-            {isFiltered
-              ? "Try another group or clear the filters to see every note."
-              : "Create your first note to start building your personal study record."}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-4 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
-            onClick={isFiltered ? onClearFilters : onCreate}
-          >
-            {isFiltered ? "Clear filters" : "Create a note"}
-          </Button>
-        </div>
-      ) : null}
+          <ul className="space-y-2">
+            {notes.map((note) => (
+              <li
+                key={note.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+              >
+                <p className="min-w-0 truncate text-sm font-medium text-slate-800">
+                  {getNoteTitle(note)}
+                </p>
+                <Button type="button" variant="outline" size="sm" onClick={() => onRestore(note)}>
+                  <ArchiveRestore aria-hidden="true" />
+                  Restore
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <ul
+          className={
+            variant === "grid"
+              ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              : "space-y-2"
+          }
+        >
+          {notes.map((note) => (
+            <li key={note.id}>
+              <NoteCard note={note} variant={variant} activeTag={activeTag} actions={actions} />
+            </li>
+          ))}
+        </ul>
+      )}
 
-      {notes.length > 0 && isFiltered ? (
-        <p className="text-xs text-slate-500 sm:col-span-2">
+      {isFiltered ? (
+        <p className="text-xs text-slate-500">
           Showing {notes.length} of {totalCount} notes.
         </p>
       ) : null}

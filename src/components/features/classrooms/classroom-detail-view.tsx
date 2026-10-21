@@ -11,7 +11,7 @@ import {
   School,
   Users,
 } from "lucide-react"
-import { Link, useLocation, useParams } from "react-router"
+import { Link, useLocation, useParams, useSearchParams } from "react-router"
 import { getDashboardRole } from "@/components/common/dashboard-navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -50,6 +50,7 @@ export function ClassroomDetailView() {
   const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? "students"
   const { classroomId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { getClassroom, createMeetingLink, classroomsLoading } = useClassroomPrototype()
   const { user } = useAuthSession()
   const [status, setStatus] = useState("")
@@ -77,6 +78,10 @@ export function ClassroomDetailView() {
   const meetingUrl = classroom?.meetingId
     ? new URL(`/students/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`, window.location.origin).toString()
     : null
+  const requestedTab = searchParams.get("tab")
+  const activeTab = tabItems.some((item) => item.value === requestedTab)
+    ? (requestedTab as (typeof tabItems)[number]["value"])
+    : "feed"
 
   if (!classroom && classroomsLoading) {
     return <p role="status" className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading classroom…</p>
@@ -265,7 +270,17 @@ export function ClassroomDetailView() {
         </AlertDescription>
       </Alert>
 
-      <Tabs defaultValue="feed" className="min-w-0">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          const nextValue = String(value)
+          setSearchParams(
+            nextValue === "feed" ? {} : { tab: nextValue },
+            { replace: true },
+          )
+        }}
+        className="min-w-0"
+      >
         <TabsList variant="line" className="w-full justify-start gap-1 overflow-x-auto border-b border-slate-200">
           {tabItems.map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value} className="min-w-fit flex-none px-3">
