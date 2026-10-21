@@ -52,4 +52,31 @@ describe("study spaces create flow", () => {
     const spaceLink = screen.getByRole("link", { name: /Open Physics Group/ })
     expect(spaceLink.getAttribute("href")).toBe("/students/study-spaces/sample-space-physics")
   })
+
+  it("shows room layout and seat count on each space card", () => {
+    renderList()
+
+    const createdList = screen.getByRole("list", { name: "Spaces you've created" })
+    expect(createdList.textContent).toContain("Shared tables · 6 seats")
+    expect(createdList.textContent).toContain("browser only")
+  })
+
+  it("removes a created space from the browser after confirming", async () => {
+    const user = userEvent.setup()
+    renderList()
+
+    await user.click(screen.getByRole("button", { name: "More actions for Physics Group" }))
+    const menu = await screen.findByRole("menu")
+    await user.click(within(menu).getByRole("menuitem", { name: "Remove from this browser" }))
+
+    const confirm = screen.getByRole("dialog")
+    expect(confirm.textContent).toContain("local previews")
+    await user.click(within(confirm).getByRole("button", { name: "Remove space" }))
+
+    expect(screen.queryByRole("link", { name: /Open Physics Group/ })).toBeNull()
+
+    const stored = window.localStorage.getItem(studySpacesStorageKey)
+    const records = JSON.parse(stored as string) as { id: string }[]
+    expect(records.some((record) => record.id === "sample-space-physics")).toBe(false)
+  })
 })

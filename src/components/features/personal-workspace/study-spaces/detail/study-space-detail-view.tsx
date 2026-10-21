@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams } from "react-router"
 import {
   ArrowDown,
@@ -30,6 +30,7 @@ import {
   createStudySpaceId,
   loadSpaceCharacter,
   loadStudySpaces,
+  markStudySpaceVisited,
   saveSpaceCharacter,
   studySpaceRoomPreviewNotice,
   type StudySpaceCharacter,
@@ -65,6 +66,10 @@ export function StudySpaceDetailView() {
   const bubbleTimeoutRef = useRef<number | null>(null)
   const music = useFocusMusic()
   const timer = usePomodoro()
+
+  useEffect(() => {
+    if (spaceId) markStudySpaceVisited(spaceId)
+  }, [spaceId])
 
   if (!space) {
     return (

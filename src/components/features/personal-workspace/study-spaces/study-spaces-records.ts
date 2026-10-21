@@ -11,6 +11,8 @@ export type StudySpaceRecord = {
   capacity: number
   createdAt: string
   inviteCode?: string
+  // Local-only timestamp of the last time this browser opened the room.
+  lastVisitedAt?: string
 }
 
 export const studySpaceKinds: { value: StudySpaceKind; label: string; description: string }[] = [
@@ -124,6 +126,7 @@ function isStudySpaceRecord(value: unknown): value is StudySpaceRecord {
   const space = value as Record<string, unknown>
 
   if (space.inviteCode !== undefined && typeof space.inviteCode !== "string") return false
+  if (space.lastVisitedAt !== undefined && typeof space.lastVisitedAt !== "string") return false
 
   return (
     typeof space.id === "string" &&
@@ -178,6 +181,31 @@ export function saveStudySpaces(spaces: StudySpaceRecord[]): void {
   } catch {
     return
   }
+}
+
+export function markStudySpaceVisited(spaceId: string): void {
+  const spaces = loadStudySpaces()
+  const index = spaces.findIndex((space) => space.id === spaceId)
+  if (index === -1) return
+
+  spaces[index] = { ...spaces[index], lastVisitedAt: new Date().toISOString() }
+  saveStudySpaces(spaces)
+}
+
+export type SpaceSortKey = "recent" | "newest" | "name"
+
+export function sortSpaces(spaces: StudySpaceRecord[], sort: SpaceSortKey): StudySpaceRecord[] {
+  const sorted = [...spaces]
+  if (sort === "name") {
+    sorted.sort((a, b) => a.name.localeCompare(b.name))
+  } else if (sort === "newest") {
+    sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  } else {
+    sorted.sort((a, b) =>
+      (b.lastVisitedAt ?? b.createdAt).localeCompare(a.lastVisitedAt ?? a.createdAt)
+    )
+  }
+  return sorted
 }
 
 function isStudySpaceCharacter(value: unknown): value is StudySpaceCharacter {

@@ -1,39 +1,57 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router"
-import { Info, Users } from "lucide-react"
+import { Info, Plus, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { CreateSpaceDialog, type SpaceDraft } from "./create-space-dialog"
 import { JoinSpaceDialog, type JoinSpaceDraft } from "./join-space-dialog"
-import { SpaceCircleRail, SpaceRailEmptyState } from "./space-circle-rail"
+import { SpaceGrid, SpaceGridEmptyState } from "./space-card-grid"
 import {
   createStudySpaceId,
   loadStudySpaces,
   saveStudySpaces,
+  sortSpaces,
   studySpacesGuidance,
   studySpacesOpenHint,
   studySpacesStorageNotice,
+  type SpaceSortKey,
   type StudySpaceRecord,
 } from "./study-spaces-records"
+
+const SORT_LABELS: Record<SpaceSortKey, string> = {
+  recent: "Recently opened",
+  newest: "Newest",
+  name: "Name A–Z",
+}
 
 export function StudySpacesView() {
   const navigate = useNavigate()
   const [spaces, setSpaces] = useState<StudySpaceRecord[]>(() => loadStudySpaces())
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
+  const [createdSort, setCreatedSort] = useState<SpaceSortKey>("recent")
+  const [joinedSort, setJoinedSort] = useState<SpaceSortKey>("recent")
 
   useEffect(() => {
     saveStudySpaces(spaces)
   }, [spaces])
 
   const createdSpaces = useMemo(
-    () => spaces.filter((space) => space.role === "owner"),
-    [spaces]
+    () => sortSpaces(spaces.filter((space) => space.role === "owner"), createdSort),
+    [spaces, createdSort]
   )
 
   const joinedSpaces = useMemo(
-    () => spaces.filter((space) => space.role === "member"),
-    [spaces]
+    () => sortSpaces(spaces.filter((space) => space.role === "member"), joinedSort),
+    [spaces, joinedSort]
   )
 
   function handleCreate(draft: SpaceDraft) {
@@ -68,6 +86,10 @@ export function StudySpacesView() {
     setJoinOpen(false)
   }
 
+  function handleRemove(space: StudySpaceRecord) {
+    setSpaces((current) => current.filter((record) => record.id !== space.id))
+  }
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -95,64 +117,106 @@ export function StudySpacesView() {
         </p>
       </section>
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle>
-                <h3 className="text-base font-semibold text-slate-900">Spaces you create</h3>
-              </CardTitle>
-              <CardDescription className="mt-1 text-slate-500">
-                Peer spaces you lead. Scroll sideways when you have many.
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
-              {createdSpaces.length} spaces
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="gap-4">
-          <SpaceCircleRail
-            label="Spaces you create"
-            spaces={createdSpaces}
-            action={{ label: "Create space", onAction: () => setCreateOpen(true) }}
-          />
+      <SpaceSection
+        title="Spaces you've created"
+        spaces={createdSpaces}
+        sort={createdSort}
+        onSortChange={setCreatedSort}
+        actionLabel="Create space"
+        onAction={() => setCreateOpen(true)}
+        onRemove={handleRemove}
+        emptyMessage="You have not created a peer space yet. Use the create space button to start one."
+      />
 
-          <p className="text-xs leading-5 text-slate-500">{studySpacesOpenHint}</p>
-        </CardContent>
-      </Card>
+      <SpaceSection
+        title="Spaces you've joined"
+        spaces={joinedSpaces}
+        sort={joinedSort}
+        onSortChange={setJoinedSort}
+        actionLabel="Join space"
+        onAction={() => setJoinOpen(true)}
+        onRemove={handleRemove}
+        emptyMessage="You have not joined a peer space yet. Use the join space button to add one."
+      />
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle>
-                <h3 className="text-base font-semibold text-slate-900">Spaces you join</h3>
-              </CardTitle>
-              <CardDescription className="mt-1 text-slate-500">
-                Peer spaces shared with you by other students.
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
-              {joinedSpaces.length} spaces
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="gap-4">
-          <SpaceCircleRail
-            label="Spaces you join"
-            spaces={joinedSpaces}
-            action={{ label: "Join space", onAction: () => setJoinOpen(true) }}
-          />
-
-          {joinedSpaces.length === 0 ? (
-            <SpaceRailEmptyState message="You have not joined a peer space yet. Use the join space button to add one." />
-          ) : null}
-        </CardContent>
-      </Card>
+      <p className="text-xs leading-5 text-slate-500">{studySpacesOpenHint}</p>
 
       <CreateSpaceDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreate} />
       <JoinSpaceDialog open={joinOpen} onOpenChange={setJoinOpen} onSubmit={handleJoin} />
     </div>
+  )
+}
+
+type SpaceSectionProps = {
+  title: string
+  spaces: StudySpaceRecord[]
+  sort: SpaceSortKey
+  onSortChange: (sort: SpaceSortKey) => void
+  actionLabel: string
+  onAction: () => void
+  onRemove: (space: StudySpaceRecord) => void
+  emptyMessage: string
+}
+
+function SpaceSection({
+  title,
+  spaces,
+  sort,
+  onSortChange,
+  actionLabel,
+  onAction,
+  onRemove,
+  emptyMessage,
+}: SpaceSectionProps) {
+  const sortId = `sort-${title.replaceAll(/\W+/g, "-").toLowerCase()}`
+
+  return (
+    <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+      <CardHeader>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle>
+              <h3 className="text-base font-semibold text-slate-900">
+                {title} ({spaces.length})
+              </h3>
+            </CardTitle>
+            <CardDescription className="mt-1 text-slate-500">
+              Peer spaces in this browser. Room previews reflect each space's layout.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor={sortId} className="text-xs font-medium text-slate-500">
+              Sort
+            </label>
+            <Select
+              value={sort}
+              onValueChange={(value) => onSortChange(value as SpaceSortKey)}
+            >
+              <SelectTrigger id={sortId} size="sm" aria-label={`Sort ${title}`}>
+                <SelectValue>{SORT_LABELS[sort]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(SORT_LABELS) as SpaceSortKey[]).map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {SORT_LABELS[key]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button type="button" size="sm" onClick={onAction}>
+              <Plus aria-hidden="true" />
+              {actionLabel}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {spaces.length > 0 ? (
+          <SpaceGrid label={title} spaces={spaces} onRemove={onRemove} />
+        ) : (
+          <SpaceGridEmptyState message={emptyMessage} />
+        )}
+      </CardContent>
+    </Card>
   )
 }
