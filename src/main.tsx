@@ -29,6 +29,16 @@ import TutorSessionsPage from "@/pages/dashboard/tutors/sessions";
 import TutorClassworkPage from "@/pages/dashboard/tutors/classwork";
 import TutorAttendancePage from "@/pages/dashboard/tutors/attendance";
 import TutorLearnersPage from "@/pages/dashboard/tutors/learners";
+import TutorLearnerDetailPage from "@/pages/dashboard/tutors/learners/detail";
+import TutorLearningPlansPage from "@/pages/dashboard/tutors/learning-plans";
+import TutorSessionNotesPage from "@/pages/dashboard/tutors/session-notes";
+import TutorAnnouncementsPage from "@/pages/dashboard/tutors/announcements";
+import TutorMaterialsPage from "@/pages/dashboard/tutors/materials";
+import TutorProgressPage from "@/pages/dashboard/tutors/progress";
+import TutorCommunicationPage from "@/pages/dashboard/tutors/communication";
+import TutorNotificationsPage from "@/pages/dashboard/tutors/notifications";
+import TutorAiAssistantPage from "@/pages/dashboard/tutors/ai-assistant";
+import TutorSettingsPage from "@/pages/dashboard/tutors/settings";
 import EslLessonsPage from "@/pages/dashboard/esl/lessons";
 import EslClassworkPage from "@/pages/dashboard/esl/classwork";
 import EslAttendancePage from "@/pages/dashboard/esl/attendance";
@@ -160,6 +170,10 @@ createRoot(document.getElementById("root")!).render(
             <Route path="classwork" element={<TutorClassworkPage />} />
             <Route path="attendance" element={<TutorAttendancePage />} />
             <Route path="learners" element={<TutorLearnersPage />} />
+            <Route path="learners/detail/:learnerId" element={<TutorLearnerDetailPage />} />
+            <Route path="learning-plans" element={<TutorLearningPlansPage />} />
+            <Route path="session-notes" element={<TutorSessionNotesPage />} />
+            <Route path="announcements" element={<TutorAnnouncementsPage />} />
             <Route path="classrooms" element={<ClassroomsPage />} />
             <Route
               path="classrooms/meeting-room"
@@ -184,11 +198,12 @@ createRoot(document.getElementById("root")!).render(
               element={<ClassroomActivityPage />}
             />
             <Route path="schedule" element={<SchedulePage />} />
-            <Route path="materials" element={<MaterialsPage />} />
-            <Route path="communication" element={<CommunicationPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="progress" element={<ProgressPage />} />
-            <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="materials" element={<TutorMaterialsPage />} />
+            <Route path="communication" element={<TutorCommunicationPage />} />
+            <Route path="notifications" element={<TutorNotificationsPage />} />
+            <Route path="progress" element={<TutorProgressPage />} />
+            <Route path="ai-assistant" element={<TutorAiAssistantPage />} />
+            <Route path="settings" element={<TutorSettingsPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/esl">
