@@ -117,6 +117,96 @@ export const sampleJoinedSpaces: StudySpaceRecord[] = [
   },
 ]
 
+export const studySpaceJoinedDiscoveryStorageKey = "owlio.study-space-joined-discovery.v1"
+
+export const studySpacesDiscoveryCaption =
+  "Preview spaces — joining is local only and codes are not verified."
+
+export const studySpacesLockedTooltip = "Locked — preview space, needs a space code"
+
+// Sample preview spaces for the locked wing. They are not saved spaces until joined locally,
+// and they carry no members, owners, or activity.
+export const sampleDiscoverySpaces: StudySpaceRecord[] = [
+  {
+    id: "discovery-reading-room",
+    name: "Reading Room",
+    about: "Quiet reading and review.",
+    role: "member",
+    kind: "lounge",
+    capacity: 6,
+    createdAt: "2026-08-12T09:00:00.000Z",
+  },
+  {
+    id: "discovery-calculus-circle",
+    name: "Calculus Circle",
+    about: "Problem sets and worked examples.",
+    role: "member",
+    kind: "focused",
+    capacity: 8,
+    createdAt: "2026-08-20T09:00:00.000Z",
+  },
+  {
+    id: "discovery-thesis-sprint",
+    name: "Thesis Sprint",
+    about: "Writing sprints and outline swaps.",
+    role: "member",
+    kind: "collaborative",
+    capacity: 4,
+    createdAt: "2026-09-03T09:00:00.000Z",
+  },
+  {
+    id: "discovery-language-corner",
+    name: "Language Corner",
+    about: "Relaxed conversation practice.",
+    role: "member",
+    kind: "lounge",
+    capacity: 4,
+    createdAt: "2026-09-10T09:00:00.000Z",
+  },
+  {
+    id: "discovery-quiet-floor",
+    name: "Quiet Floor",
+    about: "Silent independent study.",
+    role: "member",
+    kind: "focused",
+    capacity: 8,
+    createdAt: "2026-09-15T09:00:00.000Z",
+  },
+  {
+    id: "discovery-design-crit",
+    name: "Design Crit",
+    about: "Peer critique sessions.",
+    role: "member",
+    kind: "collaborative",
+    capacity: 6,
+    createdAt: "2026-09-22T09:00:00.000Z",
+  },
+]
+
+export function loadJoinedDiscoveryIds(): string[] {
+  if (typeof window === "undefined") return []
+
+  try {
+    const stored = window.localStorage.getItem(studySpaceJoinedDiscoveryStorageKey)
+    if (!stored) return []
+
+    const parsed: unknown = JSON.parse(stored)
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : []
+  } catch {
+    return []
+  }
+}
+
+export function saveJoinedDiscoveryIds(ids: string[]): void {
+  if (typeof window === "undefined") return
+
+  try {
+    window.localStorage.setItem(studySpaceJoinedDiscoveryStorageKey, JSON.stringify(ids))
+  } catch {
+    return
+  }
+}
+
 function isStudySpaceKind(value: unknown): value is StudySpaceKind {
   return value === "focused" || value === "collaborative" || value === "lounge"
 }
