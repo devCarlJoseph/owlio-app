@@ -30,6 +30,8 @@ export function ClassroomsView() {
     joinClassroom,
   } = useClassroomPrototype()
   const classrooms = getClassroomsForWorkspace(role)
+  const connectedClassrooms = classrooms.filter((classroom) => !classroom.isMock)
+  const demoClassrooms = classrooms.filter((classroom) => classroom.isMock)
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   const [joinCode, setJoinCode] = useState("")
@@ -93,15 +95,15 @@ export function ClassroomsView() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
             <Badge variant="secondary" className={classroomsError ? "bg-amber-100 text-amber-900" : "bg-blue-100 text-blue-800"}>
-              {classroomsError ? "Demo preview · API unavailable" : "Connected classrooms + demo previews"}
+              {classroomsError ? "Connected data unavailable" : isStudent ? "Your learning spaces" : "Class workspace"}
             </Badge>
             <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              {isStudent ? "Your learning spaces" : "Your classrooms"}
+              {isStudent ? "Your learning spaces" : "My classes"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {isStudent
                 ? "Open an enrolled class to find its conversations, group chat, activities, and learning resources."
-                : "Create a connected classroom, share its invite code, and organize your class learning space."}
+                : "Open a class to review its teaching workspace, or create a classroom to get started."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -177,7 +179,28 @@ export function ClassroomsView() {
         </Card>
       )}
 
-      <section aria-labelledby="classrooms-heading">
+      {role === "educators" ? (
+        <div className="space-y-8">
+          <ClassroomCollection
+            title="Connected classrooms"
+            description="Classes returned by the classroom service."
+            classrooms={connectedClassrooms}
+            role={role}
+            loading={classroomsLoading}
+            emptyMessage="No connected classrooms are available yet. Create a classroom to begin."
+          />
+          {demoClassrooms.length > 0 && (
+            <ClassroomCollection
+              title="Demo previews"
+              description="Sample classrooms for exploring the interface. Changes stay in this preview session."
+              classrooms={demoClassrooms}
+              role={role}
+              loading={false}
+              emptyMessage=""
+            />
+          )}
+        </div>
+      ) : <section aria-labelledby="classrooms-heading">
         <div className="mb-4 flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">{workspaceTitle(role)}</p>
@@ -236,7 +259,66 @@ export function ClassroomsView() {
             ))}
           </div>
         )}
-      </section>
+      </section>}
     </div>
+  )
+}
+
+function ClassroomCollection({
+  title,
+  description,
+  classrooms,
+  role,
+  loading,
+  emptyMessage,
+}: {
+  title: string
+  description: string
+  classrooms: ReturnType<ReturnType<typeof useClassroomPrototype>["getClassroomsForWorkspace"]>
+  role: WorkspaceRole
+  loading: boolean
+  emptyMessage: string
+}) {
+  return (
+    <section aria-label={title}>
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
+        <p className="mt-1 text-sm text-slate-600">{description}</p>
+      </div>
+      {loading && classrooms.length === 0 ? (
+        <Card><CardContent className="py-8 text-sm text-slate-600" role="status">Loading classrooms…</CardContent></Card>
+      ) : classrooms.length === 0 ? (
+        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">{emptyMessage}</CardContent></Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {classrooms.map((classroom) => (
+            <Card key={classroom.id} className="overflow-hidden border-slate-200 transition hover:border-blue-200 hover:shadow-sm">
+              <div aria-hidden="true" className={`h-20 bg-gradient-to-r ${classroom.isMock ? "from-amber-100 via-orange-50 to-white" : "from-blue-700 via-indigo-600 to-sky-500"}`} />
+              <CardHeader>
+                <div className="flex items-end justify-between gap-3">
+                  <span aria-hidden="true" className={`-mt-11 flex size-14 shrink-0 items-center justify-center rounded-full border-4 border-white text-sm font-bold shadow-sm ${classroom.isMock ? "bg-amber-100 text-amber-900" : "bg-blue-700 text-white"}`}>
+                    {classroom.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+                  </span>
+                  <Badge variant="outline" className={classroom.isMock ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}>{classroom.isMock ? "Demo preview" : "Connected"}</Badge>
+                </div>
+                <div className="pt-2">
+                    <CardTitle className="truncate">{classroom.name}</CardTitle>
+                    <CardDescription className="mt-1">{classroom.subject}</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 space-y-2">
+                <p className="line-clamp-2 min-h-10 text-sm leading-5 text-slate-600">{classroom.description}</p>
+                <p className="text-xs text-slate-500">Educator: {classroom.instructorName}</p>
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <Link to={`/${role}/classrooms/${classroom.id}`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-blue-700 outline-none hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500">
+                    Open class <ArrowRight aria-hidden="true" className="size-4" />
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
