@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ClipboardList,
   Copy,
+  FolderOpen,
   GraduationCap,
   MessageCircle,
   MessagesSquare,
@@ -36,12 +37,24 @@ import {
 import type { WorkspaceRole } from "./classroom-types"
 
 const tabItems = [
-  { value: "feed", label: "Feed", icon: MessagesSquare },
+  { value: "feed", label: "Discussion", icon: MessagesSquare },
   { value: "chat", label: "Chat", icon: MessageCircle },
   { value: "classwork", label: "Classwork", icon: ClipboardList },
   { value: "materials", label: "Materials", icon: BookOpen },
   { value: "people", label: "People", icon: Users },
   { value: "schedule", label: "Schedule", icon: CalendarDays },
+  { value: "attendance", label: "Attendance", icon: GraduationCap },
+  { value: "progress", label: "Progress", icon: School },
+] as const
+
+const educatorTabItems = [
+  { value: "about", label: "About", icon: School },
+  { value: "feed", label: "Discussion", icon: MessagesSquare },
+  { value: "people", label: "Members", icon: Users },
+  { value: "schedule", label: "Events", icon: CalendarDays },
+  { value: "media", label: "Media", icon: BookOpen },
+  { value: "files", label: "Files", icon: FolderOpen },
+  { value: "classwork", label: "Classwork", icon: ClipboardList },
   { value: "attendance", label: "Attendance", icon: GraduationCap },
   { value: "progress", label: "Progress", icon: School },
 ] as const
@@ -56,6 +69,8 @@ export function ClassroomDetailView() {
   const [status, setStatus] = useState("")
   const [meetingError, setMeetingError] = useState("")
   const [creatingMeeting, setCreatingMeeting] = useState(false)
+  const [activeTab, setActiveTab] = useState("feed")
+  const visibleTabItems = role === "educators" ? educatorTabItems : tabItems
   const classroom = classroomId ? getClassroom(classroomId) : undefined
   const isStudent = role === "students"
   const hasAccessInDemo = classroom && (classroom.isMock
@@ -76,7 +91,7 @@ export function ClassroomDetailView() {
       && user?.roles.includes("EDUCATOR"),
   )
   const meetingUrl = classroom?.meetingId
-    ? new URL(`/students/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`, window.location.origin).toString()
+    ? new URL(`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`, window.location.origin).toString()
     : null
   const requestedTab = searchParams.get("tab")
   const activeTab = tabItems.some((item) => item.value === requestedTab)
@@ -151,6 +166,61 @@ export function ClassroomDetailView() {
     }
   }
 
+  const meetingCard = (
+    <section className="rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="meeting-link-heading">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="meeting-link-heading" className="text-sm font-semibold text-slate-900">Class meeting</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Live teaching opens in the separate Meeting Room.</p>
+        </div>
+        <Badge variant="outline" className={classroom.meetingId
+          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+          : "border-slate-200 bg-slate-50 text-slate-600"}
+        >{classroom.meetingId ? "Room ready" : "No room"}</Badge>
+      </div>
+      {meetingUrl ? (
+        <>
+          <p className="mt-3 text-xs font-medium text-slate-500">Room code</p>
+          <code className="mt-1 block break-all rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{formatMeetingCode(classroom.meetingId ?? "")}</code>
+          {role !== "educators" && <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{meetingUrl}</code>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
+              className="inline-flex min-h-9 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >Join meeting</Link>
+            <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingLink()}><Copy aria-hidden="true" /> Copy link</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingCode()}><Copy aria-hidden="true" /> Copy code</Button>
+          </div>
+          {canCreateMeeting && <Button type="button" variant="outline" size="sm" className="mt-2" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>{creatingMeeting ? "Checking room…" : "Refresh meeting link"}</Button>}
+        </>
+      ) : isStudent ? (
+        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">The educator has not created a meeting room for this class yet.</p>
+      ) : canCreateMeeting ? (
+        <Button type="button" size="sm" className="mt-3" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>{creatingMeeting ? "Creating room…" : "Create meeting room"}</Button>
+      ) : classroom.isMock ? (
+        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">Create a connected classroom before attaching a real meeting room.</p>
+      ) : (
+        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">An educator account must create the meeting room.</p>
+      )}
+      {meetingError && <p role="alert" className="mt-2 text-xs text-rose-700">{meetingError}</p>}
+      <p className="mt-2 text-[11px] leading-4 text-slate-500">{classroom.isMock ? "Demo classrooms are not stored by the API." : "Meeting links use the connected classroom record."}</p>
+    </section>
+  )
+
+  const inviteCard = isClassOwner && classroom.joinCode ? (
+    <section className="rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="invite-code-heading">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="invite-code-heading" className="text-sm font-semibold text-slate-900">Student invite code</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Share this code with students to join the classroom.</p>
+        </div>
+        <Badge variant="outline" className={classroom.isMock ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}>{classroom.isMock ? "Demo" : "Connected"}</Badge>
+      </div>
+      <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{classroom.joinCode}</code>
+      <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void handleCopyInviteCode()}><Copy aria-hidden="true" /> {classroom.isMock ? "Copy demo code" : "Copy invite code"}</Button>
+    </section>
+  ) : null
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">
       <Link
@@ -160,11 +230,25 @@ export function ClassroomDetailView() {
         <ArrowLeft aria-hidden="true" className="size-4" /> All classrooms
       </Link>
 
-      <header className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="relative isolate overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-5 py-6 sm:px-8 sm:py-8">
-          <div aria-hidden="true" className="absolute -right-12 -top-24 -z-10 size-72 rounded-full border border-blue-100" />
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-3xl">
+      {role === "educators" && (
+        <div aria-hidden="true" className="relative h-36 overflow-hidden rounded-t-2xl bg-[radial-gradient(ellipse_at_18%_110%,rgba(56,189,248,0.8),transparent_48%),radial-gradient(ellipse_at_85%_-15%,rgba(129,140,248,0.75),transparent_44%),linear-gradient(115deg,#1d4ed8,#4338ca_52%,#0369a1)] sm:h-48">
+          <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.8)_0.7px,transparent_0.7px)] [background-size:14px_14px]" />
+          <div className="absolute -right-10 -top-40 size-96 rounded-full border border-white/20" />
+          <div className="absolute right-24 -top-36 size-80 rounded-full border border-white/15" />
+          <div className="absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-slate-950/20 to-transparent" />
+        </div>
+      )}
+      <header className={`overflow-hidden border border-slate-200 bg-white shadow-sm ${role === "educators" ? "-mt-5 rounded-b-2xl rounded-t-none" : "rounded-2xl"}`}>
+        <div className={`relative isolate overflow-hidden px-5 py-5 sm:px-8 sm:py-6 ${role === "educators" ? "bg-white" : "bg-gradient-to-br from-blue-50 via-white to-indigo-50"}`}>
+          {role !== "educators" && <div aria-hidden="true" className="absolute -right-12 -top-24 -z-10 size-72 rounded-full border border-blue-100" />}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex max-w-3xl items-start gap-4">
+              {role === "educators" && (
+                <span aria-hidden="true" className="mt-1 flex size-14 shrink-0 items-center justify-center rounded-full border-4 border-white bg-blue-700 text-lg font-bold text-white shadow-md sm:size-16">
+                  {classroom.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+                </span>
+              )}
+              <div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className={classroom.isMock ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-900"}>
                   {classroom.isMock ? "Mock classroom" : "Connected classroom"}
@@ -176,91 +260,37 @@ export function ClassroomDetailView() {
               <p className="mt-3 text-sm font-medium text-slate-700">Educator: {classroom.instructorName}
                 {classroom.isMock && <span className="font-normal text-slate-500"> · {classroom.members.length} demo members</span>}
               </p>
+              </div>
             </div>
-            <div className="grid w-full max-w-sm gap-3">
-              <section className="rounded-xl border border-blue-100 bg-white/90 p-4 shadow-sm" aria-labelledby="meeting-link-heading">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 id="meeting-link-heading" className="text-sm font-semibold text-slate-900">Class meeting link</h2>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">One room associated with this class</p>
-                  </div>
-                  <Badge variant="outline" className={classroom.meetingId
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                    : "border-slate-200 bg-slate-50 text-slate-600"}
-                  >
-                    {classroom.meetingId ? "Room ready" : "No room yet"}
-                  </Badge>
-                </div>
+            {role === "educators" ? (
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
                 {meetingUrl ? (
                   <>
-                    <p className="mt-3 text-xs font-medium text-slate-500">Owlio meeting code</p>
-                    <code className="mt-1 block break-all rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{formatMeetingCode(classroom.meetingId ?? "")}</code>
-                    <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{meetingUrl}</code>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingLink()}>
-                        <Copy aria-hidden="true" /> Copy Owlio link
-                      </Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingCode()}>
-                        <Copy aria-hidden="true" /> Copy room code
-                      </Button>
-                      <Link
-                        to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
-                        className="inline-flex min-h-9 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                      >
-                        Join meeting
-                      </Link>
-                      {canCreateMeeting && (
-                        <Button type="button" variant="outline" size="sm" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>
-                          {creatingMeeting ? "Checking room…" : "Refresh meeting link"}
-                        </Button>
-                      )}
-                    </div>
+                    <Link to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`} className="inline-flex min-h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">Join meeting</Link>
+                    <Button type="button" variant="outline" onClick={() => void handleCopyMeetingLink()}><Copy aria-hidden="true" /> Copy link</Button>
                   </>
-                ) : isStudent ? (
-                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">The educator has not created a meeting room for this class yet.</p>
                 ) : canCreateMeeting ? (
-                  <Button type="button" size="sm" className="mt-3" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>
-                    {creatingMeeting ? "Creating room…" : "Create meeting room"}
-                  </Button>
-                ) : classroom.isMock ? (
-                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">Create a connected classroom before attaching a real meeting room.</p>
+                  <Button type="button" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>{creatingMeeting ? "Creating room…" : "Create meeting room"}</Button>
                 ) : (
-                  <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">An educator account must create the meeting room.</p>
+                  <Badge variant="outline" className="min-h-10 px-3">No meeting room</Badge>
                 )}
-                {meetingError && <p role="alert" className="mt-2 text-xs text-rose-700">{meetingError}</p>}
-                <p className="mt-2 text-[11px] leading-4 text-slate-500">{classroom.isMock
-                  ? "Demo classrooms are not stored by the API."
-                  : "The meeting ID is stored with this classroom and shared with its enrolled students."}
-                </p>
-              </section>
-              {isClassOwner && classroom.joinCode && (
-                <section className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm" aria-labelledby="invite-code-heading">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 id="invite-code-heading" className="text-sm font-semibold text-slate-900">Student invite code</h2>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">Share to preview student enrollment.</p>
-                    </div>
-                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>
-                  </div>
-                  <code className="mt-3 block rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{classroom.joinCode}</code>
-                  <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void handleCopyInviteCode()}>
-                    <Copy aria-hidden="true" /> {classroom.isMock ? "Copy demo code" : "Copy invite code"}
-                  </Button>
-                </section>
-              )}
-            </div>
+                {isClassOwner && classroom.joinCode && (
+                  <Button type="button" variant="outline" onClick={() => void handleCopyInviteCode()}><Copy aria-hidden="true" /> {classroom.isMock ? "Copy demo invite" : "Copy invite code"}</Button>
+                )}
+              </div>
+            ) : <div className="grid w-full max-w-sm gap-3">{meetingCard}{inviteCard}</div>}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 sm:px-8">
-          <span>{classroom.activities.length} demo activities</span>
-          <span>{classroom.sessions.length} demo sessions</span>
-          <span>Class-only group chat</span>
-        </div>
+        {role !== "educators" && <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 sm:px-8">
+          <span>{classroom.isMock ? `${classroom.activities.length} demo activities` : "Classwork service unavailable"}</span>
+          <span>{classroom.isMock ? `${classroom.sessions.length} demo sessions` : "Schedule service unavailable"}</span>
+          <span>{classroom.isMock ? "Preview classroom" : "Classroom record connected"}</span>
+        </div>}
       </header>
 
       {status && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{status}</p>}
 
-      <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+      {role !== "educators" && <Alert className="border-amber-200 bg-amber-50 text-amber-900">
         <School aria-hidden="true" />
         <AlertTitle>{classroom.isMock ? "Classroom workflow preview" : "Connected classroom"}</AlertTitle>
         <AlertDescription className="text-amber-800">
@@ -268,8 +298,9 @@ export function ClassroomDetailView() {
             ? "This demo classroom and its content exist only in this app session."
             : "Classroom membership and meeting links are connected to the API. Posts, messages, classwork, attendance, sessions, and learner records remain mock data held in this app session only."}
         </AlertDescription>
-      </Alert>
+      </Alert>}
 
+<<<<<<< HEAD
       <Tabs
         value={activeTab}
         onValueChange={(value) => {
@@ -281,15 +312,94 @@ export function ClassroomDetailView() {
         }}
         className="min-w-0"
       >
+=======
+      <Tabs value={activeTab} onValueChange={(value) => { if (typeof value === "string") setActiveTab(value) }} className="min-w-0">
+>>>>>>> 7f4a951c269e8d2579fc8add8625e74dda8f9fe3
         <TabsList variant="line" className="w-full justify-start gap-1 overflow-x-auto border-b border-slate-200">
-          {tabItems.map(({ value, label, icon: Icon }) => (
+          {visibleTabItems.map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value} className="min-w-fit flex-none px-3">
               <Icon aria-hidden="true" className="size-4" /> {label}
             </TabsTrigger>
           ))}
         </TabsList>
+        {role === "educators" && <TabsContent value="about" className="pt-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardContent className="space-y-4 p-5 sm:p-6">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900">About this class</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{classroom.description || "No class description has been provided."}</p>
+                </div>
+                <dl className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+                  <div><dt className="text-xs text-slate-500">Subject</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.subject}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Educator</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.instructorName}</dd></div>
+                  <div><dt className="text-xs text-slate-500">Class record</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.isMock ? "Demo preview" : "Connected"}</dd></div>
+                </dl>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="space-y-3 p-5 sm:p-6">
+                <h2 className="text-base font-semibold text-slate-900">Class access</h2>
+                <p className="text-sm leading-5 text-slate-600">Use the class actions in the header to open its meeting room or share the student invite code.</p>
+                {classroom.isMock && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo controls only</Badge>}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>}
         <TabsContent value="feed" className="pt-4">
-          <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} />
+          {role === "educators" ? (
+            <>
+            <Alert className="mb-5 border-amber-200 bg-amber-50 text-amber-900">
+              <School aria-hidden="true" />
+              <AlertTitle>{classroom.isMock ? "Classroom workflow preview" : "Connected classroom"}</AlertTitle>
+              <AlertDescription className="text-amber-800">
+                {classroom.isMock
+                  ? "This demo classroom and its content exist only in this app session."
+                  : "Class membership and meeting links are connected. Feed posts, classwork, attendance, schedule, and learner records are preview-only and are not saved."}
+              </AlertDescription>
+            </Alert>
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)]">
+              <div className="min-w-0"><ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} /></div>
+              <aside className="space-y-4" aria-label="Class information and recent media">
+                <Card>
+                  <CardContent className="space-y-3 p-5">
+                    <h2 className="text-base font-semibold text-slate-900">About</h2>
+                    <p className="text-sm leading-6 text-slate-600">{classroom.description || "No class description has been provided."}</p>
+                    <dl className="space-y-2 border-t border-slate-100 pt-3 text-sm">
+                      <div className="flex justify-between gap-2"><dt className="text-slate-500">Subject</dt><dd className="text-right font-medium text-slate-900">{classroom.subject}</dd></div>
+                      <div className="flex justify-between gap-2"><dt className="text-slate-500">Educator</dt><dd className="text-right font-medium text-slate-900">{classroom.instructorName}</dd></div>
+                    </dl>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="space-y-3 p-5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-base font-semibold text-slate-900">Recent media</h2>
+                      {classroom.isMock && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>}
+                    </div>
+                    {classroom.materials.length === 0 ? (
+                      <p className="text-sm leading-5 text-slate-600">No media is available for this class. Classroom materials are not connected to a service yet.</p>
+                    ) : (
+                      <>
+                        {classroom.isMock && <p className="text-xs leading-5 text-amber-800">Preview metadata only; files are not hosted or saved.</p>}
+                        <ul className="grid grid-cols-2 gap-2">
+                          {classroom.materials.slice(0, 4).map((material) => (
+                            <li key={material.id} className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                              <BookOpen aria-hidden="true" className="size-5 text-blue-700" />
+                              <p className="mt-2 line-clamp-2 text-xs font-semibold leading-4 text-slate-800">{material.title}</p>
+                              <p className="mt-1 text-[11px] text-slate-500">{material.kind}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    <Button type="button" variant="ghost" size="sm" className="w-full justify-between" onClick={() => setActiveTab("media")}>View media <span aria-hidden="true">→</span></Button>
+                  </CardContent>
+                </Card>
+              </aside>
+            </div>
+            </>
+          ) : <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} />}
         </TabsContent>
         <TabsContent value="chat" className="pt-4">
           <ClassroomChatView classroom={classroom} role={role as WorkspaceRole} />
@@ -297,9 +407,12 @@ export function ClassroomDetailView() {
         <TabsContent value="classwork" className="pt-4">
           <ClassroomClassworkView classroom={classroom} role={role as WorkspaceRole} />
         </TabsContent>
-        <TabsContent value="materials" className="pt-4">
-          <ClassroomMaterialsView classroom={classroom} />
-        </TabsContent>
+        {role === "educators" ? (
+          <>
+            <TabsContent value="media" className="pt-4"><ClassroomMaterialsView classroom={classroom} kindGroup="media" /></TabsContent>
+            <TabsContent value="files" className="pt-4"><ClassroomMaterialsView classroom={classroom} kindGroup="files" /></TabsContent>
+          </>
+        ) : <TabsContent value="materials" className="pt-4"><ClassroomMaterialsView classroom={classroom} /></TabsContent>}
         <TabsContent value="people" className="pt-4">
           <ClassroomPeopleView classroom={classroom} />
         </TabsContent>
