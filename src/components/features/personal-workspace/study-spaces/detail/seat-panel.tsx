@@ -6,11 +6,12 @@ import type { SeatDef } from "./study-space-seats"
 type SeatPanelProps = {
   seat: SeatDef
   occupied: boolean
+  takenBy?: string | null
   onSit: () => void
   onClose: () => void
 }
 
-export function SeatPanel({ seat, occupied, onSit, onClose }: SeatPanelProps) {
+export function SeatPanel({ seat, occupied, takenBy = null, onSit, onClose }: SeatPanelProps) {
   return (
     <div
       role="dialog"
@@ -38,12 +39,12 @@ export function SeatPanel({ seat, occupied, onSit, onClose }: SeatPanelProps) {
           variant="secondary"
           className={occupied ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}
         >
-          {occupied ? "You are seated here" : "Available"}
+          {occupied ? "You are seated here" : takenBy ? `${takenBy} (sample) sits here` : "Available"}
         </Badge>
       </div>
 
       <div className="mt-3 flex gap-2">
-        {occupied ? null : (
+        {occupied || takenBy ? null : (
           <Button
             type="button"
             size="sm"

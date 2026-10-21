@@ -4,23 +4,40 @@ import {
   ArrowDown,
   ArrowUp,
   Armchair,
+  ClipboardList,
   DoorOpen,
+  FolderOpen,
   MessageCircle,
   Music,
   PencilLine,
   RotateCcw,
   Send,
   Tags,
+  Tv,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { CharacterDialog } from "./character-dialog"
+import { DrawerPanel } from "./drawer-panel"
 import { FocusMusicPanel } from "./focus-music-panel"
 import { PomodoroChip, PomodoroPanel } from "./pomodoro-chip"
 import { RoomChatPanel, type RoomMessage } from "./room-chat-panel"
 import { SeatPanel } from "./seat-panel"
+import { TaskBoardPanel } from "./task-board-panel"
+import { TvPanel } from "./tv-panel"
+import {
+  canManageTasks,
+  createRoomTask,
+  loadRoomTasks,
+  moveRoomTask,
+  saveRoomTasks,
+  toggleRoomTask,
+  type RoomTask,
+} from "./room-tasks"
+import { loadRoomTvVideo, saveRoomTvVideo, type RoomTvVideo } from "./room-tv"
+import { getSampleRoster, sampleRosterNotice } from "../space-roster"
 import { SpaceRoomScene, type CameraResetHandle } from "./space-room-scene"
 import { focusMusicTracks } from "./focus-music"
 import { buildSeats, roomSpawnPoint } from "./study-space-seats"
@@ -45,6 +62,7 @@ export function StudySpaceDetailView() {
     [spaceId]
   )
   const seats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
+  const samplePeople = useMemo(() => (space ? getSampleRoster(space, seats.length) : []), [space, seats.length])
 
   const [character, setCharacter] = useState<StudySpaceCharacter | null>(() =>
     spaceId ? loadSpaceCharacter(spaceId) : null
@@ -54,8 +72,16 @@ export function StudySpaceDetailView() {
   const [bubble, setBubble] = useState<{ id: string; text: string } | null>(null)
   const [showNameTags, setShowNameTags] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
-  const [musicOpen, setMusicOpen] = useState(false)
-  const [timerOpen, setTimerOpen] = useState(false)
+  const [panel, setPanel] = useState<"music" | "timer" | "drawer" | "tasks" | "tv" | null>(null)
+  const [tasks, setTasks] = useState<RoomTask[]>(() => (space ? loadRoomTasks(space) : []))
+  const [tvVideo, setTvVideo] = useState<RoomTvVideo | null>(() => (spaceId ? loadRoomTvVideo(spaceId) : null))
+  const [standHint, setStandHint] = useState(false)
+  const musicOpen = panel === "music"
+  const timerOpen = panel === "timer"
+  const togglePanel = (name: NonNullable<typeof panel>) => {
+    setPanel((current) => (current === name ? null : name))
+    setChatOpen(false)
+  }
   const [noticeDismissed, setNoticeDismissed] = useState(false)
   const [draft, setDraft] = useState("")
   const [selectedSeatId, setSelectedSeatId] = useState<string | null>(null)
@@ -103,7 +129,9 @@ export function StudySpaceDetailView() {
   const characterDialogOpen = character === null || editDialogOpen
   const selectedSeat = seats.find((seat) => seat.id === selectedSeatId) ?? null
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
-  const freeSeats = seats.length - (seatedSeatId ? 1 : 0)
+  const freeSeats = seats.length - samplePeople.length - (seatedSeatId ? 1 : 0)
+  const selectedTaker = selectedSeat ? samplePeople.find((person) => seats[person.seatIndex]?.id === selectedSeat.id) ?? null : null
+  const isLeader = canManageTasks(space)
   const activeTrack =
     focusMusicTracks.find((track) => track.id === music.playback.trackId) ?? null
 
@@ -115,6 +143,7 @@ export function StudySpaceDetailView() {
   }
 
   function handleSeatSelect(seatId: string) {
+    setStandHint(false)
     if (seatId === seatedSeatId) {
       setSelectedSeatId(null)
       return
@@ -123,7 +152,7 @@ export function StudySpaceDetailView() {
   }
 
   function sitAtSelectedSeat() {
-    if (!selectedSeat) return
+    if (!selectedSeat || selectedTaker) return
     setSeatedSeatId(selectedSeat.id)
     setWalkTarget(selectedSeat.sitPoint)
     setSelectedSeatId(null)
@@ -131,12 +160,30 @@ export function StudySpaceDetailView() {
 
   function standUp() {
     setSeatedSeatId(null)
+    setStandHint(false)
   }
 
+  // A seated character only stands through the Stand up button, never from a stray room click.
   function handleFloorPoint(point: { x: number; z: number }) {
-    setSeatedSeatId(null)
+    if (seatedSeatId) {
+      setStandHint(true)
+      return
+    }
     setSelectedSeatId(null)
     setWalkTarget(point)
+  }
+
+  function updateTasks(update: (current: RoomTask[]) => RoomTask[]) {
+    setTasks((current) => {
+      const next = update(current)
+      if (spaceId) saveRoomTasks(spaceId, next)
+      return next
+    })
+  }
+
+  function handleTvSave(video: RoomTvVideo | null) {
+    setTvVideo(video)
+    if (spaceId) saveRoomTvVideo(spaceId, video)
   }
 
   function sendMessage() {
@@ -227,11 +274,7 @@ export function StudySpaceDetailView() {
             variant="ghost"
             size="icon-sm"
             aria-pressed={musicOpen}
-            onClick={() => {
-              setMusicOpen((current) => !current)
-              setTimerOpen(false)
-              setChatOpen(false)
-            }}
+            onClick={() => togglePanel("music")}
             aria-label="Focus music"
             title="Focus music"
           >
@@ -241,10 +284,43 @@ export function StudySpaceDetailView() {
             type="button"
             variant="ghost"
             size="icon-sm"
+            aria-pressed={panel === "drawer"}
+            onClick={() => togglePanel("drawer")}
+            aria-label="My drawer"
+            title="My drawer"
+          >
+            <FolderOpen aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-pressed={panel === "tasks"}
+            onClick={() => togglePanel("tasks")}
+            aria-label="Group tasks"
+            title="Group task board"
+          >
+            <ClipboardList aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-pressed={panel === "tv"}
+            onClick={() => togglePanel("tv")}
+            aria-label="Room TV"
+            title="Room TV"
+          >
+            <Tv aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
             aria-pressed={chatOpen}
             onClick={() => {
               setChatOpen((current) => !current)
-              setMusicOpen(false)
+              setPanel(null)
             }}
             aria-label="Toggle chat"
             title="Space chat"
@@ -280,6 +356,15 @@ export function StudySpaceDetailView() {
           <SpaceRoomScene
             character={character}
             seats={seats}
+            samplePeople={samplePeople}
+            tasks={tasks}
+            tvHasVideo={tvVideo !== null}
+            drawerOpen={panel === "drawer"}
+            musicPlaying={music.playback.playing}
+            onOpenTasks={() => setPanel("tasks")}
+            onOpenTv={() => setPanel("tv")}
+            onToggleDrawer={() => togglePanel("drawer")}
+            onToggleMusic={music.toggle}
             selectedSeatId={selectedSeatId}
             seatedSeatId={seatedSeatId}
             walkTarget={walkTarget}
@@ -295,8 +380,11 @@ export function StudySpaceDetailView() {
         )}
 
         {!noticeDismissed ? (
-          <div className="absolute left-3 top-3 z-10 flex max-w-xs items-start gap-2 rounded-lg bg-slate-900/85 px-3 py-2 text-xs leading-5 text-slate-200">
-            <p className="flex-1">{studySpaceRoomPreviewNotice}</p>
+          <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg bg-slate-900/85 px-3 py-2 text-xs leading-5 text-slate-200">
+            <p className="flex-1">
+              {studySpaceRoomPreviewNotice}
+              {samplePeople.length > 0 ? ` ${sampleRosterNotice}` : ""}
+            </p>
             <button
               type="button"
               onClick={() => setNoticeDismissed(true)}
@@ -316,8 +404,27 @@ export function StudySpaceDetailView() {
             onPrevious={music.previous}
             onNext={music.next}
             onVolumeChange={music.setVolume}
-            onClose={() => setMusicOpen(false)}
+            onClose={() => setPanel(null)}
           />
+        ) : null}
+
+        {panel === "drawer" ? <DrawerPanel spaceId={space.id} onClose={() => setPanel(null)} /> : null}
+
+        {panel === "tasks" ? (
+          <TaskBoardPanel
+            tasks={tasks}
+            people={samplePeople}
+            isLeader={isLeader}
+            onAdd={(draft) => updateTasks((current) => [...current, createRoomTask(draft)])}
+            onToggle={(taskId) => updateTasks((current) => toggleRoomTask(current, taskId))}
+            onRemove={(taskId) => updateTasks((current) => current.filter((task) => task.id !== taskId))}
+            onMove={(taskId, direction) => updateTasks((current) => moveRoomTask(current, taskId, direction))}
+            onClose={() => setPanel(null)}
+          />
+        ) : null}
+
+        {panel === "tv" ? (
+          <TvPanel video={tvVideo} isLeader={isLeader} onSave={handleTvSave} onClose={() => setPanel(null)} />
         ) : null}
 
         {chatOpen ? (
@@ -328,12 +435,13 @@ export function StudySpaceDetailView() {
           />
         ) : null}
 
-        {timerOpen ? <PomodoroPanel timer={timer} onClose={() => setTimerOpen(false)} /> : null}
+        {timerOpen ? <PomodoroPanel timer={timer} onClose={() => setPanel(null)} /> : null}
 
         {selectedSeat ? (
           <SeatPanel
             seat={selectedSeat}
             occupied={selectedSeat.id === seatedSeatId}
+            takenBy={selectedTaker?.name ?? null}
             onSit={sitAtSelectedSeat}
             onClose={() => setSelectedSeatId(null)}
           />
@@ -393,6 +501,12 @@ export function StudySpaceDetailView() {
             </Button>
           </form>
 
+          {standHint ? (
+            <span role="status" className="rounded-lg bg-amber-100 px-2 py-1 text-xs text-amber-900">
+              Stand up to walk around.
+            </span>
+          ) : null}
+
           {activeTrack ? (
             <span className="hidden items-center gap-1 rounded-lg border border-slate-600 bg-slate-800 px-2 py-1 text-xs text-slate-200 sm:flex">
               <Music className="size-3.5 text-emerald-400" aria-hidden="true" />
@@ -406,14 +520,21 @@ export function StudySpaceDetailView() {
                 {music.playback.playing ? "Pause" : "Play"}
               </button>
             </span>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              onClick={music.toggle}
+              aria-label="Play room music"
+              className="hidden items-center gap-1 rounded-lg border border-slate-600 bg-slate-800 px-2 py-1 text-xs text-slate-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white sm:flex"
+            >
+              <Music className="size-3.5 text-emerald-400" aria-hidden="true" />
+              Play music
+            </button>
+          )}
 
           <PomodoroChip
             timer={timer}
-            onOpen={() => {
-              setTimerOpen((current) => !current)
-              setMusicOpen(false)
-            }}
+            onOpen={() => togglePanel("timer")}
           />
         </div>
       </div>

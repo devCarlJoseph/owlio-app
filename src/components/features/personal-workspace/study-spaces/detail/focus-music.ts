@@ -1,5 +1,7 @@
+export type GeneratedPreset = "rain" | "meadow" | "drone" | "lofi" | "piano"
+
 export type MusicTrackSource =
-  | { type: "generated"; preset: "rain" | "meadow" | "drone" }
+  | { type: "generated"; preset: GeneratedPreset }
   | { type: "file"; src: string | null }
 
 export type MusicTrack = {
@@ -11,6 +13,18 @@ export type MusicTrack = {
 
 // File tracks need a licensed audio asset or URL before they can play.
 export const focusMusicTracks: MusicTrack[] = [
+  {
+    id: "lofi-loop",
+    title: "Lo-fi Study Loop",
+    category: "Lo-fi beats (generated)",
+    source: { type: "generated", preset: "lofi" },
+  },
+  {
+    id: "piano-arpeggio",
+    title: "Quiet Piano Arpeggio",
+    category: "Soft piano (generated)",
+    source: { type: "generated", preset: "piano" },
+  },
   {
     id: "gentle-rain",
     title: "Gentle Rain",
@@ -93,7 +107,8 @@ export class FocusMusicEngine {
     this.stops.push(this.buildPreset(ctx, master, track.source.preset))
   }
 
-  private buildPreset(ctx: AudioContext, master: GainNode, preset: "rain" | "meadow" | "drone"): StopHandle {
+  private buildPreset(ctx: AudioContext, master: GainNode, preset: GeneratedPreset): StopHandle {
+    if (preset === "lofi" || preset === "piano") return this.buildMelodic(ctx, master, preset)
     const noise = this.createNoiseSource(ctx)
 
     if (preset === "drone") {
@@ -172,6 +187,106 @@ export class FocusMusicEngine {
       noise.stop()
       filter.disconnect()
       noiseGain.disconnect()
+    }
+  }
+
+  // Chord loops are scheduled a short time ahead, so nothing needs an audio file.
+  private buildMelodic(ctx: AudioContext, master: GainNode, preset: "lofi" | "piano"): StopHandle {
+    const lofi = preset === "lofi"
+    const bus = ctx.createGain()
+    bus.gain.value = lofi ? 0.55 : 0.6
+    const lowpass = ctx.createBiquadFilter()
+    lowpass.type = "lowpass"
+    lowpass.frequency.value = lofi ? 1700 : 3600
+    bus.connect(lowpass)
+    lowpass.connect(master)
+
+    const beat = 60 / (lofi ? 72 : 58)
+    const chords = [
+      [57, 60, 64, 67],
+      [53, 57, 60, 64],
+      [48, 55, 60, 64],
+      [55, 59, 62, 65],
+    ]
+    const frequency = (midi: number) => 440 * 2 ** ((midi - 69) / 12)
+
+    const note = (midi: number, when: number, length: number, type: OscillatorType, gain: number) => {
+      const osc = ctx.createOscillator()
+      const env = ctx.createGain()
+      osc.type = type
+      osc.frequency.value = frequency(midi)
+      env.gain.setValueAtTime(0.0001, when)
+      env.gain.linearRampToValueAtTime(gain, when + 0.02)
+      env.gain.exponentialRampToValueAtTime(0.0001, when + length)
+      osc.connect(env)
+      env.connect(bus)
+      osc.start(when)
+      osc.stop(when + length + 0.05)
+    }
+
+    const kick = (when: number) => {
+      const osc = ctx.createOscillator()
+      const env = ctx.createGain()
+      osc.frequency.setValueAtTime(130, when)
+      osc.frequency.exponentialRampToValueAtTime(42, when + 0.16)
+      env.gain.setValueAtTime(0.5, when)
+      env.gain.exponentialRampToValueAtTime(0.0001, when + 0.22)
+      osc.connect(env)
+      env.connect(bus)
+      osc.start(when)
+      osc.stop(when + 0.25)
+    }
+
+    const hat = (when: number) => {
+      const source = this.createNoiseSource(ctx)
+      const highpass = ctx.createBiquadFilter()
+      highpass.type = "highpass"
+      highpass.frequency.value = 6000
+      const env = ctx.createGain()
+      env.gain.setValueAtTime(0.06, when)
+      env.gain.exponentialRampToValueAtTime(0.0001, when + 0.05)
+      source.connect(highpass)
+      highpass.connect(env)
+      env.connect(bus)
+      source.start(when)
+      source.stop(when + 0.08)
+    }
+
+    let step = 0
+    let nextTime = ctx.currentTime + 0.1
+
+    const schedule = () => {
+      while (nextTime < ctx.currentTime + 0.5) {
+        const chord = chords[Math.floor(step / 8) % chords.length]
+        const eighth = step % 8
+
+        if (lofi) {
+          if (eighth === 0) {
+            chord.forEach((midi) => note(midi, nextTime, beat * 3.6, "triangle", 0.07))
+            note(chord[0] - 24, nextTime, beat * 1.8, "sine", 0.2)
+          }
+          if (eighth === 0 || eighth === 5) kick(nextTime)
+          if (eighth % 2 === 1) hat(nextTime)
+          if (Math.random() < 0.35) note(chord[Math.floor(Math.random() * 4)] + 12, nextTime, beat * 1.2, "sine", 0.07)
+        } else {
+          const midi = chord[eighth % 4] + (eighth >= 4 ? 12 : 0)
+          note(midi, nextTime, beat * 2.2, "triangle", 0.11)
+          note(midi + 12, nextTime, beat * 1.4, "sine", 0.035)
+          if (eighth === 0) note(chord[0] - 12, nextTime, beat * 3, "sine", 0.12)
+        }
+
+        nextTime += beat / 2
+        step += 1
+      }
+    }
+
+    schedule()
+    const timer = window.setInterval(schedule, 150)
+
+    return () => {
+      window.clearInterval(timer)
+      bus.disconnect()
+      lowpass.disconnect()
     }
   }
 

@@ -1,9 +1,11 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpaceDetailView } from "./study-space-detail-view"
-import { studySpaceCharacterStoragePrefix } from "../study-spaces-records"
+import { getSampleRoster } from "../space-roster"
+import { sampleCreatedSpaces, studySpaceCharacterStoragePrefix } from "../study-spaces-records"
+import { buildSeats } from "./study-space-seats"
 import type { SpaceRoomSceneProps } from "./space-room-scene"
 
 vi.mock("./space-room-scene", () => ({
@@ -11,6 +13,9 @@ vi.mock("./space-room-scene", () => ({
     <div data-testid="room-scene">
       {props.showNameTag ? <span data-testid="name-tag">{props.character.name}</span> : null}
       {props.bubbleText ? <span data-testid="chat-bubble">{props.bubbleText}</span> : null}
+      <button type="button" onClick={() => props.onFloorPoint({ x: 0, z: 0 })}>
+        Room floor
+      </button>
       {props.seats.map((seat) => (
         <button key={seat.id} type="button" onClick={() => props.onSeatSelect(seat.id)}>
           {seat.name}
@@ -37,6 +42,15 @@ function renderAt(spaceId: string) {
 }
 
 const sampleSpaceId = "sample-space-physics"
+
+function freeAndTakenSeats() {
+  const space = sampleCreatedSpaces.find((record) => record.id === sampleSpaceId)!
+  const seats = buildSeats(space.kind, space.capacity)
+  const roster = getSampleRoster(space, seats.length)
+  const taken = roster.map((person) => ({ person, seat: seats[person.seatIndex] }))
+  const free = seats.find((_, index) => !roster.some((person) => person.seatIndex === index))!
+  return { free, taken: taken[0] }
+}
 
 function seedCharacter(name = "Sam") {
   window.localStorage.setItem(
@@ -99,16 +113,16 @@ describe("study space detail room", () => {
     seedCharacter()
     renderAt(sampleSpaceId)
 
-    // sample-space-physics is collaborative: first seat is "Shared Table A".
-    await user.click(screen.getByRole("button", { name: "Shared Table A" }))
+    const { free } = freeAndTakenSeats()
+    await user.click(screen.getByRole("button", { name: free.name }))
 
-    const seatDialog = screen.getByRole("dialog", { name: "Seat: Shared Table A" })
+    const seatDialog = screen.getByRole("dialog", { name: `Seat: ${free.name}` })
     expect(seatDialog.textContent).toContain("Available")
-    expect(seatDialog.textContent).toContain("Collaborative tables")
+    expect(seatDialog.textContent).toContain(free.zoneLabel)
 
     await user.click(screen.getByRole("button", { name: "Sit here" }))
 
-    expect(screen.getByText(/Seated at Shared Table A/)).toBeTruthy()
+    expect(screen.getByText(`Seated at ${free.name}`)).toBeTruthy()
     expect(screen.queryByRole("dialog", { name: /Seat:/ })).toBeNull()
 
     await user.click(screen.getByRole("button", { name: "Stand up" }))
@@ -153,5 +167,103 @@ describe("study space detail room", () => {
     expect(panel.textContent).toContain("Gentle Rain")
     expect(panel.textContent).toContain("Deep Focus Pad")
     expect(panel.textContent).toContain("needs an audio file")
+  })
+
+  it("keeps the character seated when the room floor is clicked", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const { free } = freeAndTakenSeats()
+    await user.click(screen.getByRole("button", { name: free.name }))
+    await user.click(screen.getByRole("button", { name: "Sit here" }))
+
+    await user.click(screen.getByRole("button", { name: "Room floor" }))
+    expect(screen.getByText(`Seated at ${free.name}`)).toBeTruthy()
+    expect(screen.getByText("Stand up to walk around.")).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: "Stand up" }))
+    expect(screen.queryByText(/Seated at/)).toBeNull()
+  })
+
+  it("shows seats held by sample people as taken and does not offer to sit", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const { taken } = freeAndTakenSeats()
+    await user.click(screen.getByRole("button", { name: taken.seat.name }))
+
+    const seatDialog = screen.getByRole("dialog", { name: `Seat: ${taken.seat.name}` })
+    expect(seatDialog.textContent).toContain(`${taken.person.name} (sample) sits here`)
+    expect(screen.queryByRole("button", { name: "Sit here" })).toBeNull()
+    expect(screen.getByText(/Sample study-mates are illustrations only/)).toBeTruthy()
+  })
+
+  it("lets the leader of a created space add a group task", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Group tasks" }))
+    const board = screen.getByRole("dialog", { name: "Group task board" })
+    expect(board.textContent).toContain("You are the leader")
+    expect(board.textContent).toContain("not sent to other students")
+
+    await user.type(within(board).getByLabelText("Task title"), "Finish problem set 4")
+    await user.click(within(board).getByRole("button", { name: "Add task" }))
+
+    expect(within(board).getByRole("checkbox", { name: /Finish problem set 4/ })).toBeTruthy()
+    const stored = window.localStorage.getItem(`owlio.study-space-tasks.v1.${sampleSpaceId}`)
+    expect(stored).toContain("Finish problem set 4")
+  })
+
+  it("lets a group mate tick their own task but not add tasks", async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(
+      `${studySpaceCharacterStoragePrefix}sample-space-history`,
+      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    renderAt("sample-space-history")
+
+    await user.click(screen.getByRole("button", { name: "Group tasks" }))
+    const board = screen.getByRole("dialog", { name: "Group task board" })
+    expect(board.textContent).toContain("Group mate")
+    expect(within(board).queryByRole("button", { name: "Add task" })).toBeNull()
+
+    const box = within(board).getByRole('checkbox', { name: /Bring one question to the group/ }) as HTMLInputElement
+    await user.click(box)
+    expect(box.checked).toBe(true)
+  })
+
+  it("opens the drawer and the TV, and rejects a non-YouTube link", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "My drawer" }))
+    expect(screen.getByRole("dialog", { name: "My drawer" }).textContent).toContain("stay on this device")
+
+    await user.click(screen.getByRole("button", { name: "Room TV" }))
+    const tv = screen.getByRole("dialog", { name: "Room TV" })
+    await user.type(within(tv).getByLabelText(/Video for the group/), "https://example.com/video")
+    await user.click(within(tv).getByRole("button", { name: "Play" }))
+    expect(within(tv).getByRole("alert").textContent).toContain("YouTube")
+
+    await user.clear(within(tv).getByLabelText(/Video for the group/))
+    await user.type(within(tv).getByLabelText(/Video for the group/), "https://youtu.be/dQw4w9WgXcQ")
+    await user.click(within(tv).getByRole("button", { name: "Play" }))
+    expect(within(tv).getByTitle("Room TV video").getAttribute("src")).toContain("youtube-nocookie.com/embed/dQw4w9WgXcQ")
+  })
+
+  it("offers generated lo-fi and piano tracks that need no audio file", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Focus music" }))
+    const panel = screen.getByRole("dialog", { name: "Focus music" })
+    expect(panel.textContent).toContain("Lo-fi Study Loop")
+    expect(panel.textContent).toContain("Quiet Piano Arpeggio")
   })
 })

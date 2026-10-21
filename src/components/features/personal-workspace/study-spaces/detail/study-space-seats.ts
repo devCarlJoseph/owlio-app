@@ -1,7 +1,9 @@
 import type { StudySpaceKind } from "../study-spaces-records"
 
 // Shared with space-room-scene.tsx and the dialog floor-plan previews.
-export const roomPlan = { halfWidth: 7, halfDepth: 5 }
+// Every plan coordinate below was authored for a 14x10 room and is spread by ROOM_SCALE.
+export const ROOM_SCALE = 1.5
+export const roomPlan = { halfWidth: 7 * ROOM_SCALE, halfDepth: 5 * ROOM_SCALE }
 
 export type StudyZone = "quiet" | "collaborative" | "reading" | "lounge"
 
@@ -32,7 +34,21 @@ const ZONE_LABELS: Record<StudyZone, string> = {
 
 type SeatSpec = Omit<SeatDef, "id" | "zoneLabel">
 
-const QUIET_DESKS: SeatSpec[] = [
+function spread(specs: SeatSpec[]): SeatSpec[] {
+  return specs.map((spec) => {
+    const anchor = { x: spec.anchor.x * ROOM_SCALE, z: spec.anchor.z * ROOM_SCALE }
+    return {
+      ...spec,
+      anchor,
+      sitPoint: {
+        x: anchor.x + (spec.sitPoint.x - spec.anchor.x),
+        z: anchor.z + (spec.sitPoint.z - spec.anchor.z),
+      },
+    }
+  })
+}
+
+const QUIET_DESKS: SeatSpec[] = spread([
   {
     name: "Window Seat 1",
     zone: "quiet",
@@ -73,7 +89,7 @@ const QUIET_DESKS: SeatSpec[] = [
     sitPoint: { x: 4.5, z: -2.76 },
     faceRotation: Math.PI,
   },
-]
+])
 
 const COLLAB_DESKS: SeatSpec[] = [
   {
@@ -81,9 +97,9 @@ const COLLAB_DESKS: SeatSpec[] = [
     zone: "collaborative",
     characteristic: "Face-to-face partner desk",
     furniture: "desk",
-    anchor: { x: -3.4, z: -1.5 },
+    anchor: { x: -5.1, z: -1.7 },
     furnitureRotationY: 0,
-    sitPoint: { x: -3.4, z: -0.78 },
+    sitPoint: { x: -5.1, z: -0.98 },
     faceRotation: Math.PI,
   },
   {
@@ -91,9 +107,9 @@ const COLLAB_DESKS: SeatSpec[] = [
     zone: "collaborative",
     characteristic: "Face-to-face partner desk",
     furniture: "desk",
-    anchor: { x: -3.4, z: 0.7 },
+    anchor: { x: -5.1, z: 0.5 },
     furnitureRotationY: Math.PI,
-    sitPoint: { x: -3.4, z: -0.02 },
+    sitPoint: { x: -5.1, z: -0.22 },
     faceRotation: 0,
   },
   {
@@ -101,9 +117,9 @@ const COLLAB_DESKS: SeatSpec[] = [
     zone: "collaborative",
     characteristic: "Face-to-face partner desk",
     furniture: "desk",
-    anchor: { x: 0.6, z: -1.5 },
+    anchor: { x: 0.9, z: -1.7 },
     furnitureRotationY: 0,
-    sitPoint: { x: 0.6, z: -0.78 },
+    sitPoint: { x: 0.9, z: -0.98 },
     faceRotation: Math.PI,
   },
   {
@@ -111,14 +127,14 @@ const COLLAB_DESKS: SeatSpec[] = [
     zone: "collaborative",
     characteristic: "Face-to-face partner desk",
     furniture: "desk",
-    anchor: { x: 0.6, z: 0.7 },
+    anchor: { x: 0.9, z: 0.5 },
     furnitureRotationY: Math.PI,
-    sitPoint: { x: 0.6, z: -0.02 },
+    sitPoint: { x: 0.9, z: -0.22 },
     faceRotation: 0,
   },
 ]
 
-const LOUNGE_TABLE = { x: 4.6, z: 3.0 }
+const LOUNGE_TABLE = { x: 4.6 * ROOM_SCALE, z: 3.0 * ROOM_SCALE }
 
 const LOUNGE_STOOLS: SeatSpec[] = [
   {
@@ -163,7 +179,7 @@ const LOUNGE_STOOLS: SeatSpec[] = [
   },
 ]
 
-const READING_SEATS: SeatSpec[] = [
+const READING_SEATS: SeatSpec[] = spread([
   {
     name: "Reading Armchair",
     zone: "reading",
@@ -184,7 +200,7 @@ const READING_SEATS: SeatSpec[] = [
     sitPoint: { x: -5.4, z: 4.1 },
     faceRotation: Math.PI / 2,
   },
-]
+])
 
 const SEAT_ORDER: Record<StudySpaceKind, SeatSpec[]> = {
   focused: [...QUIET_DESKS, ...COLLAB_DESKS.slice(0, 2), ...LOUNGE_STOOLS.slice(0, 2)],
@@ -195,7 +211,7 @@ const SEAT_ORDER: Record<StudySpaceKind, SeatSpec[]> = {
 export const loungeTable = LOUNGE_TABLE
 
 // Characters enter near the door on the left wall.
-export const roomSpawnPoint = { x: -5.4, z: 3.4 }
+export const roomSpawnPoint = { x: -roomPlan.halfWidth + 2, z: roomPlan.halfDepth - 3 }
 
 export function buildSeats(kind: StudySpaceKind, capacity: number): SeatDef[] {
   return SEAT_ORDER[kind].slice(0, capacity).map((spec, index) => ({

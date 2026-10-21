@@ -5,7 +5,8 @@ import { Color, type Group, type OrthographicCamera } from "three"
 import type { MapControls as MapControlsImpl } from "three-stdlib"
 import { Lock, Minus, Plus, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { buildSeats, loungeTable, type SeatDef } from "./detail/study-space-seats"
+import { buildSeats, loungeTable, ROOM_SCALE, type SeatDef } from "./detail/study-space-seats"
+import { getSampleRoster, type SamplePerson as RosterPerson } from "./space-roster"
 import { kindLabel, metaLine } from "./space-format"
 import { studySpacesLockedTooltip, type StudySpaceKind, type StudySpaceRecord } from "./study-spaces-records"
 
@@ -30,7 +31,8 @@ type Zone = {
   tiles: Tile[]
 }
 
-const S = 0.5
+const S = 0.5 / ROOM_SCALE
+const FURN = S / 0.5
 const COLS = 3
 const PX = 9.4
 const PZ = 7.6
@@ -47,12 +49,6 @@ const reducedMotion =
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
-
-function hashString(value: string): number {
-  let hash = 0
-  for (const char of value) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-  return hash
-}
 
 function layoutZones(
   inputs: { role: TileRole; label: string; emptyMessage: string; spaces: StudySpaceRecord[] }[]
@@ -98,27 +94,24 @@ const COLORS = {
   lamp: "#f2b84b",
 }
 
-const SKINS = ["#f1c9a5", "#d9a47a", "#a8744c", "#7a4e33"]
-const SHIRTS = ["#2f6b4f", "#c2693a", "#4f6fa8", "#b4485a", "#d9a73a", "#6b5ca5"]
-const HAIRS = ["#2a1d15", "#4a3222", "#1c1c1c", "#8a5a2b"]
-const SAMPLE_NAMES = ["Ava", "Ben", "Chloe", "Dev", "Ella", "Finn", "Grace", "Hugo"]
-
 function Furniture({ seat, kind, locked }: { seat: SeatDef; kind: StudySpaceKind; locked: boolean }) {
   const { x, z } = seat.anchor
   const t = (hex: string) => tone(hex, locked)
 
   if (seat.furniture === "stool") {
     return (
-      <mesh position={[x * S, PLAT + 0.14, z * S]}>
-        <cylinderGeometry args={[0.19, 0.17, 0.28, 16]} />
-        <meshStandardMaterial color={t(COLORS.navy)} roughness={0.8} />
-      </mesh>
+      <group position={[x * S, PLAT, z * S]} scale={FURN}>
+        <mesh position={[0, 0.14, 0]}>
+          <cylinderGeometry args={[0.19, 0.17, 0.28, 16]} />
+          <meshStandardMaterial color={t(COLORS.navy)} roughness={0.8} />
+        </mesh>
+      </group>
     )
   }
 
   if (seat.furniture === "armchair") {
     return (
-      <group position={[x * S, PLAT, z * S]} rotation={[0, seat.furnitureRotationY, 0]}>
+      <group position={[x * S, PLAT, z * S]} scale={FURN} rotation={[0, seat.furnitureRotationY, 0]}>
         <mesh position={[0, 0.11, 0]}>
           <boxGeometry args={[0.33, 0.22, 0.3]} />
           <meshStandardMaterial color={t(COLORS.navy)} roughness={0.85} />
@@ -132,7 +125,7 @@ function Furniture({ seat, kind, locked }: { seat: SeatDef; kind: StudySpaceKind
   }
 
   return (
-    <group position={[x * S, PLAT, z * S]} rotation={[0, seat.furnitureRotationY, 0]}>
+    <group position={[x * S, PLAT, z * S]} scale={FURN} rotation={[0, seat.furnitureRotationY, 0]}>
       <mesh position={[0, 0.34, 0]}>
         <boxGeometry args={[0.8, 0.04, 0.4]} />
         <meshStandardMaterial color={t(COLORS.oak)} roughness={0.7} />
@@ -164,7 +157,7 @@ function Furniture({ seat, kind, locked }: { seat: SeatDef; kind: StudySpaceKind
 
 function Laptop({ seat }: { seat: SeatDef }) {
   return (
-    <group position={[seat.anchor.x * S, PLAT + 0.37, seat.anchor.z * S]} rotation={[0, seat.furnitureRotationY, 0]}>
+    <group position={[seat.anchor.x * S, PLAT + 0.37 * FURN, seat.anchor.z * S]} scale={FURN} rotation={[0, seat.furnitureRotationY, 0]}>
       <mesh position={[0, 0.01, 0.04]}>
         <boxGeometry args={[0.26, 0.015, 0.17]} />
         <meshStandardMaterial color="#d6dbe2" roughness={0.5} />
@@ -177,26 +170,22 @@ function Laptop({ seat }: { seat: SeatDef }) {
   )
 }
 
-// Decorative sample person. These are illustrations for the "Your desk row" zone only.
+// Decorative sample person drawn from the shared roster.
 function SamplePerson({
   seat,
+  person,
   index,
-  seed,
   detail,
 }: {
   seat: SeatDef
+  person: RosterPerson
   index: number
-  seed: number
   detail: boolean
 }) {
   const head = useRef<Group>(null)
   const body = useRef<Group>(null)
   const seatY = seat.furniture === "stool" ? 0.28 : seat.furniture === "armchair" ? 0.24 : 0.22
-  const pick = <T,>(list: T[], salt: number) => list[(seed + index * 3 + salt) % list.length]
-  const skin = pick(SKINS, 1)
-  const shirt = pick(SHIRTS, 2)
-  const hair = pick(HAIRS, 3)
-  const name = pick(SAMPLE_NAMES, 5)
+  const seed = person.name.charCodeAt(0)
 
   useFrame(({ clock }) => {
     if (reducedMotion || !head.current || !body.current) return
@@ -208,7 +197,7 @@ function SamplePerson({
   })
 
   return (
-    <group position={[seat.sitPoint.x * S, PLAT, seat.sitPoint.z * S]} rotation={[0, seat.faceRotation, 0]}>
+    <group position={[seat.sitPoint.x * S, PLAT, seat.sitPoint.z * S]} scale={FURN} rotation={[0, seat.faceRotation, 0]}>
       <mesh position={[0, seatY + 0.03, 0.08]}>
         <boxGeometry args={[0.15, 0.06, 0.2]} />
         <meshStandardMaterial color="#2b3650" roughness={0.9} />
@@ -220,21 +209,21 @@ function SamplePerson({
       <group ref={body}>
         <mesh position={[0, seatY + 0.15, -0.01]}>
           <capsuleGeometry args={[0.075, 0.13, 4, 10]} />
-          <meshStandardMaterial color={shirt} roughness={0.85} />
+          <meshStandardMaterial color={person.shirt} roughness={0.85} />
         </mesh>
         <group ref={head} position={[0, seatY + 0.36, 0]}>
           <mesh>
             <sphereGeometry args={[0.068, 14, 12]} />
-            <meshStandardMaterial color={skin} roughness={0.8} />
+            <meshStandardMaterial color={person.skin} roughness={0.8} />
           </mesh>
           <mesh position={[0, 0.012, -0.012]}>
             <sphereGeometry args={[0.073, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
-            <meshStandardMaterial color={hair} roughness={0.9} />
+            <meshStandardMaterial color={person.hair} roughness={0.9} />
           </mesh>
           {detail && (
             <Html position={[0, 0.16, 0]} center zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
               <span className="whitespace-nowrap rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 shadow-sm">
-                {name}
+                {person.name}
               </span>
             </Html>
           )}
@@ -242,11 +231,6 @@ function SamplePerson({
       </group>
     </group>
   )
-}
-
-function seatedCount(space: StudySpaceRecord, seatCount: number): number {
-  const hash = hashString(space.id)
-  return clamp(Math.round(seatCount * (0.5 + 0.1 * (hash % 4))), 1, seatCount)
 }
 
 function TileScene({
@@ -265,8 +249,7 @@ function TileScene({
   const [hovered, setHovered] = useState(false)
   useCursor(hovered)
   const seats = useMemo(() => buildSeats(space.kind, space.capacity), [space.kind, space.capacity])
-  const seed = useMemo(() => hashString(space.id), [space.id])
-  const sampleCount = role === "owner" ? seatedCount(space, seats.length) : 0
+  const roster = useMemo(() => (locked ? [] : getSampleRoster(space, seats.length)), [locked, space, seats.length])
   const t = (hex: string) => tone(hex, locked)
   const activate = () => (locked ? onUnlock(space) : onOpen(space))
 
@@ -300,8 +283,8 @@ function TileScene({
         ))}
       </mesh>
 
-      <mesh position={[-1.4 * S, PLAT + 0.005, -0.4 * S]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[2.1 * S, 32]} />
+      <mesh position={[-1.4 * ROOM_SCALE * S, PLAT + 0.005, -0.4 * ROOM_SCALE * S]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[2.1 * ROOM_SCALE * S, 32]} />
         <meshStandardMaterial color={t(COLORS.navy)} transparent opacity={0.14} />
       </mesh>
       <mesh position={[loungeTable.x * S, PLAT + 0.006, loungeTable.z * S]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -317,7 +300,7 @@ function TileScene({
         [6.2, 4.3],
         [1.9, 4.4],
       ].map(([px, pz]) => (
-        <group key={`${px}-${pz}`} position={[px * S, PLAT, pz * S]}>
+        <group key={`${px}-${pz}`} position={[px * ROOM_SCALE * S, PLAT, pz * ROOM_SCALE * S]}>
           <mesh position={[0, 0.07, 0]}>
             <cylinderGeometry args={[0.1, 0.08, 0.14, 12]} />
             <meshStandardMaterial color={t("#a5622f")} roughness={0.9} />
@@ -332,12 +315,15 @@ function TileScene({
       {seats.map((seat) => (
         <Furniture key={seat.id} seat={seat} kind={space.kind} locked={locked} />
       ))}
-      {seats.slice(0, sampleCount).map((seat, index) => (
-        <group key={`person-${seat.id}`}>
-          {seat.furniture === "desk" && <Laptop seat={seat} />}
-          <SamplePerson seat={seat} index={index} seed={seed} detail={detail} />
-        </group>
-      ))}
+      {roster.map((person, index) => {
+        const seat = seats[person.seatIndex]
+        return (
+          <group key={person.id}>
+            {seat.furniture === "desk" && <Laptop seat={seat} />}
+            <SamplePerson seat={seat} person={person} index={index} detail={detail} />
+          </group>
+        )
+      })}
 
       <TileLabel tile={tile} onActivate={activate} />
     </group>

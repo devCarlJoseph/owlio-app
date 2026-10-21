@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState, type RefObject } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { Html, OrbitControls } from "@react-three/drei"
-import { Spherical, type Group } from "three"
+import { Html, OrbitControls, useCursor } from "@react-three/drei"
+import { Spherical, type Group, type OrthographicCamera } from "three"
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib"
+import type { SamplePerson } from "../space-roster"
 import type { StudySpaceCharacter } from "../study-spaces-records"
-import { loungeTable, roomPlan, type SeatDef } from "./study-space-seats"
+import { CharacterFigure, type FigureMode } from "./character-figure"
+import { DrawerCabinet, RadioSet, RoomTv, TaskWhiteboard } from "./room-extras"
+import type { RoomTask } from "./room-tasks"
+import { loungeTable, roomPlan, ROOM_SCALE, type SeatDef } from "./study-space-seats"
 
 export type CameraResetHandle = {
   reset: () => void
@@ -13,6 +17,11 @@ export type CameraResetHandle = {
 export type SpaceRoomSceneProps = {
   character: StudySpaceCharacter
   seats: SeatDef[]
+  samplePeople?: SamplePerson[]
+  tasks?: RoomTask[]
+  tvHasVideo?: boolean
+  drawerOpen?: boolean
+  musicPlaying?: boolean
   selectedSeatId: string | null
   seatedSeatId: string | null
   walkTarget: { x: number; z: number }
@@ -22,22 +31,32 @@ export type SpaceRoomSceneProps = {
   cameraResetRef: RefObject<CameraResetHandle | null>
   onFloorPoint: (point: { x: number; z: number }) => void
   onSeatSelect: (seatId: string) => void
+  onOpenTasks?: () => void
+  onOpenTv?: () => void
+  onToggleDrawer?: () => void
+  onToggleMusic?: () => void
 }
 
-const ROOM = { ...roomPlan, wallHeight: 3 }
+const ROOM = { ...roomPlan, wallHeight: 3.2 }
+const K = ROOM_SCALE
 const MOVE_MARGIN = 0.5
-const WALK_SPEED = 2.6
+const WALK_SPEED = 2.8
 const BASE_POLAR = Math.PI / 3
 const POLAR_STEP = 0.12
 
 const BOOK_COLORS = ["#b91c1c", "#1d4ed8", "#15803d", "#a16207", "#7e22ce", "#0e7490", "#be185d"]
 
 const reducedMotion =
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
 
 export function SpaceRoomScene({
   character,
   seats,
+  samplePeople = [],
+  tasks = [],
+  tvHasVideo = false,
+  drawerOpen = false,
+  musicPlaying = false,
   selectedSeatId,
   seatedSeatId,
   walkTarget,
@@ -47,9 +66,14 @@ export function SpaceRoomScene({
   cameraResetRef,
   onFloorPoint,
   onSeatSelect,
+  onOpenTasks = () => undefined,
+  onOpenTv = () => undefined,
+  onToggleDrawer = () => undefined,
+  onToggleMusic = () => undefined,
 }: SpaceRoomSceneProps) {
   const [hoveredSeatId, setHoveredSeatId] = useState<string | null>(null)
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
+  const takenBy = new Map(samplePeople.map((person) => [seats[person.seatIndex]?.id, person]))
 
   function handleFloorClick(point: { x: number; z: number }) {
     onFloorPoint({
@@ -64,7 +88,7 @@ export function SpaceRoomScene({
     <Canvas
       shadows
       orthographic
-      camera={{ position: [12, 12, 12], zoom: 50, near: -100, far: 300 }}
+      camera={{ position: [18, 18, 18], zoom: 40, near: -100, far: 400 }}
       aria-label="3D study room preview. Select a seat to sit, or use the overlay controls."
       fallback={
         <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-300">
@@ -76,17 +100,19 @@ export function SpaceRoomScene({
       <color attach="background" args={["#1a2532"]} />
       <ambientLight intensity={0.75} />
       <directionalLight
-        position={[8, 14, 6]}
+        position={[12, 20, 9]}
         intensity={1.1}
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-12}
-        shadow-camera-right={12}
-        shadow-camera-top={12}
-        shadow-camera-bottom={-12}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
+        shadow-camera-near={0.5}
+        shadow-camera-far={80}
       />
-      {/* Soft warm fill near the reading corner. */}
-      <pointLight position={[-5.2, 2.4, 2.6]} intensity={4} distance={6} color="#fbbf24" />
+      <pointLight position={[-8, 2.6, 4]} intensity={6} distance={9} color="#fbbf24" />
+      <pointLight position={[0, 3, -2]} intensity={3} distance={14} color="#fff1d6" />
 
       <OrbitControls
         ref={(controls) => {
@@ -98,12 +124,23 @@ export function SpaceRoomScene({
         target={[0, 0.6, 0]}
         minPolarAngle={Math.PI / 6}
         maxPolarAngle={Math.PI / 2.4}
-        minZoom={30}
+        minZoom={16}
         maxZoom={120}
       />
+      <CameraFit controlsRef={cameraResetRef} />
       <CameraHeightRig level={cameraLevel} controlsRef={cameraResetRef} />
 
       <RoomShell onFloorClick={handleFloorClick} />
+
+      <TaskWhiteboard position={[8, 1.9, -ROOM.halfDepth + 0.12]} tasks={tasks} onOpen={onOpenTasks} />
+      <RoomTv position={[0, 1.95, -ROOM.halfDepth + 0.12]} hasVideo={tvHasVideo} onOpen={onOpenTv} />
+      <DrawerCabinet position={[-ROOM.halfWidth + 0.33, 0, 1.6]} open={drawerOpen} onToggle={onToggleDrawer} />
+      <RadioSet
+        position={[-6.75, 0.5, 4.95]}
+        playing={musicPlaying}
+        onToggle={onToggleMusic}
+        reducedMotion={reducedMotion}
+      />
 
       {seats.map((seat) => (
         <SeatFurniture
@@ -112,10 +149,40 @@ export function SpaceRoomScene({
           hovered={hoveredSeatId === seat.id}
           selected={selectedSeatId === seat.id}
           occupied={seatedSeatId === seat.id}
+          takenBy={takenBy.get(seat.id)?.name ?? null}
           onHover={setHoveredSeatId}
           onSelect={onSeatSelect}
         />
       ))}
+
+      {samplePeople.map((person, index) => {
+        const seat = seats[person.seatIndex]
+        if (!seat) return null
+        return (
+          <group
+            key={person.id}
+            position={[seat.sitPoint.x, 0, seat.sitPoint.z]}
+            rotation={[0, seat.faceRotation, 0]}
+          >
+            <CharacterFigure
+              bodyColor={person.shirt}
+              accentColor={person.hair}
+              skinColor={person.skin}
+              getMode={() => "seated"}
+              typing={seat.furniture === "desk"}
+              phaseOffset={index * 1.9}
+              reducedMotion={reducedMotion}
+            />
+            {showNameTag ? (
+              <Html position={[0, 1.55, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[18, 0]}>
+                <span className="block rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-700 shadow">
+                  {person.name} · sample
+                </span>
+              </Html>
+            ) : null}
+          </group>
+        )
+      })}
 
       <SpaceCharacter
         character={character}
@@ -126,6 +193,28 @@ export function SpaceRoomScene({
       />
     </Canvas>
   )
+}
+
+// Fit the whole room into the canvas on load and resize, then remember it as the reset view.
+function CameraFit({ controlsRef }: { controlsRef: RefObject<CameraResetHandle | null> }) {
+  const get = useThree((state) => state.get)
+  const width = useThree((state) => state.size.width)
+  const height = useThree((state) => state.size.height)
+
+  useEffect(() => {
+    const controls = controlsRef.current as OrbitControlsImpl | null
+    if (!controls || width === 0 || height === 0) return
+    const camera = get().camera as OrthographicCamera
+
+    const spanX = (ROOM.halfWidth * 2 + ROOM.halfDepth * 2) * Math.SQRT1_2
+    const spanY = spanX * 0.62 + ROOM.wallHeight
+    camera.zoom = Math.min(width / (spanX * 1.05), height / (spanY * 1.05))
+    camera.updateProjectionMatrix()
+    controls.saveState()
+    controls.update()
+  }, [get, controlsRef, width, height])
+
+  return null
 }
 
 function CameraHeightRig({
@@ -151,18 +240,21 @@ function CameraHeightRig({
 }
 
 function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: number }) => void }) {
+  const backZ = -ROOM.halfDepth
+  const leftX = -ROOM.halfWidth
+
   return (
     <group>
-      {/* Dark ground beyond the walls so the room never floats in empty space. */}
       <mesh position={[0, -0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[40, 30]} />
+        <planeGeometry args={[70, 52]} />
         <meshStandardMaterial color="#16202f" />
       </mesh>
 
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         receiveShadow
-        onPointerDown={(event) => {
+        onClick={(event) => {
+          if (event.delta > 4) return
           event.stopPropagation()
           onFloorClick({ x: event.point.x, z: event.point.z })
         }}
@@ -171,51 +263,45 @@ function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: num
         <meshStandardMaterial color="#c9a876" />
       </mesh>
 
-      <mesh position={[0, ROOM.wallHeight / 2, -ROOM.halfDepth]} receiveShadow>
+      <mesh position={[0, ROOM.wallHeight / 2, backZ]} receiveShadow>
         <boxGeometry args={[ROOM.halfWidth * 2, ROOM.wallHeight, 0.15]} />
         <meshStandardMaterial color="#efe7d8" />
       </mesh>
-      <mesh position={[-ROOM.halfWidth, ROOM.wallHeight / 2, 0]} receiveShadow>
+      <mesh position={[leftX, ROOM.wallHeight / 2, 0]} receiveShadow>
         <boxGeometry args={[0.15, ROOM.wallHeight, ROOM.halfDepth * 2]} />
         <meshStandardMaterial color="#e5dcc9" />
       </mesh>
-      <Skirting position={[0, 0.06, -ROOM.halfDepth + 0.09]} size={[ROOM.halfWidth * 2, 0.12, 0.04]} />
-      <Skirting position={[-ROOM.halfWidth + 0.09, 0.06, 0]} size={[0.04, 0.12, ROOM.halfDepth * 2]} />
+      <Skirting position={[0, 0.06, backZ + 0.09]} size={[ROOM.halfWidth * 2, 0.12, 0.04]} />
+      <Skirting position={[leftX + 0.09, 0.06, 0]} size={[0.04, 0.12, ROOM.halfDepth * 2]} />
       <Skirting position={[0, 0.03, ROOM.halfDepth - 0.02]} size={[ROOM.halfWidth * 2, 0.06, 0.04]} />
       <Skirting position={[ROOM.halfWidth - 0.02, 0.03, 0]} size={[0.04, 0.06, ROOM.halfDepth * 2]} />
 
-      <WindowPane position={[-3.2, 1.8, -ROOM.halfDepth + 0.1]} />
-      <WindowPane position={[3.2, 1.8, -ROOM.halfDepth + 0.1]} />
-      <WallClock position={[0, 2.2, -ROOM.halfDepth + 0.1]} />
-      <PinBoard position={[-5.7, 1.6, -ROOM.halfDepth + 0.1]} />
-      <PinBoard position={[5.8, 1.6, -ROOM.halfDepth + 0.1]} />
+      <WindowPane position={[-4.8, 1.9, backZ + 0.1]} />
+      <WindowPane position={[4.8, 1.9, backZ + 0.1]} />
+      <WindowPane position={[-9.6, 1.9, backZ + 0.1]} />
+      <WallClock position={[2.7, 2.5, backZ + 0.1]} />
+      <PinBoard position={[-2.6, 1.8, backZ + 0.1]} />
 
-      <Bookshelf position={[-ROOM.halfWidth + 0.32, 0, 0.6]} />
-      <Bookshelf position={[-ROOM.halfWidth + 0.32, 0, -1.6]} />
-      <RoomDoor position={[-ROOM.halfWidth + 0.1, 0, 4.2]} />
+      <Bookshelf position={[leftX + 0.32, 0, -3.6]} />
+      <Bookshelf position={[leftX + 0.32, 0, -1.2]} />
+      <RoomDoor position={[leftX + 0.1, 0, 6.4]} />
 
-      <PendantLamp position={[-3.4, 0, -2.4]} />
-      <PendantLamp position={[3.4, 0, -2.4]} />
-      <PendantLamp position={[0.4, 0, 1.4]} />
+      <PendantLamp position={[-5.1, 0, -4.6]} />
+      <PendantLamp position={[0.9, 0, -4.6]} />
+      <PendantLamp position={[-2.1, 0, -0.6]} />
+      <PendantLamp position={[6.9, 0, 4.5]} />
 
-      <Whiteboard position={[5.9, 0, -4.3]} rotationY={-0.3} />
-
-      {/* Reading corner: side table and a warm floor lamp beside the armchairs. */}
-      <group position={[-4.5, 0, 3.3]}>
+      <group position={[-6.75, 0, 4.95]}>
         <mesh position={[0, 0.45, 0]} castShadow>
-          <cylinderGeometry args={[0.32, 0.32, 0.05, 20]} />
+          <cylinderGeometry args={[0.45, 0.45, 0.05, 20]} />
           <meshStandardMaterial color="#8a6d42" />
         </mesh>
         <mesh position={[0, 0.22, 0]}>
-          <cylinderGeometry args={[0.04, 0.07, 0.45, 10]} />
+          <cylinderGeometry args={[0.05, 0.09, 0.45, 10]} />
           <meshStandardMaterial color="#6d5634" />
         </mesh>
-        <mesh position={[0, 0.49, 0]}>
-          <boxGeometry args={[0.24, 0.03, 0.17]} />
-          <meshStandardMaterial color="#b91c1c" />
-        </mesh>
       </group>
-      <group position={[-6.3, 0, 3.4]}>
+      <group position={[-9.5, 0, 4.7]}>
         <mesh position={[0, 0.02, 0]}>
           <cylinderGeometry args={[0.22, 0.26, 0.05, 16]} />
           <meshStandardMaterial color="#475569" />
@@ -230,9 +316,8 @@ function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: num
         </mesh>
       </group>
 
-      {/* Lounge zone: rug, round table and greenery stay even when stools are unselected. */}
       <mesh position={[loungeTable.x, 0.02, loungeTable.z]} receiveShadow>
-        <cylinderGeometry args={[1.7, 1.7, 0.03, 32]} />
+        <cylinderGeometry args={[2.3, 2.3, 0.03, 40]} />
         <meshStandardMaterial color="#2f6b4f" />
       </mesh>
       <mesh position={[loungeTable.x, 0.55, loungeTable.z]} castShadow>
@@ -248,15 +333,15 @@ function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: num
         <meshStandardMaterial color="#fef08a" />
       </mesh>
 
-      {/* Quiet-zone area rug under the collaborative desks. */}
-      <mesh position={[-1.4, 0.015, -0.4]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[2.1, 32]} />
+      <mesh position={[-1.4 * K, 0.015, -0.4 * K]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[3.7, 40]} />
         <meshStandardMaterial color="#33415c" />
       </mesh>
 
-      <Plant position={[-6.2, 0, -4.1]} />
-      <Plant position={[6.2, 0, 4.3]} />
-      <Plant position={[1.9, 0, 4.4]} />
+      <Plant position={[-9.3, 0, -6.2]} />
+      <Plant position={[9.3, 0, 6.4]} />
+      <Plant position={[2.9, 0, 6.6]} />
+      <Plant position={[9.3, 0, -1.2]} />
     </group>
   )
 }
@@ -275,6 +360,7 @@ function SeatFurniture({
   hovered,
   selected,
   occupied,
+  takenBy,
   onHover,
   onSelect,
 }: {
@@ -282,6 +368,7 @@ function SeatFurniture({
   hovered: boolean
   selected: boolean
   occupied: boolean
+  takenBy: string | null
   onHover: (seatId: string | null) => void
   onSelect: (seatId: string) => void
 }) {
@@ -293,6 +380,7 @@ function SeatFurniture({
         ? "hovered"
         : "available"
   const seatColor = SEAT_COLORS[state]
+  useCursor(hovered)
 
   return (
     <group position={[seat.anchor.x, 0, seat.anchor.z]} rotation={[0, seat.furnitureRotationY, 0]}>
@@ -300,7 +388,6 @@ function SeatFurniture({
       {seat.furniture === "stool" ? <Stool seatColor={seatColor} /> : null}
       {seat.furniture === "armchair" ? <Armchair seatColor={seatColor} /> : null}
 
-      {/* Generous invisible hit volume so seats are easy to click on any screen. */}
       <mesh
         position={[0, 0.8, seat.furniture === "desk" ? 0.4 : 0]}
         onPointerOver={(event) => {
@@ -311,7 +398,8 @@ function SeatFurniture({
           event.stopPropagation()
           onHover(null)
         }}
-        onPointerDown={(event) => {
+        onClick={(event) => {
+          if (event.delta > 4) return
           event.stopPropagation()
           onSelect(seat.id)
         }}
@@ -323,7 +411,7 @@ function SeatFurniture({
       {hovered ? (
         <Html position={[0, 1.9, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[15, 0]}>
           <span className="block rounded-md bg-slate-900/90 px-2 py-1 text-[11px] font-medium whitespace-nowrap text-white shadow">
-            {seat.name} · {occupied ? "You" : "Available"}
+            {seat.name} · {occupied ? "You" : takenBy ? `${takenBy} (sample)` : "Available"}
           </span>
         </Html>
       ) : null}
@@ -575,37 +663,6 @@ function PendantLamp({ position }: { position: [number, number, number] }) {
   )
 }
 
-function Whiteboard({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  return (
-    <group position={position} rotation={[0, rotationY, 0]}>
-      <mesh position={[0, 1.7, 0]} castShadow>
-        <boxGeometry args={[1.9, 1.1, 0.06]} />
-        <meshStandardMaterial color="#f8fafc" />
-      </mesh>
-      <mesh position={[-0.8, 0.55, 0]}>
-        <boxGeometry args={[0.05, 1.1, 0.05]} />
-        <meshStandardMaterial color="#64748b" />
-      </mesh>
-      <mesh position={[0.8, 0.55, 0]}>
-        <boxGeometry args={[0.05, 1.1, 0.05]} />
-        <meshStandardMaterial color="#64748b" />
-      </mesh>
-      <mesh position={[-0.5, 1.85, 0.045]}>
-        <boxGeometry args={[0.7, 0.05, 0.01]} />
-        <meshStandardMaterial color="#3b82f6" />
-      </mesh>
-      <mesh position={[-0.3, 1.65, 0.045]}>
-        <boxGeometry args={[1.1, 0.05, 0.01]} />
-        <meshStandardMaterial color="#f97316" />
-      </mesh>
-      <mesh position={[0.2, 1.12, 0.045]}>
-        <boxGeometry args={[0.4, 0.04, 0.06]} />
-        <meshStandardMaterial color="#64748b" />
-      </mesh>
-    </group>
-  )
-}
-
 function Plant({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
@@ -635,7 +692,7 @@ function SpaceCharacter({
   bubbleText: string | null
 }) {
   const groupRef = useRef<Group>(null)
-  const walkPhase = useRef(0)
+  const modeRef = useRef<FigureMode>("idle")
   const [seated, setSeated] = useState(false)
 
   useFrame((_, delta) => {
@@ -651,8 +708,8 @@ function SpaceCharacter({
     if (reachedSeat && seatedSeat) {
       node.position.x = seatedSeat.sitPoint.x
       node.position.z = seatedSeat.sitPoint.z
-      node.position.y = 0
       node.rotation.y = seatedSeat.faceRotation
+      modeRef.current = "seated"
       return
     }
 
@@ -661,53 +718,27 @@ function SpaceCharacter({
       node.position.x += (dx / distance) * step
       node.position.z += (dz / distance) * step
       node.rotation.y = Math.atan2(dx, dz)
-
-      if (!reducedMotion) {
-        walkPhase.current += delta * 10
-        node.position.y = Math.abs(Math.sin(walkPhase.current)) * 0.05
-      }
-    } else if (node.position.y !== 0) {
-      node.position.y = 0
+      modeRef.current = "walk"
+    } else {
+      modeRef.current = "idle"
     }
   })
 
-  const pose = seated
-    ? { legY: 0.3, legZ: 0.18, legRot: -1.4, bodyY: 0.68, armY: 0.72, headY: 1.18, hatY: 1.37, tagY: 1.68, bubbleY: 2.05 }
-    : { legY: 0.25, legZ: 0, legRot: 0, bodyY: 0.85, armY: 0.88, headY: 1.45, hatY: 1.64, tagY: 1.95, bubbleY: 2.3 }
+  const tagY = seated ? 1.68 : 1.95
+  const bubbleY = seated ? 2.05 : 2.3
 
   return (
     <group ref={groupRef} position={[target.x, 0, target.z]}>
-      <mesh position={[-0.12, pose.legY, pose.legZ]} rotation={[pose.legRot, 0, 0]} castShadow>
-        <boxGeometry args={[0.16, 0.5, 0.18]} />
-        <meshStandardMaterial color="#1e293b" />
-      </mesh>
-      <mesh position={[0.12, pose.legY, pose.legZ]} rotation={[pose.legRot, 0, 0]} castShadow>
-        <boxGeometry args={[0.16, 0.5, 0.18]} />
-        <meshStandardMaterial color="#1e293b" />
-      </mesh>
-      <mesh position={[0, pose.bodyY, 0]} castShadow>
-        <boxGeometry args={[0.5, 0.7, 0.3]} />
-        <meshStandardMaterial color={character.bodyColor} />
-      </mesh>
-      <mesh position={[-0.34, pose.armY, seated ? 0.08 : 0]} castShadow>
-        <boxGeometry args={[0.12, 0.5, 0.14]} />
-        <meshStandardMaterial color={character.bodyColor} />
-      </mesh>
-      <mesh position={[0.34, pose.armY, seated ? 0.08 : 0]} castShadow>
-        <boxGeometry args={[0.12, 0.5, 0.14]} />
-        <meshStandardMaterial color={character.bodyColor} />
-      </mesh>
-      <mesh position={[0, pose.headY, 0]} castShadow>
-        <sphereGeometry args={[0.23, 24, 24]} />
-        <meshStandardMaterial color="#f1c9a5" />
-      </mesh>
-      <mesh position={[0, pose.hatY, 0]} castShadow>
-        <cylinderGeometry args={[0.25, 0.27, 0.12, 24]} />
-        <meshStandardMaterial color={character.accentColor} />
-      </mesh>
+      <CharacterFigure
+        bodyColor={character.bodyColor}
+        accentColor={character.accentColor}
+        getMode={() => modeRef.current}
+        typing={seatedSeat?.furniture === "desk"}
+        reducedMotion={reducedMotion}
+      />
 
       {showNameTag ? (
-        <Html position={[0, pose.tagY, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[20, 0]}>
+        <Html position={[0, tagY, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[20, 0]}>
           <span className="block rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-white shadow">
             {character.name}
           </span>
@@ -715,7 +746,7 @@ function SpaceCharacter({
       ) : null}
 
       {bubbleText ? (
-        <Html position={[0, pose.bubbleY, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[30, 0]}>
+        <Html position={[0, bubbleY, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[30, 0]}>
           <span className="relative block max-w-48 rounded-xl bg-white px-3 py-2 text-xs leading-4 break-words text-slate-800 shadow-lg">
             {bubbleText}
             <span

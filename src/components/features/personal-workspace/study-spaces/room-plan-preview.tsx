@@ -1,4 +1,4 @@
-import { buildSeats, loungeTable, roomPlan, type SeatDef } from "./detail/study-space-seats"
+import { buildSeats, loungeTable, roomPlan, ROOM_SCALE as K, type SeatDef } from "./detail/study-space-seats"
 import type { StudySpaceKind } from "./study-spaces-records"
 
 type RoomPlanPreviewProps = {
@@ -31,23 +31,23 @@ export function RoomPlanPreview({ kind, capacity, className }: RoomPlanPreviewPr
         strokeWidth={0.18}
       />
 
-      {[-3.2, 3.2].map((x) => (
+      {[-3.2 * K, 3.2 * K].map((x) => (
         <rect key={x} x={x - 0.95} y={-d + 0.04} width={1.9} height={0.14} rx={0.04} fill="#bfe0f0" />
       ))}
-      <rect x={-w + 0.03} y={3.6} width={0.14} height={1.1} rx={0.04} fill="#a5854f" />
-      <rect x={5.05} y={-4.62} width={1.55} height={0.14} rx={0.04} fill="#e8eef2" />
-      {[0.6, -1.6].map((z) => (
+      <rect x={-w + 0.03} y={3.6 * K} width={0.14} height={1.1} rx={0.04} fill="#a5854f" />
+      <rect x={5.05 * K} y={-d + 0.38} width={1.55} height={0.14} rx={0.04} fill="#e8eef2" />
+      {[0.6 * K, -1.6 * K].map((z) => (
         <rect key={z} x={-w + 0.06} y={z - 1} width={0.45} height={2} rx={0.06} fill="#8a6d42" />
       ))}
 
-      <circle cx={-1.4} cy={-0.4} r={2.1} fill="#33415c" opacity={0.14} />
+      <circle cx={-1.4 * K} cy={-0.4 * K} r={2.1 * K} fill="#33415c" opacity={0.14} />
       <circle cx={loungeTable.x} cy={loungeTable.z} r={1.7} fill="#2f6b4f" opacity={0.2} />
       <circle cx={loungeTable.x} cy={loungeTable.z} r={0.72} fill="#8a6d42" />
 
       {[
-        [-6.2, -4.1],
-        [6.2, 4.3],
-        [1.9, 4.4],
+        [-6.2 * K, -4.1 * K],
+        [6.2 * K, 4.3 * K],
+        [1.9 * K, 4.4 * K],
       ].map(([x, z]) => (
         <circle key={`${x}-${z}`} cx={x} cy={z} r={0.26} fill="#3f7d4e" />
       ))}
