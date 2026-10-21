@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Users } from "lucide-react"
+import { Check, Minus, Plus, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,6 +19,7 @@ import {
   studySpaceKinds,
   type StudySpaceKind,
 } from "./study-spaces-records"
+import { RoomPlanPreview } from "./room-plan-preview"
 
 export type SpaceDraft = {
   name: string
@@ -36,7 +37,7 @@ type CreateSpaceDialogProps = {
 export function CreateSpaceDialog({ open, onOpenChange, onSubmit }: CreateSpaceDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <CreateSpaceForm
           key={open ? "create-space-open" : "create-space-closed"}
           onCancel={() => onOpenChange(false)}
@@ -120,47 +121,93 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
         <div role="radiogroup" aria-label="Room type" className="grid gap-2">
           <span className="text-sm font-medium text-slate-700">Room type</span>
           <div className="grid gap-2 sm:grid-cols-3">
-            {studySpaceKinds.map((kind) => (
-              <button
-                key={kind.value}
-                type="button"
-                role="radio"
-                aria-checked={draft.kind === kind.value}
-                onClick={() => setDraft((current) => ({ ...current, kind: kind.value }))}
-                className={`rounded-xl border p-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
-                  draft.kind === kind.value
-                    ? "border-blue-600 bg-blue-50"
-                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                }`}
-              >
-                <span className="block text-sm font-medium text-slate-900">{kind.label}</span>
-                <span className="mt-1 block text-xs leading-4 text-slate-600">{kind.description}</span>
-              </button>
-            ))}
+            {studySpaceKinds.map((kind) => {
+              const selected = draft.kind === kind.value
+              return (
+                <button
+                  key={kind.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setDraft((current) => ({ ...current, kind: kind.value }))}
+                  className={`rounded-xl border p-2.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 ${
+                    selected
+                      ? "border-emerald-700 bg-emerald-50/50"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <span className="relative block overflow-hidden rounded-lg border border-slate-200">
+                    <RoomPlanPreview
+                      kind={kind.value}
+                      capacity={maxSpaceCapacity}
+                      className="h-24 w-full"
+                    />
+                    {selected ? (
+                      <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-emerald-700 text-white shadow-sm">
+                        <Check className="size-3" aria-hidden="true" />
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mt-2 block text-sm font-medium text-slate-900">{kind.label}</span>
+                  <span className="mt-0.5 block text-xs leading-4 text-slate-600">{kind.description}</span>
+                  <span className="mt-1 block text-[11px] text-slate-500">
+                    Up to {maxSpaceCapacity} seats
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
         <Field data-invalid={capacityError !== null}>
-          <FieldLabel htmlFor="space-capacity" className="text-slate-700">
+          <span id="space-capacity-label" className="text-sm font-medium text-slate-700">
             Seats in the room
-          </FieldLabel>
-          <Input
-            id="space-capacity"
-            type="number"
-            min={minSpaceCapacity}
-            max={maxSpaceCapacity}
-            value={draft.capacity}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, capacity: Number(event.target.value) }))
-            }
-            aria-invalid={capacityError !== null}
-            aria-describedby="space-capacity-hint space-capacity-error"
-            className="w-28 border-slate-200 bg-slate-50"
-          />
-          <p id="space-capacity-hint" className="text-xs leading-5 text-slate-500">
-            {minSpaceCapacity}–{maxSpaceCapacity} seats. This sets how many desks or chairs appear in the room
-            preview.
-          </p>
+          </span>
+          <div className="flex items-center gap-3">
+            <div
+              role="group"
+              aria-labelledby="space-capacity-label"
+              aria-describedby="space-capacity-hint space-capacity-error"
+              className="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+            >
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Decrease seats"
+                disabled={draft.capacity <= minSpaceCapacity}
+                onClick={() =>
+                  setDraft((current) => ({ ...current, capacity: current.capacity - 1 }))
+                }
+              >
+                <Minus aria-hidden="true" />
+              </Button>
+              <output
+                aria-live="polite"
+                className="w-16 text-center text-sm font-medium tabular-nums text-slate-800"
+              >
+                {draft.capacity} seats
+              </output>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Increase seats"
+                disabled={draft.capacity >= maxSpaceCapacity}
+                onClick={() =>
+                  setDraft((current) => ({ ...current, capacity: current.capacity + 1 }))
+                }
+              >
+                <Plus aria-hidden="true" />
+              </Button>
+            </div>
+            <p id="space-capacity-hint" className="flex-1 text-xs leading-5 text-slate-500">
+              {minSpaceCapacity}–{maxSpaceCapacity} seats. The plan below shows the layout you will get.
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-slate-200">
+            <RoomPlanPreview kind={draft.kind} capacity={draft.capacity} className="h-36 w-full" />
+          </div>
           <FieldError id="space-capacity-error">{capacityError}</FieldError>
         </Field>
       </div>
@@ -169,7 +216,7 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="button" className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleSubmit}>
+        <Button type="button" className="bg-emerald-800 text-white hover:bg-emerald-700" onClick={handleSubmit}>
           <Users aria-hidden="true" />
           Create space
         </Button>

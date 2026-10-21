@@ -4,7 +4,7 @@ import { Html, OrbitControls } from "@react-three/drei"
 import { Spherical, type Group } from "three"
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib"
 import type { StudySpaceCharacter } from "../study-spaces-records"
-import { loungeTable, type SeatDef } from "./study-space-seats"
+import { loungeTable, roomPlan, type SeatDef } from "./study-space-seats"
 
 export type CameraResetHandle = {
   reset: () => void
@@ -24,7 +24,7 @@ export type SpaceRoomSceneProps = {
   onSeatSelect: (seatId: string) => void
 }
 
-const ROOM = { halfWidth: 7, halfDepth: 5, wallHeight: 3 }
+const ROOM = { ...roomPlan, wallHeight: 3 }
 const MOVE_MARGIN = 0.5
 const WALK_SPEED = 2.6
 const BASE_POLAR = Math.PI / 3

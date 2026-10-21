@@ -32,8 +32,8 @@ describe("study spaces create flow", () => {
 
     await user.type(within(dialog).getByLabelText("Space name"), "Exam Crew")
     await user.click(within(dialog).getByRole("radio", { name: /Focused desks/ }))
-    await user.clear(within(dialog).getByLabelText("Seats in the room"))
-    await user.type(within(dialog).getByLabelText("Seats in the room"), "6")
+    await user.click(within(dialog).getByRole("button", { name: "Increase seats" }))
+    await user.click(within(dialog).getByRole("button", { name: "Increase seats" }))
     await user.click(within(dialog).getByRole("button", { name: /Create space/ }))
 
     expect(screen.getByText("study room route")).toBeTruthy()

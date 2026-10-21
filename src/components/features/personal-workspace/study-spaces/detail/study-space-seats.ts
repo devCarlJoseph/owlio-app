@@ -1,5 +1,8 @@
 import type { StudySpaceKind } from "../study-spaces-records"
 
+// Shared with space-room-scene.tsx and the dialog floor-plan previews.
+export const roomPlan = { halfWidth: 7, halfDepth: 5 }
+
 export type StudyZone = "quiet" | "collaborative" | "reading" | "lounge"
 
 export type SeatFurniture = "desk" | "stool" | "armchair"
