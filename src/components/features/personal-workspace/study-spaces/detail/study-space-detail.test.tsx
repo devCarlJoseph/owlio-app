@@ -4,16 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpaceDetailView } from "./study-space-detail-view"
 import { studySpaceCharacterStoragePrefix } from "../study-spaces-records"
+import type { SpaceRoomSceneProps } from "./space-room-scene"
 
 vi.mock("./space-room-scene", () => ({
-  SpaceRoomScene: (props: {
-    character: { name: string }
-    showNameTag: boolean
-    bubbleText: string | null
-  }) => (
+  SpaceRoomScene: (props: SpaceRoomSceneProps) => (
     <div data-testid="room-scene">
       {props.showNameTag ? <span data-testid="name-tag">{props.character.name}</span> : null}
       {props.bubbleText ? <span data-testid="chat-bubble">{props.bubbleText}</span> : null}
+      {props.seats.map((seat) => (
+        <button key={seat.id} type="button" onClick={() => props.onSeatSelect(seat.id)}>
+          {seat.name}
+        </button>
+      ))}
     </div>
   ),
 }))
@@ -35,6 +37,13 @@ function renderAt(spaceId: string) {
 }
 
 const sampleSpaceId = "sample-space-physics"
+
+function seedCharacter(name = "Sam") {
+  window.localStorage.setItem(
+    `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
+    JSON.stringify({ name, bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+  )
+}
 
 describe("study space detail room", () => {
   it("shows a not-found state for an unknown space id", () => {
@@ -61,26 +70,21 @@ describe("study space detail room", () => {
   })
 
   it("remembers a saved character and skips the dialog", () => {
-    window.localStorage.setItem(
-      `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
-      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
-    )
+    seedCharacter()
 
     renderAt(sampleSpaceId)
 
     expect(screen.queryByRole("dialog")).toBeNull()
     expect(screen.getByTestId("name-tag").textContent).toBe("Sam")
-    expect(screen.getByRole("button", { name: /Edit character/ })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Edit character" })).toBeTruthy()
   })
 
   it("shows sent messages in the chat panel and as a bubble", async () => {
     const user = userEvent.setup()
-    window.localStorage.setItem(
-      `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
-      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
-    )
+    seedCharacter()
     renderAt(sampleSpaceId)
 
+    await user.click(screen.getByRole("button", { name: "Toggle chat" }))
     await user.type(screen.getByLabelText(/Message in/), "Anyone up for calculus review?")
     await user.click(screen.getByRole("button", { name: /Send/ }))
 
@@ -90,18 +94,64 @@ describe("study space detail room", () => {
     )
   })
 
+  it("lets the user choose a seat, sit down, and stand up", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    // sample-space-physics is collaborative: first seat is "Shared Table A".
+    await user.click(screen.getByRole("button", { name: "Shared Table A" }))
+
+    const seatDialog = screen.getByRole("dialog", { name: "Seat: Shared Table A" })
+    expect(seatDialog.textContent).toContain("Available")
+    expect(seatDialog.textContent).toContain("Collaborative tables")
+
+    await user.click(screen.getByRole("button", { name: "Sit here" }))
+
+    expect(screen.getByText(/Seated at Shared Table A/)).toBeTruthy()
+    expect(screen.queryByRole("dialog", { name: /Seat:/ })).toBeNull()
+
+    await user.click(screen.getByRole("button", { name: "Stand up" }))
+    expect(screen.queryByText(/Seated at/)).toBeNull()
+    expect(screen.getByText("Choose a seat in the room")).toBeTruthy()
+  })
+
   it("toggles name tags and labels the room as a local preview", async () => {
     const user = userEvent.setup()
-    window.localStorage.setItem(
-      `${studySpaceCharacterStoragePrefix}${sampleSpaceId}`,
-      JSON.stringify({ name: "Sam", bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
-    )
+    seedCharacter()
     renderAt(sampleSpaceId)
 
     expect(screen.getByText(/only you are in this room/)).toBeTruthy()
     expect(screen.getByTestId("name-tag")).toBeTruthy()
 
-    await user.click(screen.getByRole("button", { name: /Name tags/ }))
+    await user.click(screen.getByRole("button", { name: "Toggle name tags" }))
     expect(screen.queryByTestId("name-tag")).toBeNull()
+  })
+
+  it("opens the focus timer and starts a focus session", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: /Open focus timer/ }))
+    const panel = screen.getByRole("dialog", { name: "Focus timer" })
+    expect(panel.textContent).toContain("25:00")
+
+    await user.click(screen.getByRole("button", { name: /^Start$/ }))
+    expect(screen.getByText("Focusing…")).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Pause" })).toBeTruthy()
+  })
+
+  it("lists focus-music categories and marks file tracks as needing audio", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Focus music" }))
+    const panel = screen.getByRole("dialog", { name: "Focus music" })
+
+    expect(panel.textContent).toContain("Gentle Rain")
+    expect(panel.textContent).toContain("Deep Focus Pad")
+    expect(panel.textContent).toContain("needs an audio file")
   })
 })

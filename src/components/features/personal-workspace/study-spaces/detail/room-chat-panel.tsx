@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { cn } from "cn"
 import { MessageCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -14,9 +15,10 @@ export type RoomMessage = {
 type RoomChatPanelProps = {
   messages: RoomMessage[]
   onClose: () => void
+  className?: string
 }
 
-export function RoomChatPanel({ messages, onClose }: RoomChatPanelProps) {
+export function RoomChatPanel({ messages, onClose, className }: RoomChatPanelProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -26,7 +28,10 @@ export function RoomChatPanel({ messages, onClose }: RoomChatPanelProps) {
   return (
     <aside
       aria-label="Space chat"
-      className="absolute right-3 top-3 bottom-20 z-10 flex w-72 max-w-[85%] flex-col overflow-hidden rounded-xl border border-slate-700 bg-slate-900/95 shadow-lg backdrop-blur"
+      className={cn(
+        "flex w-72 max-w-[85%] flex-col overflow-hidden rounded-xl border border-slate-700 bg-slate-900/95 shadow-lg backdrop-blur",
+        className
+      )}
     >
       <div className="flex items-center justify-between gap-2 border-b border-slate-700 px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-medium text-slate-100">
