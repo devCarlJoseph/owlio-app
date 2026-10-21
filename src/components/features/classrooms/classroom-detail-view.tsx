@@ -69,7 +69,6 @@ export function ClassroomDetailView() {
   const [status, setStatus] = useState("")
   const [meetingError, setMeetingError] = useState("")
   const [creatingMeeting, setCreatingMeeting] = useState(false)
-  const [activeTab, setActiveTab] = useState("feed")
   const visibleTabItems = role === "educators" ? educatorTabItems : tabItems
   const classroom = classroomId ? getClassroom(classroomId) : undefined
   const isStudent = role === "students"
@@ -94,9 +93,18 @@ export function ClassroomDetailView() {
     ? new URL(`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`, window.location.origin).toString()
     : null
   const requestedTab = searchParams.get("tab")
-  const activeTab = tabItems.some((item) => item.value === requestedTab)
-    ? (requestedTab as (typeof tabItems)[number]["value"])
-    : "feed"
+  const activeTab = visibleTabItems.find((item) => item.value === requestedTab)?.value
+    ?? visibleTabItems[0].value
+  const selectTab = (tab: string) => {
+    if (!visibleTabItems.some((item) => item.value === tab)) return
+
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current)
+      if (tab === visibleTabItems[0].value) next.delete("tab")
+      else next.set("tab", tab)
+      return next
+    }, { replace: true })
+  }
 
   if (!classroom && classroomsLoading) {
     return <p role="status" className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading classroom…</p>
@@ -300,21 +308,11 @@ export function ClassroomDetailView() {
         </AlertDescription>
       </Alert>}
 
-<<<<<<< HEAD
       <Tabs
         value={activeTab}
-        onValueChange={(value) => {
-          const nextValue = String(value)
-          setSearchParams(
-            nextValue === "feed" ? {} : { tab: nextValue },
-            { replace: true },
-          )
-        }}
+        onValueChange={(value) => selectTab(String(value))}
         className="min-w-0"
       >
-=======
-      <Tabs value={activeTab} onValueChange={(value) => { if (typeof value === "string") setActiveTab(value) }} className="min-w-0">
->>>>>>> 7f4a951c269e8d2579fc8add8625e74dda8f9fe3
         <TabsList variant="line" className="w-full justify-start gap-1 overflow-x-auto border-b border-slate-200">
           {visibleTabItems.map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value} className="min-w-fit flex-none px-3">
@@ -393,7 +391,7 @@ export function ClassroomDetailView() {
                         </ul>
                       </>
                     )}
-                    <Button type="button" variant="ghost" size="sm" className="w-full justify-between" onClick={() => setActiveTab("media")}>View media <span aria-hidden="true">→</span></Button>
+                    <Button type="button" variant="ghost" size="sm" className="w-full justify-between" onClick={() => selectTab("media")}>View media <span aria-hidden="true">→</span></Button>
                   </CardContent>
                 </Card>
               </aside>

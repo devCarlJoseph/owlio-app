@@ -42,7 +42,7 @@ describe("classroom detail deep links", () => {
   it("falls back to the feed when the tab is unknown", async () => {
     renderDetail("/students/classrooms/biology-101?tab=not-a-tab")
 
-    const feedTab = await screen.findByRole("tab", { name: /Feed/ })
-    expect(feedTab.getAttribute("aria-selected")).toBe("true")
+    const discussionTab = await screen.findByRole("tab", { name: /Discussion/ })
+    expect(discussionTab.getAttribute("aria-selected")).toBe("true")
   })
 })
