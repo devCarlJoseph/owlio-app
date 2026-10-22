@@ -33,12 +33,14 @@ export type ClassroomPrototypeContextValue = {
   sendChatMessage: (classroomId: string, body: string, authorRole: "student" | "educator", replyTo?: ClassroomChatReplyRef) => void
   createActivity: (classroomId: string, input: CreateActivityInput) => string
   submitActivity: (classroomId: string, activityId: string, response: string, fileName?: string) => void
+  startActivityAttempt: (classroomId: string, activityId: string) => void
   reviewSubmission: (
     classroomId: string,
     activityId: string,
     submissionId: string,
     evaluation: string,
     feedback: string,
+    score?: number,
   ) => void
   markAttendance: (classroomId: string, sessionId: string, learnerId: string, status: AttendanceStatus) => void
   addSession: (classroomId: string, session: Omit<ClassroomSession, "id">) => void

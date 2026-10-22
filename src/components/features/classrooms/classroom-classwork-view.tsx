@@ -10,7 +10,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useClassroomPrototype } from "./classroom-prototype-context"
-import type { ActivityType, Classroom, QuestionType, WorkspaceRole } from "./classroom-types"
+import type { ActivityTiming, ActivityType, Classroom, QuestionType, WorkspaceRole } from "./classroom-types"
+import { QuizTimerSettings } from "./quiz-timer-settings"
+import { QuizTimingBadges } from "./quiz-timing-badges"
+import { parseTimingFields, type TimingFormResult } from "./quiz-timing"
 
 const activityTypes: ActivityType[] = [
   "Quiz",
@@ -44,6 +47,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
   const [activityType, setActivityType] = useState<ActivityType>("Assignment")
   const [questionType, setQuestionType] = useState<QuestionType>("Multiple choice")
   const [status, setStatus] = useState("")
+  const [timingErrors, setTimingErrors] = useState<TimingFormResult["errors"]>({})
   const isFormBased = activityType === "Quiz" || activityType === "Test"
   const mySubmitted = classroom.activities.filter((activity) => activity.submissions.some((item) => item.learnerId === "demo-learner")).length
   const toReview = classroom.activities.reduce((total, activity) => total + activity.submissions.filter((item) => item.status === "In review").length, 0)
@@ -65,6 +69,24 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
       .split(",")
       .map((option) => option.trim())
       .filter(Boolean)
+
+    let timing: ActivityTiming | undefined
+    if (isFormBased || form.get("timer-active")) {
+      const parsed = parseTimingFields({
+        duration: String(form.get("timer-duration") ?? ""),
+        opensAt: String(form.get("timer-opens") ?? ""),
+        closesAt: String(form.get("timer-closes") ?? ""),
+        autoSubmit: form.get("timer-auto-submit") === "on",
+      })
+      setTimingErrors(parsed.errors)
+      if (!parsed.timing) {
+        setStatus("Fix the timer settings before publishing.")
+        return
+      }
+      timing = parsed.timing
+    } else {
+      setTimingErrors({})
+    }
 
     if (isFormBased && !prompt) {
       setStatus("Add a question prompt before publishing this demo activity.")
@@ -88,10 +110,13 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
         prompt,
         options,
       }] : [],
+      timing,
+      showLeaderboard: isFormBased ? form.get("show-leaderboard") === "on" : undefined,
     })
     event.currentTarget.reset()
     setActivityType("Assignment")
     setQuestionType("Multiple choice")
+    setTimingErrors({})
     setShowCreate(false)
     setStatus("Demo classwork was published in this session only. It was not saved.")
   }
@@ -207,6 +232,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
                   </select>
                 </div>
               )}
+              <QuizTimerSettings required={isFormBased} isQuizOrTest={isFormBased} errors={timingErrors} />
               <div className="flex flex-wrap gap-2">
                 <Button type="submit">Publish demo activity</Button>
                 <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
@@ -232,6 +258,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
                       <h4 className="font-semibold text-slate-900">{activity.title}</h4>
                       <Badge variant="outline">{activity.type}</Badge>
                       <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>
+                      <QuizTimingBadges activity={activity} />
                     </div>
                     <p className="mt-1 line-clamp-2 text-sm text-slate-600">{activity.instructions}</p>
                     <p className="mt-1 text-xs text-slate-500">

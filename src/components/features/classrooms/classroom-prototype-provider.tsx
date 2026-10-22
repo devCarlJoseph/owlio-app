@@ -311,7 +311,20 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
           ),
         }))
       },
-      reviewSubmission: (classroomId, activityId, submissionId, evaluation, feedback) => {
+      startActivityAttempt: (classroomId, activityId) => {
+        updateClassroom(classroomId, (classroom) => ({
+          ...classroom,
+          activities: classroom.activities.map((activity) => activity.id !== activityId
+            || activity.attempts?.some((attempt) => attempt.learnerId === DEMO_LEARNER_ID)
+            ? activity
+            : {
+              ...activity,
+              attempts: [...(activity.attempts ?? []), { learnerId: DEMO_LEARNER_ID, startedAt: new Date().toISOString() }],
+            },
+          ),
+        }))
+      },
+      reviewSubmission: (classroomId, activityId, submissionId, evaluation, feedback, score) => {
         updateClassroom(classroomId, (classroom) => {
           const activity = classroom.activities.find((item) => item.id === activityId)
           const submission = activity?.submissions.find((item) => item.id === submissionId)
@@ -323,7 +336,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
               ? {
                 ...item,
                 submissions: item.submissions.map((record) => record.id === submissionId
-                  ? { ...record, status: "Returned", evaluation, feedback, released: true }
+                  ? { ...record, status: "Returned", evaluation, feedback, score, released: true }
                   : record,
                 ),
               }

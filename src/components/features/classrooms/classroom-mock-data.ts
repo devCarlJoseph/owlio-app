@@ -141,6 +141,8 @@ export const initialClassrooms: Classroom[] = [
         ],
         responseType: "Quiz",
         status: "Published",
+        timing: { durationMinutes: 10, autoSubmitOnTimeUp: true },
+        showLeaderboard: true,
         submissions: [
           {
             id: "biology-submission-demo",
@@ -151,6 +153,19 @@ export const initialClassrooms: Classroom[] = [
             status: "Returned",
             evaluation: "Complete · demo",
             feedback: "Good start. Review how energy moves through the food web.",
+            score: 8,
+            released: true,
+          },
+          {
+            id: "biology-submission-sam",
+            learnerId: "learner-sam",
+            learnerName: "Sam Patel",
+            response: "Example learner response shown for preview.",
+            submittedAt: "Today · demo",
+            status: "Returned",
+            evaluation: "Complete · demo",
+            feedback: "Great work.",
+            score: 9,
             released: true,
           },
           {
@@ -163,6 +178,33 @@ export const initialClassrooms: Classroom[] = [
             released: false,
           },
         ],
+      },
+      {
+        id: "biology-activity-timed-quiz",
+        title: "Food chain speed quiz",
+        type: "Quiz",
+        instructions: "Answer both questions before the timer ends. You can start only once.",
+        dueDate: "",
+        scoringNote: "Timed practice · demo only",
+        questions: [
+          {
+            id: "biology-timed-question-1",
+            type: "Multiple choice",
+            prompt: "Which organism is a producer?",
+            options: ["Grass", "Rabbit", "Fox"],
+          },
+          {
+            id: "biology-timed-question-2",
+            type: "True or false",
+            prompt: "Decomposers break down dead organisms.",
+            options: ["True", "False"],
+          },
+        ],
+        responseType: "Quiz",
+        status: "Published",
+        timing: { durationMinutes: 5, autoSubmitOnTimeUp: true },
+        showLeaderboard: false,
+        submissions: [],
       },
       {
         id: "biology-activity-project",

@@ -115,7 +115,20 @@ export type ClassroomSubmission = {
   status: "Submitted" | "In review" | "Returned"
   evaluation?: string
   feedback?: string
+  score?: number
   released: boolean
+}
+
+export type ActivityTiming = {
+  durationMinutes: number
+  opensAt?: string
+  closesAt?: string
+  autoSubmitOnTimeUp: boolean
+}
+
+export type ActivityAttempt = {
+  learnerId: string
+  startedAt: string
 }
 
 export type ClassroomActivity = {
@@ -129,6 +142,9 @@ export type ClassroomActivity = {
   responseType: "Text" | "File" | "Link" | "Quiz"
   status: "Published" | "Draft"
   submissions: ClassroomSubmission[]
+  timing?: ActivityTiming
+  showLeaderboard?: boolean
+  attempts?: ActivityAttempt[]
 }
 
 export type ClassroomProgressRecord = {
@@ -178,4 +194,6 @@ export type CreateActivityInput = {
   scoringNote: string
   responseType: ClassroomActivity["responseType"]
   questions: ActivityQuestion[]
+  timing?: ActivityTiming
+  showLeaderboard?: boolean
 }
