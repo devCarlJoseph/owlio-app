@@ -257,7 +257,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
           enrolledLearnerIds: classroom.enrolledLearnerIds.filter((id) => id !== memberId),
         }))
       },
-      sendChatMessage: (classroomId, body, authorRole) => {
+      sendChatMessage: (classroomId, body, authorRole, replyTo) => {
         if (!body.trim()) return
         updateClassroom(classroomId, (classroom) => ({
           ...classroom,
@@ -270,6 +270,7 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
               authorRole,
               body: body.trim(),
               createdAt: demoTime(),
+              replyTo,
             },
           ],
         }))

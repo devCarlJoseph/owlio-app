@@ -1,132 +1,157 @@
-import { useEffect, useRef, useState, type FormEvent } from "react"
-import { FileText, Hash, Send } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { FileText } from "lucide-react"
 import { useClassroomPrototype } from "./classroom-prototype-context"
-import type { Classroom, WorkspaceRole } from "./classroom-types"
+import type { Classroom, ClassroomChatMessage, ClassroomChatReplyRef, WorkspaceRole } from "./classroom-types"
 import { PersonAvatar } from "./classroom-ui"
 import { isYou } from "./classroom-utils"
+import { ChatComposer } from "./chat-composer"
+import { ChatHeader } from "./chat-header"
+import { ChatMessageBubble } from "./chat-message-bubble"
+import type { ReactionState } from "./discussion-reaction-data"
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { sendChatMessage } = useClassroomPrototype()
-  const [draft, setDraft] = useState("")
   const [status, setStatus] = useState("")
-  const listRef = useRef<HTMLOListElement>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const [reactions, setReactions] = useState<Record<string, ReactionState>>({})
+  const [replyingTo, setReplyingTo] = useState<ClassroomChatReplyRef | null>(null)
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const authorRole = role === "students" ? "student" : "educator"
   const educators = classroom.members.filter((member) => member.role === "educator")
   const students = classroom.members.filter((member) => member.role === "student")
+  const normalizedQuery = query.trim().toLowerCase()
+
+  const messages = useMemo(
+    () => normalizedQuery
+      ? classroom.chatMessages.filter((message) =>
+        `${message.body} ${message.authorName}`.toLowerCase().includes(normalizedQuery))
+      : classroom.chatMessages,
+    [classroom.chatMessages, normalizedQuery],
+  )
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
-  }, [classroom.chatMessages.length])
+    if (normalizedQuery) return
+    const list = listRef.current
+    list?.scrollTo({ top: list.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
+  }, [classroom.chatMessages.length, normalizedQuery])
 
-  const handleSend = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const message = draft.trim()
-    if (!message) return
-    sendChatMessage(classroom.id, message, authorRole)
-    setDraft("")
+  const toggleReaction = (messageId: string, emoji: string) => {
+    setReactions((current) => {
+      const state = current[messageId] ?? {}
+      const entry = state[emoji] ?? { count: 0, mine: false }
+      const next = entry.mine
+        ? { count: entry.count - 1, mine: false }
+        : { count: entry.count + 1, mine: true }
+      return { ...current, [messageId]: { ...state, [emoji]: next } }
+    })
+  }
+
+  const startReply = (message: ClassroomChatMessage) => {
+    setReplyingTo({
+      messageId: message.id,
+      authorName: message.authorName,
+      excerpt: message.body.replace(/\s+/g, " ").trim().slice(0, 120),
+    })
+  }
+
+  const jumpToMessage = (messageId: string) => {
+    if (normalizedQuery) {
+      setQuery("")
+      setSearchOpen(false)
+    }
+    requestAnimationFrame(() => {
+      document.getElementById(`chat-message-${messageId}`)?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      })
+    })
+    setHighlightedId(messageId)
+    window.setTimeout(() => setHighlightedId((current) => (current === messageId ? null : current)), 1600)
+  }
+
+  const handleSend = (body: string) => {
+    setQuery("")
+    sendChatMessage(classroom.id, body, authorRole, replyingTo ?? undefined)
+    setReplyingTo(null)
     setStatus("Message added for this preview session only. It was not delivered or saved.")
   }
 
   return (
-    <div className="grid h-[34rem] max-h-[75dvh] grid-rows-[minmax(0,1fr)] overflow-hidden rounded-xl border border-slate-200 bg-white lg:max-h-none lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
-      <aside aria-label="Chat members" className="hidden min-h-0 flex-col gap-4 overflow-y-auto border-r border-slate-100 p-4 lg:flex">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">Group</h3>
-          <div className="mt-2 flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">
-            <Hash aria-hidden="true" className="size-4" /> <span className="truncate">{classroom.name}</span>
-          </div>
+    <div className="grid h-[36rem] max-h-[80dvh] grid-rows-[minmax(0,1fr)] overflow-hidden rounded-xl border border-border bg-card lg:max-h-none lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <section aria-label={`${classroom.name} group chat`} className="flex min-h-0 min-w-0 flex-col">
+        <ChatHeader
+          classroom={classroom}
+          role={role}
+          searchOpen={searchOpen}
+          query={query}
+          onToggleSearch={() => {
+            setSearchOpen((current) => !current)
+            setQuery("")
+          }}
+          onQueryChange={setQuery}
+        />
+        <div
+          ref={listRef}
+          role="log"
+          aria-live="polite"
+          aria-label={`${classroom.name} group chat messages`}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-muted/30 px-4 py-5"
+        >
+          {messages.length === 0 ? (
+            <p className="m-auto max-w-sm text-center text-sm text-muted-foreground">
+              {normalizedQuery ? "No messages match your search." : "No messages yet. Start the class-only conversation."}
+            </p>
+          ) : (
+            <ol className="flex flex-col gap-1">
+              {messages.map((message, index) => (
+                <ChatMessageBubble
+                  key={message.id}
+                  message={message}
+                  mine={isYou(message.authorName)}
+                  showHeader={index === 0 || messages[index - 1].authorId !== message.authorId}
+                  highlighted={highlightedId === message.id}
+                  reactions={reactions[message.id] ?? {}}
+                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                  onReply={() => startReply(message)}
+                  onJumpToMessage={jumpToMessage}
+                />
+              ))}
+            </ol>
+          )}
         </div>
+        <p role="status" className="px-4 py-1 text-xs text-amber-800 empty:hidden">{status}</p>
+        <ChatComposer onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
+      </section>
+
+      <aside aria-label="Class info" className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-l border-border p-4 lg:flex">
+        <dl className="space-y-2 text-sm">
+          <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Class</dt><dd className="truncate text-right font-medium text-foreground">{classroom.subject}</dd></div>
+          <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Educator</dt><dd className="truncate text-right font-medium text-foreground">{classroom.instructorName}</dd></div>
+        </dl>
         {[{ label: "Educators", people: educators }, { label: "Students", people: students }].map(({ label, people }) => (
-          <div key={label}>
-            <h3 className="text-sm font-semibold text-slate-900">{label} <span className="font-normal text-slate-500">· {people.length}</span></h3>
+          <div key={label} className="border-t border-border pt-4">
+            <h3 className="text-sm font-semibold text-foreground">{label} <span className="font-normal text-muted-foreground">· {people.length}</span></h3>
             <ul className="mt-2 space-y-2">
               {people.map((member) => (
                 <li key={member.id} className="flex items-center gap-2.5">
                   <PersonAvatar name={member.name} size="sm" />
-                  <span className="truncate text-sm text-slate-700">{member.name}</span>
+                  <span className="truncate text-sm text-foreground/80">{member.name}</span>
                 </li>
               ))}
             </ul>
           </div>
         ))}
-      </aside>
-
-      <section aria-label={`${classroom.name} group chat`} className="flex min-h-0 min-w-0 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-          <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold text-slate-900">{classroom.name} group chat</h3>
-            <p className="text-xs text-slate-500">{classroom.members.length} members · only for this class</p>
-          </div>
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Preview · not synced</Badge>
-        </header>
-        <ol
-          ref={listRef}
-          aria-label={`${classroom.name} group chat messages`}
-          aria-live="polite"
-          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-5"
-        >
-          {classroom.chatMessages.length === 0 ? (
-            <li className="m-auto max-w-sm text-center text-sm text-slate-500">No messages yet. Start the class-only conversation.</li>
-          ) : classroom.chatMessages.map((message) => {
-            const mine = isYou(message.authorName)
-            return (
-              <li key={message.id} className={`flex max-w-[92%] gap-2.5 sm:max-w-[80%] ${mine ? "flex-row-reverse self-end" : "self-start"}`}>
-                <PersonAvatar name={message.authorName} size="sm" />
-                <div className={mine ? "text-right" : ""}>
-                  <p className="text-xs font-semibold text-slate-900">
-                    {message.authorName}
-                    <span className="ml-2 font-normal text-slate-500">{message.authorRole} · {message.createdAt}</span>
-                  </p>
-                  <p className={`mt-1 inline-block whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-left text-sm leading-5 ${mine ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-800"}`}>
-                    {message.body}
-                  </p>
-                </div>
-              </li>
-            )
-          })}
-        </ol>
-        {status && <p role="status" className="px-4 pb-2 text-xs text-amber-800">{status}</p>}
-        <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-slate-100 p-3">
-          <Label htmlFor="class-chat-message" className="sr-only">Message this class</Label>
-          <Input
-            id="class-chat-message"
-            value={draft}
-            onChange={(event) => setDraft(event.currentTarget.value)}
-            maxLength={1000}
-            placeholder="Type something to send…"
-            className="min-w-0 flex-1"
-          />
-          <Button type="submit" disabled={!draft.trim()} aria-label="Send class chat message">
-            <Send aria-hidden="true" /><span className="hidden sm:inline">Send</span>
-          </Button>
-        </form>
-      </section>
-
-      <aside aria-label="Class info" className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-l border-slate-100 p-4 lg:flex">
-        <div className="flex flex-col items-center text-center">
-          <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-blue-700 text-xl font-bold text-white">
-            {classroom.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
-          </span>
-          <p className="mt-3 text-sm font-semibold text-slate-900">{classroom.name}</p>
-          <p className="text-xs text-slate-500">{classroom.subject}</p>
-        </div>
-        <dl className="space-y-2 border-t border-slate-100 pt-4 text-sm">
-          <div className="flex justify-between gap-2"><dt className="text-slate-500">Educator</dt><dd className="truncate text-right font-medium text-slate-900">{classroom.instructorName}</dd></div>
-          <div className="flex justify-between gap-2"><dt className="text-slate-500">Members</dt><dd className="font-medium text-slate-900">{classroom.members.length}</dd></div>
-        </dl>
-        <div className="border-t border-slate-100 pt-4">
-          <h3 className="text-sm font-semibold text-slate-900">Attachments</h3>
+        <div className="border-t border-border pt-4">
+          <h3 className="text-sm font-semibold text-foreground">Shared files</h3>
           {classroom.materials.length === 0 ? (
-            <p className="mt-2 text-xs text-slate-500">No files shared yet.</p>
+            <p className="mt-2 text-xs text-muted-foreground">No files shared yet.</p>
           ) : (
             <ul className="mt-2 space-y-2">
               {classroom.materials.map((material) => (
-                <li key={material.id} className="flex items-center gap-2 text-sm text-slate-700">
-                  <FileText aria-hidden="true" className="size-4 shrink-0 text-blue-700" />
+                <li key={material.id} className="flex items-center gap-2 text-sm text-foreground/80">
+                  <FileText aria-hidden="true" className="size-4 shrink-0 text-primary" />
                   <span className="truncate">{material.title}</span>
                 </li>
               ))}

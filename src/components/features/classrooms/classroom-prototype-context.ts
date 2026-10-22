@@ -2,6 +2,7 @@ import { createContext, useContext } from "react"
 import type {
   AttendanceStatus,
   Classroom,
+  ClassroomChatReplyRef,
   ClassroomSession,
   CreateActivityInput,
   CreateClassroomInput,
@@ -29,7 +30,7 @@ export type ClassroomPrototypeContextValue = {
   requestMember: (classroomId: string, input: { name: string; email: string }, requestedByRole: "student" | "educator") => void
   resolveMemberRequest: (classroomId: string, requestId: string, decision: "accept" | "decline") => void
   removeMember: (classroomId: string, memberId: string) => void
-  sendChatMessage: (classroomId: string, body: string, authorRole: "student" | "educator") => void
+  sendChatMessage: (classroomId: string, body: string, authorRole: "student" | "educator", replyTo?: ClassroomChatReplyRef) => void
   createActivity: (classroomId: string, input: CreateActivityInput) => string
   submitActivity: (classroomId: string, activityId: string, response: string, fileName?: string) => void
   reviewSubmission: (

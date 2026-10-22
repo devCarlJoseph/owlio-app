@@ -37,6 +37,12 @@ export type ClassroomPost = {
   comments: ClassroomComment[]
 }
 
+export type ClassroomChatReplyRef = {
+  messageId: string
+  authorName: string
+  excerpt: string
+}
+
 export type ClassroomChatMessage = {
   id: string
   authorId: string
@@ -44,6 +50,7 @@ export type ClassroomChatMessage = {
   authorRole: "student" | "educator"
   body: string
   createdAt: string
+  replyTo?: ClassroomChatReplyRef
 }
 
 export type ClassroomMaterial = {

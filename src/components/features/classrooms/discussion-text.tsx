@@ -25,7 +25,7 @@ function renderLine(line: string): ReactNode[] {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="break-all rounded-sm underline underline-offset-2 outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+          className="break-all rounded-sm underline underline-offset-2 outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
         >
           {text}
         </a>
