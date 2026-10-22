@@ -1,4 +1,12 @@
-import { buildSeats, loungeTable, roomPlan, ROOM_SCALE as K, type SeatDef } from "./detail/study-space-seats"
+import {
+  buildSeats,
+  loungeTable,
+  meetingRoom,
+  roomPlan,
+  ROOM_SCALE as K,
+  workRug,
+  type SeatDef,
+} from "./detail/study-space-seats"
 import type { StudySpaceKind } from "./study-spaces-records"
 
 type RoomPlanPreviewProps = {
@@ -40,7 +48,18 @@ export function RoomPlanPreview({ kind, capacity, className }: RoomPlanPreviewPr
         <rect key={z} x={-w + 0.06} y={z - 1} width={0.45} height={2} rx={0.06} fill="#8a6d42" />
       ))}
 
-      <circle cx={-1.4 * K} cy={-0.4 * K} r={2.1 * K} fill="#33415c" opacity={0.14} />
+      <circle cx={workRug.x} cy={workRug.z} r={workRug.radius} fill="#33415c" opacity={0.14} />
+      <rect
+        x={meetingRoom.minX}
+        y={meetingRoom.minZ}
+        width={meetingRoom.maxX - meetingRoom.minX}
+        height={meetingRoom.maxZ - meetingRoom.minZ}
+        fill="#e6c78f"
+        stroke="#7aa7bd"
+        strokeWidth={0.18}
+        opacity={0.8}
+      />
+      <rect x={meetingRoom.table.x - 2.3} y={meetingRoom.table.z - 0.75} width={4.6} height={1.5} rx={0.1} fill="#a5854f" />
       <circle cx={loungeTable.x} cy={loungeTable.z} r={1.7} fill="#2f6b4f" opacity={0.2} />
       <circle cx={loungeTable.x} cy={loungeTable.z} r={0.72} fill="#8a6d42" />
 
@@ -62,6 +81,10 @@ export function RoomPlanPreview({ kind, capacity, className }: RoomPlanPreviewPr
 function SeatPlanMarker({ seat }: { seat: SeatDef }) {
   if (seat.furniture === "stool") {
     return <circle cx={seat.anchor.x} cy={seat.anchor.z} r={0.24} fill="#33415c" />
+  }
+
+  if (seat.furniture === "chair") {
+    return <rect x={seat.anchor.x - 0.25} y={seat.anchor.z - 0.25} width={0.5} height={0.5} rx={0.12} fill="#33415c" />
   }
 
   if (seat.furniture === "armchair") {

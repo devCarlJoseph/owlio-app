@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { getSampleRoster, SAMPLE_NAMES } from "./space-roster"
-import { buildSeats } from "./detail/study-space-seats"
+import { buildSeats, meetingRoom, roomPlan } from "./detail/study-space-seats"
 import { sampleCreatedSpaces, sampleJoinedSpaces, type StudySpaceRecord } from "./study-spaces-records"
 import { canManageTasks, canTickTask, createRoomTask, moveRoomTask, toggleRoomTask } from "./detail/room-tasks"
 import { parseYouTubeId, youTubeEmbedUrl } from "./detail/room-tv"
@@ -26,6 +26,34 @@ describe("sample roster", () => {
   it("seats at most three people in a four-seat space", () => {
     expect(essayWriters.capacity).toBe(4)
     expect(getSampleRoster(essayWriters, 4).length).toBeLessThanOrEqual(3)
+  })
+})
+
+describe("working and meeting areas", () => {
+  const inside = (seat: { sitPoint: { x: number; z: number } }) =>
+    seat.sitPoint.x > meetingRoom.minX &&
+    seat.sitPoint.x < meetingRoom.maxX &&
+    seat.sitPoint.z > meetingRoom.minZ &&
+    seat.sitPoint.z < meetingRoom.maxZ
+
+  it("keeps meeting seats inside the glass room and working seats outside it", () => {
+    for (const kind of ["focused", "collaborative", "lounge"] as const) {
+      for (const seat of buildSeats(kind, 8)) {
+        expect(Math.abs(seat.sitPoint.x)).toBeLessThan(roomPlan.halfWidth)
+        expect(Math.abs(seat.sitPoint.z)).toBeLessThan(roomPlan.halfDepth)
+        expect(inside(seat)).toBe(seat.zone === "meeting")
+      }
+    }
+  })
+
+  it("puts meeting chairs around the conference table in every room type", () => {
+    const meeting = buildSeats("collaborative", 8).filter((seat) => seat.zone === "meeting")
+    expect(meeting.length).toBeGreaterThanOrEqual(4)
+    meeting.forEach((seat) => {
+      expect(seat.furniture).toBe("chair")
+      expect(Math.abs(seat.sitPoint.z - meetingRoom.table.z)).toBeCloseTo(1.25)
+    })
+    expect(buildSeats("focused", 8).some((seat) => seat.zone === "meeting")).toBe(true)
   })
 })
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { buildSeats, loungeTable, roomPlan, ROOM_SCALE } from "./detail/study-space-seats"
+import { buildSeats, loungeTable, roomPlan, ROOM_SCALE, workRug } from "./detail/study-space-seats"
 import { TILE_ART_CX, TILE_ART_CY, TILE_H, TILE_W } from "./space-map-layout"
 import type { StudySpaceKind } from "./study-spaces-records"
 
@@ -138,7 +138,7 @@ export function SpaceMapArt({ kind, capacity, locked, className }: SpaceMapArtPr
       <polygon points={pts([west, south, thick(south), thick(west)])} fill="#262f45" />
       <polygon points={pts([south, east, thick(east), thick(south)])} fill="#33415c" />
       <polygon points={pts([north, east, south, west])} fill="#f3ead9" stroke="#a5854f" strokeWidth={3} strokeLinejoin="round" />
-      <polygon points={pts(circle(-1.4 * ROOM_SCALE, -0.4 * ROOM_SCALE, 2.1 * ROOM_SCALE))} fill="#33415c" opacity={0.14} />
+      <polygon points={pts(circle(workRug.x, workRug.z, workRug.radius))} fill="#33415c" opacity={0.14} />
       <polygon points={pts(circle(loungeTable.x, loungeTable.z, 1.7))} fill="#2f6b4f" opacity={0.28} />
       {buildItems(kind, capacity).map((item) => item.node)}
     </svg>

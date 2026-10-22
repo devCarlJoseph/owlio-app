@@ -8,7 +8,7 @@ import type { StudySpaceCharacter } from "../study-spaces-records"
 import { CharacterFigure, type FigureMode } from "./character-figure"
 import { DrawerCabinet, RadioSet, RoomTv, TaskWhiteboard } from "./room-extras"
 import type { RoomTask } from "./room-tasks"
-import { loungeTable, roomPlan, ROOM_SCALE, type SeatDef } from "./study-space-seats"
+import { loungeTable, meetingRoom, roomPlan, workRug, type SeatDef } from "./study-space-seats"
 
 export type CameraResetHandle = {
   reset: () => void
@@ -38,7 +38,6 @@ export type SpaceRoomSceneProps = {
 }
 
 const ROOM = { ...roomPlan, wallHeight: 3.2 }
-const K = ROOM_SCALE
 const MOVE_MARGIN = 0.5
 const WALK_SPEED = 2.8
 const BASE_POLAR = Math.PI / 3
@@ -132,8 +131,8 @@ export function SpaceRoomScene({
 
       <RoomShell onFloorClick={handleFloorClick} />
 
-      <TaskWhiteboard position={[8, 1.9, -ROOM.halfDepth + 0.12]} tasks={tasks} onOpen={onOpenTasks} />
-      <RoomTv position={[0, 1.95, -ROOM.halfDepth + 0.12]} hasVideo={tvHasVideo} onOpen={onOpenTv} />
+      <TaskWhiteboard position={[-0.2, 1.9, -ROOM.halfDepth + 0.12]} tasks={tasks} onOpen={onOpenTasks} />
+      <RoomTv position={[meetingRoom.table.x, 1.95, -ROOM.halfDepth + 0.12]} hasVideo={tvHasVideo} onOpen={onOpenTv} />
       <DrawerCabinet position={[-ROOM.halfWidth + 0.33, 0, 1.6]} open={drawerOpen} onToggle={onToggleDrawer} />
       <RadioSet
         position={[-6.75, 0.5, 4.95]}
@@ -276,20 +275,24 @@ function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: num
       <Skirting position={[0, 0.03, ROOM.halfDepth - 0.02]} size={[ROOM.halfWidth * 2, 0.06, 0.04]} />
       <Skirting position={[ROOM.halfWidth - 0.02, 0.03, 0]} size={[0.04, 0.06, ROOM.halfDepth * 2]} />
 
-      <WindowPane position={[-4.8, 1.9, backZ + 0.1]} />
-      <WindowPane position={[4.8, 1.9, backZ + 0.1]} />
-      <WindowPane position={[-9.6, 1.9, backZ + 0.1]} />
-      <WallClock position={[2.7, 2.5, backZ + 0.1]} />
-      <PinBoard position={[-2.6, 1.8, backZ + 0.1]} />
+      <WindowPane position={[-8.4, 1.9, backZ + 0.1]} />
+      <WindowPane position={[-5, 1.9, backZ + 0.1]} />
+      <WallClock position={[2.4, 2.6, backZ + 0.1]} />
+      <PinBoard position={[-2.9, 2.35, backZ + 0.1]} />
 
       <Bookshelf position={[leftX + 0.32, 0, -3.6]} />
       <Bookshelf position={[leftX + 0.32, 0, -1.2]} />
       <RoomDoor position={[leftX + 0.1, 0, 6.4]} />
 
-      <PendantLamp position={[-5.1, 0, -4.6]} />
-      <PendantLamp position={[0.9, 0, -4.6]} />
-      <PendantLamp position={[-2.1, 0, -0.6]} />
-      <PendantLamp position={[6.9, 0, 4.5]} />
+      <PendantLamp position={[-6.7, 0, -4.6]} />
+      <PendantLamp position={[-2.5, 0, -4.6]} />
+      <PendantLamp position={[workRug.x, 0, workRug.z]} />
+      <PendantLamp position={[meetingRoom.table.x, 0, meetingRoom.table.z]} />
+      <PendantLamp position={[loungeTable.x, 0, loungeTable.z]} />
+
+      <MeetingRoom />
+      <AreaSign position={[workRug.x, 0.1, 3.6]} label="Working area" tone="work" />
+      <AreaSign position={[(meetingRoom.minX + meetingRoom.maxX) / 2, 2.95, meetingRoom.maxZ]} label="Meeting room" tone="meeting" />
 
       <group position={[-6.75, 0, 4.95]}>
         <mesh position={[0, 0.45, 0]} castShadow>
@@ -333,15 +336,16 @@ function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: num
         <meshStandardMaterial color="#fef08a" />
       </mesh>
 
-      <mesh position={[-1.4 * K, 0.015, -0.4 * K]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[3.7, 40]} />
+      <mesh position={[workRug.x, 0.015, workRug.z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[workRug.radius, 40]} />
         <meshStandardMaterial color="#33415c" />
       </mesh>
 
       <Plant position={[-9.3, 0, -6.2]} />
       <Plant position={[9.3, 0, 6.4]} />
       <Plant position={[2.9, 0, 6.6]} />
-      <Plant position={[9.3, 0, -1.2]} />
+      <Plant position={[9.6, 0, 1.6]} />
+      <Plant position={[3.0, 0, 0.6]} />
     </group>
   )
 }
@@ -387,6 +391,7 @@ function SeatFurniture({
       {seat.furniture === "desk" ? <StudyDesk seatColor={seatColor} /> : null}
       {seat.furniture === "stool" ? <Stool seatColor={seatColor} /> : null}
       {seat.furniture === "armchair" ? <Armchair seatColor={seatColor} /> : null}
+      {seat.furniture === "chair" ? <MeetingChair seatColor={seatColor} /> : null}
 
       <mesh
         position={[0, 0.8, seat.furniture === "desk" ? 0.4 : 0]}
@@ -404,7 +409,7 @@ function SeatFurniture({
           onSelect(seat.id)
         }}
       >
-        <boxGeometry args={[1.6, 1.7, 1.6]} />
+        <boxGeometry args={seat.furniture === "chair" ? [1.1, 1.5, 1.1] : [1.6, 1.7, 1.6]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
@@ -473,6 +478,132 @@ function StudyDesk({ seatColor }: { seatColor: string }) {
         <meshStandardMaterial color="#334155" />
       </mesh>
     </group>
+  )
+}
+
+function MeetingChair({ seatColor }: { seatColor: string }) {
+  return (
+    <group>
+      <mesh position={[0, 0.44, 0]} castShadow>
+        <boxGeometry args={[0.5, 0.07, 0.5]} />
+        <meshStandardMaterial color={seatColor} />
+      </mesh>
+      <mesh position={[0, 0.75, -0.22]} castShadow>
+        <boxGeometry args={[0.5, 0.56, 0.06]} />
+        <meshStandardMaterial color={seatColor} />
+      </mesh>
+      <mesh position={[0, 0.22, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.42, 8]} />
+        <meshStandardMaterial color="#334155" />
+      </mesh>
+      <mesh position={[0, 0.03, 0]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.04, 5]} />
+        <meshStandardMaterial color="#334155" />
+      </mesh>
+    </group>
+  )
+}
+
+// Glass-walled meeting room with a conference table. Glass never blocks clicks, so the floor stays walkable.
+function MeetingRoom() {
+  const { minX, maxX, minZ, maxZ, table } = meetingRoom
+  const height = 2.7
+  const width = maxX - minX
+  const depth = maxZ - minZ
+  const centerX = (minX + maxX) / 2
+  const centerZ = (minZ + maxZ) / 2
+  const doorFrom = 4.1
+  const doorTo = 5.3
+  const frontPanels: [number, number][] = [
+    [minX, doorFrom],
+    [doorTo, maxX],
+  ]
+  const noRaycast = () => null
+
+  const pane = (key: string, position: [number, number, number], size: [number, number, number]) => (
+    <mesh key={key} position={position} raycast={noRaycast}>
+      <boxGeometry args={size} />
+      <meshStandardMaterial color="#bfe0f0" transparent opacity={0.16} roughness={0.1} depthWrite={false} />
+    </mesh>
+  )
+  const frame = (key: string, position: [number, number, number], size: [number, number, number]) => (
+    <mesh key={key} position={position} raycast={noRaycast}>
+      <boxGeometry args={size} />
+      <meshStandardMaterial color="#111827" />
+    </mesh>
+  )
+
+  return (
+    <group>
+      <mesh position={[centerX, 0.025, centerZ]} receiveShadow raycast={noRaycast}>
+        <boxGeometry args={[width, 0.05, depth]} />
+        <meshStandardMaterial color="#c98f4a" />
+      </mesh>
+
+      {frontPanels.map(([from, to]) =>
+        pane(`front-${from}`, [(from + to) / 2, height / 2, maxZ], [to - from, height, 0.03])
+      )}
+      {pane("right", [maxX, height / 2, centerZ], [0.03, height, depth])}
+      {pane("left", [minX, height / 2, centerZ], [0.03, height, depth])}
+
+      {[0, 1, 2, 3, 4].map((index) => {
+        const x = minX + (width / 4) * index
+        const z = minZ + (depth / 4) * index
+        return (
+          <group key={index}>
+            {frame(`post-front-${index}`, [x, height / 2, maxZ], [0.09, height, 0.09])}
+            {frame(`post-right-${index}`, [maxX, height / 2, z], [0.09, height, 0.09])}
+          </group>
+        )
+      })}
+      {frame("post-door-a", [doorFrom, height / 2, maxZ], [0.09, height, 0.09])}
+      {frame("post-door-b", [doorTo, height / 2, maxZ], [0.09, height, 0.09])}
+      {frame("rail-front-top", [centerX, height, maxZ], [width, 0.08, 0.08])}
+      {frame("rail-front-mid", [centerX, height * 0.5, maxZ], [width, 0.05, 0.05])}
+      {frame("rail-right-top", [maxX, height, centerZ], [0.08, 0.08, depth])}
+      {frame("rail-right-mid", [maxX, height * 0.5, centerZ], [0.05, 0.05, depth])}
+      {frame("rail-left-top", [minX, height, centerZ], [0.08, 0.08, depth])}
+
+      <group position={[table.x, 0, table.z]}>
+        <mesh position={[0, 0.74, 0]} castShadow>
+          <boxGeometry args={[4.6, 0.08, 1.5]} />
+          <meshStandardMaterial color="#d9a05b" />
+        </mesh>
+        {[
+          [-2.1, -0.6],
+          [2.1, -0.6],
+          [-2.1, 0.6],
+          [2.1, 0.6],
+        ].map(([x, z]) => (
+          <mesh key={`${x}-${z}`} position={[x, 0.37, z]}>
+            <boxGeometry args={[0.08, 0.74, 0.08]} />
+            <meshStandardMaterial color="#6d5634" />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+function AreaSign({
+  position,
+  label,
+  tone,
+}: {
+  position: [number, number, number]
+  label: string
+  tone: "work" | "meeting"
+}) {
+  return (
+    <Html position={position} center style={{ pointerEvents: "none" }} zIndexRange={[12, 0]}>
+      <span
+        className={`block rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide whitespace-nowrap shadow ${
+          tone === "meeting" ? "bg-sky-100/95 text-sky-900" : "bg-amber-100/95 text-amber-900"
+        }`}
+      >
+        {label}
+      </span>
+    </Html>
   )
 }
 
@@ -694,6 +825,8 @@ function SpaceCharacter({
   const groupRef = useRef<Group>(null)
   const modeRef = useRef<FigureMode>("idle")
   const [seated, setSeated] = useState(false)
+  // Fixed start position: a position prop that follows the target would teleport the character on every click.
+  const [start] = useState(target)
 
   useFrame((_, delta) => {
     const node = groupRef.current
@@ -728,7 +861,7 @@ function SpaceCharacter({
   const bubbleY = seated ? 2.05 : 2.3
 
   return (
-    <group ref={groupRef} position={[target.x, 0, target.z]}>
+    <group ref={groupRef} position={[start.x, 0, start.z]}>
       <CharacterFigure
         bodyColor={character.bodyColor}
         accentColor={character.accentColor}

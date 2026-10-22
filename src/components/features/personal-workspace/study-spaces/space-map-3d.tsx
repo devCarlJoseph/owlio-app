@@ -5,7 +5,7 @@ import { Color, type Group, type OrthographicCamera } from "three"
 import type { MapControls as MapControlsImpl } from "three-stdlib"
 import { Lock, Minus, Plus, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { buildSeats, loungeTable, ROOM_SCALE, type SeatDef } from "./detail/study-space-seats"
+import { buildSeats, loungeTable, ROOM_SCALE, workRug, type SeatDef } from "./detail/study-space-seats"
 import { getSampleRoster, type SamplePerson as RosterPerson } from "./space-roster"
 import { kindLabel, metaLine } from "./space-format"
 import { studySpacesLockedTooltip, type StudySpaceKind, type StudySpaceRecord } from "./study-spaces-records"
@@ -104,6 +104,21 @@ function Furniture({ seat, kind, locked }: { seat: SeatDef; kind: StudySpaceKind
         <mesh position={[0, 0.14, 0]}>
           <cylinderGeometry args={[0.19, 0.17, 0.28, 16]} />
           <meshStandardMaterial color={t(COLORS.navy)} roughness={0.8} />
+        </mesh>
+      </group>
+    )
+  }
+
+  if (seat.furniture === "chair") {
+    return (
+      <group position={[x * S, PLAT, z * S]} scale={FURN} rotation={[0, seat.furnitureRotationY, 0]}>
+        <mesh position={[0, 0.11, 0]}>
+          <boxGeometry args={[0.28, 0.22, 0.28]} />
+          <meshStandardMaterial color={t(COLORS.navy)} roughness={0.85} />
+        </mesh>
+        <mesh position={[0, 0.27, -0.12]}>
+          <boxGeometry args={[0.28, 0.3, 0.04]} />
+          <meshStandardMaterial color={t(COLORS.navyDark)} roughness={0.85} />
         </mesh>
       </group>
     )
@@ -283,8 +298,8 @@ function TileScene({
         ))}
       </mesh>
 
-      <mesh position={[-1.4 * ROOM_SCALE * S, PLAT + 0.005, -0.4 * ROOM_SCALE * S]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[2.1 * ROOM_SCALE * S, 32]} />
+      <mesh position={[workRug.x * S, PLAT + 0.005, workRug.z * S]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[workRug.radius * S, 32]} />
         <meshStandardMaterial color={t(COLORS.navy)} transparent opacity={0.14} />
       </mesh>
       <mesh position={[loungeTable.x * S, PLAT + 0.006, loungeTable.z * S]} rotation={[-Math.PI / 2, 0, 0]}>

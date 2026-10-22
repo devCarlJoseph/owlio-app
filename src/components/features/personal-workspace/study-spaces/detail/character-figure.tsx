@@ -56,15 +56,15 @@ export function CharacterFigure({
     let headY = 0
 
     if (mode === "walk") {
-      if (!reducedMotion) {
-        phase.current += delta * 9
-        const swing = Math.sin(phase.current)
-        legTarget = swing * 0.75
-        legTargetR = -swing * 0.75
-        armTarget = -swing * 0.6
-        armTargetR = swing * 0.6
-        bob = Math.abs(Math.cos(phase.current)) * 0.045
-      }
+      // Walking is the response to a click, so reduced motion keeps a gentler swing instead of none.
+      const amplitude = reducedMotion ? 0.45 : 1
+      phase.current += delta * 9
+      const swing = Math.sin(phase.current) * amplitude
+      legTarget = swing * 0.75
+      legTargetR = -swing * 0.75
+      armTarget = -swing * 0.6
+      armTargetR = swing * 0.6
+      bob = reducedMotion ? 0 : Math.abs(Math.cos(phase.current)) * 0.045
     } else if (mode === "seated") {
       drop = SEATED_DROP
       legTarget = -1.4
