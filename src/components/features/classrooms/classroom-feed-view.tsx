@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { Classroom, WorkspaceRole } from "./classroom-types"
 import { PersonAvatar } from "./classroom-ui"
-import { DiscussionComposer } from "./discussion-composer"
 import { DiscussionPost } from "./discussion-post"
 import type { ReactionState } from "./discussion-reaction-data"
 
@@ -19,7 +18,7 @@ export function ClassroomFeedView({
   role: WorkspaceRole
   onOpenMembers?: () => void
 }) {
-  const { createPost, addComment } = useClassroomPrototype()
+  const { addComment } = useClassroomPrototype()
   const authorRole = role === "students" ? "student" : "educator"
   const currentUserName = authorRole === "student" ? "You · demo learner" : "You · demo educator"
   const [newestFirst, setNewestFirst] = useState(true)
@@ -44,12 +43,6 @@ export function ClassroomFeedView({
     })
   }
 
-  const handlePost = (body: string) => {
-    createPost(classroom.id, { title: "", body, authorRole })
-    setNewestFirst(true)
-    setStatus("Comment added for this preview session only. It was not saved.")
-  }
-
   const handleReply = (postId: string, body: string) => {
     addComment(classroom.id, postId, body, authorRole)
     setStatus("Reply added for this preview session only. It was not saved.")
@@ -72,7 +65,7 @@ export function ClassroomFeedView({
 
         {posts.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="py-8 text-sm text-muted-foreground">No discussions in this classroom yet. Start one below.</CardContent>
+            <CardContent className="py-8 text-sm text-muted-foreground">No discussions in this classroom yet.</CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -91,15 +84,7 @@ export function ClassroomFeedView({
           </div>
         )}
 
-        <div className="sticky bottom-0 -mx-1 bg-gradient-to-t from-background via-background to-transparent px-1 pb-2 pt-4">
-          <DiscussionComposer
-            id="discussion-composer"
-            label="Write a comment for this classroom"
-            authorName={currentUserName}
-            onSubmit={handlePost}
-          />
-          <p className="mt-2 text-xs text-muted-foreground">Visible to members of this class in this preview only. Nothing here is saved to the server.</p>
-        </div>
+        <p className="text-xs text-muted-foreground">Replies are visible to members of this class in this preview only. Nothing here is saved to the server.</p>
       </section>
 
       <aside aria-label="Class participants">
