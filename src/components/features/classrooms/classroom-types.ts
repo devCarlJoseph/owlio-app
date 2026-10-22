@@ -15,12 +15,23 @@ export type ClassroomComment = {
   createdAt: string
 }
 
+export type MemberRequest = {
+  id: string
+  name: string
+  email: string
+  requestedBy: string
+  requestedByRole: "student" | "educator"
+  status: "pending" | "declined"
+}
+
 export type ClassroomPost = {
   id: string
   authorId: string
   authorName: string
   authorRole: "student" | "educator"
   kind: "announcement" | "discussion"
+  title?: string
+  views?: number
   body: string
   createdAt: string
   comments: ClassroomComment[]
@@ -134,6 +145,7 @@ export type Classroom = {
   meetingId: string | null
   access: "owner" | "student"
   members: ClassroomMember[]
+  memberRequests: MemberRequest[]
   enrolledLearnerIds: string[]
   posts: ClassroomPost[]
   chatMessages: ClassroomChatMessage[]

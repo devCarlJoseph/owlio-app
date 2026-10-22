@@ -25,6 +25,16 @@ export const initialClassrooms: Classroom[] = [
       { id: "learner-jordan", name: "Jordan Rivera", role: "student" },
       { id: "learner-sam", name: "Sam Patel", role: "student" },
     ],
+    memberRequests: [
+      {
+        id: "biology-request-riley",
+        name: "Riley Thompson",
+        email: "riley.thompson@example.com",
+        requestedBy: "Jordan Rivera",
+        requestedByRole: "student",
+        status: "pending",
+      },
+    ],
     enrolledLearnerIds: [DEMO_LEARNER_ID, "learner-jordan", "learner-sam"],
     posts: [
       {
@@ -33,6 +43,8 @@ export const initialClassrooms: Classroom[] = [
         authorName: "Morgan Chen",
         authorRole: "educator",
         kind: "announcement",
+        title: "Welcome to Biology 101",
+        views: 18,
         body: "Welcome to Biology 101. Use this class space for updates, questions, classwork, and resources. All content shown here is a preview.",
         createdAt: "Today · demo",
         comments: [
@@ -52,6 +64,8 @@ export const initialClassrooms: Classroom[] = [
         authorName: "Morgan Chen",
         authorRole: "educator",
         kind: "discussion",
+        title: "How do ecosystems stay balanced?",
+        views: 9,
         body: "What is one question you have about how ecosystems stay balanced?",
         createdAt: "Yesterday · demo",
         comments: [],
@@ -212,6 +226,7 @@ export const initialClassrooms: Classroom[] = [
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
       { id: "learner-taylor", name: "Taylor Morgan", role: "student" },
     ],
+    memberRequests: [],
     enrolledLearnerIds: [DEMO_LEARNER_ID, "learner-taylor"],
     posts: [],
     chatMessages: [],
@@ -254,6 +269,7 @@ export const initialClassrooms: Classroom[] = [
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
       { id: "learner-lee", name: "Lee Kim", role: "student" },
     ],
+    memberRequests: [],
     enrolledLearnerIds: [DEMO_LEARNER_ID, "learner-lee"],
     posts: [],
     chatMessages: [],

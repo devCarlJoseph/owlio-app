@@ -1,18 +1,26 @@
-import { useState, type FormEvent } from "react"
-import { LockKeyhole, Send } from "lucide-react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
+import { FileText, Hash, Send } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { Classroom, WorkspaceRole } from "./classroom-types"
+import { PersonAvatar } from "./classroom-ui"
+import { isYou } from "./classroom-utils"
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { sendChatMessage } = useClassroomPrototype()
   const [draft, setDraft] = useState("")
   const [status, setStatus] = useState("")
+  const listRef = useRef<HTMLOListElement>(null)
   const authorRole = role === "students" ? "student" : "educator"
+  const educators = classroom.members.filter((member) => member.role === "educator")
+  const students = classroom.members.filter((member) => member.role === "student")
+
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight })
+  }, [classroom.chatMessages.length])
 
   const handleSend = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -20,65 +28,112 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     if (!message) return
     sendChatMessage(classroom.id, message, authorRole)
     setDraft("")
-    setStatus("Demo message added to this class in this session only. It was not delivered or saved.")
+    setStatus("Message added for this preview session only. It was not delivered or saved.")
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b border-slate-100 bg-white">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <LockKeyhole aria-hidden="true" className="size-4 text-blue-700" />
-              {classroom.name} group chat
-            </CardTitle>
-            <CardDescription className="mt-1">A separate conversation for members of this class.</CardDescription>
+    <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white lg:h-[34rem] lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
+      <aside aria-label="Chat members" className="hidden min-h-0 flex-col gap-4 overflow-y-auto border-r border-slate-100 p-4 lg:flex">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">Group</h3>
+          <div className="mt-2 flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white">
+            <Hash aria-hidden="true" className="size-4" /> <span className="truncate">{classroom.name}</span>
+          </div>
+        </div>
+        {[{ label: "Educators", people: educators }, { label: "Students", people: students }].map(({ label, people }) => (
+          <div key={label}>
+            <h3 className="text-sm font-semibold text-slate-900">{label} <span className="font-normal text-slate-500">· {people.length}</span></h3>
+            <ul className="mt-2 space-y-2">
+              {people.map((member) => (
+                <li key={member.id} className="flex items-center gap-2.5">
+                  <PersonAvatar name={member.name} size="sm" />
+                  <span className="truncate text-sm text-slate-700">{member.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </aside>
+
+      <section aria-label={`${classroom.name} group chat`} className="flex min-h-[26rem] min-w-0 flex-col lg:min-h-0">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-semibold text-slate-900">{classroom.name} group chat</h3>
+            <p className="text-xs text-slate-500">{classroom.members.length} members · only for this class</p>
           </div>
           <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Preview · not synced</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="gap-0 p-0">
-        <p className="px-5 pt-4 text-xs leading-5 text-slate-500">
-          Messages stay scoped to this classroom in the preview. They are not saved or delivered to other people, devices, or sessions.
-        </p>
+        </header>
         <ol
-          aria-label={`${classroom.name} demo group chat messages`}
+          ref={listRef}
+          aria-label={`${classroom.name} group chat messages`}
           aria-live="polite"
-          className="flex max-h-[28rem] min-h-56 flex-col gap-3 overflow-y-auto px-4 py-5 sm:px-6"
+          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-5"
         >
           {classroom.chatMessages.length === 0 ? (
-            <li className="m-auto max-w-sm text-center text-sm text-slate-500">No demo messages yet. Start the class-only conversation.</li>
-          ) : classroom.chatMessages.map((message) => (
-            <li key={message.id} className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[78%] ${message.authorRole === authorRole && message.authorName.startsWith("You") ? "self-end bg-blue-600 text-white" : "self-start bg-slate-100 text-slate-800"}`}>
-              <p className={`text-xs font-semibold ${message.authorRole === authorRole && message.authorName.startsWith("You") ? "text-blue-50" : "text-slate-900"}`}>
-                {message.authorName}
-                <span className={`ml-2 font-normal ${message.authorRole === authorRole && message.authorName.startsWith("You") ? "text-blue-100" : "text-slate-500"}`}>
-                  {message.authorRole} · {message.createdAt}
-                </span>
-              </p>
-              <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-5">{message.body}</p>
-            </li>
-          ))}
+            <li className="m-auto max-w-sm text-center text-sm text-slate-500">No messages yet. Start the class-only conversation.</li>
+          ) : classroom.chatMessages.map((message) => {
+            const mine = isYou(message.authorName)
+            return (
+              <li key={message.id} className={`flex max-w-[88%] gap-2.5 ${mine ? "flex-row-reverse self-end" : "self-start"}`}>
+                <PersonAvatar name={message.authorName} size="sm" />
+                <div className={mine ? "text-right" : ""}>
+                  <p className="text-xs font-semibold text-slate-900">
+                    {message.authorName}
+                    <span className="ml-2 font-normal text-slate-500">{message.authorRole} · {message.createdAt}</span>
+                  </p>
+                  <p className={`mt-1 inline-block whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-left text-sm leading-5 ${mine ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-800"}`}>
+                    {message.body}
+                  </p>
+                </div>
+              </li>
+            )
+          })}
         </ol>
-        {status && <p role="status" className="px-5 pb-3 text-xs text-amber-800">{status}</p>}
-        <form onSubmit={handleSend} className="flex items-end gap-2 border-t border-slate-100 bg-slate-50 p-3 sm:p-4">
-          <div className="min-w-0 flex-1">
-            <Label htmlFor="class-chat-message" className="sr-only">Message this class</Label>
-            <Input
-              id="class-chat-message"
-              value={draft}
-              onChange={(event) => setDraft(event.currentTarget.value)}
-              maxLength={1000}
-              placeholder="Write a message to this class…"
-              aria-describedby="class-chat-note"
-            />
-            <p id="class-chat-note" className="mt-1 px-1 text-[11px] text-slate-500">Demo messages are cleared when this preview session ends.</p>
-          </div>
-          <Button type="submit" disabled={!draft.trim()} aria-label="Send demo class chat message">
+        {status && <p role="status" className="px-4 pb-2 text-xs text-amber-800">{status}</p>}
+        <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-slate-100 p-3">
+          <Label htmlFor="class-chat-message" className="sr-only">Message this class</Label>
+          <Input
+            id="class-chat-message"
+            value={draft}
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            maxLength={1000}
+            placeholder="Type something to send…"
+            className="min-w-0 flex-1"
+          />
+          <Button type="submit" disabled={!draft.trim()} aria-label="Send class chat message">
             <Send aria-hidden="true" /><span className="hidden sm:inline">Send</span>
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </section>
+
+      <aside aria-label="Class info" className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-l border-slate-100 p-4 lg:flex">
+        <div className="flex flex-col items-center text-center">
+          <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-blue-700 text-xl font-bold text-white">
+            {classroom.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+          </span>
+          <p className="mt-3 text-sm font-semibold text-slate-900">{classroom.name}</p>
+          <p className="text-xs text-slate-500">{classroom.subject}</p>
+        </div>
+        <dl className="space-y-2 border-t border-slate-100 pt-4 text-sm">
+          <div className="flex justify-between gap-2"><dt className="text-slate-500">Educator</dt><dd className="truncate text-right font-medium text-slate-900">{classroom.instructorName}</dd></div>
+          <div className="flex justify-between gap-2"><dt className="text-slate-500">Members</dt><dd className="font-medium text-slate-900">{classroom.members.length}</dd></div>
+        </dl>
+        <div className="border-t border-slate-100 pt-4">
+          <h3 className="text-sm font-semibold text-slate-900">Attachments</h3>
+          {classroom.materials.length === 0 ? (
+            <p className="mt-2 text-xs text-slate-500">No files shared yet.</p>
+          ) : (
+            <ul className="mt-2 space-y-2">
+              {classroom.materials.map((material) => (
+                <li key={material.id} className="flex items-center gap-2 text-sm text-slate-700">
+                  <FileText aria-hidden="true" className="size-4 shrink-0 text-blue-700" />
+                  <span className="truncate">{material.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
+    </div>
   )
 }

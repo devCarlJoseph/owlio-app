@@ -45,6 +45,17 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
   const [questionType, setQuestionType] = useState<QuestionType>("Multiple choice")
   const [status, setStatus] = useState("")
   const isFormBased = activityType === "Quiz" || activityType === "Test"
+  const mySubmitted = classroom.activities.filter((activity) => activity.submissions.some((item) => item.learnerId === "demo-learner")).length
+  const toReview = classroom.activities.reduce((total, activity) => total + activity.submissions.filter((item) => item.status === "In review").length, 0)
+  const nextDue = classroom.activities.map((activity) => activity.dueDate).filter(Boolean).sort()[0]
+  const stats = [
+    { label: "Total classwork", value: String(classroom.activities.length), tone: "bg-white" },
+    { label: "Next due", value: nextDue || "None", tone: "bg-white" },
+    isStudent
+      ? { label: "Submitted by you", value: `${mySubmitted} of ${classroom.activities.length}`, tone: "bg-indigo-50" }
+      : { label: "Awaiting review", value: String(toReview), tone: "bg-indigo-50" },
+    { label: "Status", value: classroom.activities.length ? "Published" : "No classwork", tone: "bg-blue-50" },
+  ]
 
   const handleCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -98,6 +109,15 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
           </Button>
         )}
       </div>
+
+      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map(({ label, value, tone }) => (
+          <div key={label} className={`rounded-2xl border border-slate-200 p-4 ${tone}`}>
+            <dt className="text-xs text-slate-500">{label}</dt>
+            <dd className="mt-1 text-lg font-semibold text-slate-900">{value}</dd>
+          </div>
+        ))}
+      </dl>
 
       <Alert className="border-amber-200 bg-amber-50 text-amber-900">
         <TriangleAlert aria-hidden="true" />

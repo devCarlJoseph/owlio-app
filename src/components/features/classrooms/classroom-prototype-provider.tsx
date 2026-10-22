@@ -45,6 +45,7 @@ function fromApiClassroom(record: ApiClassroom): Classroom {
     meetingId: record.meetingId,
     access: record.access,
     members,
+    memberRequests: [],
     enrolledLearnerIds: record.access === "student" ? [DEMO_LEARNER_ID] : [],
     posts: [],
     chatMessages: [],
@@ -57,25 +58,29 @@ function fromApiClassroom(record: ApiClassroom): Classroom {
   }
 }
 
-function buildPost(body: string): ClassroomPost {
+function buildPost(title: string, body: string, authorRole: "student" | "educator"): ClassroomPost {
+  const isStudent = authorRole === "student"
   return {
     id: newId("post"),
-    authorId: "demo-educator",
-    authorName: "You · demo educator",
-    authorRole: "educator",
-    kind: "announcement",
+    authorId: isStudent ? DEMO_LEARNER_ID : "demo-educator",
+    authorName: isStudent ? "You · demo learner" : "You · demo educator",
+    authorRole,
+    kind: isStudent ? "discussion" : "announcement",
+    title: title.trim() || undefined,
+    views: 0,
     body: body.trim(),
     createdAt: demoTime(),
     comments: [],
   }
 }
 
-function buildComment(body: string): ClassroomComment {
+function buildComment(body: string, authorRole: "student" | "educator"): ClassroomComment {
+  const isStudent = authorRole === "student"
   return {
     id: newId("comment"),
-    authorId: DEMO_LEARNER_ID,
-    authorName: "You · demo learner",
-    authorRole: "student",
+    authorId: isStudent ? DEMO_LEARNER_ID : "demo-educator",
+    authorName: isStudent ? "You · demo learner" : "You · demo educator",
+    authorRole,
     body: body.trim(),
     createdAt: demoTime(),
   }
@@ -192,18 +197,64 @@ export function ClassroomPrototypeProvider({ children }: { children: ReactNode }
       createMeetingLink: (classroomId, meetingId) => {
         updateClassroom(classroomId, (classroom) => ({ ...classroom, meetingId }))
       },
-      createPost: (classroomId, body) => {
+      createPost: (classroomId, { title, body, authorRole }) => {
         if (!body.trim()) return
-        updateClassroom(classroomId, (classroom) => ({ ...classroom, posts: [buildPost(body), ...classroom.posts] }))
+        updateClassroom(classroomId, (classroom) => ({
+          ...classroom,
+          posts: [buildPost(title, body, authorRole), ...classroom.posts],
+        }))
       },
-      addComment: (classroomId, postId, body) => {
+      addComment: (classroomId, postId, body, authorRole) => {
         if (!body.trim()) return
         updateClassroom(classroomId, (classroom) => ({
           ...classroom,
           posts: classroom.posts.map((post) => post.id === postId
-            ? { ...post, comments: [...post.comments, buildComment(body)] }
+            ? { ...post, comments: [...post.comments, buildComment(body, authorRole)] }
             : post,
           ),
+        }))
+      },
+      requestMember: (classroomId, { name, email }, requestedByRole) => {
+        if (!name.trim() || !email.trim()) return
+        updateClassroom(classroomId, (classroom) => ({
+          ...classroom,
+          memberRequests: [
+            ...classroom.memberRequests,
+            {
+              id: newId("request"),
+              name: name.trim(),
+              email: email.trim(),
+              requestedBy: requestedByRole === "student" ? "You · demo learner" : "You · demo educator",
+              requestedByRole,
+              status: "pending",
+            },
+          ],
+        }))
+      },
+      resolveMemberRequest: (classroomId, requestId, decision) => {
+        updateClassroom(classroomId, (classroom) => {
+          const request = classroom.memberRequests.find((item) => item.id === requestId)
+          if (!request || request.status !== "pending") return classroom
+          if (decision === "decline") {
+            return {
+              ...classroom,
+              memberRequests: classroom.memberRequests.map((item) => item.id === requestId ? { ...item, status: "declined" } : item),
+            }
+          }
+          const memberId = newId("learner")
+          return {
+            ...classroom,
+            memberRequests: classroom.memberRequests.filter((item) => item.id !== requestId),
+            members: [...classroom.members, { id: memberId, name: request.name, role: "student" }],
+            enrolledLearnerIds: [...classroom.enrolledLearnerIds, memberId],
+          }
+        })
+      },
+      removeMember: (classroomId, memberId) => {
+        updateClassroom(classroomId, (classroom) => ({
+          ...classroom,
+          members: classroom.members.filter((member) => member.id !== memberId),
+          enrolledLearnerIds: classroom.enrolledLearnerIds.filter((id) => id !== memberId),
         }))
       },
       sendChatMessage: (classroomId, body, authorRole) => {

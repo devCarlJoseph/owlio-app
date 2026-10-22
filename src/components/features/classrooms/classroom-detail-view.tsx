@@ -27,14 +27,11 @@ import { ClassroomChatView } from "./classroom-chat-view"
 import { ClassroomClassworkView } from "./classroom-classwork-view"
 import { ClassroomFeedView } from "./classroom-feed-view"
 import { useClassroomPrototype } from "./classroom-prototype-context"
-import {
-  ClassroomAttendanceView,
-  ClassroomMaterialsView,
-  ClassroomPeopleView,
-  ClassroomProgressView,
-  ClassroomScheduleView,
-} from "./classroom-records-view"
+import { ClassroomMembersView } from "./classroom-members-view"
 import type { WorkspaceRole } from "./classroom-types"
+import { UnderDevelopment } from "./classroom-ui"
+
+const underDevelopmentTabs = new Set(["materials", "schedule", "media", "files", "attendance", "progress"])
 
 const tabItems = [
   { value: "feed", label: "Discussion", icon: MessagesSquare },
@@ -50,6 +47,7 @@ const tabItems = [
 const educatorTabItems = [
   { value: "about", label: "About", icon: School },
   { value: "feed", label: "Discussion", icon: MessagesSquare },
+  { value: "chat", label: "Chat", icon: MessageCircle },
   { value: "people", label: "Members", icon: Users },
   { value: "schedule", label: "Events", icon: CalendarDays },
   { value: "media", label: "Media", icon: BookOpen },
@@ -345,59 +343,7 @@ export function ClassroomDetailView() {
           </div>
         </TabsContent>}
         <TabsContent value="feed" className="pt-4">
-          {role === "educators" ? (
-            <>
-            <Alert className="mb-5 border-amber-200 bg-amber-50 text-amber-900">
-              <School aria-hidden="true" />
-              <AlertTitle>{classroom.isMock ? "Classroom workflow preview" : "Connected classroom"}</AlertTitle>
-              <AlertDescription className="text-amber-800">
-                {classroom.isMock
-                  ? "This demo classroom and its content exist only in this app session."
-                  : "Class membership and meeting links are connected. Feed posts, classwork, attendance, schedule, and learner records are preview-only and are not saved."}
-              </AlertDescription>
-            </Alert>
-            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)]">
-              <div className="min-w-0"><ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} /></div>
-              <aside className="space-y-4" aria-label="Class information and recent media">
-                <Card>
-                  <CardContent className="space-y-3 p-5">
-                    <h2 className="text-base font-semibold text-slate-900">About</h2>
-                    <p className="text-sm leading-6 text-slate-600">{classroom.description || "No class description has been provided."}</p>
-                    <dl className="space-y-2 border-t border-slate-100 pt-3 text-sm">
-                      <div className="flex justify-between gap-2"><dt className="text-slate-500">Subject</dt><dd className="text-right font-medium text-slate-900">{classroom.subject}</dd></div>
-                      <div className="flex justify-between gap-2"><dt className="text-slate-500">Educator</dt><dd className="text-right font-medium text-slate-900">{classroom.instructorName}</dd></div>
-                    </dl>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="space-y-3 p-5">
-                    <div className="flex items-center justify-between gap-2">
-                      <h2 className="text-base font-semibold text-slate-900">Recent media</h2>
-                      {classroom.isMock && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>}
-                    </div>
-                    {classroom.materials.length === 0 ? (
-                      <p className="text-sm leading-5 text-slate-600">No media is available for this class. Classroom materials are not connected to a service yet.</p>
-                    ) : (
-                      <>
-                        {classroom.isMock && <p className="text-xs leading-5 text-amber-800">Preview metadata only; files are not hosted or saved.</p>}
-                        <ul className="grid grid-cols-2 gap-2">
-                          {classroom.materials.slice(0, 4).map((material) => (
-                            <li key={material.id} className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                              <BookOpen aria-hidden="true" className="size-5 text-blue-700" />
-                              <p className="mt-2 line-clamp-2 text-xs font-semibold leading-4 text-slate-800">{material.title}</p>
-                              <p className="mt-1 text-[11px] text-slate-500">{material.kind}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                    <Button type="button" variant="ghost" size="sm" className="w-full justify-between" onClick={() => selectTab("media")}>View media <span aria-hidden="true">→</span></Button>
-                  </CardContent>
-                </Card>
-              </aside>
-            </div>
-            </>
-          ) : <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} />}
+          <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} onOpenMembers={() => selectTab("people")} />
         </TabsContent>
         <TabsContent value="chat" className="pt-4">
           <ClassroomChatView classroom={classroom} role={role as WorkspaceRole} />
@@ -405,24 +351,14 @@ export function ClassroomDetailView() {
         <TabsContent value="classwork" className="pt-4">
           <ClassroomClassworkView classroom={classroom} role={role as WorkspaceRole} />
         </TabsContent>
-        {role === "educators" ? (
-          <>
-            <TabsContent value="media" className="pt-4"><ClassroomMaterialsView classroom={classroom} kindGroup="media" /></TabsContent>
-            <TabsContent value="files" className="pt-4"><ClassroomMaterialsView classroom={classroom} kindGroup="files" /></TabsContent>
-          </>
-        ) : <TabsContent value="materials" className="pt-4"><ClassroomMaterialsView classroom={classroom} /></TabsContent>}
         <TabsContent value="people" className="pt-4">
-          <ClassroomPeopleView classroom={classroom} />
+          <ClassroomMembersView classroom={classroom} role={role as WorkspaceRole} />
         </TabsContent>
-        <TabsContent value="schedule" className="pt-4">
-          <ClassroomScheduleView classroom={classroom} role={role as WorkspaceRole} />
-        </TabsContent>
-        <TabsContent value="attendance" className="pt-4">
-          <ClassroomAttendanceView classroom={classroom} role={role as WorkspaceRole} />
-        </TabsContent>
-        <TabsContent value="progress" className="pt-4">
-          <ClassroomProgressView classroom={classroom} role={role as WorkspaceRole} />
-        </TabsContent>
+        {visibleTabItems.filter(({ value }) => underDevelopmentTabs.has(value)).map(({ value, label }) => (
+          <TabsContent key={value} value={value} className="pt-4">
+            <UnderDevelopment title={label} />
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   )
