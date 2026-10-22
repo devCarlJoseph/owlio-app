@@ -309,11 +309,11 @@ export function ClassroomDetailView() {
       <Tabs
         value={activeTab}
         onValueChange={(value) => selectTab(String(value))}
-        className="min-w-0"
+        className="min-w-0 flex-col"
       >
-        <TabsList variant="line" className="w-full justify-start gap-1 overflow-x-auto border-b border-slate-200">
+        <TabsList variant="line" className="h-auto w-full max-w-full justify-start gap-1 overflow-x-auto border-b border-slate-200 p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleTabItems.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger key={value} value={value} className="min-w-fit flex-none px-3">
+            <TabsTrigger key={value} value={value} className="h-11 min-w-fit flex-none rounded-none px-3 after:inset-x-0 after:bottom-0 after:h-0.5">
               <Icon aria-hidden="true" className="size-4" /> {label}
             </TabsTrigger>
           ))}

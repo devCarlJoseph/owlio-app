@@ -32,7 +32,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
   }
 
   return (
-    <div className="grid overflow-hidden rounded-xl border border-slate-200 bg-white lg:h-[34rem] lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
+    <div className="grid h-[34rem] max-h-[75dvh] grid-rows-[minmax(0,1fr)] overflow-hidden rounded-xl border border-slate-200 bg-white lg:max-h-none lg:grid-cols-[14rem_minmax(0,1fr)_16rem]">
       <aside aria-label="Chat members" className="hidden min-h-0 flex-col gap-4 overflow-y-auto border-r border-slate-100 p-4 lg:flex">
         <div>
           <h3 className="text-sm font-semibold text-slate-900">Group</h3>
@@ -55,7 +55,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
         ))}
       </aside>
 
-      <section aria-label={`${classroom.name} group chat`} className="flex min-h-[26rem] min-w-0 flex-col lg:min-h-0">
+      <section aria-label={`${classroom.name} group chat`} className="flex min-h-0 min-w-0 flex-col">
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
           <div className="min-w-0">
             <h3 className="truncate text-base font-semibold text-slate-900">{classroom.name} group chat</h3>
@@ -74,7 +74,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
           ) : classroom.chatMessages.map((message) => {
             const mine = isYou(message.authorName)
             return (
-              <li key={message.id} className={`flex max-w-[88%] gap-2.5 ${mine ? "flex-row-reverse self-end" : "self-start"}`}>
+              <li key={message.id} className={`flex max-w-[92%] gap-2.5 sm:max-w-[80%] ${mine ? "flex-row-reverse self-end" : "self-start"}`}>
                 <PersonAvatar name={message.authorName} size="sm" />
                 <div className={mine ? "text-right" : ""}>
                   <p className="text-xs font-semibold text-slate-900">

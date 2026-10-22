@@ -112,9 +112,9 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
 
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map(({ label, value, tone }) => (
-          <div key={label} className={`rounded-2xl border border-slate-200 p-4 ${tone}`}>
+          <div key={label} className={`min-w-0 rounded-2xl border border-slate-200 p-3 sm:p-4 ${tone}`}>
             <dt className="text-xs text-slate-500">{label}</dt>
-            <dd className="mt-1 text-lg font-semibold text-slate-900">{value}</dd>
+            <dd className="mt-1 break-words text-base font-semibold text-slate-900 sm:text-lg">{value}</dd>
           </div>
         ))}
       </dl>
