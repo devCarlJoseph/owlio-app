@@ -14,12 +14,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { NoteComposerDialog } from "@/components/features/personal-workspace/notes/note-composer-dialog"
+import { NoteEditorDialog } from "@/components/features/personal-workspace/notes/note-editor-dialog"
 import {
   createNoteId,
   loadNotes,
   saveNotes,
-  type NoteDraft,
   type NoteRecord,
 } from "@/components/features/personal-workspace/notes/note-records"
 import { TaskComposerDialog } from "@/components/features/personal-workspace/tasks/task-composer-dialog"
@@ -94,7 +93,7 @@ export function SubjectDetailView() {
   const [notes, setNotes] = useState(() => loadNotes())
   const [tasks, setTasks] = useState(() => loadTasks())
   const [customizeOpen, setCustomizeOpen] = useState(false)
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [draftNote, setDraftNote] = useState<NoteRecord | null>(null)
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false)
   const [editingMilestone, setEditingMilestone] = useState<SubjectMilestone | null>(null)
@@ -228,26 +227,40 @@ export function SubjectDetailView() {
     setRemovalSnapshot(null)
   }
 
-  function handleAddNote(draft: NoteDraft) {
+  function openNoteComposer() {
     if (!subject) return
 
-    const subjectTag = getSubjectTag(subject)
-    const note: NoteRecord = {
+    const timestamp = new Date().toISOString()
+    setDraftNote({
       id: createNoteId(),
-      title: draft.title,
-      body: draft.body,
-      tags: [...new Set([...draft.tags, subjectTag])].sort(),
-      kind: draft.kind,
-      color: draft.color,
-      items: draft.items,
-      updatedAt: new Date().toISOString(),
+      title: "",
+      body: "",
+      labels: [getSubjectTag(subject)],
+      kind: "text",
+      color: "default",
+      items: [],
+      updatedAt: timestamp,
       pinned: false,
       archived: false,
       trashed: false,
+    })
+  }
+
+  function handleDraftNoteChange(updated: NoteRecord) {
+    setDraftNote(updated)
+  }
+
+  function handleDraftNoteCommit() {
+    if (!draftNote) return
+
+    const hasContent =
+      draftNote.title.trim().length > 0 || draftNote.body.trim().length > 0
+
+    if (hasContent) {
+      setNotes((current) => [draftNote, ...current])
     }
 
-    setNotes((current) => [note, ...current])
-    setNoteDialogOpen(false)
+    setDraftNote(null)
   }
 
   function handleAddTask(draft: TaskDraft) {
@@ -474,7 +487,7 @@ export function SubjectDetailView() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setNoteDialogOpen(true)}
+                  onClick={openNoteComposer}
                   className={theme.soft}
                 >
                   <Plus aria-hidden="true" />
@@ -695,12 +708,17 @@ export function SubjectDetailView() {
         onOpenChange={setCongratsOpen}
       />
 
-      <NoteComposerDialog
-        open={noteDialogOpen}
-        note={null}
-        initialTags={[getSubjectTag(subject)]}
-        onOpenChange={setNoteDialogOpen}
-        onSubmit={handleAddNote}
+      <NoteEditorDialog
+        note={draftNote}
+        isNew={draftNote !== null}
+        onOpenChange={(open) => {
+          if (!open) setDraftNote(null)
+        }}
+        onChange={handleDraftNoteChange}
+        onCommit={handleDraftNoteCommit}
+        onTogglePin={() => undefined}
+        onArchive={() => undefined}
+        onDelete={() => undefined}
       />
 
       <TaskComposerDialog

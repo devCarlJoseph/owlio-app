@@ -1,9 +1,10 @@
-import { Hash, Pin } from "lucide-react"
+import { Pin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { NoteCardMenu } from "./note-card-menu"
 import type { NoteCardActions } from "./note-card-actions"
-import { getNoteColorMeta, getNoteTags, getNoteTitle, type NoteRecord } from "./note-records"
+import { NoteLabels } from "./note-labels"
+import { getNoteColorMeta, getNoteTitle, type NoteRecord } from "./note-records"
 
 const timestampFormatter = new Intl.DateTimeFormat(undefined, {
   day: "2-digit",
@@ -16,49 +17,6 @@ function formatNoteTimestamp(value: string): string {
   const parsed = new Date(value)
   if (Number.isNaN(parsed.getTime())) return "Just now"
   return timestampFormatter.format(parsed)
-}
-
-function NoteTagChips({
-  note,
-  activeTag,
-  onSelectTag,
-  max,
-}: {
-  note: NoteRecord
-  activeTag: string | null
-  onSelectTag: (tag: string) => void
-  max: number
-}) {
-  const tags = getNoteTags(note)
-
-  if (tags.length === 0) return null
-
-  return (
-    <ul className="flex flex-wrap gap-1.5">
-      {tags.slice(0, max).map((tag) => (
-        <li key={tag}>
-          <button
-            type="button"
-            onClick={() => onSelectTag(tag)}
-            aria-pressed={activeTag === tag}
-            className={`inline-flex items-center gap-0.5 rounded-4xl px-1.5 py-0.5 text-[11px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
-              activeTag === tag
-                ? "bg-slate-800 text-white"
-                : "bg-white/70 text-slate-600 hover:bg-white hover:text-slate-900"
-            }`}
-          >
-            <Hash className="size-2.5" aria-hidden="true" />
-            {tag}
-          </button>
-        </li>
-      ))}
-      {tags.length > max ? (
-        <li className="inline-flex items-center rounded-4xl bg-white/70 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
-          +{tags.length - max}
-        </li>
-      ) : null}
-    </ul>
-  )
 }
 
 function NoteChecklistPreview({
@@ -98,11 +56,10 @@ function NoteChecklistPreview({
 type NoteCardProps = {
   note: NoteRecord
   variant: "grid" | "list"
-  activeTag: string | null
   actions: NoteCardActions
 }
 
-export function NoteCard({ note, variant, activeTag, actions }: NoteCardProps) {
+export function NoteCard({ note, variant, actions }: NoteCardProps) {
   const colorMeta = getNoteColorMeta(note.color)
   const title = note.title.trim()
   const doneItems = note.items.filter((item) => item.done).length
@@ -131,12 +88,7 @@ export function NoteCard({ note, variant, activeTag, actions }: NoteCardProps) {
             </p>
           </div>
 
-          <NoteTagChips
-            note={note}
-            activeTag={activeTag}
-            onSelectTag={actions.onSelectTag}
-            max={2}
-          />
+          <NoteLabels labels={note.labels} onLabelClick={actions.onSelectTag} max={2} />
 
           <span className="hidden shrink-0 items-center gap-1 text-[11px] text-slate-500 sm:flex">
             {note.pinned ? <Pin aria-hidden="true" className="size-3" /> : null}
@@ -147,7 +99,6 @@ export function NoteCard({ note, variant, activeTag, actions }: NoteCardProps) {
             note={note}
             onEdit={actions.onEdit}
             onTogglePin={actions.onTogglePin}
-            onDuplicate={actions.onDuplicate}
             onArchive={actions.onArchive}
             onDelete={actions.onDelete}
           />
@@ -181,7 +132,6 @@ export function NoteCard({ note, variant, activeTag, actions }: NoteCardProps) {
             note={note}
             onEdit={actions.onEdit}
             onTogglePin={actions.onTogglePin}
-            onDuplicate={actions.onDuplicate}
             onArchive={actions.onArchive}
             onDelete={actions.onDelete}
           />
@@ -200,12 +150,7 @@ export function NoteCard({ note, variant, activeTag, actions }: NoteCardProps) {
         )}
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
-          <NoteTagChips
-            note={note}
-            activeTag={activeTag}
-            onSelectTag={actions.onSelectTag}
-            max={2}
-          />
+          <NoteLabels labels={note.labels} onLabelClick={actions.onSelectTag} max={2} />
 
           <span className="flex shrink-0 items-center gap-1 text-[11px] text-slate-500">
             {note.pinned ? <Pin aria-hidden="true" className="size-3" /> : null}

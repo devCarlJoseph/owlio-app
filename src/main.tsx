@@ -25,6 +25,9 @@ import StudentStudySpacesPage from "@/pages/dashboard/students/study-spaces";
 import StudentClassworkPage from "@/pages/dashboard/students/classwork";
 import StudentMaterialsPage from "@/pages/dashboard/students/materials";
 import StudentPersonalMaterialsPage from "@/pages/dashboard/students/materials/personal";
+import StudentPersonalMaterialSubjectPage from "@/pages/dashboard/students/materials/personal/subject";
+import StudentClassroomMaterialSubjectPage from "@/pages/dashboard/students/materials/classroom/subject";
+import StudentStudySpaceMaterialSubjectPage from "@/pages/dashboard/students/materials/study-spaces/subject";
 import StudentClassroomMaterialsPage from "@/pages/dashboard/students/materials/classroom";
 import StudentStudySpaceMaterialsPage from "@/pages/dashboard/students/materials/study-spaces";
 import EducatorClassworkPage from "@/pages/dashboard/educators/classwork";
@@ -119,6 +122,9 @@ createRoot(document.getElementById("root")!).render(
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="materials" element={<StudentMaterialsPage />} />
             <Route path="materials/personal" element={<StudentPersonalMaterialsPage />} />
+            <Route path="materials/personal/:subject" element={<StudentPersonalMaterialSubjectPage />} />
+            <Route path="materials/classroom/:subject" element={<StudentClassroomMaterialSubjectPage />} />
+            <Route path="materials/study-spaces/:subject" element={<StudentStudySpaceMaterialSubjectPage />} />
             <Route path="materials/classroom" element={<StudentClassroomMaterialsPage />} />
             <Route path="materials/study-spaces" element={<StudentStudySpaceMaterialsPage />} />
             <Route path="communication" element={<CommunicationPage />} />

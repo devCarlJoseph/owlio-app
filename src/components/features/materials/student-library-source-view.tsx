@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { ChevronLeft, FolderOpen, Info } from "lucide-react"
+import { ChevronLeft, ChevronRight, FolderOpen, Info } from "lucide-react"
 import { Link } from "react-router"
 import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +13,9 @@ import {
   groupLibraryResources,
   librarySourceMeta,
   libraryStorageNotice,
+  librarySubjectPreviewLimit,
   previewLibraryResources,
+  slugifyLibraryContext,
 } from "./library-records"
 import type { LibrarySource } from "./library-types"
 
@@ -64,7 +66,12 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         </ol>
       </nav>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <section
+        className={cn(
+          "rounded-2xl border p-6 shadow-sm sm:p-8",
+          meta.headerClassName,
+        )}
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <Badge variant="outline" className={meta.badgeClassName}>
@@ -74,7 +81,6 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
               {meta.label}
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{meta.description}</p>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">{meta.ownerNote}</p>
           </div>
 
           <span
@@ -124,7 +130,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         </p>
       </section>
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+      <Card className={cn("shadow-sm ring-0", meta.panelClassName)}>
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -149,25 +155,54 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
           {resources.length > 0 ? (
             <div className="space-y-6">
               {groups.map((group) => {
-                const groupId = `group-${source}-${group.context
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-")
-                  .replace(/^-|-$/g, "")}`
+                const groupId = `group-${source}-${slugifyLibraryContext(group.context)}`
+                const subjectHref = `${meta.libraryHref}/${slugifyLibraryContext(group.context)}`
+                const visibleItems =
+                  group.items.length > librarySubjectPreviewLimit
+                    ? group.items.slice(0, librarySubjectPreviewLimit)
+                    : group.items
+                const hiddenCount = group.items.length - visibleItems.length
 
                 return (
                   <section key={group.context} aria-labelledby={groupId}>
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h4 id={groupId} className="text-sm font-semibold text-slate-900">
-                        {group.context}
+                        <Link
+                          to={subjectHref}
+                          className={cn(
+                            "rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+                            meta.linkClassName,
+                          )}
+                        >
+                          {group.context}
+                        </Link>
                       </h4>
-                      <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
-                        {group.items.length}{" "}
-                        {group.items.length === 1 ? "resource" : "resources"}
-                      </Badge>
+
+                      <span className="group/count relative inline-flex items-center gap-1">
+                        <Badge
+                          variant="outline"
+                          className="border-slate-200 bg-white/70 text-slate-600"
+                        >
+                          {group.items.length}{" "}
+                          {group.items.length === 1 ? "resource" : "resources"}
+                        </Badge>
+
+                        {hiddenCount > 0 ? (
+                          <>
+                            <ChevronRight aria-hidden="true" className="size-4 text-slate-500" />
+                            <span
+                              role="tooltip"
+                              className="pointer-events-none absolute bottom-full right-0 z-10 mb-1 rounded-md bg-slate-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/count:opacity-100"
+                            >
+                              Show more
+                            </span>
+                          </>
+                        ) : null}
+                      </span>
                     </div>
 
                     <ul className="mt-3 grid gap-4 lg:grid-cols-2">
-                      {group.items.map((resource) => (
+                      {visibleItems.map((resource) => (
                         <li key={resource.id}>
                           <ResourceCard resource={resource} />
                         </li>

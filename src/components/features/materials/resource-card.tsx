@@ -1,8 +1,8 @@
 import { Lock } from "lucide-react"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { libraryKindIcons, librarySourceMeta } from "./library-records"
-import { ResourceContextLink } from "./resource-context-link"
 import type { LibraryResource } from "./library-types"
 
 type ResourceCardProps = {
@@ -18,7 +18,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     <Card
       className={
         isAvailable
-          ? "border border-slate-200 bg-white shadow-sm ring-0"
+          ? "group/resource relative h-full border border-slate-200 bg-white shadow-sm ring-0 transition hover:border-slate-300 hover:shadow-md motion-reduce:transition-none"
           : "border border-dashed border-slate-300 bg-slate-50/60 shadow-none ring-0"
       }
     >
@@ -38,7 +38,16 @@ export function ResourceCard({ resource }: ResourceCardProps) {
 
           <div className="min-w-0 flex-1">
             <h4 className="text-sm font-semibold text-slate-900">
-              {isAvailable ? resource.title : "Resource unavailable"}
+              {isAvailable ? (
+                <Link
+                  to={resource.contextHref}
+                  className="rounded outline-none after:absolute after:inset-0 after:content-[''] hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  {resource.title}
+                </Link>
+              ) : (
+                "Resource unavailable"
+              )}
             </h4>
             <p className="mt-0.5 text-xs text-slate-500">
               {sourceMeta.shortLabel} · {resource.context}
@@ -58,24 +67,12 @@ export function ResourceCard({ resource }: ResourceCardProps) {
             : "This resource is not available in your account right now. Open the context that owns it to see what is shared with you."}
         </p>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="min-w-0">
-            {isAvailable ? (
-              <>
-                <p className="text-xs text-slate-500">
-                  {resource.owner}
-                  {resource.updated ? ` · ${resource.updated}` : ""}
-                </p>
-                <Badge variant="secondary" className={`mt-1.5 ${sourceMeta.badgeClassName}`}>
-                  {sourceMeta.ownerLabel}
-                </Badge>
-              </>
-            ) : (
-              <p className="text-xs text-slate-500">No details are shown for resources you cannot open.</p>
-            )}
-          </div>
-
-          <ResourceContextLink href={resource.contextHref} label={resource.contextAction} />
+        <div className="border-t border-slate-100 pt-3">
+          <p className="text-xs text-slate-500">
+            {isAvailable
+              ? `${resource.owner}${resource.updated ? ` · ${resource.updated}` : ""}`
+              : "No details are shown for resources you cannot open."}
+          </p>
         </div>
       </CardContent>
     </Card>

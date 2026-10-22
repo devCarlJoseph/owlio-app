@@ -338,9 +338,9 @@ describe("SubjectDetailView", () => {
     await user.click(await screen.findByRole("button", { name: "Add note" }))
 
     const dialog = await screen.findByRole("dialog")
-    await user.type(within(dialog).getByLabelText(/Title/), "Quadratic forms")
-    await user.type(within(dialog).getByLabelText("Note"), "Completing the square")
-    await user.click(within(dialog).getByRole("button", { name: "Save note" }))
+    await user.type(within(dialog).getByLabelText("Note title"), "Quadratic forms")
+    await user.type(within(dialog).getByLabelText("Note content"), "Completing the square")
+    await user.click(within(dialog).getByRole("button", { name: "Done" }))
 
     expect(await screen.findByText("Quadratic forms")).toBeTruthy()
     expect(window.localStorage.getItem(notesStorageKey)).toContain("mathematics")

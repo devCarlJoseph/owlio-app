@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, Copy, MoreVertical, Pencil, Pin, PinOff, Trash } from "lucide-react"
+import { Archive, ArchiveRestore, MoreVertical, Pencil, Pin, PinOff, Trash } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,7 +13,6 @@ type NoteCardMenuProps = {
   note: NoteRecord
   onEdit: (note: NoteRecord) => void
   onTogglePin: (note: NoteRecord) => void
-  onDuplicate: (note: NoteRecord) => void
   onArchive: (note: NoteRecord) => void
   onDelete: (note: NoteRecord) => void
 }
@@ -22,7 +21,6 @@ export function NoteCardMenu({
   note,
   onEdit,
   onTogglePin,
-  onDuplicate,
   onArchive,
   onDelete,
 }: NoteCardMenuProps) {
@@ -51,11 +49,6 @@ export function NoteCardMenu({
         <DropdownMenuItem onClick={() => onTogglePin(note)}>
           {note.pinned ? <PinOff aria-hidden="true" /> : <Pin aria-hidden="true" />}
           {note.pinned ? "Unpin from top" : "Pin to top"}
-        </DropdownMenuItem>
-
-        <DropdownMenuItem onClick={() => onDuplicate(note)}>
-          <Copy aria-hidden="true" />
-          Duplicate
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

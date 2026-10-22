@@ -77,7 +77,7 @@ export type SubjectNoteLink = {
   id: string
   title: string
   body: string
-  tags: string[]
+  labels: string[]
 }
 
 export type SubjectTaskLink = {
@@ -575,7 +575,7 @@ export function notesForSubject(
   const codeKey = normalizeSubjectKey(subject.code)
 
   return notes.filter((note) =>
-    note.tags.some((tag) => {
+    note.labels.some((tag) => {
       const tagKey = normalizeSubjectKey(tag)
       if (tagKey.length < 3) return false
 

@@ -10,8 +10,8 @@ type NoteListProps = {
   totalCount: number
   variant: "grid" | "list"
   bucket: NoteBucket
-  activeTag: string | null
   query: string
+  activeTag: string | null
   actions: NoteCardActions
   onCreate: () => void
   onClearFilters: () => void
@@ -142,7 +142,7 @@ export function NoteList({
         >
           {notes.map((note) => (
             <li key={note.id}>
-              <NoteCard note={note} variant={variant} activeTag={activeTag} actions={actions} />
+              <NoteCard note={note} variant={variant} actions={actions} />
             </li>
           ))}
         </ul>
