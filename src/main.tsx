@@ -2,8 +2,7 @@ import "@/styles/global.css";
 
 import { createRoot } from "react-dom/client";
 import { Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router";
-import HomePage from "@/pages/App";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import OnboardingPage from "@/pages/onboarding";
 import RegisterPage from "@/pages/auth/register";
 import LoginPage from "@/pages/auth/login";
@@ -277,7 +276,7 @@ createRoot(document.getElementById("root")!).render(
           </Route>
         </Route>
 
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </AuthSessionProvider>
   </BrowserRouter>,
