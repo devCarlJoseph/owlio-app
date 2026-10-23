@@ -2,9 +2,11 @@ import { useMemo, useState } from "react"
 import { BookOpenCheck, CircleHelp, FolderOpen, Info, Sparkles } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { LibraryCategoryRow } from "./library-category-row"
 import { LibraryContextCards } from "./library-context-cards"
 import { LibrarySearchField } from "./library-search-field"
 import { ResourceList } from "./resource-list"
+import { ResourceListRow } from "./resource-list-row"
 import { ResourceSourceFilter } from "./resource-source-filter"
 import {
   countLibraryResources,
@@ -16,6 +18,7 @@ import {
   previewLibraryResources,
   type LibraryFilter,
 } from "./library-records"
+import type { LibraryResourceKind } from "./library-types"
 
 const filterOptions: { value: LibraryFilter; label: string }[] = [
   { value: "all", label: "All sources" },
@@ -27,6 +30,8 @@ const filterOptions: { value: LibraryFilter; label: string }[] = [
 export function StudentLibraryView() {
   const [filter, setFilter] = useState<LibraryFilter>("all")
   const [query, setQuery] = useState("")
+  const [selectedKinds, setSelectedKinds] = useState<LibraryResourceKind[]>([])
+  const [layout, setLayout] = useState<"grid" | "list">("grid")
 
   const counts = useMemo(
     () => ({
@@ -38,11 +43,21 @@ export function StudentLibraryView() {
     []
   )
 
-  const isFiltered = filter !== "all" || query.trim().length > 0
+  const isFiltered =
+    filter !== "all" || query.trim().length > 0 || selectedKinds.length > 0
+
+  function toggleKind(kind: LibraryResourceKind) {
+    setSelectedKinds((current) =>
+      current.includes(kind)
+        ? current.filter((item) => item !== kind)
+        : [...current, kind]
+    )
+  }
 
   function clearFilters() {
     setFilter("all")
     setQuery("")
+    setSelectedKinds([])
   }
 
   return (
@@ -59,42 +74,32 @@ export function StudentLibraryView() {
         <div aria-hidden="true" className="absolute right-[28%] top-8 -z-10 hidden rotate-12 text-white/[0.04] lg:block">
           <BookOpenCheck className="size-56" strokeWidth={1} />
         </div>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.65fr)] lg:items-end">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-200/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-200">
-              <Sparkles aria-hidden="true" className="size-3.5" />
-              Learning library
-            </span>
-            <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-              Study Library
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+
+        <div className="max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-200/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">
+            <Sparkles aria-hidden="true" className="size-3" />
+            Learning library
+          </span>
+          <h2 className="mt-3 max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
+            Study Library
+          </h2>
+        </div>
+
+        <div className="absolute bottom-5 right-5 sm:bottom-7 sm:right-8">
+          <button
+            type="button"
+            aria-label="About the Study Library"
+            className="group/info relative inline-flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-slate-200 outline-none transition hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <Info aria-hidden="true" className="size-4" />
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-64 rounded-xl bg-slate-950 p-3 text-left text-xs leading-5 text-white opacity-0 shadow-lg ring-1 ring-white/15 transition-opacity group-hover/info:opacity-100 group-focus-visible/info:opacity-100"
+            >
               Every resource you can reach, kept with the context that owns it: the notes you wrote, a
               class you joined, or a study space you are part of.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/15 bg-white/[0.08] p-5 shadow-inner shadow-white/[0.04] backdrop-blur-sm">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
-                Three learning spaces
-              </p>
-              <BookOpenCheck aria-hidden="true" className="size-4 text-cyan-200" />
-            </div>
-            <ul className="mt-4 space-y-2.5 text-sm text-slate-100">
-              <li className="flex items-center gap-3 rounded-xl bg-amber-300/10 px-3 py-2.5">
-                <span className="inline-flex size-7 items-center justify-center rounded-lg bg-amber-300/20 text-xs font-bold text-amber-200" aria-hidden="true">01</span>
-                Your personal resources
-              </li>
-              <li className="flex items-center gap-3 rounded-xl bg-sky-300/10 px-3 py-2.5">
-                <span className="inline-flex size-7 items-center justify-center rounded-lg bg-sky-300/20 text-xs font-bold text-sky-200" aria-hidden="true">02</span>
-                Classroom materials
-              </li>
-              <li className="flex items-center gap-3 rounded-xl bg-emerald-300/10 px-3 py-2.5">
-                <span className="inline-flex size-7 items-center justify-center rounded-lg bg-emerald-300/20 text-xs font-bold text-emerald-200" aria-hidden="true">03</span>
-                Peer-shared resources
-              </li>
-            </ul>
-          </div>
+            </span>
+          </button>
         </div>
       </section>
 
@@ -113,22 +118,16 @@ export function StudentLibraryView() {
       </section>
 
       <section aria-labelledby="library-contexts-heading" className="space-y-4">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-              Pick up where you left off
-            </p>
-            <h3 id="library-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
-              Where are you learning?
-            </h3>
-          </div>
-          <p className="max-w-lg text-sm leading-6 text-slate-500">
-            Each source has its own library page, so personal notes, class files, and peer-shared
-            resources never get mixed together.
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+            Pick up where you left off
           </p>
+          <h3 id="library-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+            Where are you learning?
+          </h3>
         </div>
 
-        <LibraryContextCards resources={previewLibraryResources} />
+        <LibraryContextCards />
       </section>
 
       <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm ring-0">
@@ -165,27 +164,54 @@ export function StudentLibraryView() {
               const visibleResources = filterLibraryResources(
                 previewLibraryResources,
                 option.value,
-                query
+                query,
+                selectedKinds
               )
               const sourceMeta = option.value === "all" ? null : librarySourceMeta[option.value]
 
               return (
                 <TabsContent key={option.value} value={option.value} className="space-y-4">
+                  <LibraryCategoryRow
+                    selectedKinds={selectedKinds}
+                    onToggleKind={toggleKind}
+                    onClearKinds={() => setSelectedKinds([])}
+                    layout={layout}
+                    onLayoutChange={setLayout}
+                  />
+
                   <p className="text-xs text-slate-500" role="status">
                     {visibleResources.length}{" "}
                     {visibleResources.length === 1 ? "resource" : "resources"} shown
                     {sourceMeta ? ` in ${sourceMeta.shortLabel.toLowerCase()} resources` : " across every source"}
                   </p>
 
-                  <ResourceList
-                    resources={visibleResources}
-                    isFiltered={isFiltered}
-                    onClearFilters={clearFilters}
-                    emptyTitle="No resources match this view"
-                    emptyDescription="Try another source, clear the search, or open the context that owns the resources you are looking for."
-                    emptyActionLabel="Open My Classes"
-                    emptyActionHref="/students/classrooms"
-                  />
+                  {layout === "grid" ? (
+                    <ResourceList
+                      resources={visibleResources}
+                      isFiltered={isFiltered}
+                      onClearFilters={clearFilters}
+                      emptyTitle="No resources match this view"
+                      emptyDescription="Try another source, clear the search, or open the context that owns the resources you are looking for."
+                      emptyActionLabel="Open My Classes"
+                      emptyActionHref="/students/classrooms"
+                    />
+                  ) : visibleResources.length > 0 ? (
+                    <ul className="space-y-2">
+                      {visibleResources.map((resource) => (
+                        <ResourceListRow key={resource.id} resource={resource} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <ResourceList
+                      resources={visibleResources}
+                      isFiltered={isFiltered}
+                      onClearFilters={clearFilters}
+                      emptyTitle="No resources match this view"
+                      emptyDescription="Try another source, clear the search, or open the context that owns the resources you are looking for."
+                      emptyActionLabel="Open My Classes"
+                      emptyActionHref="/students/classrooms"
+                    />
+                  )}
                 </TabsContent>
               )
             })}

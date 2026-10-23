@@ -1,6 +1,7 @@
-import { render } from "@testing-library/react"
+import { cleanup, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import StudentClassroomMaterialsPage from "@/pages/dashboard/students/materials/classroom"
 import StudentMaterialsPage from "@/pages/dashboard/students/materials"
 import StudentPersonalMaterialsPage from "@/pages/dashboard/students/materials/personal"
@@ -20,17 +21,81 @@ function renderPage(page: React.ReactElement) {
   }
 }
 
+afterEach(cleanup)
+
 describe("student Study Library", () => {
-  it("gives every source card its own library route and its owning context", () => {
+  it("gives every source card its own library route", () => {
     const { hrefs, text } = renderPage(<StudentMaterialsPage />)
 
     expect(text).toContain("Study Library")
     expect(hrefs).toContain("/students/materials/personal")
     expect(hrefs).toContain("/students/materials/classroom")
     expect(hrefs).toContain("/students/materials/study-spaces")
-    expect(hrefs).toContain("/students/notes")
-    expect(hrefs).toContain("/students/classrooms")
-    expect(hrefs).toContain("/students/study-spaces")
+    expect(text).not.toContain("Open My Classes")
+  })
+
+  it("moves each resource card to its owning context when clicked", () => {
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    const resourceCard = container.querySelector(".group\\/resource")
+    const resourceLink = resourceCard?.querySelector("a")
+
+    expect(resourceLink?.getAttribute("href")).toBe("/students/notes")
+    expect(resourceCard?.textContent).not.toContain("You own these")
+    expect(resourceCard?.textContent).not.toContain("Open in Notes")
+  })
+
+  it("drops the three learning spaces card and hides the intro behind the info icon", () => {
+    const { text } = renderPage(<StudentMaterialsPage />)
+
+    expect(text).not.toContain("Three learning spaces")
+    expect(text).not.toContain("Peer-shared resources")
+
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip.textContent).toContain("Every resource you can reach")
+  })
+
+  it("gives each source card a pastel theme with the icon beside the title", () => {
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    const personal = container.querySelector(".bg-amber-50")
+    const classroom = container.querySelector(".bg-sky-50")
+    const studySpace = container.querySelector(".bg-emerald-50")
+
+    expect(personal).toBeTruthy()
+    expect(classroom).toBeTruthy()
+    expect(studySpace).toBeTruthy()
+
+    const heading = personal?.querySelector("h3")
+    const row = heading?.parentElement
+    expect(row?.className).toContain("flex")
+    expect(row?.querySelector("svg")).toBeTruthy()
+    expect(heading?.textContent).toBe("Personal resources")
+
+    const footer = personal?.querySelector(".border-t")
+    expect(footer?.querySelectorAll("a").length).toBe(1)
+    expect(footer?.textContent).not.toContain("resources listed")
+  })
+
+  it("switches the resource layout and filters by kind", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: "List view" }))
+
+    const list = container.querySelector("ul.space-y-2")
+    expect(list).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: "Note" }))
+    expect(screen.getByText(/resource(s)? shown/)).toBeTruthy()
+  })
+
+  it("keeps the display menu out of the category row", () => {
+    renderPage(<StudentMaterialsPage />)
+
+    expect(screen.queryByRole("button", { name: "Choose what to display" })).toBeNull()
+    expect(screen.getByRole("group", { name: "Resource layout" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Note" })).toBeTruthy()
   })
 
   it("keeps personal resources on the personal library route", () => {
@@ -63,5 +128,63 @@ describe("student Study Library", () => {
     expect(text).toContain("Study space resources")
     expect(text).toContain("Problem set")
     expect(hrefs).toContain("/students/study-spaces")
+  })
+
+  it("uses a pastel gradient in the source family and drops the duplicated line", () => {
+    const { container, text } = renderPage(<StudentPersonalMaterialsPage />)
+
+    expect(container.querySelector(".from-amber-50")).toBeTruthy()
+    expect(container.querySelector(".to-orange-50")).toBeTruthy()
+
+    const occurrences = text.split("Your own notes and references, kept in your workspace.").length - 1
+    expect(occurrences).toBe(1)
+  })
+
+  it("caps a subject preview at four resources and offers show more", () => {
+    const { container } = renderPage(<StudentPersonalMaterialsPage />)
+
+    const chemistrySection = Array.from(
+      container.querySelectorAll("section")
+    ).find((section) => section.textContent?.includes("Chemistry I"))
+
+    expect(chemistrySection?.querySelectorAll("li").length).toBe(4)
+    expect(chemistrySection?.textContent).toContain("5 resources")
+    expect(chemistrySection?.querySelector("[role=tooltip]")?.textContent).toBe("Show more")
+  })
+
+  it("links a subject to its own resources page", () => {
+    const { hrefs } = renderPage(<StudentPersonalMaterialsPage />)
+
+    expect(hrefs).toContain("/students/materials/personal/chemistry-i")
+    expect(hrefs).toContain("/students/materials/personal/mathematics")
+  })
+
+  it("uses the same design for classroom and study space libraries", () => {
+    const classroom = renderPage(<StudentClassroomMaterialsPage />)
+    expect(classroom.container.querySelector(".from-sky-50")).toBeTruthy()
+    expect(classroom.container.querySelector(".to-blue-50")).toBeTruthy()
+    expect(classroom.hrefs).toContain("/students/materials/classroom/biology-101")
+
+    const studySpace = renderPage(<StudentStudySpaceMaterialsPage />)
+    expect(studySpace.container.querySelector(".from-emerald-50")).toBeTruthy()
+    expect(studySpace.container.querySelector(".to-teal-50")).toBeTruthy()
+    expect(studySpace.hrefs).toContain("/students/materials/study-spaces/physics-group")
+  })
+
+  it("caps the classroom and study space previews at four resources too", () => {
+    const classroom = renderPage(<StudentClassroomMaterialsPage />)
+    const biology = Array.from(classroom.container.querySelectorAll("section")).find(
+      (section) => section.textContent?.includes("Biology 101")
+    )
+    expect(biology?.querySelectorAll("li").length).toBe(4)
+    expect(biology?.textContent).toContain("5 resources")
+    expect(biology?.querySelector("[role=tooltip]")?.textContent).toBe("Show more")
+
+    const studySpace = renderPage(<StudentStudySpaceMaterialsPage />)
+    const physics = Array.from(studySpace.container.querySelectorAll("section")).find(
+      (section) => section.textContent?.includes("Physics Group")
+    )
+    expect(physics?.querySelectorAll("li").length).toBe(4)
+    expect(physics?.textContent).toContain("5 resources")
   })
 })

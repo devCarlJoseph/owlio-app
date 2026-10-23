@@ -31,13 +31,16 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     label: "Personal resources",
     shortLabel: "Personal",
     ownerLabel: "You own these",
-    ownerNote:
-      "Notes and references you wrote. They stay in your workspace and are never treated as classroom material.",
-    description:
-      "Keep personal notes, study references, and reusable templates in the workspace that belongs to you.",
+    description: "Your own notes and references, kept in your workspace.",
     icon: NotebookPen,
     iconClassName: "bg-amber-100 text-amber-800",
-    badgeClassName: "border-amber-200 bg-amber-50 text-amber-800",
+    badgeClassName: "border-amber-200 bg-white/80 text-amber-800",
+    cardClassName: "border-amber-200 bg-amber-50",
+    buttonClassName: "bg-amber-600 text-white hover:bg-amber-700",
+    ghostClassName: "text-amber-800 hover:bg-amber-100",
+    headerClassName: "border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50",
+    linkClassName: "hover:text-amber-700",
+    panelClassName: "border-amber-200 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/70",
     libraryHref: "/students/materials/personal",
     ownerHref: "/students/notes",
     ownerAction: "Open Notes",
@@ -47,13 +50,16 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     label: "Classroom materials",
     shortLabel: "Classroom",
     ownerLabel: "Educator-published",
-    ownerNote:
-      "Resources an educator published to a class you joined. The classroom keeps ownership of the file and the record.",
-    description:
-      "Find the files, slides, and links your educator published, alongside the class or lesson they belong to.",
+    description: "Files your educator published to a class you joined.",
     icon: GraduationCap,
     iconClassName: "bg-sky-100 text-sky-800",
-    badgeClassName: "border-sky-200 bg-sky-50 text-sky-800",
+    badgeClassName: "border-sky-200 bg-white/80 text-sky-800",
+    cardClassName: "border-sky-200 bg-sky-50",
+    buttonClassName: "bg-sky-600 text-white hover:bg-sky-700",
+    ghostClassName: "text-sky-800 hover:bg-sky-100",
+    headerClassName: "border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50",
+    linkClassName: "hover:text-sky-700",
+    panelClassName: "border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/70",
     libraryHref: "/students/materials/classroom",
     ownerHref: "/students/classrooms",
     ownerAction: "Open My Classes",
@@ -63,18 +69,31 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     label: "Study space resources",
     shortLabel: "Study spaces",
     ownerLabel: "Peer-shared",
-    ownerNote:
-      "Resources your peers shared in a student-created space. A study space is not an official classroom.",
-    description:
-      "See what your study group shared, and keep it inside the space where your peers put it.",
+    description: "What your peers shared in a space you belong to.",
     icon: Users,
     iconClassName: "bg-emerald-100 text-emerald-800",
-    badgeClassName: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    badgeClassName: "border-emerald-200 bg-white/80 text-emerald-800",
+    cardClassName: "border-emerald-200 bg-emerald-50",
+    buttonClassName: "bg-emerald-600 text-white hover:bg-emerald-700",
+    ghostClassName: "text-emerald-800 hover:bg-emerald-100",
+    headerClassName: "border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50",
+    linkClassName: "hover:text-emerald-700",
+    panelClassName: "border-emerald-200 bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/70",
     libraryHref: "/students/materials/study-spaces",
     ownerHref: "/students/study-spaces",
     ownerAction: "Open Study Spaces",
   },
 }
+
+export const libraryKinds: LibraryResourceKind[] = [
+  "Note",
+  "Template",
+  "Worksheet",
+  "Slides",
+  "Reading",
+  "Link",
+  "Document",
+]
 
 export const librarySources: LibrarySource[] = ["personal", "classroom", "study-space"]
 
@@ -139,6 +158,110 @@ export const previewLibraryResources: LibraryResource[] = [
     contextAction: "Open in Notes",
     summary: "Thesis, two supporting points, and a counter-argument paragraph to draft first.",
     updated: "Edited 8 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-titration",
+    title: "Titration walkthrough",
+    kind: "Note",
+    source: "personal",
+    owner: "You",
+    context: "Chemistry I",
+    contextHref: "/students/notes",
+    contextAction: "Open in Notes",
+    summary: "Endpoint colour, indicator choice, and how to read the burette.",
+    updated: "Edited 9 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-trends",
+    title: "Periodic trends summary",
+    kind: "Template",
+    source: "personal",
+    owner: "You",
+    context: "Chemistry I",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "Blank table for radius, electronegativity, and ionisation energy.",
+    updated: "Edited 8 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-safety",
+    title: "Lab safety checklist",
+    kind: "Template",
+    source: "personal",
+    owner: "You",
+    context: "Chemistry I",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "Goggles, gloves, waste disposal, and the spill procedure.",
+    updated: "Edited 7 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-algebra",
+    title: "Algebra cheat sheet",
+    kind: "Template",
+    source: "personal",
+    owner: "You",
+    context: "Mathematics",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "Quadratics, simultaneous equations, and the identities worth memorising.",
+    updated: "Edited 6 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-calculus",
+    title: "Calculus formula sheet",
+    kind: "Template",
+    source: "personal",
+    owner: "You",
+    context: "Mathematics",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "Product, quotient, and chain rule with worked limit patterns.",
+    updated: "Edited 5 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-kinematics",
+    title: "Kinematics formula sheet",
+    kind: "Template",
+    source: "personal",
+    owner: "You",
+    context: "Physics I",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "SUVAT equations, projectile motion, and when to use each.",
+    updated: "Edited 4 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-essay-guide",
+    title: "Essay structure guide",
+    kind: "Template",
+    source: "personal",
+    owner: "You",
+    context: "English",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "Thesis, evidence, counter-argument, and a conclusion that lands.",
+    updated: "Edited 3 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-personal-sources",
+    title: "Source analysis guide",
+    kind: "Note",
+    source: "personal",
+    owner: "You",
+    context: "History",
+    contextHref: "/students/subjects",
+    contextAction: "Open in My Learning",
+    summary: "How to weigh a primary source against the historian writing about it.",
+    updated: "Edited 2 Oct",
     availability: "available",
   },
   {
@@ -220,7 +343,98 @@ export const previewLibraryResources: LibraryResource[] = [
     availability: "available",
   },
   {
-    id: "preview-space-essay",
+    id: "preview-classroom-microscope",
+    title: "Microscope use guide",
+    kind: "Reading",
+    source: "classroom",
+    owner: "Morgan Chen",
+    context: "Biology 101",
+    contextHref: "/students/classrooms/biology-101",
+    contextAction: "Open class",
+    summary: "Focusing, lighting, and the order of the slides in a wet mount.",
+    updated: "Posted 13 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-classroom-cell-division",
+    title: "Cell division worksheet",
+    kind: "Worksheet",
+    source: "classroom",
+    owner: "Morgan Chen",
+    context: "Biology 101",
+    contextHref: "/students/classrooms/biology-101",
+    contextAction: "Open class",
+    summary: "Mitosis stages with a labelled diagram to complete.",
+    updated: "Posted 12 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-classroom-quadratics",
+    title: "Quadratics practice set",
+    kind: "Worksheet",
+    source: "classroom",
+    owner: "Alex Rivera",
+    context: "Math Study Group",
+    contextHref: "/students/classrooms/tutoring-math",
+    contextAction: "Open class",
+    summary: "Factoring, completing the square, and the discriminant.",
+    updated: "Posted 15 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-space-interference",
+    title: "Interference problems",
+    kind: "Worksheet",
+    source: "study-space",
+    owner: "Physics Group",
+    context: "Physics Group",
+    contextHref: "/students/study-spaces",
+    contextAction: "Open study spaces",
+    summary: "Two-source interference with a path-difference diagram.",
+    updated: "Shared 18 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-space-energy",
+    title: "Energy worksheet",
+    kind: "Worksheet",
+    source: "study-space",
+    owner: "Physics Group",
+    context: "Physics Group",
+    contextHref: "/students/study-spaces",
+    contextAction: "Open study spaces",
+    summary: "Work-energy theorem, conservation, and a mixed set.",
+    updated: "Shared 17 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-space-vectors",
+    title: "Vector diagrams",
+    kind: "Link",
+    source: "study-space",
+    owner: "Physics Group",
+    context: "Physics Group",
+    contextHref: "/students/study-spaces",
+    contextAction: "Open study spaces",
+    summary: "Reference sheet for resolving vectors into components.",
+    updated: "Shared 16 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-space-pendulum",
+    title: "Pendulum lab writeup",
+    kind: "Template",
+    source: "study-space",
+    owner: "Physics Group",
+    context: "Physics Group",
+    contextHref: "/students/study-spaces",
+    contextAction: "Open study spaces",
+    summary: "Aim, method, uncertainty, and the conclusion we agreed on.",
+    updated: "Shared 15 Oct",
+    availability: "available",
+  },
+  {
+    id: "preview-space-argument",
     title: "Argument outline examples",
     kind: "Reading",
     source: "study-space",
@@ -275,12 +489,14 @@ export function countLibraryResources(resources: LibraryResource[], source: Libr
 export function filterLibraryResources(
   resources: LibraryResource[],
   source: LibraryFilter,
-  query: string
+  query: string,
+  kinds?: LibraryResourceKind[]
 ): LibraryResource[] {
   const normalizedQuery = query.trim().toLowerCase()
 
   return resources.filter((resource) => {
     const matchesSource = source === "all" || resource.source === source
+    const matchesKind = !kinds || kinds.length === 0 || kinds.includes(resource.kind)
     const matchesQuery =
       normalizedQuery.length === 0 ||
       resource.title.toLowerCase().includes(normalizedQuery) ||
@@ -288,7 +504,7 @@ export function filterLibraryResources(
       resource.context.toLowerCase().includes(normalizedQuery) ||
       resource.owner.toLowerCase().includes(normalizedQuery)
 
-    return matchesSource && matchesQuery
+    return matchesSource && matchesKind && matchesQuery
   })
 }
 
@@ -304,3 +520,24 @@ export function groupLibraryResources(resources: LibraryResource[]) {
 
   return [...groups.entries()].map(([context, items]) => ({ context, items }))
 }
+
+export function slugifyLibraryContext(context: string): string {
+  return context
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+export function findLibraryContextBySlug(
+  resources: LibraryResource[],
+  slug: string | undefined
+): string | undefined {
+  if (!slug) return undefined
+
+  return resources.find(
+    (resource) => slugifyLibraryContext(resource.context) === slug
+  )?.context
+}
+
+export const librarySubjectPreviewLimit = 4

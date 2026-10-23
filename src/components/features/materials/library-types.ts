@@ -28,15 +28,20 @@ export type LibraryResource = {
 }
 
 export type LibrarySourceMeta = {
-  id: LibrarySource
+  id: string
   label: string
   shortLabel: string
   ownerLabel: string
-  ownerNote: string
   description: string
   icon: LucideIcon
   iconClassName: string
   badgeClassName: string
+  cardClassName: string
+  buttonClassName: string
+  ghostClassName: string
+  headerClassName: string
+  panelClassName: string
+  linkClassName: string
   libraryHref: string
   ownerHref: string
   ownerAction: string

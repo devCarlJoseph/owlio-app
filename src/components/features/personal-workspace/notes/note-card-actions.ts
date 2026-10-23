@@ -6,7 +6,6 @@ export type NoteCardActions = {
   onToggleItem: (note: NoteRecord, itemId: string) => void
   onEdit: (note: NoteRecord) => void
   onTogglePin: (note: NoteRecord) => void
-  onDuplicate: (note: NoteRecord) => void
   onArchive: (note: NoteRecord) => void
   onDelete: (note: NoteRecord) => void
 }

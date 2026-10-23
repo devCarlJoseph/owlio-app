@@ -1,49 +1,64 @@
 import { useEffect, useMemo, useState } from "react"
 import { FolderOpen, Info, LayoutGrid, List, Plus, Search, X } from "lucide-react"
+import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { NoteComposerDialog } from "./note-composer-dialog"
 import { NoteDeleteDialog } from "./note-delete-dialog"
-import { NoteDetailDialog } from "./note-detail-dialog"
-import { NoteGroups } from "./note-groups"
+import { NoteEditorDialog } from "./note-editor-dialog"
+import { NoteLabelChips } from "./note-label-chips"
 import { NoteList } from "./note-list"
 import {
   countNotesInBucket,
   createNoteId,
-  duplicateNote,
-  getNoteTags,
-  groupNotesByTag,
+  getNoteLabels,
+  groupNotesByLabel,
   loadNotes,
-  noteMatchesQuery,
-  notesBucketHints,
   notesBucketLabels,
   notesGuidance,
   notesStorageNotice,
+  noteMatchesQuery,
   saveNotes,
   sortNotes,
   type NoteBucket,
-  type NoteDraft,
   type NoteRecord,
 } from "./note-records"
 
-const noteBuckets: NoteBucket[] = ["notes", "archive", "trash"]
+const notesIntro =
+  "Capture what you learn in your own words. Write a note or tick off a checklist, then keep it where you can find it again."
 
 type UndoState =
   | { message: string; kind: "restore"; note: NoteRecord }
   | { message: string; kind: "remove"; noteId: string }
+
+function createEmptyNote(): NoteRecord {
+  const timestamp = new Date().toISOString()
+
+  return {
+    id: createNoteId(),
+    title: "",
+    body: "",
+    labels: [],
+    updatedAt: timestamp,
+    pinned: false,
+    kind: "text",
+    color: "default",
+    items: [],
+    archived: false,
+    trashed: false,
+  }
+}
 
 export function NotesView() {
   const [notes, setNotes] = useState<NoteRecord[]>(() => loadNotes())
   const [bucket, setBucket] = useState<NoteBucket>("notes")
   const [query, setQuery] = useState("")
   const [view, setView] = useState<"grid" | "list">("grid")
-  const [activeTag, setActiveTag] = useState<string | null>(null)
-  const [composerOpen, setComposerOpen] = useState(false)
+  const [activeLabel, setActiveLabel] = useState<string | null>(null)
   const [detailNoteId, setDetailNoteId] = useState<string | null>(null)
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
+  const [draftNote, setDraftNote] = useState<NoteRecord | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<NoteRecord | null>(null)
   const [undo, setUndo] = useState<UndoState | null>(null)
 
@@ -63,18 +78,14 @@ export function NotesView() {
   const visibleNotes = useMemo(
     () =>
       bucketNotes.filter((note) => {
-        const matchesTag = activeTag === null || getNoteTags(note).includes(activeTag)
-        return matchesTag && noteMatchesQuery(note, query)
+        const matchesLabel =
+          activeLabel === null || getNoteLabels(note).includes(activeLabel)
+        return matchesLabel && noteMatchesQuery(note, query)
       }),
-    [bucketNotes, activeTag, query]
+    [bucketNotes, activeLabel, query]
   )
 
-  const tagGroups = useMemo(() => groupNotesByTag(scopedNotes), [scopedNotes])
-
-  const editingNote = useMemo(
-    () => notes.find((note) => note.id === editingNoteId) ?? null,
-    [notes, editingNoteId]
-  )
+  const labelGroups = useMemo(() => groupNotesByLabel(scopedNotes), [scopedNotes])
 
   const detailNote = useMemo(
     () => notes.find((note) => note.id === detailNoteId) ?? null,
@@ -82,64 +93,41 @@ export function NotesView() {
   )
 
   function openCreateDialog() {
-    setEditingNoteId(null)
-    setComposerOpen(true)
-  }
-
-  function openEditDialog(note: NoteRecord) {
-    setDetailNoteId(null)
-    setEditingNoteId(note.id)
-    setComposerOpen(true)
-  }
-
-  function openEditById(noteId: string) {
-    const note = notes.find((item) => item.id === noteId)
-    if (note) openEditDialog(note)
+    setDraftNote(createEmptyNote())
   }
 
   function openDetailDialog(note: NoteRecord) {
+    setDraftNote(null)
     setDetailNoteId(note.id)
   }
 
-  function handleSubmit(draft: NoteDraft) {
-    if (editingNoteId) {
-      setNotes((current) =>
-        current.map((note) =>
-          note.id === editingNoteId
-            ? {
-                ...note,
-                title: draft.title,
-                body: draft.body,
-                tags: draft.tags,
-                kind: draft.kind,
-                color: draft.color,
-                items: draft.items,
-                updatedAt: new Date().toISOString(),
-              }
-            : note
-        )
-      )
-    } else {
-      setNotes((current) => [
-        ...current,
-        {
-          id: createNoteId(),
-          title: draft.title,
-          body: draft.body,
-          tags: draft.tags,
-          kind: draft.kind,
-          color: draft.color,
-          items: draft.items,
-          updatedAt: new Date().toISOString(),
-          pinned: false,
-          archived: false,
-          trashed: false,
-        },
-      ])
+  function handleEditorChange(updated: NoteRecord) {
+    if (draftNote && updated.id === draftNote.id) {
+      setDraftNote(updated)
+      return
     }
 
-    setComposerOpen(false)
-    setEditingNoteId(null)
+    setNotes((current) =>
+      current.map((note) => (note.id === updated.id ? updated : note))
+    )
+  }
+
+  function handleEditorCommit() {
+    if (!draftNote) return
+
+    const title = draftNote.title.trim()
+    const hasContent = title.length > 0 || draftNote.body.trim().length > 0
+
+    if (hasContent) {
+      setNotes((current) => [draftNote, ...current])
+    }
+
+    setDraftNote(null)
+  }
+
+  function handleEditorClose() {
+    setDraftNote(null)
+    setDetailNoteId(null)
   }
 
   function handleTogglePin(note: NoteRecord) {
@@ -163,12 +151,6 @@ export function NotesView() {
     )
   }
 
-  function handleDuplicate(note: NoteRecord) {
-    const copy = duplicateNote(note)
-    setNotes((current) => [copy, ...current])
-    setUndo({ message: "Note duplicated.", kind: "remove", noteId: copy.id })
-  }
-
   function handleArchive(note: NoteRecord) {
     setNotes((current) =>
       current.map((item) =>
@@ -184,6 +166,7 @@ export function NotesView() {
 
   function requestDelete(note: NoteRecord) {
     setDetailNoteId(null)
+    setDraftNote(null)
     setDeleteTarget(note)
   }
 
@@ -225,33 +208,61 @@ export function NotesView() {
 
   function clearFilters() {
     setQuery("")
-    setActiveTag(null)
+    setActiveLabel(null)
   }
 
   const cardActions = {
     onOpen: openDetailDialog,
-    onSelectTag: (tag: string) => setActiveTag((current) => (current === tag ? null : tag)),
+    onSelectTag: (label: string) =>
+      setActiveLabel((current) => (current === label ? null : label)),
     onToggleItem: handleToggleItem,
-    onEdit: openEditDialog,
+    onEdit: openDetailDialog,
     onTogglePin: handleTogglePin,
-    onDuplicate: handleDuplicate,
     onArchive: handleArchive,
     onDelete: requestDelete,
   }
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <nav aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+          <li>
+            <Link
+              to="/students/materials"
+              className="rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            >
+              Study Library
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-slate-300">
+            /
+          </li>
+          <li>
+            <Link
+              to="/students/materials/personal"
+              className="rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            >
+              Personal resources
+            </Link>
+          </li>
+          <li aria-hidden="true" className="text-slate-300">
+            /
+          </li>
+          <li aria-current="page" className="font-medium text-slate-900">
+            Notes
+          </li>
+        </ol>
+      </nav>
+
+      <section className="relative overflow-visible rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-100 via-sky-50 to-blue-200 p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+          <div className="max-w-2xl">
+            <Badge variant="secondary" className="bg-white/80 text-blue-700 ring-1 ring-blue-200">
               Personal workspace
             </Badge>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Notes</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Capture what you learn in your own words. Write a note or tick off a checklist, then keep
-              it where you can find it again.
-            </p>
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              Notes
+            </h2>
           </div>
 
           <Button
@@ -262,6 +273,22 @@ export function NotesView() {
             <Plus aria-hidden="true" />
             New note
           </Button>
+        </div>
+
+        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+          <button
+            type="button"
+            aria-label="About Notes"
+            className="group/info relative inline-flex size-9 items-center justify-center rounded-full bg-white/80 text-slate-500 ring-1 ring-blue-200 outline-none transition hover:bg-white hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <Info aria-hidden="true" className="size-4" />
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-64 rounded-xl bg-slate-900 p-3 text-left text-xs leading-5 text-white opacity-0 shadow-lg transition-opacity group-hover/info:opacity-100 group-focus-visible/info:opacity-100"
+            >
+              {notesIntro}
+            </span>
+          </button>
         </div>
       </section>
 
@@ -280,13 +307,7 @@ export function NotesView() {
       <Card className="overflow-visible border border-slate-200 bg-white shadow-sm ring-0">
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-semibold text-slate-900">Your notes</h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Search by title, text, checklist item, or group. Hashtags such as{" "}
-                <span className="font-semibold text-blue-700">#physics</span> group your notes.
-              </p>
-            </div>
+            <h3 className="text-base font-semibold text-slate-900">Your notes</h3>
 
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative sm:w-64">
@@ -343,7 +364,7 @@ export function NotesView() {
             value={bucket}
             onValueChange={(value) => {
               setBucket((value ?? "notes") as NoteBucket)
-              setActiveTag(null)
+              setActiveLabel(null)
             }}
             className="gap-4"
           >
@@ -363,23 +384,27 @@ export function NotesView() {
 
             {noteBuckets.map((item) => (
               <TabsContent key={item} value={item} className="space-y-4">
-                <p className="text-xs text-slate-500">{notesBucketHints[item]}</p>
+                <NoteLabelChips
+                  groups={labelGroups}
+                  activeLabel={activeLabel}
+                  onSelectLabel={setActiveLabel}
+                />
 
-                {activeTag ? (
+                {activeLabel ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => setActiveTag(null)}
+                      onClick={() => setActiveLabel(null)}
                       className="w-fit border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
                     >
-                      #{activeTag}
+                      {activeLabel}
                       <X aria-hidden="true" />
-                      <span className="sr-only">Clear group filter</span>
+                      <span className="sr-only">Clear label filter</span>
                     </Button>
                     <span className="text-xs text-slate-500">
-                      Showing one group of {bucketNotes.length}{" "}
+                      Showing one label of {bucketNotes.length}{" "}
                       {bucketNotes.length === 1 ? "note" : "notes"}.
                     </span>
                   </div>
@@ -390,7 +415,7 @@ export function NotesView() {
                   totalCount={bucketNotes.length}
                   variant={view}
                   bucket={item}
-                  activeTag={activeTag}
+                  activeTag={activeLabel}
                   query={query}
                   actions={cardActions}
                   onCreate={openCreateDialog}
@@ -433,48 +458,23 @@ export function NotesView() {
             ) : (
               <span />
             )}
-
-            <Button
-              type="button"
-              onClick={openCreateDialog}
-              aria-label="Create a new note"
-              className="inline-flex size-14 shrink-0 items-center justify-center rounded-full bg-blue-700 text-white shadow-lg hover:bg-blue-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            >
-              <Plus aria-hidden="true" className="size-6" />
-            </Button>
           </div>
+
+          <p className="text-xs leading-5 text-slate-500">{notesStorageNotice}</p>
         </CardContent>
       </Card>
 
-      <NoteGroups
-        groups={tagGroups}
-        activeTag={activeTag}
-        onSelectTag={(tag) => setActiveTag(tag)}
-        onEdit={openEditById}
-      />
-
-      <NoteDetailDialog
-        open={detailNoteId !== null}
-        note={detailNote}
+      <NoteEditorDialog
+        note={draftNote ?? detailNote}
+        isNew={draftNote !== null}
         onOpenChange={(open) => {
-          if (!open) setDetailNoteId(null)
+          if (!open) handleEditorClose()
         }}
+        onChange={handleEditorChange}
+        onCommit={handleEditorCommit}
         onTogglePin={handleTogglePin}
-        onToggleItem={handleToggleItem}
-        onEdit={openEditDialog}
-        onDuplicate={handleDuplicate}
         onArchive={handleArchive}
         onDelete={requestDelete}
-      />
-
-      <NoteComposerDialog
-        open={composerOpen}
-        note={editingNote}
-        onOpenChange={(open) => {
-          setComposerOpen(open)
-          if (!open) setEditingNoteId(null)
-        }}
-        onSubmit={handleSubmit}
       />
 
       <NoteDeleteDialog
@@ -488,3 +488,5 @@ export function NotesView() {
     </div>
   )
 }
+
+const noteBuckets: NoteBucket[] = ["notes", "archive", "trash"]
