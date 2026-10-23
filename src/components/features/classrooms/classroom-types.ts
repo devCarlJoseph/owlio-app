@@ -15,15 +15,32 @@ export type ClassroomComment = {
   createdAt: string
 }
 
+export type MemberRequest = {
+  id: string
+  name: string
+  email: string
+  requestedBy: string
+  requestedByRole: "student" | "educator"
+  status: "pending" | "declined"
+}
+
 export type ClassroomPost = {
   id: string
   authorId: string
   authorName: string
   authorRole: "student" | "educator"
   kind: "announcement" | "discussion"
+  title?: string
+  views?: number
   body: string
   createdAt: string
   comments: ClassroomComment[]
+}
+
+export type ClassroomChatReplyRef = {
+  messageId: string
+  authorName: string
+  excerpt: string
 }
 
 export type ClassroomChatMessage = {
@@ -33,6 +50,7 @@ export type ClassroomChatMessage = {
   authorRole: "student" | "educator"
   body: string
   createdAt: string
+  replyTo?: ClassroomChatReplyRef
 }
 
 export type ClassroomMaterial = {
@@ -97,7 +115,20 @@ export type ClassroomSubmission = {
   status: "Submitted" | "In review" | "Returned"
   evaluation?: string
   feedback?: string
+  score?: number
   released: boolean
+}
+
+export type ActivityTiming = {
+  durationMinutes: number
+  opensAt?: string
+  closesAt?: string
+  autoSubmitOnTimeUp: boolean
+}
+
+export type ActivityAttempt = {
+  learnerId: string
+  startedAt: string
 }
 
 export type ClassroomActivity = {
@@ -111,6 +142,9 @@ export type ClassroomActivity = {
   responseType: "Text" | "File" | "Link" | "Quiz"
   status: "Published" | "Draft"
   submissions: ClassroomSubmission[]
+  timing?: ActivityTiming
+  showLeaderboard?: boolean
+  attempts?: ActivityAttempt[]
 }
 
 export type ClassroomProgressRecord = {
@@ -134,6 +168,7 @@ export type Classroom = {
   meetingId: string | null
   access: "owner" | "student"
   members: ClassroomMember[]
+  memberRequests: MemberRequest[]
   enrolledLearnerIds: string[]
   posts: ClassroomPost[]
   chatMessages: ClassroomChatMessage[]
@@ -159,4 +194,6 @@ export type CreateActivityInput = {
   scoringNote: string
   responseType: ClassroomActivity["responseType"]
   questions: ActivityQuestion[]
+  timing?: ActivityTiming
+  showLeaderboard?: boolean
 }

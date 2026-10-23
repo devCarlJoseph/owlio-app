@@ -12,6 +12,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { DEMO_LEARNER_ID } from "./classroom-mock-data"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { Classroom, ClassroomActivity } from "./classroom-types"
+import { QuizQuestions } from "./quiz-questions"
+import { QuizTimingBadges } from "./quiz-timing-badges"
+import { QuizWorkspace } from "./quiz-workspace"
+import { isQuizLike } from "./quiz-timing"
 
 function StudentActivityWorkspace({ classroom, activity }: { classroom: Classroom; activity: ClassroomActivity }) {
   const { submitActivity } = useClassroomPrototype()
@@ -63,62 +67,7 @@ function StudentActivityWorkspace({ classroom, activity }: { classroom: Classroo
         )}
         <form onSubmit={handleSubmit} className="space-y-5">
           {activity.responseType === "Quiz" && activity.questions.length > 0 ? (
-            activity.questions.map((question, index) => (
-              <fieldset key={question.id} className="grid gap-3 rounded-xl border border-slate-200 p-4">
-                <legend className="px-1 text-sm font-semibold text-slate-900">Question {index + 1} · {question.type}</legend>
-                <p className="text-sm leading-6 text-slate-700">{question.prompt}</p>
-                {question.type === "Multiple choice" ? (
-                  <select
-                    aria-label={`Answer question ${index + 1}`}
-                    value={answers[question.id] ?? ""}
-                    onChange={(event) => setAnswer(question.id, event.currentTarget.value)}
-                    className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                  >
-                    <option value="">Choose an answer</option>
-                    {question.options.map((option) => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                ) : question.type === "True or false" ? (
-                  <div className="flex flex-wrap gap-4">
-                    {["True", "False"].map((answer) => (
-                      <label key={answer} className="inline-flex items-center gap-2 text-sm text-slate-700">
-                        <input type="radio" name={`answer-${question.id}`} value={answer} checked={answers[question.id] === answer} onChange={() => setAnswer(question.id, answer)} />
-                        {answer}
-                      </label>
-                    ))}
-                  </div>
-                ) : question.type === "Multiple select" ? (
-                  <div className="grid gap-2">
-                    {question.options.map((option) => {
-                      const selected = (answers[question.id] ?? "").split("\n").includes(option)
-                      return (
-                        <label key={option} className="inline-flex items-center gap-2 text-sm text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={selected}
-                            onChange={(event) => {
-                              const current = (answers[question.id] ?? "").split("\n").filter(Boolean)
-                              setAnswer(question.id, (event.currentTarget.checked
-                                ? [...current, option]
-                                : current.filter((item) => item !== option)
-                              ).join("\n"))
-                            }}
-                          />
-                          {option}
-                        </label>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <Textarea
-                    aria-label={`Answer question ${index + 1}`}
-                    value={answers[question.id] ?? ""}
-                    onChange={(event) => setAnswer(question.id, event.currentTarget.value)}
-                    maxLength={4000}
-                    placeholder="Write your response…"
-                  />
-                )}
-              </fieldset>
-            ))
+            <QuizQuestions questions={activity.questions} answers={answers} onAnswer={setAnswer} />
           ) : activity.responseType === "File" ? (
             <div className="grid gap-2">
               <Label htmlFor="demo-file-response">Choose a file to preview</Label>
@@ -153,13 +102,15 @@ function StudentActivityWorkspace({ classroom, activity }: { classroom: Classroo
 
 function EducatorReview({ classroom, activity }: { classroom: Classroom; activity: ClassroomActivity }) {
   const { reviewSubmission } = useClassroomPrototype()
-  const [drafts, setDrafts] = useState<Record<string, { evaluation: string; feedback: string }>>({})
+  const [drafts, setDrafts] = useState<Record<string, { evaluation: string; feedback: string; score: string }>>({})
   const [status, setStatus] = useState("")
+  const scored = isQuizLike(activity)
 
   const handleReturn = (event: FormEvent<HTMLFormElement>, submissionId: string) => {
     event.preventDefault()
-    const draft = drafts[submissionId] ?? { evaluation: "", feedback: "" }
-    reviewSubmission(classroom.id, activity.id, submissionId, draft.evaluation, draft.feedback)
+    const draft = drafts[submissionId] ?? { evaluation: "", feedback: "", score: "" }
+    const score = draft.score.trim() === "" ? undefined : Number(draft.score)
+    reviewSubmission(classroom.id, activity.id, submissionId, draft.evaluation, draft.feedback, Number.isFinite(score) ? score : undefined)
     setStatus("Demo evaluation and feedback returned in this session only. No official record was changed.")
   }
 
@@ -179,6 +130,7 @@ function EducatorReview({ classroom, activity }: { classroom: Classroom; activit
               const draft = drafts[submission.id] ?? {
                 evaluation: submission.evaluation ?? "",
                 feedback: submission.feedback ?? "",
+                score: submission.score === undefined ? "" : String(submission.score),
               }
               return (
                 <li key={submission.id} className="rounded-xl border border-slate-200 p-4">
@@ -201,6 +153,20 @@ function EducatorReview({ classroom, activity }: { classroom: Classroom; activit
                         placeholder="e.g. Complete · demo"
                       />
                     </div>
+                    {scored && (
+                      <div className="grid gap-2 sm:max-w-xs">
+                        <Label htmlFor={`score-${submission.id}`}>Points <span className="font-normal text-slate-500">(optional, used for the leaderboard)</span></Label>
+                        <Input
+                          id={`score-${submission.id}`}
+                          type="number"
+                          min={0}
+                          max={1000}
+                          inputMode="numeric"
+                          value={draft.score}
+                          onChange={(event) => setDrafts((current) => ({ ...current, [submission.id]: { ...draft, score: event.currentTarget.value } }))}
+                        />
+                      </div>
+                    )}
                     <div className="grid gap-2">
                       <Label htmlFor={`feedback-${submission.id}`}>Feedback</Label>
                       <Textarea
@@ -249,6 +215,7 @@ export function ClassroomActivityView() {
   }
 
   const isStudent = role === "students"
+  const showQuizExperience = isStudent && isQuizLike(activity) && activity.responseType === "Quiz" && activity.questions.length > 0
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-5">
@@ -258,23 +225,26 @@ export function ClassroomActivityView() {
       >
         <ArrowLeft aria-hidden="true" className="size-4" /> Back to {classroom.name}
       </Link>
-      <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+      {!showQuizExperience && <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline">{activity.type}</Badge>
           <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Mock activity</Badge>
+          <QuizTimingBadges activity={activity} />
         </div>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">{activity.title}</h1>
         <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{activity.instructions}</p>
         <p className="mt-3 text-xs text-slate-500">{activity.dueDate ? `Due ${activity.dueDate}` : "No due date"} · {activity.scoringNote || "Evaluation details are a demo preview"}</p>
-      </header>
+      </header>}
       <Alert className="border-amber-200 bg-amber-50 text-amber-900">
         <TriangleAlert aria-hidden="true" />
         <AlertTitle>Demo only</AlertTitle>
         <AlertDescription className="text-amber-800">Responses, files, evaluations, and feedback stay in this temporary preview and are not submitted or saved.</AlertDescription>
       </Alert>
-      {isStudent
-        ? <StudentActivityWorkspace classroom={classroom} activity={activity} />
-        : <EducatorReview classroom={classroom} activity={activity} />}
+      {showQuizExperience
+        ? <QuizWorkspace key={activity.id} classroom={classroom} activity={activity} />
+        : isStudent
+          ? <StudentActivityWorkspace classroom={classroom} activity={activity} />
+          : <EducatorReview classroom={classroom} activity={activity} />}
     </div>
   )
 }

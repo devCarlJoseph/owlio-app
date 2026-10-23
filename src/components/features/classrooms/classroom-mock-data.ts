@@ -25,6 +25,16 @@ export const initialClassrooms: Classroom[] = [
       { id: "learner-jordan", name: "Jordan Rivera", role: "student" },
       { id: "learner-sam", name: "Sam Patel", role: "student" },
     ],
+    memberRequests: [
+      {
+        id: "biology-request-riley",
+        name: "Riley Thompson",
+        email: "riley.thompson@example.com",
+        requestedBy: "Jordan Rivera",
+        requestedByRole: "student",
+        status: "pending",
+      },
+    ],
     enrolledLearnerIds: [DEMO_LEARNER_ID, "learner-jordan", "learner-sam"],
     posts: [
       {
@@ -33,6 +43,8 @@ export const initialClassrooms: Classroom[] = [
         authorName: "Morgan Chen",
         authorRole: "educator",
         kind: "announcement",
+        title: "Welcome to Biology 101",
+        views: 18,
         body: "Welcome to Biology 101. Use this class space for updates, questions, classwork, and resources. All content shown here is a preview.",
         createdAt: "Today · demo",
         comments: [
@@ -52,6 +64,8 @@ export const initialClassrooms: Classroom[] = [
         authorName: "Morgan Chen",
         authorRole: "educator",
         kind: "discussion",
+        title: "How do ecosystems stay balanced?",
+        views: 9,
         body: "What is one question you have about how ecosystems stay balanced?",
         createdAt: "Yesterday · demo",
         comments: [],
@@ -127,6 +141,8 @@ export const initialClassrooms: Classroom[] = [
         ],
         responseType: "Quiz",
         status: "Published",
+        timing: { durationMinutes: 10, autoSubmitOnTimeUp: true },
+        showLeaderboard: true,
         submissions: [
           {
             id: "biology-submission-demo",
@@ -137,6 +153,19 @@ export const initialClassrooms: Classroom[] = [
             status: "Returned",
             evaluation: "Complete · demo",
             feedback: "Good start. Review how energy moves through the food web.",
+            score: 8,
+            released: true,
+          },
+          {
+            id: "biology-submission-sam",
+            learnerId: "learner-sam",
+            learnerName: "Sam Patel",
+            response: "Example learner response shown for preview.",
+            submittedAt: "Today · demo",
+            status: "Returned",
+            evaluation: "Complete · demo",
+            feedback: "Great work.",
+            score: 9,
             released: true,
           },
           {
@@ -149,6 +178,33 @@ export const initialClassrooms: Classroom[] = [
             released: false,
           },
         ],
+      },
+      {
+        id: "biology-activity-timed-quiz",
+        title: "Food chain speed quiz",
+        type: "Quiz",
+        instructions: "Answer both questions before the timer ends. You can start only once.",
+        dueDate: "",
+        scoringNote: "Timed practice · demo only",
+        questions: [
+          {
+            id: "biology-timed-question-1",
+            type: "Multiple choice",
+            prompt: "Which organism is a producer?",
+            options: ["Grass", "Rabbit", "Fox"],
+          },
+          {
+            id: "biology-timed-question-2",
+            type: "True or false",
+            prompt: "Decomposers break down dead organisms.",
+            options: ["True", "False"],
+          },
+        ],
+        responseType: "Quiz",
+        status: "Published",
+        timing: { durationMinutes: 5, autoSubmitOnTimeUp: true },
+        showLeaderboard: false,
+        submissions: [],
       },
       {
         id: "biology-activity-project",
@@ -212,6 +268,7 @@ export const initialClassrooms: Classroom[] = [
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
       { id: "learner-taylor", name: "Taylor Morgan", role: "student" },
     ],
+    memberRequests: [],
     enrolledLearnerIds: [DEMO_LEARNER_ID, "learner-taylor"],
     posts: [],
     chatMessages: [],
@@ -254,6 +311,7 @@ export const initialClassrooms: Classroom[] = [
       { id: DEMO_LEARNER_ID, name: "You · demo learner", role: "student" },
       { id: "learner-lee", name: "Lee Kim", role: "student" },
     ],
+    memberRequests: [],
     enrolledLearnerIds: [DEMO_LEARNER_ID, "learner-lee"],
     posts: [],
     chatMessages: [],

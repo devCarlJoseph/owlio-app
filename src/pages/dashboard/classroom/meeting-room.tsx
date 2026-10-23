@@ -33,6 +33,8 @@ import {
   joinMeeting as joinMeetingRequest,
   type MeetingJoin,
 } from '@/services/api/meeting.service'
+import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview'
+import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
 
 type RoomStatus = 'idle' | 'joining' | 'connected' | 'reconnecting' | 'ended'
 type MeetingPanel = 'chat' | 'people'
@@ -399,6 +401,10 @@ export default function MeetingRoomPage() {
 
   const meetingEnded = status === 'ended' && !room
   const isHost = Boolean(user && joinInfo?.hostId === user.id)
+
+  if (shouldShowEslWhiteboardPreview(role, searchParams.get('whiteboard-preview'))) {
+    return <EslWhiteboardPreview />
+  }
 
   return (
     <main className="fixed inset-0 z-50 flex h-dvh min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-900">

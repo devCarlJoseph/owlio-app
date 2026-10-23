@@ -44,6 +44,9 @@ export function ClassroomsView() {
     joinClassroom,
   } = useClassroomPrototype()
   const classrooms = getClassroomsForWorkspace(role)
+  const connectedClassrooms = classrooms.filter((classroom) => !classroom.isMock)
+  const demoClassrooms = classrooms.filter((classroom) => classroom.isMock)
+  const studentClassrooms = [...connectedClassrooms, ...demoClassrooms]
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   const [joinCode, setJoinCode] = useState("")
@@ -56,10 +59,6 @@ export function ClassroomsView() {
   const joinToggleRef = useRef<HTMLButtonElement>(null)
   const joinCodeRef = useRef<HTMLInputElement>(null)
   const joinStatusRef = useRef<HTMLParagraphElement>(null)
-
-  const connectedClassrooms = classrooms.filter((classroom) => !classroom.isMock)
-  const demoClassrooms = classrooms.filter((classroom) => classroom.isMock)
-  const studentClassrooms = [...connectedClassrooms, ...demoClassrooms]
 
   useEffect(() => {
     if (!joinNotice) return
@@ -335,6 +334,42 @@ export function ClassroomsView() {
             </div>
           )}
         </section>
+      ) : role === "educators" ? (
+        <div className="space-y-8">
+          <section aria-labelledby="connected-classrooms-title">
+            <div className="mb-4">
+              <h3 id="connected-classrooms-title" className="text-xl font-semibold text-slate-900">Connected classrooms</h3>
+              <p className="mt-1 text-sm text-slate-600">Classes returned by the classroom service.</p>
+            </div>
+            {classroomsLoading && connectedClassrooms.length === 0 ? (
+              <Card><CardContent className="py-8 text-sm text-slate-600" role="status">Loading classrooms…</CardContent></Card>
+            ) : connectedClassrooms.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-8 text-sm text-slate-600">No connected classrooms are available yet.</CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {connectedClassrooms.map((classroom) => (
+                  <ClassroomSummaryCard key={classroom.id} classroom={classroom} href={openClassroom(classroom.id)} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {demoClassrooms.length > 0 && (
+            <section aria-labelledby="demo-classrooms-title">
+              <div className="mb-4">
+                <h3 id="demo-classrooms-title" className="text-xl font-semibold text-slate-900">Demo previews</h3>
+                <p className="mt-1 text-sm text-slate-600">Sample classrooms for exploring the interface; changes stay in this preview session.</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {demoClassrooms.map((classroom) => (
+                  <ClassroomSummaryCard key={classroom.id} classroom={classroom} href={openClassroom(classroom.id)} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       ) : (
         <section aria-labelledby="classrooms-heading">
           <div className="mb-4 flex items-end justify-between gap-3">

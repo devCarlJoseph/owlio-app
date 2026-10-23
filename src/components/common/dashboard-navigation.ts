@@ -148,7 +148,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Learner Management",
       items: [
         { label: "My Learners", href: "/tutors/learners", icon: Users },
-        { label: "Learning Plans", icon: BookOpen },
+        { label: "Learning Plans", href: "/tutors/learning-plans", icon: BookOpen },
         { label: "Activities & Evaluations", href: "/tutors/classwork", icon: ClipboardList },
       ],
     },
@@ -157,10 +157,10 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       items: [
         { label: "Sessions & Schedule", href: "/tutors/sessions", icon: CalendarDays },
         { label: "Session Attendance", href: "/tutors/attendance", icon: CalendarCheck },
-        { label: "Session Notes", icon: NotebookPen },
+        { label: "Session Notes", href: "/tutors/session-notes", icon: NotebookPen },
         { label: "Meeting Room", href: "/tutors/classrooms/meeting-room", icon: Video },
         { label: "Discussions", href: "/tutors/communication", icon: MessagesSquare },
-        { label: "Announcements", icon: Megaphone },
+        { label: "Announcements", href: "/tutors/announcements", icon: Megaphone },
         { label: "Notifications", href: "/tutors/notifications", icon: Bell },
       ],
     },
@@ -175,7 +175,10 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Account",
       placement: "footer",
-      items: [{ label: "Account security", href: "/tutors/account/security", icon: UserRound }],
+      items: [
+        { label: "Profile & Settings", href: "/tutors/settings", icon: UserRound },
+        { label: "Account security", href: "/tutors/account/security", icon: UserRound },
+      ],
     },
   ],
   esl: [

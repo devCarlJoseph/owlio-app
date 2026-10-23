@@ -1,84 +1,164 @@
-import { useState, type FormEvent } from "react"
-import { LockKeyhole, Send } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { FileText } from "lucide-react"
 import { useClassroomPrototype } from "./classroom-prototype-context"
-import type { Classroom, WorkspaceRole } from "./classroom-types"
+import type { Classroom, ClassroomChatMessage, ClassroomChatReplyRef, WorkspaceRole } from "./classroom-types"
+import { PersonAvatar } from "./classroom-ui"
+import { isYou } from "./classroom-utils"
+import { ChatComposer } from "./chat-composer"
+import { ChatHeader } from "./chat-header"
+import { ChatMessageBubble } from "./chat-message-bubble"
+import type { ReactionState } from "./discussion-reaction-data"
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { sendChatMessage } = useClassroomPrototype()
-  const [draft, setDraft] = useState("")
   const [status, setStatus] = useState("")
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const [reactions, setReactions] = useState<Record<string, ReactionState>>({})
+  const [replyingTo, setReplyingTo] = useState<ClassroomChatReplyRef | null>(null)
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const authorRole = role === "students" ? "student" : "educator"
+  const educators = classroom.members.filter((member) => member.role === "educator")
+  const students = classroom.members.filter((member) => member.role === "student")
+  const normalizedQuery = query.trim().toLowerCase()
 
-  const handleSend = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const message = draft.trim()
-    if (!message) return
-    sendChatMessage(classroom.id, message, authorRole)
-    setDraft("")
-    setStatus("Demo message added to this class in this session only. It was not delivered or saved.")
+  const messages = useMemo(
+    () => normalizedQuery
+      ? classroom.chatMessages.filter((message) =>
+        `${message.body} ${message.authorName}`.toLowerCase().includes(normalizedQuery))
+      : classroom.chatMessages,
+    [classroom.chatMessages, normalizedQuery],
+  )
+
+  useEffect(() => {
+    if (normalizedQuery) return
+    const list = listRef.current
+    list?.scrollTo({ top: list.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
+  }, [classroom.chatMessages.length, normalizedQuery])
+
+  const toggleReaction = (messageId: string, emoji: string) => {
+    setReactions((current) => {
+      const state = current[messageId] ?? {}
+      const entry = state[emoji] ?? { count: 0, mine: false }
+      const next = entry.mine
+        ? { count: entry.count - 1, mine: false }
+        : { count: entry.count + 1, mine: true }
+      return { ...current, [messageId]: { ...state, [emoji]: next } }
+    })
+  }
+
+  const startReply = (message: ClassroomChatMessage) => {
+    setReplyingTo({
+      messageId: message.id,
+      authorName: message.authorName,
+      excerpt: message.body.replace(/\s+/g, " ").trim().slice(0, 120),
+    })
+  }
+
+  const jumpToMessage = (messageId: string) => {
+    if (normalizedQuery) {
+      setQuery("")
+      setSearchOpen(false)
+    }
+    requestAnimationFrame(() => {
+      document.getElementById(`chat-message-${messageId}`)?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      })
+    })
+    setHighlightedId(messageId)
+    window.setTimeout(() => setHighlightedId((current) => (current === messageId ? null : current)), 1600)
+  }
+
+  const handleSend = (body: string) => {
+    setQuery("")
+    sendChatMessage(classroom.id, body, authorRole, replyingTo ?? undefined)
+    setReplyingTo(null)
+    setStatus("Message added for this preview session only. It was not delivered or saved.")
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="border-b border-slate-100 bg-white">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <LockKeyhole aria-hidden="true" className="size-4 text-blue-700" />
-              {classroom.name} group chat
-            </CardTitle>
-            <CardDescription className="mt-1">A separate conversation for members of this class.</CardDescription>
-          </div>
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Preview · not synced</Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="gap-0 p-0">
-        <p className="px-5 pt-4 text-xs leading-5 text-slate-500">
-          Messages stay scoped to this classroom in the preview. They are not saved or delivered to other people, devices, or sessions.
-        </p>
-        <ol
-          aria-label={`${classroom.name} demo group chat messages`}
+    <div className="grid h-[36rem] max-h-[80dvh] grid-rows-[minmax(0,1fr)] overflow-hidden rounded-xl border border-border bg-card lg:max-h-none lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <section aria-label={`${classroom.name} group chat`} className="flex min-h-0 min-w-0 flex-col">
+        <ChatHeader
+          classroom={classroom}
+          role={role}
+          searchOpen={searchOpen}
+          query={query}
+          onToggleSearch={() => {
+            setSearchOpen((current) => !current)
+            setQuery("")
+          }}
+          onQueryChange={setQuery}
+        />
+        <div
+          ref={listRef}
+          role="log"
           aria-live="polite"
-          className="flex max-h-[28rem] min-h-56 flex-col gap-3 overflow-y-auto px-4 py-5 sm:px-6"
+          aria-label={`${classroom.name} group chat messages`}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-muted/30 px-4 py-5"
         >
-          {classroom.chatMessages.length === 0 ? (
-            <li className="m-auto max-w-sm text-center text-sm text-slate-500">No demo messages yet. Start the class-only conversation.</li>
-          ) : classroom.chatMessages.map((message) => (
-            <li key={message.id} className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[78%] ${message.authorRole === authorRole && message.authorName.startsWith("You") ? "self-end bg-blue-600 text-white" : "self-start bg-slate-100 text-slate-800"}`}>
-              <p className={`text-xs font-semibold ${message.authorRole === authorRole && message.authorName.startsWith("You") ? "text-blue-50" : "text-slate-900"}`}>
-                {message.authorName}
-                <span className={`ml-2 font-normal ${message.authorRole === authorRole && message.authorName.startsWith("You") ? "text-blue-100" : "text-slate-500"}`}>
-                  {message.authorRole} · {message.createdAt}
-                </span>
-              </p>
-              <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-5">{message.body}</p>
-            </li>
-          ))}
-        </ol>
-        {status && <p role="status" className="px-5 pb-3 text-xs text-amber-800">{status}</p>}
-        <form onSubmit={handleSend} className="flex items-end gap-2 border-t border-slate-100 bg-slate-50 p-3 sm:p-4">
-          <div className="min-w-0 flex-1">
-            <Label htmlFor="class-chat-message" className="sr-only">Message this class</Label>
-            <Input
-              id="class-chat-message"
-              value={draft}
-              onChange={(event) => setDraft(event.currentTarget.value)}
-              maxLength={1000}
-              placeholder="Write a message to this class…"
-              aria-describedby="class-chat-note"
-            />
-            <p id="class-chat-note" className="mt-1 px-1 text-[11px] text-slate-500">Demo messages are cleared when this preview session ends.</p>
+          {messages.length === 0 ? (
+            <p className="m-auto max-w-sm text-center text-sm text-muted-foreground">
+              {normalizedQuery ? "No messages match your search." : "No messages yet. Start the class-only conversation."}
+            </p>
+          ) : (
+            <ol className="flex flex-col gap-1">
+              {messages.map((message, index) => (
+                <ChatMessageBubble
+                  key={message.id}
+                  message={message}
+                  mine={isYou(message.authorName)}
+                  showHeader={index === 0 || messages[index - 1].authorId !== message.authorId}
+                  highlighted={highlightedId === message.id}
+                  reactions={reactions[message.id] ?? {}}
+                  onToggleReaction={(emoji) => toggleReaction(message.id, emoji)}
+                  onReply={() => startReply(message)}
+                  onJumpToMessage={jumpToMessage}
+                />
+              ))}
+            </ol>
+          )}
+        </div>
+        <p role="status" className="px-4 py-1 text-xs text-amber-800 empty:hidden">{status}</p>
+        <ChatComposer onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
+      </section>
+
+      <aside aria-label="Class info" className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-l border-border p-4 lg:flex">
+        <dl className="space-y-2 text-sm">
+          <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Class</dt><dd className="truncate text-right font-medium text-foreground">{classroom.subject}</dd></div>
+          <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Educator</dt><dd className="truncate text-right font-medium text-foreground">{classroom.instructorName}</dd></div>
+        </dl>
+        {[{ label: "Educators", people: educators }, { label: "Students", people: students }].map(({ label, people }) => (
+          <div key={label} className="border-t border-border pt-4">
+            <h3 className="text-sm font-semibold text-foreground">{label} <span className="font-normal text-muted-foreground">· {people.length}</span></h3>
+            <ul className="mt-2 space-y-2">
+              {people.map((member) => (
+                <li key={member.id} className="flex items-center gap-2.5">
+                  <PersonAvatar name={member.name} size="sm" />
+                  <span className="truncate text-sm text-foreground/80">{member.name}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <Button type="submit" disabled={!draft.trim()} aria-label="Send demo class chat message">
-            <Send aria-hidden="true" /><span className="hidden sm:inline">Send</span>
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        ))}
+        <div className="border-t border-border pt-4">
+          <h3 className="text-sm font-semibold text-foreground">Shared files</h3>
+          {classroom.materials.length === 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">No files shared yet.</p>
+          ) : (
+            <ul className="mt-2 space-y-2">
+              {classroom.materials.map((material) => (
+                <li key={material.id} className="flex items-center gap-2 text-sm text-foreground/80">
+                  <FileText aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                  <span className="truncate">{material.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
+    </div>
   )
 }

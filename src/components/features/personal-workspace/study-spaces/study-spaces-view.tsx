@@ -1,66 +1,157 @@
-import { useEffect, useMemo, useState } from "react"
-import { Info, Users } from "lucide-react"
+import { lazy, Suspense, useEffect, useMemo, useState } from "react"
+import { useNavigate } from "react-router"
+import { Info, Layers, Plus, Search, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { CreateSpaceDialog, type SpaceDraft } from "./create-space-dialog"
 import { JoinSpaceDialog, type JoinSpaceDraft } from "./join-space-dialog"
-import { SpaceCircleRail, SpaceRailEmptyState } from "./space-circle-rail"
+import { LockedSpaceGrid, SpaceGrid, SpaceGridEmptyState } from "./space-card-grid"
+import { SpaceMap } from "./space-map"
 import {
   createStudySpaceId,
+  loadJoinedDiscoveryIds,
   loadStudySpaces,
+  sampleDiscoverySpaces,
+  saveJoinedDiscoveryIds,
   saveStudySpaces,
+  sortSpaces,
+  studySpacesDiscoveryCaption,
   studySpacesGuidance,
   studySpacesOpenHint,
   studySpacesStorageNotice,
+  type SpaceSortKey,
   type StudySpaceRecord,
 } from "./study-spaces-records"
 
+const SpaceMap3D = lazy(() => import("./space-map-3d"))
+
+const SORT_LABELS: Record<SpaceSortKey, string> = {
+  recent: "Recently opened",
+  newest: "Newest",
+  name: "Name A–Z",
+}
+
+function hasWebGL(): boolean {
+  if (typeof document === "undefined" || /jsdom/i.test(navigator.userAgent)) return false
+  try {
+    const canvas = document.createElement("canvas")
+    return Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"))
+  } catch {
+    return false
+  }
+}
+
 export function StudySpacesView() {
+  const navigate = useNavigate()
   const [spaces, setSpaces] = useState<StudySpaceRecord[]>(() => loadStudySpaces())
+  const [joinedDiscoveryIds, setJoinedDiscoveryIds] = useState<string[]>(() => loadJoinedDiscoveryIds())
   const [createOpen, setCreateOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
+  const [joinTarget, setJoinTarget] = useState<StudySpaceRecord | null>(null)
+  const [sort, setSort] = useState<SpaceSortKey>("recent")
+  const [query, setQuery] = useState("")
+  const [webgl] = useState(hasWebGL)
 
   useEffect(() => {
     saveStudySpaces(spaces)
   }, [spaces])
 
+  useEffect(() => {
+    saveJoinedDiscoveryIds(joinedDiscoveryIds)
+  }, [joinedDiscoveryIds])
+
+  const needle = query.trim().toLowerCase()
+  const matches = (space: StudySpaceRecord) => needle === "" || space.name.toLowerCase().includes(needle)
+
   const createdSpaces = useMemo(
-    () => spaces.filter((space) => space.role === "owner"),
-    [spaces]
+    () => sortSpaces(spaces.filter((space) => space.role === "owner" && matches(space)), sort),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [spaces, sort, needle]
   )
 
   const joinedSpaces = useMemo(
-    () => spaces.filter((space) => space.role === "member"),
-    [spaces]
+    () => sortSpaces(spaces.filter((space) => space.role === "member" && matches(space)), sort),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [spaces, sort, needle]
   )
 
+  const lockedSpaces = useMemo(
+    () =>
+      sortSpaces(
+        sampleDiscoverySpaces.filter((space) => !joinedDiscoveryIds.includes(space.id) && matches(space)),
+        sort
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [joinedDiscoveryIds, sort, needle]
+  )
+
+  const total = createdSpaces.length + joinedSpaces.length + lockedSpaces.length
+
   function handleCreate(draft: SpaceDraft) {
-    setSpaces((current) => [
-      ...current,
-      {
-        id: createStudySpaceId(),
-        name: draft.name,
-        about: draft.about,
-        role: "owner",
-        createdAt: new Date().toISOString(),
-      },
-    ])
+    const space: StudySpaceRecord = {
+      id: createStudySpaceId(),
+      name: draft.name,
+      about: draft.about,
+      role: "owner",
+      kind: draft.kind,
+      capacity: draft.capacity,
+      createdAt: new Date().toISOString(),
+    }
+    setSpaces((current) => [...current, space])
     setCreateOpen(false)
+    navigate(`/students/study-spaces/${space.id}`)
+  }
+
+  function openJoin(target: StudySpaceRecord | null) {
+    setJoinTarget(target)
+    setJoinOpen(true)
   }
 
   function handleJoin(draft: JoinSpaceDraft) {
+    const inviteCode = draft.inviteCode.length > 0 ? draft.inviteCode : undefined
+    const createdAt = new Date().toISOString()
+
     setSpaces((current) => [
       ...current,
-      {
-        id: createStudySpaceId(),
-        name: draft.name,
-        about: "",
-        role: "member",
-        createdAt: new Date().toISOString(),
-        inviteCode: draft.inviteCode.length > 0 ? draft.inviteCode : undefined,
-      },
+      joinTarget
+        ? {
+            id: createStudySpaceId(),
+            name: joinTarget.name,
+            about: joinTarget.about,
+            role: "member",
+            kind: joinTarget.kind,
+            capacity: joinTarget.capacity,
+            createdAt,
+            inviteCode,
+          }
+        : {
+            id: createStudySpaceId(),
+            name: draft.name,
+            about: "",
+            role: "member",
+            kind: "collaborative",
+            capacity: 4,
+            createdAt,
+            inviteCode,
+          },
     ])
+    if (joinTarget) {
+      const discoveryId = joinTarget.id
+      setJoinedDiscoveryIds((current) => (current.includes(discoveryId) ? current : [...current, discoveryId]))
+    }
     setJoinOpen(false)
+  }
+
+  function handleRemove(space: StudySpaceRecord) {
+    setSpaces((current) => current.filter((record) => record.id !== space.id))
   }
 
   return (
@@ -90,64 +181,160 @@ export function StudySpacesView() {
         </p>
       </section>
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle>
-                <h3 className="text-base font-semibold text-slate-900">Spaces you create</h3>
-              </CardTitle>
-              <CardDescription className="mt-1 text-slate-500">
-                Peer spaces you lead. Scroll sideways when you have many.
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
-              {createdSpaces.length} spaces
-            </Badge>
+      <section aria-labelledby="study-hall-map-title" className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3
+            id="study-hall-map-title"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            <Layers className="size-4" aria-hidden="true" />
+            Study hall map
+          </h3>
+          <p className="rounded-full bg-white px-4 py-2 text-xs font-medium text-slate-600 shadow-sm">
+            {createdSpaces.length} yours · {joinedSpaces.length} joined · {lockedSpaces.length} locked
+          </p>
+          <div className="relative min-w-52 flex-1 sm:max-w-sm">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search study spaces"
+              placeholder="Search a space name"
+              className="h-9 rounded-full border-transparent bg-white pl-9 shadow-sm"
+            />
           </div>
-        </CardHeader>
-        <CardContent className="gap-4">
-          <SpaceCircleRail
-            label="Spaces you create"
-            spaces={createdSpaces}
-            action={{ label: "Create space", onAction: () => setCreateOpen(true) }}
-          />
-
-          <p className="text-xs leading-5 text-slate-500">{studySpacesOpenHint}</p>
-        </CardContent>
-      </Card>
-
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle>
-                <h3 className="text-base font-semibold text-slate-900">Spaces you join</h3>
-              </CardTitle>
-              <CardDescription className="mt-1 text-slate-500">
-                Peer spaces shared with you by other students.
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
-              {joinedSpaces.length} spaces
-            </Badge>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <label htmlFor="sort-spaces" className="text-xs font-medium text-slate-500">
+              Sort
+            </label>
+            <Select value={sort} onValueChange={(value) => setSort(value as SpaceSortKey)}>
+              <SelectTrigger id="sort-spaces" size="sm" aria-label="Sort spaces" className="bg-white">
+                <SelectValue>{SORT_LABELS[sort]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(SORT_LABELS) as SpaceSortKey[]).map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {SORT_LABELS[key]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus aria-hidden="true" />
+              Create space
+            </Button>
+            <Button type="button" size="sm" variant="outline" className="bg-white" onClick={() => openJoin(null)}>
+              <Plus aria-hidden="true" />
+              Join space
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="gap-4">
-          <SpaceCircleRail
-            label="Spaces you join"
-            spaces={joinedSpaces}
-            action={{ label: "Join space", onAction: () => setJoinOpen(true) }}
-          />
+        </div>
 
-          {joinedSpaces.length === 0 ? (
-            <SpaceRailEmptyState message="You have not joined a peer space yet. Use the join space button to add one." />
-          ) : null}
-        </CardContent>
-      </Card>
+        {webgl ? (
+          <Suspense
+            fallback={
+              <div className="flex h-[62vh] min-h-[440px] items-center justify-center rounded-3xl bg-[#ece3cf] text-sm text-slate-600 sm:h-[68vh] lg:h-[72vh]">
+                Loading study hall map…
+              </div>
+            }
+          >
+            <SpaceMap3D
+              created={createdSpaces}
+              joined={joinedSpaces}
+              locked={lockedSpaces}
+              onOpen={(space) => navigate(`/students/study-spaces/${space.id}`)}
+              onUnlock={openJoin}
+            />
+          </Suspense>
+        ) : (
+          <SpaceMap created={createdSpaces} joined={joinedSpaces} locked={lockedSpaces} onUnlock={openJoin} />
+        )}
+
+        <p className="text-xs leading-5 text-slate-500">
+          People shown in your desk row are sample illustrations, not real students, members, or live presence.
+          Every space is also listed in the cards below.
+        </p>
+        {lockedSpaces.length > 0 && (
+          <p className="text-xs leading-5 text-slate-500">{studySpacesDiscoveryCaption}</p>
+        )}
+      </section>
+
+      <section aria-labelledby="study-spaces-title" className="space-y-6">
+        <h3 id="study-spaces-title" className="flex items-baseline gap-2 text-2xl font-bold text-slate-900">
+          Spaces
+          <span className="text-sm font-semibold text-slate-500">{total}</span>
+        </h3>
+
+        <ListSection
+          title="Spaces you've created"
+          emptyMessage="You have not created a peer space yet. Use the create space button to start one."
+          spaces={createdSpaces}
+          onRemove={handleRemove}
+        />
+        <ListSection
+          title="Spaces you've joined"
+          emptyMessage="You have not joined a peer space yet. Use the join space button to add one."
+          spaces={joinedSpaces}
+          onRemove={handleRemove}
+        />
+        {lockedSpaces.length > 0 && (
+          <div className="space-y-3">
+            <div>
+              <h4 className="text-sm font-semibold text-slate-900">
+                Preview spaces — locked ({lockedSpaces.length})
+              </h4>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Sample spaces that need a space code. Codes are not checked by a service.
+              </p>
+            </div>
+            <LockedSpaceGrid label="Preview spaces (locked)" spaces={lockedSpaces} onUnlock={openJoin} />
+          </div>
+        )}
+      </section>
+
+      <p className="text-xs leading-5 text-slate-500">{studySpacesOpenHint}</p>
 
       <CreateSpaceDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreate} />
-      <JoinSpaceDialog open={joinOpen} onOpenChange={setJoinOpen} onSubmit={handleJoin} />
+      <JoinSpaceDialog
+        open={joinOpen}
+        onOpenChange={setJoinOpen}
+        onSubmit={handleJoin}
+        previewName={joinTarget?.name ?? null}
+      />
+    </div>
+  )
+}
+
+function ListSection({
+  title,
+  spaces,
+  onRemove,
+  emptyMessage,
+}: {
+  title: string
+  spaces: StudySpaceRecord[]
+  onRemove: (space: StudySpaceRecord) => void
+  emptyMessage: string
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h4 className="text-sm font-semibold text-slate-900">
+          {title} ({spaces.length})
+        </h4>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          Peer spaces in this browser. Room previews reflect each space's layout.
+        </p>
+      </div>
+      {spaces.length > 0 ? (
+        <SpaceGrid label={title} spaces={spaces} onRemove={onRemove} />
+      ) : (
+        <SpaceGridEmptyState message={emptyMessage} />
+      )}
     </div>
   )
 }

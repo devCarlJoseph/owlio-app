@@ -2,6 +2,7 @@ import { createContext, useContext } from "react"
 import type {
   AttendanceStatus,
   Classroom,
+  ClassroomChatReplyRef,
   ClassroomSession,
   CreateActivityInput,
   CreateClassroomInput,
@@ -24,17 +25,22 @@ export type ClassroomPrototypeContextValue = {
   createClassroom: (input: CreateClassroomInput, ownerWorkspace: Exclude<WorkspaceRole, "students">) => Promise<Classroom>
   joinClassroom: (joinCode: string) => Promise<JoinClassroomResult>
   createMeetingLink: (classroomId: string, meetingId: string) => void
-  createPost: (classroomId: string, body: string) => void
-  addComment: (classroomId: string, postId: string, body: string) => void
-  sendChatMessage: (classroomId: string, body: string, authorRole: "student" | "educator") => void
+  createPost: (classroomId: string, input: { title: string; body: string; authorRole: "student" | "educator" }) => void
+  addComment: (classroomId: string, postId: string, body: string, authorRole: "student" | "educator") => void
+  requestMember: (classroomId: string, input: { name: string; email: string }, requestedByRole: "student" | "educator") => void
+  resolveMemberRequest: (classroomId: string, requestId: string, decision: "accept" | "decline") => void
+  removeMember: (classroomId: string, memberId: string) => void
+  sendChatMessage: (classroomId: string, body: string, authorRole: "student" | "educator", replyTo?: ClassroomChatReplyRef) => void
   createActivity: (classroomId: string, input: CreateActivityInput) => string
   submitActivity: (classroomId: string, activityId: string, response: string, fileName?: string) => void
+  startActivityAttempt: (classroomId: string, activityId: string) => void
   reviewSubmission: (
     classroomId: string,
     activityId: string,
     submissionId: string,
     evaluation: string,
     feedback: string,
+    score?: number,
   ) => void
   markAttendance: (classroomId: string, sessionId: string, learnerId: string, status: AttendanceStatus) => void
   addSession: (classroomId: string, session: Omit<ClassroomSession, "id">) => void

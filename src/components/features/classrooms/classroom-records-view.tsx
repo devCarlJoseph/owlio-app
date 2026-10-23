@@ -9,19 +9,30 @@ import { DEMO_LEARNER_ID } from "./classroom-mock-data"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { AttendanceStatus, Classroom, WorkspaceRole } from "./classroom-types"
 
-export function ClassroomMaterialsView({ classroom }: { classroom: Classroom }) {
+export function ClassroomMaterialsView({
+  classroom,
+  kindGroup = "all",
+}: {
+  classroom: Classroom
+  kindGroup?: "all" | "media" | "files"
+}) {
+  const materials = classroom.materials.filter((material) => kindGroup === "all"
+    || (kindGroup === "media" ? material.kind === "Link" || material.kind === "Video" : material.kind === "Document" || material.kind === "Presentation"),
+  )
+  const title = kindGroup === "media" ? "Class media" : kindGroup === "files" ? "Class files" : "Class materials"
+  const headingId = kindGroup === "all" ? "materials-heading" : `${kindGroup}-heading`
   return (
-    <section className="space-y-4" aria-labelledby="materials-heading">
+    <section className="space-y-4" aria-labelledby={headingId}>
       <div>
-        <h3 id="materials-heading" className="text-lg font-semibold text-slate-900">Class materials</h3>
-        <p className="mt-1 text-sm text-slate-600">Resources shared in {classroom.name}.</p>
+        <h3 id={headingId} className="text-lg font-semibold text-slate-900">{title}</h3>
+        <p className="mt-1 text-sm text-slate-600">Resources listed for {classroom.name}.</p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">Resource entries are mock metadata. No documents are uploaded or stored.</p>
-      {classroom.materials.length === 0 ? (
-        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">No demo materials in this classroom yet.</CardContent></Card>
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">Resource entries are preview metadata only. No documents or media are uploaded or stored.</p>
+      {materials.length === 0 ? (
+        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">{classroom.isMock ? `No demo ${kindGroup === "all" ? "materials" : kindGroup} in this classroom yet.` : `No ${kindGroup === "all" ? "materials" : kindGroup} are connected to this classroom.`}</CardContent></Card>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
-          {classroom.materials.map((material) => (
+          {materials.map((material) => (
             <li key={material.id}>
               <Card>
                 <CardContent className="flex items-start gap-3 py-4">
