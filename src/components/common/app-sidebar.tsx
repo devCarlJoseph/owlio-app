@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { Link, useLocation } from "react-router"
 import { Home, PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import { cn } from "cn"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { getActiveDashboardHref, getDashboardSidebarNavigation, getDashboardWorkspace } from "./dashboard-navigation"
 
 type SidebarGroup = ReturnType<typeof getDashboardSidebarNavigation>[number]
@@ -229,11 +230,13 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
             </div>
           )}
 
-          <nav aria-label="Workspace navigation" className="mt-3 min-h-0 flex-1 overflow-y-auto overflow-x-hidden border-t border-slate-200 pt-2 [scrollbar-width:thin]">
-            {mainGroups.map((group) => (
-              <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} badges={badges} onNavigate={handleNavigate} />
-            ))}
-          </nav>
+          <ScrollArea className="mt-3 min-h-0 flex-1 border-t border-slate-200">
+            <nav aria-label="Workspace navigation" className="overflow-x-hidden pt-2">
+              {mainGroups.map((group) => (
+                <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} badges={badges} onNavigate={handleNavigate} />
+              ))}
+            </nav>
+          </ScrollArea>
 
           <div className="shrink-0 border-t border-slate-200 py-2">
             {footerGroups.length > 0 && (

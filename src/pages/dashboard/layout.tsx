@@ -88,7 +88,7 @@ export default function PlatformLayout() {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-clip bg-slate-50">
+    <div data-dashboard-shell className="flex h-dvh flex-col overflow-clip bg-slate-50">
       <header className="z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
           <Button
             type="button"
