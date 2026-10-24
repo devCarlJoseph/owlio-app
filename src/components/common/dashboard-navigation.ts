@@ -237,6 +237,28 @@ export function getDashboardRole(pathname: string): DashboardRole | undefined {
   return dashboardRoles.find((role) => role === roleSegment)
 }
 
+const workspaceIcons: Record<DashboardRole, LucideIcon> = {
+  students: GraduationCap,
+  educators: School,
+  tutors: UserRound,
+  esl: Languages,
+}
+
+export function getDashboardWorkspace(pathname: string): { label: string; icon: LucideIcon; homeHref: string } | undefined {
+  const role = getDashboardRole(pathname)
+
+  return role ? { label: `${workspaceLabels[role]} workspace`, icon: workspaceIcons[role], homeHref: `/${role}` } : undefined
+}
+
+export function getActiveDashboardHref(pathname: string): string | undefined {
+  const role = getDashboardRole(pathname)
+
+  return getDashboardSidebarNavigation(pathname)
+    .flatMap(({ items }) => items)
+    .filter((item): item is NavigableDashboardNavigationItem => isNavigableItem(item) && matchesRoute(pathname, item.href, role))
+    .sort((first, second) => second.href.length - first.href.length)[0]?.href
+}
+
 export function getDashboardSidebarNavigation(pathname: string): DashboardNavigationGroup[] {
   const role = getDashboardRole(pathname)
 
