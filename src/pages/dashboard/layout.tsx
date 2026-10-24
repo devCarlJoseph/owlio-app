@@ -170,7 +170,7 @@ export default function PlatformLayout() {
             >
               <Bell aria-hidden="true" />
             </Button>
-            <DropdownMenu modal={false}>
+            <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label="Account menu"
                 className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
