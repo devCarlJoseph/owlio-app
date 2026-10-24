@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Bell, CircleHelp, LogOut, Menu, Search } from "lucide-react"
+import { Bell, CircleHelp, LogOut, Menu, Search, Settings, ShieldCheck, UserRound, type LucideIcon } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -17,6 +17,8 @@ import {
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { getApiErrorMessage } from "@/services/api/api-error"
+
+type MenuEntry = { label: string; href?: string; icon: LucideIcon }
 
 export default function PlatformLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -37,8 +39,16 @@ export default function PlatformLayout() {
   )
   const notificationHref = navigationItems.find(({ label }) => label === "Notifications")?.href ?? "/"
   const menuItems = getDashboardSidebarNavigation(pathname).flatMap(({ items }) => items)
-  const accountLinks = menuItems.filter(({ href, label }) => href && (label === "Notifications" || /^(Account security|Profile & Settings)$/.test(label)))
-  const supportItems = menuItems.filter(({ label }) => /^Help/.test(label))
+  const findHref = (...labels: string[]) => menuItems.find(({ label, href }) => href && labels.includes(label))?.href
+  const profileHref = findHref("Profile & Settings")
+  const accountEntries: MenuEntry[] = [
+    { label: profileHref ? "Profile & Settings" : "My Profile", href: profileHref, icon: UserRound },
+    ...(profileHref ? [] : [{ label: "Settings", icon: Settings }]),
+    { label: "Account security", href: findHref("Account security"), icon: ShieldCheck },
+    { label: "Notifications", href: findHref("Notifications"), icon: Bell },
+  ]
+  const supportEntries: MenuEntry[] = [{ label: "Help & support", href: findHref("Help & Support", "Help & support"), icon: CircleHelp }]
+  const workspaceLabel = getDashboardWorkspace(pathname)?.label
   const userInitials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'OW'
   const userRoleLabel = user?.roles.includes('STUDENT') ? 'Student account' : 'Educator account'
   const isMacPlatform = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
@@ -160,7 +170,7 @@ export default function PlatformLayout() {
             >
               <Bell aria-hidden="true" />
             </Button>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger
                 aria-label="Account menu"
                 className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
@@ -173,31 +183,30 @@ export default function PlatformLayout() {
                 <div className="space-y-1.5 px-4 py-3">
                   <p className="truncate text-sm font-semibold text-slate-900">{user?.name}</p>
                   <p className="truncate text-sm text-slate-600">{user?.email}</p>
-                  <Badge variant="secondary" className="rounded-md">{userRoleLabel}</Badge>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    <Badge variant="secondary" className="rounded-md">{userRoleLabel}</Badge>
+                    {workspaceLabel && <Badge variant="secondary" className="rounded-md">{workspaceLabel}</Badge>}
+                  </div>
                 </div>
-                <DropdownMenuSeparator className="m-0" />
-                <div className="p-1">
-                  {accountLinks.map(({ label, href, icon: Icon }) => (
-                    <DropdownMenuItem key={href} render={<Link to={href as string} />} className="h-10 gap-3 px-3">
-                      <Icon className="size-4.5" aria-hidden="true" />
-                      {label}
-                    </DropdownMenuItem>
-                  ))}
-                </div>
-                {supportItems.length > 0 && (
-                  <>
+                {[accountEntries, supportEntries].map((entries, index) => (
+                  <div key={index}>
                     <DropdownMenuSeparator className="m-0" />
                     <div className="p-1">
-                      {supportItems.map(({ label }) => (
-                        <DropdownMenuItem key={label} disabled className="h-10 gap-3 px-3">
-                          <CircleHelp className="size-4.5" aria-hidden="true" />
+                      {entries.map(({ label, href, icon: Icon }) => (
+                        <DropdownMenuItem
+                          key={label}
+                          disabled={!href}
+                          render={href ? <Link to={href} /> : undefined}
+                          className="h-10 gap-3 px-3"
+                        >
+                          <Icon className="size-4.5" aria-hidden="true" />
                           {label}
-                          <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-slate-500">Planned</span>
+                          {!href && <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-slate-500">Planned</span>}
                         </DropdownMenuItem>
                       ))}
                     </div>
-                  </>
-                )}
+                  </div>
+                ))}
                 <DropdownMenuSeparator className="m-0" />
                 <div className="p-1">
                   <DropdownMenuItem variant="destructive" disabled={signingOut} onClick={() => void handleSignOut()} className="h-10 gap-3 px-3">
