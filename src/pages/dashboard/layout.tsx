@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   getDashboardNavigation,
   getDashboardPageTitle,
@@ -87,8 +88,8 @@ export default function PlatformLayout() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-slate-50">
-      <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
+    <div className="flex h-dvh flex-col overflow-clip bg-slate-50">
+      <header className="z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
           <Button
             type="button"
             variant="ghost"
@@ -220,13 +221,15 @@ export default function PlatformLayout() {
       </header>
       <div className="flex min-h-0 flex-1">
         <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
-        <main id="main-content" className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
-          <h1 className="sr-only">{pageTitle}</h1>
-          {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
-          <ClassroomPrototypeProvider>
-            <Outlet />
-          </ClassroomPrototypeProvider>
-        </main>
+        <ScrollArea className="h-full min-h-0 min-w-0 flex-1">
+          <main id="main-content" className="p-4 sm:p-6 lg:p-8">
+            <h1 className="sr-only">{pageTitle}</h1>
+            {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
+            <ClassroomPrototypeProvider>
+              <Outlet />
+            </ClassroomPrototypeProvider>
+          </main>
+        </ScrollArea>
       </div>
     </div>
   )
