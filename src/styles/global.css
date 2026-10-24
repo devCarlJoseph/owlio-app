@@ -45,31 +45,6 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
-    --color-shell: var(--shell);
-    --color-shell-foreground: var(--shell-foreground);
-    --color-shell-muted: var(--shell-muted);
-    --color-shell-hover: var(--shell-hover);
-    --color-shell-accent: var(--shell-accent);
-    --color-shell-accent-foreground: var(--shell-accent-foreground);
-    --color-panel: var(--panel);
-    --color-panel-foreground: var(--panel-foreground);
-    --color-brand: var(--brand);
-    --color-brand-hover: var(--brand-hover);
-    --color-brand-foreground: var(--brand-foreground);
-    --color-outline: var(--outline);
-    --color-ink: var(--ink);
-    --color-ink-foreground: var(--ink-foreground);
-    --color-tone-amber: var(--tone-amber);
-    --color-tone-amber-tag: var(--tone-amber-tag);
-    --color-tone-violet: var(--tone-violet);
-    --color-tone-violet-tag: var(--tone-violet-tag);
-    --color-tone-sky: var(--tone-sky);
-    --color-tone-sky-tag: var(--tone-sky-tag);
-    --color-tone-emerald: var(--tone-emerald);
-    --color-tone-emerald-tag: var(--tone-emerald-tag);
-    --color-tone-rose: var(--tone-rose);
-    --color-tone-rose-tag: var(--tone-rose-tag);
-    --radius-panel: 2rem;
 }
 
 :root {
@@ -105,30 +80,6 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
-    --shell: #1e1b4b;
-    --shell-foreground: #ffffff;
-    --shell-muted: #c7d2fe;
-    --shell-hover: #312e81;
-    --shell-accent: #4f46e5;
-    --shell-accent-foreground: #ffffff;
-    --panel: #fafaf7;
-    --panel-foreground: #020617;
-    --brand: #4f46e5;
-    --brand-hover: #4338ca;
-    --brand-foreground: #ffffff;
-    --outline: #020617;
-    --ink: #1c1917;
-    --ink-foreground: #fafaf9;
-    --tone-amber: #fde68a;
-    --tone-amber-tag: #fef3c7;
-    --tone-violet: #e9d5ff;
-    --tone-violet-tag: #f3e8ff;
-    --tone-sky: #bae6fd;
-    --tone-sky-tag: #e0f2fe;
-    --tone-emerald: #a7f3d0;
-    --tone-emerald-tag: #d1fae5;
-    --tone-rose: #fecdd3;
-    --tone-rose-tag: #ffe4e6;
 }
 
 .dark {

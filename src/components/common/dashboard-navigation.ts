@@ -28,8 +28,6 @@ type DashboardNavigationItem = {
   href?: string
   icon: LucideIcon
   pageTitle?: string
-  primary?: boolean
-  tabLabel?: string
 }
 type DashboardNavigationGroup = {
   label: string
@@ -54,13 +52,13 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/students", icon: GraduationCap, primary: true }],
+      items: [{ label: "Overview", href: "/students", icon: GraduationCap }],
     },
     {
       label: "Learning",
       items: [
-        { label: "My Learning", href: "/students/subjects", icon: BookOpen, primary: true, tabLabel: "Learning" },
-        { label: "My Classes", href: "/students/classrooms", icon: School, primary: true, tabLabel: "Classes" },
+        { label: "My Learning", href: "/students/subjects", icon: BookOpen },
+        { label: "My Classes", href: "/students/classrooms", icon: School },
         { label: "Study Library", href: "/students/materials", icon: FolderOpen },
         { label: "Study Spaces", href: "/students/study-spaces", icon: Users },
       ],
@@ -76,8 +74,8 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Academic",
       items: [
-        { label: "Calendar & Schedule", href: "/students/schedule", icon: CalendarDays, primary: true, tabLabel: "Schedule" },
-        { label: "Tasks & Assessments", href: "/students/tasks", icon: ClipboardList, primary: true, tabLabel: "Tasks" },
+        { label: "Calendar & Schedule", href: "/students/schedule", icon: CalendarDays },
+        { label: "Tasks & Assessments", href: "/students/tasks", icon: ClipboardList },
         { label: "Progress & Grades", href: "/students/progress", icon: ChartNoAxesCombined },
       ],
     },
@@ -98,15 +96,15 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/educators", icon: School, primary: true }],
+      items: [{ label: "Overview", href: "/educators", icon: School }],
     },
     {
       label: "Teaching & Management",
       items: [
-        { label: "My Classes", href: "/educators/classrooms", icon: School, primary: true, tabLabel: "Classes" },
-        { label: "Classwork & Assessments", href: "/educators/classwork", icon: ClipboardList, primary: true, tabLabel: "Classwork" },
-        { label: "Students", href: "/educators/learners", icon: Users, primary: true },
-        { label: "Attendance", href: "/educators/attendance", icon: CalendarCheck, primary: true },
+        { label: "My Classes", href: "/educators/classrooms", icon: School },
+        { label: "Classwork & Assessments", href: "/educators/classwork", icon: ClipboardList },
+        { label: "Students", href: "/educators/learners", icon: Users },
+        { label: "Attendance", href: "/educators/attendance", icon: CalendarCheck },
         { label: "Gradebook", icon: BookOpenCheck },
       ],
     },
@@ -144,20 +142,20 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/tutors", icon: UserRound, primary: true }],
+      items: [{ label: "Overview", href: "/tutors", icon: UserRound }],
     },
     {
       label: "Learner Management",
       items: [
-        { label: "My Learners", href: "/tutors/learners", icon: Users, primary: true, tabLabel: "Learners" },
+        { label: "My Learners", href: "/tutors/learners", icon: Users },
         { label: "Learning Plans", href: "/tutors/learning-plans", icon: BookOpen },
-        { label: "Activities & Evaluations", href: "/tutors/classwork", icon: ClipboardList, primary: true, tabLabel: "Activities" },
+        { label: "Activities & Evaluations", href: "/tutors/classwork", icon: ClipboardList },
       ],
     },
     {
       label: "Sessions & Communication",
       items: [
-        { label: "Sessions & Schedule", href: "/tutors/sessions", icon: CalendarDays, primary: true, tabLabel: "Sessions" },
+        { label: "Sessions & Schedule", href: "/tutors/sessions", icon: CalendarDays },
         { label: "Session Attendance", href: "/tutors/attendance", icon: CalendarCheck },
         { label: "Session Notes", href: "/tutors/session-notes", icon: NotebookPen },
         { label: "Meeting Room", href: "/tutors/classrooms/meeting-room", icon: Video },
@@ -170,7 +168,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Resources & Progress",
       items: [
         { label: "Teaching Materials", href: "/tutors/materials", icon: FolderOpen },
-        { label: "Student Progress", href: "/tutors/progress", icon: ChartNoAxesCombined, primary: true, tabLabel: "Progress" },
+        { label: "Student Progress", href: "/tutors/progress", icon: ChartNoAxesCombined },
         { label: "AI Tutor Assistant", href: "/tutors/ai-assistant", icon: Sparkles },
       ],
     },
@@ -187,15 +185,15 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/esl", icon: Languages, primary: true }],
+      items: [{ label: "Overview", href: "/esl", icon: Languages }],
     },
     {
       label: "Teaching",
       items: [
-        { label: "My Learners", href: "/esl/learners", icon: Users, primary: true, tabLabel: "Learners" },
-        { label: "Lesson Plans", href: "/esl/lessons", icon: BookOpen, primary: true, tabLabel: "Lessons" },
+        { label: "My Learners", href: "/esl/learners", icon: Users },
+        { label: "Lesson Plans", href: "/esl/lessons", icon: BookOpen },
         { label: "Teaching Materials", href: "/esl/materials", icon: FolderOpen },
-        { label: "Activities & Assessments", href: "/esl/classwork", icon: ClipboardList, primary: true, tabLabel: "Activities" },
+        { label: "Activities & Assessments", href: "/esl/classwork", icon: ClipboardList },
         { label: "Lesson Attendance", href: "/esl/attendance", icon: CalendarCheck },
       ],
     },
@@ -203,7 +201,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Live Learning",
       items: [
         { label: "Meeting Room", href: "/esl/classrooms/meeting-room", icon: Video },
-        { label: "Lesson Schedule", href: "/esl/schedule", icon: CalendarDays, primary: true, tabLabel: "Schedule" },
+        { label: "Lesson Schedule", href: "/esl/schedule", icon: CalendarDays },
       ],
     },
     {
@@ -253,22 +251,6 @@ export function getDashboardNavigation(pathname: string): NavigableDashboardNavi
 
 function matchesRoute(pathname: string, href: string, role: DashboardRole | undefined) {
   return pathname === href || (href !== `/${role}` && pathname.startsWith(`${href}/`))
-}
-
-export function getDashboardPrimaryTabs(pathname: string): (NavigableDashboardNavigationItem & { tabLabel: string })[] {
-  return getDashboardNavigation(pathname)
-    .flatMap(({ items }) => items)
-    .filter(({ primary }) => primary)
-    .map((item) => ({ ...item, tabLabel: item.tabLabel ?? item.label }))
-}
-
-export function getActiveDashboardHref(pathname: string): string | undefined {
-  const role = getDashboardRole(pathname)
-
-  return getDashboardSidebarNavigation(pathname)
-    .flatMap(({ items }) => items)
-    .filter((item): item is NavigableDashboardNavigationItem => isNavigableItem(item) && matchesRoute(pathname, item.href, role))
-    .sort((first, second) => second.href.length - first.href.length)[0]?.href
 }
 
 export function getDashboardPageTitle(pathname: string): string {

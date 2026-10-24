@@ -1,80 +1,50 @@
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { Link, useLocation } from "react-router"
-import { ChevronsLeft, ChevronsRight, X } from "lucide-react"
-import { cn } from "cn"
-import { getActiveDashboardHref, getDashboardSidebarNavigation } from "./dashboard-navigation"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { getDashboardRole, getDashboardSidebarNavigation } from "./dashboard-navigation"
 
 type SidebarGroup = ReturnType<typeof getDashboardSidebarNavigation>[number]
 
-const STORAGE_KEY = "owlio.sidebar.expanded"
-const DESKTOP_QUERY = "(min-width: 1024px)"
-
-function readStoredExpanded() {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === "true"
-  } catch {
-    return false
-  }
-}
-
-function writeStoredExpanded(value: boolean) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, String(value))
-  } catch {
-    return
-  }
-}
-
-function useIsDesktop() {
-  return useSyncExternalStore(
-    (notify) => {
-      const query = window.matchMedia(DESKTOP_QUERY)
-      query.addEventListener("change", notify)
-      return () => query.removeEventListener("change", notify)
-    },
-    () => window.matchMedia(DESKTOP_QUERY).matches,
-    () => true
-  )
-}
-
 function SidebarNavigationGroup({
   group,
-  showLabels,
+  collapsed,
   activeHref,
-  onNavigate,
+  onMobileClose,
 }: {
   group: SidebarGroup
-  showLabels: boolean
+  collapsed: boolean
   activeHref?: string
-  onNavigate: () => void
+  onMobileClose: () => void
 }) {
   return (
-    <section className="py-2 first:pt-0 not-first:border-t not-first:border-shell-hover">
+    <section key={group.label} className="mb-5">
       {group.showLabel !== false && (
-        <p className={cn("mb-1.5 px-3 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-shell-muted", !showLabels && "sr-only")}>
+        <p className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 ${collapsed ? "sr-only" : ""}`}>
           {group.label}
         </p>
       )}
-      <ul className={cn("space-y-1", !showLabels && "flex flex-col items-center")}>
+      <ul className="space-y-1">
         {group.items.map(({ label, href, icon: Icon }) => {
           const active = href !== undefined && href === activeHref
-          const className = cn(
-            "flex items-center rounded-xl text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white",
-            showLabels ? "h-10 w-full gap-3 px-3" : "size-11 justify-center",
+          const className = `flex h-10 items-center rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            collapsed ? "justify-center px-0" : "gap-3 px-3"
+          } ${
             active
-              ? "bg-shell-accent font-semibold text-shell-accent-foreground"
+              ? "bg-blue-50 font-semibold text-blue-700"
               : href
-                ? "text-shell-muted hover:bg-shell-hover hover:text-white"
-                : "cursor-not-allowed text-shell-muted/50"
-          )
+                ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                : "cursor-not-allowed text-slate-400"
+          }`
           const content = (
             <>
-              <Icon className="size-5 shrink-0" aria-hidden="true" />
-              {showLabels && (
+              <Icon className="size-4.5 shrink-0" aria-hidden="true" />
+              {!collapsed && (
                 <>
                   <span className="truncate">{label}</span>
                   {!href && (
-                    <span aria-hidden="true" className="ml-auto rounded-md bg-shell-hover px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-shell-muted">
+                    <span aria-hidden="true" className="ml-auto rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-500">
                       Planned
                     </span>
                   )}
@@ -84,20 +54,26 @@ function SidebarNavigationGroup({
           )
 
           return (
-            <li key={href ?? `${group.label}-${label}`} className={showLabels ? undefined : "list-none"}>
+            <li key={href ?? `${group.label}-${label}`}>
               {href ? (
                 <Link
                   to={href}
-                  onClick={onNavigate}
-                  aria-label={showLabels ? undefined : label}
+                  onClick={onMobileClose}
+                  aria-label={collapsed ? label : undefined}
                   aria-current={active ? "page" : undefined}
-                  title={showLabels ? undefined : label}
+                  title={collapsed ? label : undefined}
                   className={className}
                 >
                   {content}
                 </Link>
               ) : (
-                <button type="button" disabled aria-label={`${label}, planned`} title={`${label} — Planned`} className={className}>
+                <button
+                  type="button"
+                  disabled
+                  aria-label={`${label}, planned`}
+                  title={`${label} — Planned`}
+                  className={className}
+                >
                   {content}
                 </button>
               )}
@@ -110,127 +86,103 @@ function SidebarNavigationGroup({
 }
 
 type AppSidebarProps = {
+  collapsed: boolean
   mobileOpen: boolean
+  onCollapsedChange: (collapsed: boolean) => void
   onMobileClose: () => void
 }
 
-export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
+export function AppSidebar({ collapsed, mobileOpen, onCollapsedChange, onMobileClose }: AppSidebarProps) {
   const { pathname } = useLocation()
-  const isDesktop = useIsDesktop()
-  const [expanded, setExpanded] = useState(readStoredExpanded)
-  const [overlayOpen, setOverlayOpen] = useState(false)
-  const asideRef = useRef<HTMLElement>(null)
-  const toggleRef = useRef<HTMLButtonElement>(null)
+  const compact = collapsed && !mobileOpen
+  const widthClassName = collapsed ? "md:w-[72px]" : "md:w-64"
   const navigationGroups = getDashboardSidebarNavigation(pathname)
-  const activeHref = getActiveDashboardHref(pathname)
+  const role = getDashboardRole(pathname)
+  const matchedItems = navigationGroups
+    .flatMap(({ items }) => items)
+    .filter(({ href }) => (
+      href !== undefined
+      && (pathname === href || (href !== `/${role}` && pathname.startsWith(`${href}/`)))
+    ))
+    .sort((first, second) => (second.href?.length ?? 0) - (first.href?.length ?? 0))
+  const activeHref = matchedItems[0]?.href
   const mainGroups = navigationGroups.filter(({ placement }) => placement !== "footer")
   const footerGroups = navigationGroups.filter(({ placement }) => placement === "footer")
-  const overlayActive = !isDesktop && overlayOpen
-  const showLabels = mobileOpen || (isDesktop ? expanded : overlayOpen)
-
-  const closeOverlay = useCallback(() => setOverlayOpen(false), [])
-
-  useEffect(() => {
-    if (!overlayActive) return
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return
-      setOverlayOpen(false)
-      toggleRef.current?.focus()
-    }
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !asideRef.current?.contains(event.target)) setOverlayOpen(false)
-    }
-
-    document.addEventListener("keydown", handleKeyDown)
-    document.addEventListener("pointerdown", handlePointerDown)
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-      document.removeEventListener("pointerdown", handlePointerDown)
-    }
-  }, [overlayActive])
-
-  const toggleExpanded = () => {
-    if (isDesktop) {
-      const next = !expanded
-      setExpanded(next)
-      writeStoredExpanded(next)
-    } else {
-      setOverlayOpen((open) => !open)
-    }
-  }
-
-  const handleNavigate = () => {
-    onMobileClose()
-    closeOverlay()
-  }
-
-  const toggleLabel = showLabels ? "Collapse sidebar" : "Expand sidebar"
 
   return (
     <>
       {mobileOpen && (
-        <button type="button" aria-label="Close navigation" onClick={onMobileClose} className="fixed inset-0 z-30 bg-slate-950/50 md:hidden" />
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={onMobileClose}
+          className="fixed inset-0 z-30 bg-slate-950/25 md:hidden"
+        />
       )}
-      <div className={cn("relative shrink-0 md:w-16", expanded && "lg:w-60")}>
-        <aside
-          ref={asideRef}
-          aria-label="Workspace sidebar"
-          className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-shell p-3 text-shell-foreground transition-transform duration-200 motion-reduce:transition-none",
-            mobileOpen ? "translate-x-0" : "-translate-x-full",
-            "md:absolute md:translate-x-0 md:p-0",
-            showLabels ? "md:w-60" : "md:w-16",
-            overlayActive && "md:rounded-3xl md:bg-shell md:p-2 md:shadow-2xl md:shadow-black/40"
-          )}
-        >
-          <div className={cn("flex h-14 shrink-0 items-center", showLabels ? "justify-between px-1" : "justify-center")}>
-            <Link to="/" aria-label="Owlio home" onClick={handleNavigate} className="flex min-w-0 items-center gap-2 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white">
-              <img src="/mascot/owlio-mark.png" alt="" className="size-9 shrink-0 object-contain" />
-              {showLabels && <span className="truncate text-lg font-bold tracking-tight">owlio<span className="text-indigo-300">.</span></span>}
-            </Link>
-            <button
-              type="button"
-              onClick={onMobileClose}
-              aria-label="Close navigation"
-              className="inline-flex size-9 items-center justify-center rounded-xl text-shell-muted outline-none hover:bg-shell-hover hover:text-white focus-visible:ring-2 focus-visible:ring-white md:hidden"
-            >
-              <X className="size-5" aria-hidden="true" />
-            </button>
-          </div>
+      <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:top-0 md:h-svh md:translate-x-0 ${widthClassName}`} aria-label="Workspace sidebar">
+        <div className={`flex h-14 shrink-0 items-center ${compact ? "justify-center px-2" : "justify-between px-3"}`}>
+          <Link to="/" aria-label="Owlio home" onClick={onMobileClose} className="flex min-w-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <img src="/mascot/owlio-mark.png" alt="" className="size-8 shrink-0 object-contain" />
+            {!compact && <span className="truncate text-lg font-bold tracking-tight text-blue-700">Owlio</span>}
+          </Link>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onCollapsedChange(!collapsed)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={collapsed ? "absolute right-1 top-3 hidden md:inline-flex" : "hidden md:inline-flex"}
+          >
+            {collapsed ? <ChevronRight aria-hidden="true" /> : <ChevronLeft aria-hidden="true" />}
+          </Button>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onMobileClose} aria-label="Close navigation" className="md:hidden">
+            <X aria-hidden="true" />
+          </Button>
+        </div>
 
-          <nav aria-label="Workspace navigation" className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto py-2 [scrollbar-width:none]">
+        <div className={`mx-2 mb-5 flex min-h-12 items-center rounded-xl bg-slate-50 ${compact ? "justify-center" : "gap-3 px-2.5"}`}>
+          <Avatar size="sm" className="ring-2 ring-white">
+            <AvatarFallback className="bg-emerald-100 text-[10px] font-semibold text-emerald-800">OW</AvatarFallback>
+          </Avatar>
+          {!compact && (
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-slate-800">Your workspace</p>
+              <p className="truncate text-[11px] text-slate-500">Learning account</p>
+            </div>
+          )}
+        </div>
+
+        <ScrollArea className="min-h-0 flex-1">
+          <nav aria-label="Workspace navigation" className="h-full overflow-x-hidden px-2 pb-3">
             {mainGroups.map((group) => (
-              <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} onNavigate={handleNavigate} />
+              <SidebarNavigationGroup
+                key={group.label}
+                group={group}
+                collapsed={compact}
+                activeHref={activeHref}
+                onMobileClose={onMobileClose}
+              />
             ))}
           </nav>
+        </ScrollArea>
 
-          <div className="shrink-0 border-t border-shell-hover pt-2">
-            {footerGroups.length > 0 && (
-              <nav aria-label="Account navigation">
-                {footerGroups.map((group) => (
-                  <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} onNavigate={handleNavigate} />
-                ))}
-              </nav>
-            )}
-            <button
-              ref={toggleRef}
-              type="button"
-              onClick={toggleExpanded}
-              aria-expanded={showLabels}
-              aria-label={toggleLabel}
-              title={toggleLabel}
-              className={cn(
-                "hidden items-center rounded-xl text-shell-muted outline-none transition-colors hover:bg-shell-hover hover:text-white focus-visible:ring-2 focus-visible:ring-white md:flex",
-                showLabels ? "h-10 w-full gap-3 px-3 text-sm" : "mx-auto size-11 justify-center"
-              )}
-            >
-              {showLabels ? <ChevronsLeft className="size-5" aria-hidden="true" /> : <ChevronsRight className="size-5" aria-hidden="true" />}
-              {showLabels && <span>Collapse</span>}
-            </button>
+        {footerGroups.length > 0 && (
+          <div className="shrink-0 border-t border-slate-100 px-2 py-3">
+            <nav aria-label="Account navigation">
+              {footerGroups.map((group) => (
+                <SidebarNavigationGroup
+                  key={group.label}
+                  group={group}
+                  collapsed={compact}
+                  activeHref={activeHref}
+                  onMobileClose={onMobileClose}
+                />
+              ))}
+            </nav>
           </div>
-        </aside>
-      </div>
+        )}
+      </aside>
     </>
   )
 }
