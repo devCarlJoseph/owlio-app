@@ -189,7 +189,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
           className={cn(
             "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white px-3 pt-3 transition-transform duration-200 motion-reduce:transition-none",
             mobileOpen ? "translate-x-0" : "-translate-x-full",
-            "md:sticky md:top-0 md:h-svh md:translate-x-0 md:transition-[width]",
+            "md:sticky md:top-16 md:h-[calc(100svh-4rem)] md:translate-x-0 md:transition-[width]",
             showLabels ? "md:w-64" : "md:w-20",
             overlayActive && "md:shadow-xl"
           )}
