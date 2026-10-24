@@ -124,6 +124,16 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
+#root:has([data-dashboard-shell]) {
+  display: flex;
+  height: 100dvh;
+  flex-direction: column;
+}
+
+#root:has([data-dashboard-shell]) > [role="status"] {
+  flex-shrink: 0;
+}
+
 html:has([data-dashboard-shell]),
 body:has([data-dashboard-shell]) {
   overflow: hidden;

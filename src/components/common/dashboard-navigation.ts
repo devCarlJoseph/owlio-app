@@ -1,5 +1,4 @@
 import {
-  Bell,
   BookOpen,
   BookOpenCheck,
   CalendarCheck,
@@ -11,7 +10,6 @@ import {
   GraduationCap,
   Languages,
   Megaphone,
-  MessagesSquare,
   NotebookPen,
   School,
   Sparkles,
@@ -52,7 +50,9 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/students", icon: GraduationCap }],
+      items: [
+        { label: "Overview", href: "/students", icon: GraduationCap },
+      ],
     },
     {
       label: "Learning",
@@ -67,62 +67,55 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Communication",
       items: [
         { label: "Meeting Room", href: "/students/classrooms/meeting-room", icon: Video },
-        { label: "Discussions", href: "/students/communication", icon: MessagesSquare },
-        { label: "Notifications", href: "/students/notifications", icon: Bell },
       ],
     },
     {
       label: "Academic",
       items: [
-        { label: "Calendar & Schedule", href: "/students/schedule", icon: CalendarDays },
-        { label: "Tasks & Assessments", href: "/students/tasks", icon: ClipboardList },
-        { label: "Progress & Grades", href: "/students/progress", icon: ChartNoAxesCombined },
+        { label: "Calendar and Schedule", href: "/students/schedule", icon: CalendarDays },
+        { label: "Task and Assessments", href: "/students/tasks", icon: ClipboardList },
+        { label: "Progress and Grade", href: "/students/progress", icon: ChartNoAxesCombined },
       ],
     },
     {
       label: "Tools & Support",
       items: [
-        { label: "AI Study Assistant", icon: Sparkles },
-        { label: "Help & Support", icon: CircleHelp },
+        { label: "AI Assistant", icon: Sparkles },
+        { label: "Help and Support", icon: CircleHelp },
       ],
-    },
-    {
-      label: "Account",
-      placement: "footer",
-      items: [{ label: "Account security", href: "/students/account/security", icon: UserRound }],
     },
   ],
   educators: [
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/educators", icon: School }],
+      items: [
+        { label: "Overview", href: "/educators", icon: School },
+      ],
     },
     {
       label: "Teaching & Management",
       items: [
         { label: "My Classes", href: "/educators/classrooms", icon: School },
-        { label: "Classwork & Assessments", href: "/educators/classwork", icon: ClipboardList },
+        { label: "Classworks and Assessments", href: "/educators/classwork", icon: ClipboardList },
         { label: "Students", href: "/educators/learners", icon: Users },
         { label: "Attendance", href: "/educators/attendance", icon: CalendarCheck },
-        { label: "Gradebook", icon: BookOpenCheck },
+        { label: "Grade Book", icon: BookOpenCheck },
       ],
     },
     {
       label: "Communication",
       items: [
-        { label: "Meeting Room", href: "/educators/classrooms/meeting-room", icon: Video },
-        { label: "Discussions", href: "/educators/communication", icon: MessagesSquare },
         { label: "Announcements", icon: Megaphone },
-        { label: "Notifications", href: "/educators/notifications", icon: Bell },
+        { label: "Meeting Room", href: "/educators/classrooms/meeting-room", icon: Video },
       ],
     },
     {
       label: "Planning",
       items: [
         { label: "Lesson Planner", icon: BookOpen },
-        { label: "Calendar & Schedule", href: "/educators/schedule", icon: CalendarDays },
         { label: "Teaching Materials", href: "/educators/materials", icon: FolderOpen },
+        { label: "Calendar and Schedule", href: "/educators/schedule", icon: CalendarDays },
       ],
     },
     {
@@ -132,36 +125,69 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
         { label: "Teaching Insights", href: "/educators/progress", icon: ChartNoAxesCombined },
       ],
     },
+  ],
+  esl: [
     {
-      label: "Account",
-      placement: "footer",
-      items: [{ label: "Account security", href: "/educators/account/security", icon: UserRound }],
+      label: "Overview",
+      showLabel: false,
+      items: [
+        { label: "Overview", href: "/esl", icon: Languages },
+      ],
+    },
+    {
+      label: "Teaching",
+      items: [
+        { label: "My Learning", icon: Users },
+        { label: "Lesson Plans", href: "/esl/lessons", icon: BookOpen },
+        { label: "Teaching Materials", href: "/esl/materials", icon: FolderOpen },
+        { label: "Activities and Assessment", href: "/esl/classwork", icon: ClipboardList },
+      ],
+    },
+    {
+      label: "Live Learning",
+      items: [
+        { label: "Lesson Schedule", href: "/esl/schedule", icon: CalendarDays },
+        { label: "Meeting Room", href: "/esl/classrooms/meeting-room", icon: Video },
+      ],
+    },
+    {
+      label: "Communication",
+      items: [
+        { label: "Announcements", icon: Megaphone },
+      ],
+    },
+    {
+      label: "Progress & AI",
+      items: [
+        { label: "Learner Progress", href: "/esl/progress", icon: ChartNoAxesCombined },
+        { label: "Feedback and Notes", icon: NotebookPen },
+        { label: "AI Lesson Assistant", href: "/esl/ai-assistant", icon: Sparkles },
+      ],
     },
   ],
   tutors: [
     {
       label: "Overview",
       showLabel: false,
-      items: [{ label: "Overview", href: "/tutors", icon: UserRound }],
+      items: [
+        { label: "Overview", href: "/tutors", icon: UserRound },
+      ],
     },
     {
       label: "Learner Management",
       items: [
         { label: "My Learners", href: "/tutors/learners", icon: Users },
         { label: "Learning Plans", href: "/tutors/learning-plans", icon: BookOpen },
-        { label: "Activities & Evaluations", href: "/tutors/classwork", icon: ClipboardList },
+        { label: "Activities and Evaluation", href: "/tutors/classwork", icon: ClipboardList },
       ],
     },
     {
       label: "Sessions & Communication",
       items: [
-        { label: "Sessions & Schedule", href: "/tutors/sessions", icon: CalendarDays },
-        { label: "Session Attendance", href: "/tutors/attendance", icon: CalendarCheck },
+        { label: "Sessions and Schedule", href: "/tutors/sessions", icon: CalendarDays },
         { label: "Session Notes", href: "/tutors/session-notes", icon: NotebookPen },
         { label: "Meeting Room", href: "/tutors/classrooms/meeting-room", icon: Video },
-        { label: "Discussions", href: "/tutors/communication", icon: MessagesSquare },
         { label: "Announcements", href: "/tutors/announcements", icon: Megaphone },
-        { label: "Notifications", href: "/tutors/notifications", icon: Bell },
       ],
     },
     {
@@ -171,59 +197,6 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
         { label: "Student Progress", href: "/tutors/progress", icon: ChartNoAxesCombined },
         { label: "AI Tutor Assistant", href: "/tutors/ai-assistant", icon: Sparkles },
       ],
-    },
-    {
-      label: "Account",
-      placement: "footer",
-      items: [
-        { label: "Profile & Settings", href: "/tutors/settings", icon: UserRound },
-        { label: "Account security", href: "/tutors/account/security", icon: UserRound },
-      ],
-    },
-  ],
-  esl: [
-    {
-      label: "Overview",
-      showLabel: false,
-      items: [{ label: "Overview", href: "/esl", icon: Languages }],
-    },
-    {
-      label: "Teaching",
-      items: [
-        { label: "My Learners", href: "/esl/learners", icon: Users },
-        { label: "Lesson Plans", href: "/esl/lessons", icon: BookOpen },
-        { label: "Teaching Materials", href: "/esl/materials", icon: FolderOpen },
-        { label: "Activities & Assessments", href: "/esl/classwork", icon: ClipboardList },
-        { label: "Lesson Attendance", href: "/esl/attendance", icon: CalendarCheck },
-      ],
-    },
-    {
-      label: "Live Learning",
-      items: [
-        { label: "Meeting Room", href: "/esl/classrooms/meeting-room", icon: Video },
-        { label: "Lesson Schedule", href: "/esl/schedule", icon: CalendarDays },
-      ],
-    },
-    {
-      label: "Communication",
-      items: [
-        { label: "Discussions", href: "/esl/communication", icon: MessagesSquare },
-        { label: "Announcements", icon: Megaphone },
-        { label: "Notifications", href: "/esl/notifications", icon: Bell },
-      ],
-    },
-    {
-      label: "Progress & AI",
-      items: [
-        { label: "Learner Progress", href: "/esl/progress", icon: ChartNoAxesCombined },
-        { label: "Feedback & Notes", icon: NotebookPen },
-        { label: "AI Lesson Assistant", href: "/esl/ai-assistant", icon: Sparkles },
-      ],
-    },
-    {
-      label: "Account",
-      placement: "footer",
-      items: [{ label: "Account security", href: "/esl/account/security", icon: UserRound }],
     },
   ],
 }

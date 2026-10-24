@@ -183,14 +183,14 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
       {mobileOpen && (
         <button type="button" aria-label="Close navigation" onClick={onMobileClose} className="fixed inset-0 z-30 bg-slate-950/25 md:hidden" />
       )}
-      <div className={cn("shrink-0 md:w-20", expanded && "lg:w-64")}>
+      <div className={cn("min-h-0 shrink-0 md:h-full md:w-20", expanded && "lg:w-64")}>
         <aside
           ref={asideRef}
           aria-label="Workspace sidebar"
           className={cn(
             "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white px-3 pt-3 transition-transform duration-200 motion-reduce:transition-none",
             mobileOpen ? "translate-x-0" : "-translate-x-full",
-            "md:relative md:h-full md:translate-x-0 md:transition-[width]",
+            "overflow-hidden md:relative md:h-full md:min-h-0 md:translate-x-0 md:transition-[width]",
             showLabels ? "md:w-64" : "md:w-20",
             overlayActive && "md:shadow-xl"
           )}
@@ -230,7 +230,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
             </div>
           )}
 
-          <ScrollArea className="mt-3 min-h-0 flex-1 border-t border-slate-200">
+          <ScrollArea className="mt-3 h-0 min-h-0 flex-1 overflow-hidden border-t border-slate-200">
             <nav aria-label="Workspace navigation" className="overflow-x-hidden pt-2">
               {mainGroups.map((group) => (
                 <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} badges={badges} onNavigate={handleNavigate} />
@@ -259,7 +259,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
               )}
             >
               {showLabels ? <PanelLeftClose className="size-5" aria-hidden="true" /> : <PanelLeftOpen className="size-5" aria-hidden="true" />}
-              {showLabels && <span>Collapse</span>}
+              {showLabels && <span>Collapse Sidebar</span>}
             </button>
           </div>
         </aside>
