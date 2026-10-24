@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState } from "react"
-import { Bell, LogOut, Menu, Search } from "lucide-react"
+import { Bell, CircleHelp, LogOut, Menu, Search } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
-import { getDashboardNavigation, getDashboardPageTitle } from "@/components/common/dashboard-navigation"
+import {
+  getDashboardNavigation,
+  getDashboardPageTitle,
+  getDashboardSidebarNavigation,
+  getDashboardWorkspace,
+} from "@/components/common/dashboard-navigation"
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { getApiErrorMessage } from "@/services/api/api-error"
 
 export default function PlatformLayout() {
-  const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -22,6 +28,7 @@ export default function PlatformLayout() {
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState<string | null>(null)
   const pageTitle = getDashboardPageTitle(pathname)
+  const homeHref = getDashboardWorkspace(pathname)?.homeHref ?? "/"
   const navigationItems = getDashboardNavigation(pathname).flatMap(({ label: group, items }) =>
     items.map((item) => ({ ...item, group }))
   )
@@ -29,11 +36,9 @@ export default function PlatformLayout() {
     label.toLowerCase().includes(searchQuery.trim().toLowerCase())
   )
   const notificationHref = navigationItems.find(({ label }) => label === "Notifications")?.href ?? "/"
-  const currentDate = new Intl.DateTimeFormat(undefined, {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date())
+  const menuItems = getDashboardSidebarNavigation(pathname).flatMap(({ items }) => items)
+  const accountLinks = menuItems.filter(({ href, label }) => href && (label === "Notifications" || /^(Account security|Profile & Settings)$/.test(label)))
+  const supportItems = menuItems.filter(({ label }) => /^Help/.test(label))
   const userInitials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'OW'
   const userRoleLabel = user?.roles.includes('STUDENT') ? 'Student account' : 'Educator account'
   const isMacPlatform = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
@@ -73,14 +78,9 @@ export default function PlatformLayout() {
 
   return (
     <div className="flex min-h-svh bg-slate-50">
-      <AppSidebar
-        collapsed={collapsed}
-        mobileOpen={mobileOpen}
-        onCollapsedChange={setCollapsed}
-        onMobileClose={() => setMobileOpen(false)}
-      />
+      <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
       <div className="flex min-h-svh min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex min-h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:gap-4 sm:px-6">
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
           <Button
             type="button"
             variant="ghost"
@@ -92,13 +92,13 @@ export default function PlatformLayout() {
           >
             <Menu aria-hidden="true" />
           </Button>
-          <div className="min-w-0 shrink-0">
-            <h1 className="truncate text-sm font-semibold text-slate-900">{pageTitle}</h1>
-            <p className="mt-0.5 text-[11px] text-slate-500">{currentDate}</p>
-          </div>
+          <Link to={homeHref} aria-label="Owlio home" className="flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <img src="/mascot/owlio-mark.png" alt="" className="size-8 object-contain" />
+            <span className="hidden text-lg font-semibold tracking-tight text-slate-950 sm:inline">owlio<span className="text-brand">.</span></span>
+          </Link>
           <form
             role="search"
-            className="relative mx-auto hidden w-full max-w-md flex-1 md:block"
+            className="relative mx-auto hidden w-full max-w-xl flex-1 md:block"
             onSubmit={(event) => {
               event.preventDefault()
               if (matchingPages.length === 1) {
@@ -107,7 +107,7 @@ export default function PlatformLayout() {
               }
             }}
           >
-            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
             <Input
               ref={searchInputRef}
               type="search"
@@ -119,8 +119,8 @@ export default function PlatformLayout() {
               aria-label="Search workspace pages"
               aria-keyshortcuts={searchShortcut}
               autoComplete="off"
-              placeholder="Search pages..."
-              className="h-10 rounded-full border-slate-200 bg-slate-50 pl-10 pr-20"
+              placeholder="Search pages…"
+              className="h-10 rounded-full border-transparent bg-slate-100 pl-10 pr-20 focus-visible:border-brand focus-visible:bg-white focus-visible:ring-brand/30"
             />
             {!searchQuery && (
               <KbdGroup aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -140,7 +140,7 @@ export default function PlatformLayout() {
                           className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none hover:bg-slate-50 focus-visible:bg-slate-50"
                         >
                           <span>{label}</span>
-                          <span className="text-xs text-slate-400">{group}</span>
+                          <span className="text-xs text-slate-500">{group}</span>
                         </Link>
                       </li>
                     ))}
@@ -151,34 +151,68 @@ export default function PlatformLayout() {
               </div>
             )}
           </form>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
             <Button
               render={<Link to={notificationHref} />}
               variant="ghost"
               size="icon"
               aria-label="Notifications"
               title="Notifications"
-              className="rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100"
+              className="relative size-10 rounded-full text-slate-600 hover:bg-slate-100"
             >
               <Bell aria-hidden="true" />
             </Button>
-            <div className="hidden h-8 w-px bg-slate-200 sm:block" />
-            <div className="flex min-w-0 items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1.5 pr-3">
-              <Avatar size="sm" className="size-8">
-                <AvatarFallback className="bg-blue-100 text-xs font-semibold text-blue-800">{userInitials}</AvatarFallback>
-              </Avatar>
-              <div className="hidden min-w-0 md:block">
-                <p className="truncate text-xs font-semibold text-slate-800">{user?.name}</p>
-                <p className="truncate text-[10px] text-slate-500">{userRoleLabel}</p>
-              </div>
-            </div>
-            <Button type="button" variant="ghost" size="sm" disabled={signingOut} onClick={() => void handleSignOut()}>
-              <LogOut aria-hidden="true" />
-              <span className="hidden sm:inline">{signingOut ? 'Signing out…' : 'Sign out'}</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label="Account menu"
+                className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <Avatar className="size-10">
+                  <AvatarFallback className="bg-brand-soft text-sm font-semibold text-brand-soft-foreground">{userInitials}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="w-72 rounded-xl p-0">
+                <div className="space-y-1.5 px-4 py-3">
+                  <p className="truncate text-sm font-semibold text-slate-900">{user?.name}</p>
+                  <p className="truncate text-sm text-slate-600">{user?.email}</p>
+                  <Badge variant="secondary" className="rounded-md">{userRoleLabel}</Badge>
+                </div>
+                <DropdownMenuSeparator className="m-0" />
+                <div className="p-1">
+                  {accountLinks.map(({ label, href, icon: Icon }) => (
+                    <DropdownMenuItem key={href} render={<Link to={href as string} />} className="h-10 gap-3 px-3">
+                      <Icon className="size-4.5" aria-hidden="true" />
+                      {label}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+                {supportItems.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator className="m-0" />
+                    <div className="p-1">
+                      {supportItems.map(({ label }) => (
+                        <DropdownMenuItem key={label} disabled className="h-10 gap-3 px-3">
+                          <CircleHelp className="size-4.5" aria-hidden="true" />
+                          {label}
+                          <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-slate-500">Planned</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <DropdownMenuSeparator className="m-0" />
+                <div className="p-1">
+                  <DropdownMenuItem variant="destructive" disabled={signingOut} onClick={() => void handleSignOut()} className="h-10 gap-3 px-3">
+                    <LogOut className="size-4.5" aria-hidden="true" />
+                    {signingOut ? "Signing out…" : "Log out"}
+                  </DropdownMenuItem>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8">
+          <h1 className="sr-only">{pageTitle}</h1>
           {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
           <ClassroomPrototypeProvider>
             <Outlet />
