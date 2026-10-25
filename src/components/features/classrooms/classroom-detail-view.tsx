@@ -1,6 +1,5 @@
 import { useState } from "react"
 import {
-  ArrowLeft,
   BookOpen,
   CalendarDays,
   ClipboardList,
@@ -25,11 +24,14 @@ import { getApiErrorMessage } from "@/services/api/api-error"
 import { createMeeting } from "@/services/api/meeting.service"
 import { ClassroomChatView } from "./classroom-chat-view"
 import { ClassroomClassworkView } from "./classroom-classwork-view"
+import { getClassroomCoverUrl } from "./classroom-covers"
+import { getNextSession } from "./classroom-list-meta"
+import { StatusChip } from "./classroom-list-ui"
 import { ClassroomFeedView } from "./classroom-feed-view"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import { ClassroomMembersView } from "./classroom-members-view"
 import type { WorkspaceRole } from "./classroom-types"
-import { UnderDevelopment } from "./classroom-ui"
+import { PersonAvatar, UnderDevelopment } from "./classroom-ui"
 
 const underDevelopmentTabs = new Set(["materials", "schedule", "media", "files", "attendance", "progress"])
 
@@ -173,7 +175,7 @@ export function ClassroomDetailView() {
   }
 
   const meetingCard = (
-    <section className="rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="meeting-link-heading">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="meeting-link-heading">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="meeting-link-heading" className="text-sm font-semibold text-slate-900">Class meeting</h2>
@@ -192,7 +194,7 @@ export function ClassroomDetailView() {
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
               to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
-              className="inline-flex min-h-9 items-center rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="inline-flex min-h-9 items-center rounded-lg bg-brand px-3 text-sm font-semibold text-brand-foreground hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >Join meeting</Link>
             <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingLink()}><Copy aria-hidden="true" /> Copy link</Button>
             <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingCode()}><Copy aria-hidden="true" /> Copy code</Button>
@@ -214,7 +216,7 @@ export function ClassroomDetailView() {
   )
 
   const inviteCard = isClassOwner && classroom.joinCode ? (
-    <section className="rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="invite-code-heading">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="invite-code-heading">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="invite-code-heading" className="text-sm font-semibold text-slate-900">Student invite code</h2>
@@ -229,74 +231,50 @@ export function ClassroomDetailView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5">
-      <Link
-        to={`/${role}/classrooms`}
-        className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-slate-700 outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500"
-      >
-        <ArrowLeft aria-hidden="true" className="size-4" /> All classrooms
-      </Link>
+      <nav aria-label="Breadcrumb">
+        <ol className="flex min-w-0 items-center gap-1.5 text-sm text-slate-600">
+          <li>
+            <Link
+              to={`/${role}/classrooms`}
+              className="rounded font-medium outline-none hover:text-slate-900 hover:underline focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              My Classes
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="truncate font-medium text-slate-900">{classroom.name}</li>
+        </ol>
+      </nav>
 
-      {role === "educators" && (
-        <div aria-hidden="true" className="relative h-36 overflow-hidden rounded-t-2xl bg-[radial-gradient(ellipse_at_18%_110%,rgba(56,189,248,0.8),transparent_48%),radial-gradient(ellipse_at_85%_-15%,rgba(129,140,248,0.75),transparent_44%),linear-gradient(115deg,#1d4ed8,#4338ca_52%,#0369a1)] sm:h-48">
-          <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(rgba(255,255,255,0.8)_0.7px,transparent_0.7px)] [background-size:14px_14px]" />
-          <div className="absolute -right-10 -top-40 size-96 rounded-full border border-white/20" />
-          <div className="absolute right-24 -top-36 size-80 rounded-full border border-white/15" />
-          <div className="absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-slate-950/20 to-transparent" />
-        </div>
-      )}
-      <header className={`overflow-hidden border border-slate-200 bg-white shadow-sm ${role === "educators" ? "-mt-5 rounded-b-2xl rounded-t-none" : "rounded-2xl"}`}>
-        <div className={`relative isolate overflow-hidden px-5 py-5 sm:px-8 sm:py-6 ${role === "educators" ? "bg-white" : "bg-gradient-to-br from-blue-50 via-white to-indigo-50"}`}>
-          {role !== "educators" && <div aria-hidden="true" className="absolute -right-12 -top-24 -z-10 size-72 rounded-full border border-blue-100" />}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex max-w-3xl items-start gap-4">
-              {role === "educators" && (
-                <span aria-hidden="true" className="mt-1 flex size-14 shrink-0 items-center justify-center rounded-full border-4 border-white bg-blue-700 text-lg font-bold text-white shadow-md sm:size-16">
-                  {classroom.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
-                </span>
-              )}
-              <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className={classroom.isMock ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-900"}>
-                  {classroom.isMock ? "Mock classroom" : "Connected classroom"}
-                </Badge>
-                <Badge variant="outline">{classroom.subject}</Badge>
-              </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{classroom.name}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{classroom.description}</p>
-              <p className="mt-3 text-sm font-medium text-slate-700">Educator: {classroom.instructorName}
-                {classroom.isMock && <span className="font-normal text-slate-500"> · {classroom.members.length} demo members</span>}
-              </p>
-              </div>
-            </div>
-            {role === "educators" ? (
-              <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-                {meetingUrl ? (
-                  <>
-                    <Link to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`} className="inline-flex min-h-10 items-center rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">Join meeting</Link>
-                    <Button type="button" variant="outline" onClick={() => void handleCopyMeetingLink()}><Copy aria-hidden="true" /> Copy link</Button>
-                  </>
-                ) : canCreateMeeting ? (
-                  <Button type="button" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>{creatingMeeting ? "Creating room…" : "Create meeting room"}</Button>
-                ) : (
-                  <Badge variant="outline" className="min-h-10 px-3">No meeting room</Badge>
-                )}
-                {isClassOwner && classroom.joinCode && (
-                  <Button type="button" variant="outline" onClick={() => void handleCopyInviteCode()}><Copy aria-hidden="true" /> {classroom.isMock ? "Copy demo invite" : "Copy invite code"}</Button>
-                )}
-              </div>
-            ) : <div className="grid w-full max-w-sm gap-3">{meetingCard}{inviteCard}</div>}
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 max-w-3xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusChip status={classroom.isMock ? { label: "Demo classroom", tone: "demo" } : { label: "Connected classroom", tone: "connected" }} />
+            {classroom.subject && <Badge variant="outline">{classroom.subject}</Badge>}
           </div>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{classroom.name}</h2>
+          {classroom.description && <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{classroom.description}</p>}
+          <p className="mt-2 text-sm font-medium text-slate-700">Educator: {classroom.instructorName}</p>
         </div>
-        {role !== "educators" && <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 sm:px-8">
-          <span>{classroom.isMock ? `${classroom.activities.length} demo activities` : "Classwork service unavailable"}</span>
-          <span>{classroom.isMock ? `${classroom.sessions.length} demo sessions` : "Schedule service unavailable"}</span>
-          <span>{classroom.isMock ? "Preview classroom" : "Classroom record connected"}</span>
-        </div>}
+        <div className="flex flex-wrap gap-2">
+          {meetingUrl ? (
+            <Link
+              to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
+              className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground outline-none hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Open meeting room
+            </Link>
+          ) : canCreateMeeting ? (
+            <Button type="button" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()} className="bg-brand text-brand-foreground hover:bg-brand/90">
+              {creatingMeeting ? "Creating room…" : "Create meeting room"}
+            </Button>
+          ) : null}
+        </div>
       </header>
 
       {status && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{status}</p>}
 
-      {role !== "educators" && <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+      <Alert className="border-amber-200 bg-amber-50 text-amber-900">
         <School aria-hidden="true" />
         <AlertTitle>{classroom.isMock ? "Classroom workflow preview" : "Connected classroom"}</AlertTitle>
         <AlertDescription className="text-amber-800">
@@ -304,62 +282,100 @@ export function ClassroomDetailView() {
             ? "This demo classroom and its content exist only in this app session."
             : "Classroom membership and meeting links are connected to the API. Posts, messages, classwork, attendance, sessions, and learner records remain mock data held in this app session only."}
         </AlertDescription>
-      </Alert>}
+      </Alert>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => selectTab(String(value))}
-        className="min-w-0 flex-col"
-      >
-        <TabsList variant="line" className="w-full max-w-full justify-start gap-1 overflow-x-auto border-b border-slate-200 p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {visibleTabItems.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger key={value} value={value} className="h-11 min-w-fit flex-none rounded-none px-3 group-data-[orientation=horizontal]/tabs:after:bottom-0">
-              <Icon aria-hidden="true" className="size-4" /> {label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {role === "educators" && <TabsContent value="about" className="pt-4">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card>
-              <CardContent className="space-y-4 p-5 sm:p-6">
-                <div>
-                  <h2 className="text-base font-semibold text-slate-900">About this class</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{classroom.description || "No class description has been provided."}</p>
-                </div>
-                <dl className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
-                  <div><dt className="text-xs text-slate-500">Subject</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.subject}</dd></div>
-                  <div><dt className="text-xs text-slate-500">Educator</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.instructorName}</dd></div>
-                  <div><dt className="text-xs text-slate-500">Class record</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.isMock ? "Demo preview" : "Connected"}</dd></div>
-                </dl>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="space-y-3 p-5 sm:p-6">
-                <h2 className="text-base font-semibold text-slate-900">Class access</h2>
-                <p className="text-sm leading-5 text-slate-600">Use the class actions in the header to open its meeting room or share the student invite code.</p>
-                {classroom.isMock && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo controls only</Badge>}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>}
-        <TabsContent value="feed" className="pt-4">
-          <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} onOpenMembers={() => selectTab("people")} />
-        </TabsContent>
-        <TabsContent value="chat" className="pt-4">
-          <ClassroomChatView classroom={classroom} role={role as WorkspaceRole} />
-        </TabsContent>
-        <TabsContent value="classwork" className="pt-4">
-          <ClassroomClassworkView classroom={classroom} role={role as WorkspaceRole} />
-        </TabsContent>
-        <TabsContent value="people" className="pt-4">
-          <ClassroomMembersView classroom={classroom} role={role as WorkspaceRole} />
-        </TabsContent>
-        {visibleTabItems.filter(({ value }) => underDevelopmentTabs.has(value)).map(({ value, label }) => (
-          <TabsContent key={value} value={value} className="pt-4">
-            <UnderDevelopment title={label} />
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => selectTab(String(value))}
+          className="min-w-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm"
+        >
+          <TabsList variant="line" className="w-full max-w-full justify-start gap-1 overflow-x-auto border-b border-slate-200 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {visibleTabItems.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger key={value} value={value} className="h-11 min-w-fit flex-none rounded-none px-3 group-data-[orientation=horizontal]/tabs:after:bottom-0">
+                <Icon aria-hidden="true" className="size-4" /> {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {role === "educators" && <TabsContent value="about" className="p-4 sm:p-5">
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Card>
+                <CardContent className="space-y-4 p-5 sm:p-6">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">About this class</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{classroom.description || "No class description has been provided."}</p>
+                  </div>
+                  <dl className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+                    <div><dt className="text-xs text-slate-500">Subject</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.subject}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Educator</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.instructorName}</dd></div>
+                    <div><dt className="text-xs text-slate-500">Class record</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.isMock ? "Demo preview" : "Connected"}</dd></div>
+                  </dl>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="space-y-3 p-5 sm:p-6">
+                  <h3 className="text-base font-semibold text-slate-900">Class access</h3>
+                  <p className="text-sm leading-5 text-slate-600">Use the class details beside this panel to open the meeting room or share the student invite code.</p>
+                  {classroom.isMock && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo controls only</Badge>}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>}
+          <TabsContent value="feed" className="p-4 sm:p-5">
+            <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} onOpenMembers={() => selectTab("people")} />
           </TabsContent>
-        ))}
-      </Tabs>
+          <TabsContent value="chat" className="p-4 sm:p-5">
+            <ClassroomChatView classroom={classroom} role={role as WorkspaceRole} />
+          </TabsContent>
+          <TabsContent value="classwork" className="p-4 sm:p-5">
+            <ClassroomClassworkView classroom={classroom} role={role as WorkspaceRole} />
+          </TabsContent>
+          <TabsContent value="people" className="p-4 sm:p-5">
+            <ClassroomMembersView classroom={classroom} role={role as WorkspaceRole} />
+          </TabsContent>
+          {visibleTabItems.filter(({ value }) => underDevelopmentTabs.has(value)).map(({ value, label }) => (
+            <TabsContent key={value} value={value} className="p-4 sm:p-5">
+              <UnderDevelopment title={label} />
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        <aside aria-label="Class details" className="min-w-0 space-y-4">
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" aria-labelledby="class-info-heading">
+            <img
+              src={getClassroomCoverUrl(classroom.id)}
+              alt=""
+              aria-hidden="true"
+              className="h-32 w-full rounded-xl object-cover"
+            />
+            <div className="space-y-3 p-3">
+              <h3 id="class-info-heading" className="text-sm font-semibold text-slate-900">Class info</h3>
+              <dl className="grid grid-cols-2 gap-3">
+                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Subject</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{classroom.subject || "-"}</dd></div>
+                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Educator</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{classroom.instructorName || "-"}</dd></div>
+                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Next session</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{getNextSession(classroom)}</dd></div>
+                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Class record</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{classroom.isMock ? "Demo preview" : "Connected"}</dd></div>
+              </dl>
+            </div>
+          </section>
+          {inviteCard}
+          {meetingCard}
+          {classroom.members.length > 0 && (
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="people-summary-heading">
+              <h3 id="people-summary-heading" className="text-sm font-semibold text-slate-900">People</h3>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {classroom.members.slice(0, 4).map((member) => (
+                    <PersonAvatar key={member.id} name={member.name} size="sm" className="ring-2 ring-white" />
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600">{classroom.members.length} {classroom.isMock ? "demo members" : "members"}</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => selectTab("people")}>View people</Button>
+            </section>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }
