@@ -138,6 +138,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Teaching",
       items: [
         { label: "My Learning", icon: Users },
+        { label: "My Classes", href: "/esl/classrooms", icon: School },
         { label: "Lesson Plans", href: "/esl/lessons", icon: BookOpen },
         { label: "Teaching Materials", href: "/esl/materials", icon: FolderOpen },
         { label: "Activities and Assessment", href: "/esl/classwork", icon: ClipboardList },
@@ -177,6 +178,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Learner Management",
       items: [
         { label: "My Learners", href: "/tutors/learners", icon: Users },
+        { label: "My Classes", href: "/tutors/classrooms", icon: School },
         { label: "Learning Plans", href: "/tutors/learning-plans", icon: BookOpen },
         { label: "Activities and Evaluation", href: "/tutors/classwork", icon: ClipboardList },
       ],
