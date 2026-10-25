@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { ArrowRight, Plus, TriangleAlert } from "lucide-react"
+import { ArrowRight, BookOpen, ClipboardCheck, FileText, FlaskConical, Mic, MessagesSquare, Paperclip, Plus, Presentation, TriangleAlert, Wrench, FolderKanban, type LucideIcon } from "lucide-react"
 import { Link, useLocation } from "react-router"
 import { getDashboardRole } from "@/components/common/dashboard-navigation"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -28,6 +28,20 @@ const activityTypes: ActivityType[] = [
   "Reading activity",
   "Speaking practice",
 ]
+
+const activityIcons: Record<ActivityType, LucideIcon> = {
+  Quiz: ClipboardCheck,
+  Test: ClipboardCheck,
+  Assignment: FileText,
+  "File submission": Paperclip,
+  Project: FolderKanban,
+  Presentation,
+  "Lab work": FlaskConical,
+  "Practical activity": Wrench,
+  "Discussion activity": MessagesSquare,
+  "Reading activity": BookOpen,
+  "Speaking practice": Mic,
+}
 
 const questionTypes: QuestionType[] = [
   "Multiple choice",
@@ -60,6 +74,12 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
       : { label: "Awaiting review", value: String(toReview), tone: "bg-indigo-50" },
     { label: "Status", value: classroom.activities.length ? "Published" : "No classwork", tone: "bg-blue-50" },
   ]
+
+  const visibleActivities = isStudent ? classroom.activities.filter((activity) => activity.status === "Published") : classroom.activities
+  const sections = [
+    { title: "Assigned", items: visibleActivities.filter((activity) => activity.status === "Published") },
+    { title: "Drafts", items: visibleActivities.filter((activity) => activity.status === "Draft") },
+  ].filter((section) => section.items.length > 0)
 
   const handleCreate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -242,39 +262,51 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
         </Card>
       )}
 
-      {classroom.activities.length === 0 ? (
+      {sections.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-8 text-sm text-slate-600">{isStudent ? "No demo classwork is available yet." : "Create a demo activity to preview learner classwork."}</CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3">
-          {classroom.activities.map((activity) => {
-            const submission = activity.submissions.find((item) => item.learnerId === "demo-learner")
-            return (
-              <Card key={activity.id}>
-                <CardContent className="flex flex-wrap items-center gap-3 py-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="font-semibold text-slate-900">{activity.title}</h4>
-                      <Badge variant="outline">{activity.type}</Badge>
-                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>
-                      <QuizTimingBadges activity={activity} />
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-600">{activity.instructions}</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {activity.dueDate ? `Due ${activity.dueDate}` : "No due date"} · {isStudent ? submission?.status ?? "Not started · demo" : `${activity.submissions.length} demo submissions`}
-                    </p>
-                  </div>
-                  <Link
-                    to={`/${workspace}/classrooms/${classroom.id}/classwork/${activity.id}`}
-                    className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-blue-700 outline-none hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500"
-                  >
-                    {isStudent ? "Open workspace" : "Review activity"} <ArrowRight aria-hidden="true" className="size-4" />
-                  </Link>
-                </CardContent>
-              </Card>
-            )
-          })}
+        <div className="space-y-5">
+          {sections.map((section) => (
+            <section key={section.title} aria-label={`${section.title} classwork`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <h4 className="border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-900">
+                {section.title} <span className="font-normal text-slate-500">· {section.items.length}</span>
+              </h4>
+              <ul className="divide-y divide-slate-100">
+                {section.items.map((activity) => {
+                  const submission = activity.submissions.find((item) => item.learnerId === "demo-learner")
+                  const Icon = activityIcons[activity.type]
+                  const statusLabel = isStudent ? submission?.status ?? "Not started" : activity.status === "Draft" ? "Draft" : "Assigned"
+                  return (
+                    <li key={activity.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                      <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-soft-foreground">
+                        <Icon className="size-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h5 className="font-semibold text-slate-900">{activity.title}</h5>
+                          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>
+                          <QuizTimingBadges activity={activity} />
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-600">{activity.instructions}</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {activity.type} · {activity.dueDate ? `Due ${activity.dueDate}` : "No due date"}{isStudent ? "" : ` · ${activity.submissions.length} demo submissions`}
+                        </p>
+                      </div>
+                      <Badge variant="secondary">{statusLabel}</Badge>
+                      <Link
+                        to={`/${workspace}/classrooms/${classroom.id}/classwork/${activity.id}`}
+                        className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-brand-soft-foreground outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        {isStudent ? "Open workspace" : "Review activity"} <ArrowRight aria-hidden="true" className="size-4" />
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))}
         </div>
       )}
     </div>
