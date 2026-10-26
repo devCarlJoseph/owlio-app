@@ -1,0 +1,118 @@
+.owlio-mascot {
+  aspect-ratio: 1;
+  max-width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.owlio-mascot-scene,
+.owlio-mascot svg { width: 100%; height: 100%; }
+.owlio-mascot svg { display: block; overflow: visible; }
+.owlio-mascot [data-part] { transform-box: view-box; }
+.owlio-mascot [data-part="interaction"],
+.owlio-mascot [data-part="mascot"] { transform-origin: 320px 530px; }
+.owlio-mascot [data-part="body"] { transform-origin: 320px 530px; }
+.owlio-mascot [data-part="head"],
+.owlio-mascot [data-part="head-interaction"] { transform-origin: 320px 310px; }
+.owlio-mascot [data-part="wing-left"] { transform-origin: 226px 390px; transform: rotate(-4deg); }
+.owlio-mascot [data-part="wing-right"] { transform-origin: 418px 389px; transform: rotate(42deg); }
+.owlio-mascot [data-part="foot-left"] { transform-origin: 270px 552px; }
+.owlio-mascot [data-part="foot-right"] { transform-origin: 373px 552px; }
+.owlio-mascot [data-part="beak"] { transform-origin: 328px 286px; }
+.owlio-mascot [data-part="shadow"] { transform-origin: 320px 577px; }
+
+.owlio-mascot [data-state="idle"] [data-part="mascot"] { animation: owlio-breathe 7s ease-in-out infinite; }
+.owlio-mascot [data-state="idle"] [data-part="head"] { animation: owlio-tilt 14s ease-in-out infinite; }
+.owlio-mascot [data-state="idle"] :is([data-part="eye-left"], [data-part="eye-right"]) { animation: owlio-open-eyes 12s steps(1, end) infinite; }
+.owlio-mascot [data-state="idle"] :is([data-part="eyelid-left"], [data-part="eyelid-right"]) { animation: owlio-blink 12s steps(1, end) infinite; }
+
+.owlio-mascot [data-state="welcome"] [data-part="interaction"] { animation: owlio-welcome 1.4s both; }
+.owlio-mascot [data-state="welcome"] [data-part="wing-right"] { animation: owlio-wave 1.4s ease-in-out both; }
+.owlio-mascot [data-state="welcome"] :is([data-part="eye-left"], [data-part="eye-right"]) { animation: owlio-welcome-eyes 1.4s steps(1, end) both; }
+.owlio-mascot [data-state="welcome"] :is([data-part="eyelid-left"], [data-part="eyelid-right"]) { animation: owlio-welcome-blink 1.4s steps(1, end) both; }
+
+.owlio-mascot [data-state="selection"] [data-part="interaction"] { animation: owlio-approve 560ms ease-in-out both; }
+.owlio-mascot [data-state="selection"] [data-part="head-interaction"] { animation: owlio-nod 560ms ease-in-out both; }
+.owlio-mascot [data-state="selection"] :is([data-part="eye-left"], [data-part="eye-right"]) { animation: owlio-selection-eyes 560ms steps(1, end) both; }
+.owlio-mascot [data-state="selection"] [data-part="happy-eyes"] { animation: owlio-selection-happy 560ms steps(1, end) both; }
+
+.owlio-mascot [data-state="next"] [data-part="interaction"] { animation: owlio-hop 600ms ease-in-out both; }
+.owlio-mascot [data-state="next"] [data-part="shadow"] { animation: owlio-hop-shadow 600ms ease-in-out both; }
+.owlio-mascot [data-state="next"] [data-part="wing-left"] { animation: owlio-hop-left 600ms ease-in-out both; }
+.owlio-mascot [data-state="next"] [data-part="wing-right"] { animation: owlio-hop-right 600ms ease-in-out both; }
+
+.owlio-mascot [data-state="complete"] [data-part="interaction"] { animation: owlio-celebrate 1.3s ease-in-out both; }
+.owlio-mascot [data-state="complete"] [data-part="wing-left"] { animation: owlio-celebrate-left 1.3s ease-in-out both; }
+.owlio-mascot [data-state="complete"] [data-part="wing-right"] { animation: owlio-celebrate-right 1.3s ease-in-out both; }
+.owlio-mascot [data-state="complete"] :is([data-part="eye-left"], [data-part="eye-right"]) { opacity: 0; }
+.owlio-mascot [data-state="complete"] [data-part="happy-eyes"] { opacity: 1; }
+.owlio-mascot [data-state="complete"] [data-part="shadow"] { animation: owlio-hop-shadow 1.3s ease-in-out both; }
+.owlio-particle { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.owlio-particle-1 { --particle-x: -32px; --particle-y: -38px; }
+.owlio-particle-2 { --particle-x: 28px; --particle-y: -28px; }
+.owlio-particle-3 { --particle-x: -25px; --particle-y: 25px; }
+.owlio-particle-4 { --particle-x: 32px; --particle-y: 20px; }
+.owlio-particle-5 { --particle-x: 8px; --particle-y: -40px; }
+.owlio-particle-6 { --particle-x: -16px; --particle-y: -32px; }
+.owlio-mascot [data-state="complete"] .owlio-particle { animation: owlio-particle 900ms 180ms ease-out both; }
+
+@keyframes owlio-breathe { 0%, 20%, 80%, 100% { transform: scale(1); } 50% { transform: scale(1.008, 1.014); } }
+@keyframes owlio-tilt { 0%, 68%, 88%, 100% { transform: rotate(0); } 76%, 81% { transform: rotate(-3deg); } }
+@keyframes owlio-open-eyes { 0%, 40%, 42%, 83%, 85%, 100% { opacity: 1; } 41%, 84% { opacity: 0; } }
+@keyframes owlio-blink { 0%, 40%, 42%, 83%, 85%, 100% { opacity: 0; } 41%, 84% { opacity: 1; } }
+@keyframes owlio-welcome {
+  0% { transform: translateY(14px) scale(.98, 1.02); }
+  24% { transform: translateY(-6px) scale(1.01, .99); }
+  40% { transform: translateY(2px) scale(1.02, .98); }
+  56%, 100% { transform: none; }
+}
+@keyframes owlio-wave {
+  0% { transform: rotate(16deg); }
+  20%, 46% { transform: rotate(0deg); }
+  33%, 59% { transform: rotate(25deg); }
+  76%, 100% { transform: rotate(42deg); }
+}
+@keyframes owlio-welcome-eyes { 0%, 86%, 100% { opacity: 1; } 78% { opacity: 0; } }
+@keyframes owlio-welcome-blink { 0%, 86%, 100% { opacity: 0; } 78% { opacity: 1; } }
+@keyframes owlio-approve { 0%, 100% { transform: none; } 45% { transform: scale(1.01, .99); } }
+@keyframes owlio-nod { 0%, 100% { transform: none; } 20% { transform: translateY(-2px) rotate(-2deg); } 48% { transform: translateY(7px) rotate(3deg); } 75% { transform: translateY(-1px); } }
+@keyframes owlio-selection-eyes { 0%, 88%, 100% { opacity: 1; } 16% { opacity: 0; } }
+@keyframes owlio-selection-happy { 0%, 88%, 100% { opacity: 0; } 16% { opacity: 1; } }
+@keyframes owlio-hop {
+  0%, 100% { transform: none; }
+  18% { transform: translateY(3px) scale(1.025, .97); }
+  47% { transform: translateY(-23px) scale(.985, 1.02); }
+  76% { transform: translateY(3px) scale(1.035, .96); }
+  90% { transform: scale(.995, 1.005); }
+}
+@keyframes owlio-hop-shadow { 0%, 100% { transform: scale(1); opacity: 1; } 47% { transform: scale(.82, .9); opacity: .6; } }
+@keyframes owlio-hop-left { 0%, 100% { transform: rotate(-4deg); } 55% { transform: rotate(10deg); } }
+@keyframes owlio-hop-right { 0%, 100% { transform: rotate(42deg); } 55% { transform: rotate(26deg); } }
+@keyframes owlio-celebrate {
+  0%, 100% { transform: none; }
+  15% { transform: translateY(4px) scale(1.035, .96); }
+  38% { transform: translateY(-30px) scale(.98, 1.025); }
+  61% { transform: translateY(4px) scale(1.04, .95); }
+  76% { transform: scale(.99, 1.01); }
+  90% { transform: none; }
+}
+@keyframes owlio-celebrate-left { 0% { transform: rotate(-4deg); } 40%, 60% { transform: rotate(45deg); } 100% { transform: rotate(16deg); } }
+@keyframes owlio-celebrate-right { 0% { transform: rotate(42deg); } 43%, 63% { transform: rotate(0deg); } 100% { transform: rotate(24deg); } }
+@keyframes owlio-particle {
+  0% { opacity: 0; transform: translate(0, 12px) scale(.5); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--particle-x), var(--particle-y)) rotate(80deg) scale(.7); }
+}
+
+.owlio-mascot[data-motion="paused"] * { animation-play-state: paused !important; }
+.owlio-mascot[data-reduced-motion="true"] * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .owlio-mascot * { animation: none !important; }
+}
+
+.onboarding-content-enter { animation: owlio-content-enter 600ms ease-out both; }
+@keyframes owlio-content-enter { 0%, 18% { opacity: 0; transform: translateY(6px); } 65%, 100% { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-content-enter { animation: none; }
+}
