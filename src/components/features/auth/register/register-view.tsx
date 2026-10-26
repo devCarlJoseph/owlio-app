@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getApiErrorMessage } from '@/services/api/api-error'
+import type { AccountType } from '@/services/api/api.types'
 import { registerAccount, startGoogleOAuth } from '@/services/api/auth.service'
 import { AuthFeedback } from '../shared/auth-feedback'
 import { AuthShowcaseLayout } from '../shared/auth-showcase-layout'
@@ -44,7 +45,7 @@ export function RegisterView() {
     }
   }
 
-  const onGoogle = async (accountType: 'student' | 'educator') => {
+  const onGoogle = async (accountType: AccountType) => {
     setSubmitError(null)
     setGooglePending(true)
     try {

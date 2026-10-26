@@ -9,7 +9,9 @@ export type ApiHealth = {
   timestamp: string
 }
 
-export type AuthRole = "STUDENT" | "EDUCATOR"
+export type AuthRole = "STUDENT" | "EDUCATOR" | "TUTOR" | "ESL"
+
+export type AccountType = "student" | "educator" | "tutor" | "esl"
 
 export type AuthUser = {
   id: string
@@ -36,7 +38,7 @@ export type AuthSession = {
 export type RegisterRequest = {
   name: string
   email: string
-  accountType: "student" | "educator"
+  accountType: AccountType
   password: string
   confirmPassword: string
   termsAccepted: true
@@ -50,7 +52,7 @@ export type LoginRequest = {
 
 export type GoogleStartRequest =
   | { intent: "login"; rememberMe: boolean }
-  | { intent: "register"; accountType: "student" | "educator"; termsAccepted: true }
+  | { intent: "register"; accountType: AccountType; termsAccepted: true }
 
 export type GoogleStartResponse = {
   authorizationUrl: string

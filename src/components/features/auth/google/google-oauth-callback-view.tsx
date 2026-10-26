@@ -5,6 +5,7 @@ import { AuthFeedback } from '../shared/auth-feedback'
 import { AuthShowcaseLayout } from '../shared/auth-showcase-layout'
 import { authPrimaryButtonClassName } from '../shared/auth-input-styles'
 import { useAuthSession } from '../auth-session-context'
+import { getWorkspacePath } from '@/lib/workspace-path'
 import { getCurrentUser } from '@/services/api/auth.service'
 import { getApiErrorMessage } from '@/services/api/api-error'
 
@@ -54,7 +55,7 @@ export function GoogleOAuthCallbackView() {
       try {
         const user = await getCurrentUser()
         await refreshCurrentUser()
-        const workspace = user.roles.includes('STUDENT') ? '/students' : '/educators'
+        const workspace = getWorkspacePath(user.roles)
         navigate(result === 'linked' ? `${workspace}/account/security` : workspace, { replace: true })
       } catch (requestError) {
         setError(getApiErrorMessage(requestError, 'Could not finish Google sign-in. Please try again.'))

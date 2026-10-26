@@ -17,6 +17,7 @@ import {
 } from "@/components/common/dashboard-navigation"
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
+import { getAccountLabel } from "@/lib/workspace-path"
 import { getApiErrorMessage } from "@/services/api/api-error"
 
 type MenuEntry = { label: string; href?: string; icon: LucideIcon }
@@ -51,7 +52,7 @@ export default function PlatformLayout() {
   const supportEntries: MenuEntry[] = [{ label: "Help & support", href: findHref("Help & Support", "Help & support"), icon: CircleHelp }]
   const workspaceLabel = getDashboardWorkspace(pathname)?.label
   const userInitials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'OW'
-  const userRoleLabel = user?.roles.includes('STUDENT') ? 'Student account' : 'Educator account'
+  const userRoleLabel = getAccountLabel(user?.roles ?? [])
   const isMacPlatform = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
   const searchShortcut = isMacPlatform ? "Meta+K" : "Control+K"
   const searchShortcutLabel = isMacPlatform ? "⌘" : "Ctrl"
