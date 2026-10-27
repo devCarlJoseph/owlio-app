@@ -4,7 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpaceDetailView } from "./study-space-detail-view"
 import { getSampleRoster } from "../space-roster"
-import { sampleCreatedSpaces, studySpaceCharacterStoragePrefix } from "../study-spaces-records"
+import {
+  sampleCreatedSpaces,
+  studyHallCharacterStorageKey,
+  studySpaceCharacterStoragePrefix,
+} from "../study-spaces-records"
 import { buildSeats } from "./study-space-seats"
 import type { SpaceRoomSceneProps } from "./space-room-scene"
 
@@ -91,6 +95,28 @@ describe("study space detail room", () => {
     expect(screen.queryByRole("dialog")).toBeNull()
     expect(screen.getByTestId("name-tag").textContent).toBe("Sam")
     expect(screen.getByRole("button", { name: "Edit character" })).toBeTruthy()
+  })
+
+  it("uses the study hall character by default when the room has none", () => {
+    window.localStorage.setItem(
+      studyHallCharacterStorageKey,
+      JSON.stringify({ name: "Hall Walker", bodyColor: "#16a34a", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    renderAt(sampleSpaceId)
+
+    expect(screen.queryByRole("dialog")).toBeNull()
+    expect(screen.getByTestId("name-tag").textContent).toBe("Hall Walker")
+  })
+
+  it("prefers a room-specific character over the hall character", () => {
+    window.localStorage.setItem(
+      studyHallCharacterStorageKey,
+      JSON.stringify({ name: "Hall Walker", bodyColor: "#16a34a", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    seedCharacter("Room Sam")
+    renderAt(sampleSpaceId)
+
+    expect(screen.getByTestId("name-tag").textContent).toBe("Room Sam")
   })
 
   it("shows sent messages in the chat panel and as a bubble", async () => {

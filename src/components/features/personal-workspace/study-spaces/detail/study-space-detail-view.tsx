@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Link, useParams } from "react-router"
+import { Link, useNavigate, useParams } from "react-router"
 import {
   ArrowDown,
   ArrowUp,
@@ -45,6 +45,7 @@ import { useFocusMusic } from "./use-focus-music"
 import { usePomodoro } from "./use-pomodoro"
 import {
   createStudySpaceId,
+  loadHallCharacter,
   loadSpaceCharacter,
   loadStudySpaces,
   markStudySpaceVisited,
@@ -57,6 +58,7 @@ const BUBBLE_DURATION_MS = 6000
 
 export function StudySpaceDetailView() {
   const { spaceId } = useParams()
+  const navigate = useNavigate()
   const space = useMemo(
     () => loadStudySpaces().find((record) => record.id === spaceId) ?? null,
     [spaceId]
@@ -64,8 +66,9 @@ export function StudySpaceDetailView() {
   const seats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
   const samplePeople = useMemo(() => (space ? getSampleRoster(space, seats.length) : []), [space, seats.length])
 
+  // A room-specific character wins; otherwise the study hall character walks in by default.
   const [character, setCharacter] = useState<StudySpaceCharacter | null>(() =>
-    spaceId ? loadSpaceCharacter(spaceId) : null
+    spaceId ? loadSpaceCharacter(spaceId) ?? loadHallCharacter() : null
   )
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [messages, setMessages] = useState<RoomMessage[]>([])
@@ -205,7 +208,7 @@ export function StudySpaceDetailView() {
   }
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full flex-col gap-2">
+    <div className="mx-auto flex h-[calc(100svh-6rem)] min-h-[560px] w-full flex-col gap-2 sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]">
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-base font-semibold tracking-tight text-slate-900">
@@ -351,8 +354,9 @@ export function StudySpaceDetailView() {
         </div>
       </div>
 
-      <div className="relative min-h-[420px] flex-1 overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-sm">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#e8eef6] shadow-sm">
         {character ? (
+          <div className="absolute inset-0">
           <SpaceRoomScene
             character={character}
             seats={seats}
@@ -374,13 +378,15 @@ export function StudySpaceDetailView() {
             cameraResetRef={cameraResetRef}
             onFloorPoint={handleFloorPoint}
             onSeatSelect={handleSeatSelect}
+            onExit={() => navigate("/students/study-spaces")}
           />
+          </div>
         ) : (
-          <div aria-hidden="true" className="absolute inset-0 bg-slate-950" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[#e8eef6]" />
         )}
 
         {!noticeDismissed ? (
-          <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg bg-slate-900/85 px-3 py-2 text-xs leading-5 text-slate-200">
+          <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs leading-5 text-slate-700 shadow-sm">
             <p className="flex-1">
               {studySpaceRoomPreviewNotice}
               {samplePeople.length > 0 ? ` ${sampleRosterNotice}` : ""}
@@ -389,7 +395,7 @@ export function StudySpaceDetailView() {
               type="button"
               onClick={() => setNoticeDismissed(true)}
               aria-label="Dismiss preview notice"
-              className="shrink-0 rounded text-slate-400 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white"
+              className="shrink-0 rounded text-slate-400 outline-none hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               ×
             </button>
@@ -452,9 +458,9 @@ export function StudySpaceDetailView() {
           {timer.status === "finished" ? " Focus timer finished." : ""}
         </p>
 
-        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-2 bg-slate-900/85 px-3 py-2 backdrop-blur">
+        <div className="absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2 shadow-md backdrop-blur">
           {seatedSeat ? (
-            <span className="flex items-center gap-2 rounded-lg border border-emerald-700/60 bg-emerald-950/80 px-2 py-1 text-xs text-emerald-100">
+            <span className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
               <Armchair className="size-3.5" aria-hidden="true" />
               Seated at {seatedSeat.name}
               <Button
@@ -462,13 +468,18 @@ export function StudySpaceDetailView() {
                 size="xs"
                 variant="ghost"
                 onClick={standUp}
-                className="text-emerald-200 hover:text-white"
+                className="text-emerald-700 hover:text-emerald-900"
               >
                 Stand up
               </Button>
             </span>
           ) : (
-            <span className="hidden text-xs text-slate-400 md:inline">Choose a seat in the room</span>
+            <span className="hidden items-center gap-2 text-xs text-slate-500 md:flex">
+              <span>Choose a seat in the room</span>
+              <span aria-hidden="true" className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">
+                WASD to walk
+              </span>
+            </span>
           )}
 
           <form
@@ -488,13 +499,13 @@ export function StudySpaceDetailView() {
               placeholder={character ? "Say something in this room…" : "Create your character to chat"}
               disabled={!character}
               maxLength={200}
-              className="border-slate-600 bg-slate-800 text-slate-100 placeholder:text-slate-400"
+              className="rounded-full border-slate-200 bg-slate-50"
             />
             <Button
               type="submit"
               size="sm"
               disabled={!character || draft.trim().length === 0}
-              className="bg-blue-600 text-white hover:bg-blue-500"
+              className="rounded-full bg-blue-600 text-white hover:bg-blue-500"
             >
               <Send aria-hidden="true" />
               <span className="hidden sm:inline">Send</span>
@@ -508,14 +519,14 @@ export function StudySpaceDetailView() {
           ) : null}
 
           {activeTrack ? (
-            <span className="hidden items-center gap-1 rounded-lg border border-slate-600 bg-slate-800 px-2 py-1 text-xs text-slate-200 sm:flex">
-              <Music className="size-3.5 text-emerald-400" aria-hidden="true" />
+            <span className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700 sm:flex">
+              <Music className="size-3.5 text-emerald-600" aria-hidden="true" />
               <span className="max-w-28 truncate">{activeTrack.title}</span>
               <button
                 type="button"
                 onClick={() => (music.playback.playing ? music.pause() : music.play(activeTrack))}
                 aria-label={music.playback.playing ? "Pause music" : "Resume music"}
-                className="rounded px-1 text-slate-300 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white"
+                className="rounded px-1 text-slate-600 outline-none hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 {music.playback.playing ? "Pause" : "Play"}
               </button>
@@ -525,9 +536,9 @@ export function StudySpaceDetailView() {
               type="button"
               onClick={music.toggle}
               aria-label="Play room music"
-              className="hidden items-center gap-1 rounded-lg border border-slate-600 bg-slate-800 px-2 py-1 text-xs text-slate-200 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-white sm:flex"
+              className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700 outline-none hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 sm:flex"
             >
-              <Music className="size-3.5 text-emerald-400" aria-hidden="true" />
+              <Music className="size-3.5 text-emerald-600" aria-hidden="true" />
               Play music
             </button>
           )}

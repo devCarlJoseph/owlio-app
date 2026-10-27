@@ -222,6 +222,10 @@ For every change:
 4. Run `git diff --check`, inspect the final diff/status, and verify routes/links or UI states relevant to the change.
 5. Report commands actually run, pass/fail, and known blockers. `npx vite build` alone does not replace the TypeScript check in `npm run build`.
 
+On Windows the default Vitest `forks` pool can time out while starting workers ("Timeout waiting for worker to respond"); `npx vitest run <path> --pool=threads` runs the same tests reliably.
+
+Study Spaces (`src/components/features/personal-workspace/study-spaces/`): the list page is a three.js "study hall" city (`study-hall-world.tsx`, lazy-loaded) with buildings from `city-layout.ts`/`city-buildings.tsx`. Each building's shape follows the room kind. There is an Explore mode (pan/zoom) and a Walk mode (WASD, using `use-walk-keys.ts`), plus a CSS full-screen toggle and a List view, which is the default without WebGL and in jsdom. The room (`detail/space-room-scene.tsx`) uses the same walk keys. The hall character and the per-room characters are browser-local only.
+
 At context capture on 2026-10-14, `npm run lint` reported 13 `react-refresh/only-export-components` errors in `src/components/ui/{badge,button,combobox,marker,message-scroller,navigation-menu,tabs,toast,toggle}.tsx`. Re-run lint before relying on this baseline; do not assume it remains current or attribute unrelated findings to a feature change.
 
 Handoff summary should include: behavior changed, key files/routes, verification run and results, unimplemented/backend dependencies, and any product decisions that need owner input. Mention if a request was intentionally kept UI-only.

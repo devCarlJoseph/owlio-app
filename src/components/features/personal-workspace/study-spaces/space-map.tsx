@@ -40,6 +40,7 @@ type SpaceMapProps = {
   joined: StudySpaceRecord[]
   locked: StudySpaceRecord[]
   onUnlock: (space: StudySpaceRecord) => void
+  className?: string
 }
 
 const ZONE_STYLE: Record<MapRole, { fill: string; stroke: string; text: string; dash?: string }> = {
@@ -62,7 +63,7 @@ function stateLabel(role: MapRole): string {
   return "Locked — needs code"
 }
 
-export function SpaceMap({ created, joined, locked, onUnlock }: SpaceMapProps) {
+export function SpaceMap({ created, joined, locked, onUnlock, className }: SpaceMapProps) {
   const layout = useMemo(
     () =>
       layoutMap([
@@ -278,7 +279,11 @@ export function SpaceMap({ created, joined, locked, onUnlock }: SpaceMapProps) {
   const percent = Math.round(view.s * 100)
 
   return (
-    <div className="relative h-[60vh] min-h-[420px] overflow-hidden rounded-3xl bg-[#ece3cf] sm:h-[68vh] lg:h-[72vh]">
+    <div
+      className={
+        className ?? "relative h-[60vh] min-h-[420px] overflow-hidden rounded-3xl bg-[#ece3cf] sm:h-[68vh] lg:h-[72vh]"
+      }
+    >
       <div
         ref={attachViewport}
         aria-hidden="true"

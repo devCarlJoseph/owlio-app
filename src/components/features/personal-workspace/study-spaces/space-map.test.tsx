@@ -114,10 +114,26 @@ describe("study space map", () => {
     )
   })
 
+  it("defaults to the list without WebGL and switches to the map world view", async () => {
+    const user = userEvent.setup()
+    renderList()
+
+    expect(screen.getByRole("button", { name: "List" }).getAttribute("aria-pressed")).toBe("true")
+    expect(screen.queryByLabelText("Zoom level")).toBeNull()
+
+    await user.click(screen.getByRole("button", { name: "World" }))
+    expect(screen.getByRole("button", { name: "World" }).getAttribute("aria-pressed")).toBe("true")
+    expect(screen.getByLabelText("Zoom level")).toBeTruthy()
+    expect(screen.queryByRole("list", { name: "Spaces you've created" })).toBeNull()
+    expect(screen.getByRole("searchbox", { name: "Search study spaces" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Expand study hall to full screen" })).toBeTruthy()
+  })
+
   it("zooms with the zoom buttons", async () => {
     const user = userEvent.setup()
     renderList()
 
+    await user.click(screen.getByRole("button", { name: "World" }))
     expect(screen.getByLabelText("Zoom level").textContent).toBe("100%")
     await user.click(screen.getByRole("button", { name: "Zoom in" }))
     expect(screen.getByLabelText("Zoom level").textContent).toBe("125%")
