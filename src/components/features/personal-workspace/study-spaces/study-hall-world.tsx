@@ -23,9 +23,12 @@ import {
   Lock,
   Map as MapIcon,
   Minus,
+  Moon,
   PencilLine,
   Plus,
   RotateCcw,
+  Sun,
+  Sunset,
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -42,7 +45,10 @@ import {
   type CityLayout,
   type CityLot,
 } from "./city-layout"
+import { OwlioFountain, Plaza } from "./city-plaza"
+import { Traffic, TrafficSignals } from "./city-traffic"
 import { CharacterDialog } from "./detail/character-dialog"
+import { HALL_LIGHTING, LIGHT_LABELS, useLightPhase, useSharedLightSetting, type LightPhase } from "./detail/room-ambience"
 import { CharacterFigure, type FigureMode } from "./detail/character-figure"
 import { kindLabel, metaLine } from "./space-format"
 import {
@@ -107,6 +113,8 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
   const [infoOpen, setInfoOpen] = useState(false)
   const handleRef = useRef<RigHandle | null>(null)
   const walk = useWalkKeys(mode === "walk")
+  const light = useSharedLightSetting()
+  const lightPhase = useLightPhase(light.setting)
 
   const activate = useCallback(
     (lot: CityLot) => (lot.role === "visitor" ? onUnlock(lot.space) : onOpen(lot.space)),
@@ -162,6 +170,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
           character={character}
           heldRef={walk.heldRef}
           nearbyId={nearby?.space.id ?? null}
+          lightPhase={lightPhase}
           handleRef={handleRef}
           onActivate={activate}
           onNearby={setNearby}
@@ -213,7 +222,10 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
             <p>{studySpacesGuidance}</p>
             <p className="mt-2">{studySpacesStorageNotice}</p>
             {locked.length > 0 ? <p className="mt-2">{studySpacesDiscoveryCaption}</p> : null}
-            <p className="mt-2 text-slate-500">Focus towers have focused desks, group halls have shared tables, and study cafés are lounges.</p>
+            <p className="mt-2 text-slate-500">
+              Focus towers, group halls and study cafés each have one discussion table inside. Owlio Plaza and the
+              fountain are for gathering; the cars and traffic lights are decorative.
+            </p>
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-2 rounded-full bg-white/95 px-2 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm">
@@ -231,6 +243,18 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
           <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />Yours</span>
           <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-blue-500" aria-hidden="true" />Joined</span>
           <span className="flex items-center gap-1 pr-1"><Lock className="size-3" aria-hidden="true" />Locked</span>
+          <span aria-hidden="true" className="h-4 w-px bg-slate-200" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={light.cycle}
+            aria-label={`Hall and room lighting: ${LIGHT_LABELS[light.setting]}`}
+            title="Lighting follows your local time on Auto and is shared with your study rooms"
+          >
+            {lightPhase === "night" ? <Moon aria-hidden="true" /> : lightPhase === "evening" ? <Sunset aria-hidden="true" /> : <Sun aria-hidden="true" />}
+            {LIGHT_LABELS[light.setting]}
+          </Button>
         </div>
       </div>
 
@@ -346,6 +370,7 @@ function CityScene({
   character,
   heldRef,
   nearbyId,
+  lightPhase,
   handleRef,
   onActivate,
   onNearby,
@@ -356,6 +381,7 @@ function CityScene({
   character: StudySpaceCharacter | null
   heldRef: RefObject<Set<WalkKey>>
   nearbyId: string | null
+  lightPhase: LightPhase
   handleRef: RefObject<RigHandle | null>
   onActivate: (lot: CityLot) => void
   onNearby: (lot: CityLot | null) => void
@@ -378,15 +404,18 @@ function CityScene({
     [layout]
   )
 
+  const light = HALL_LIGHTING[lightPhase]
+
   return (
     <>
-      <color attach="background" args={["#e3f1fb"]} />
-      <fog attach="fog" args={["#e3f1fb", span * 2.2, span * 5]} />
-      <hemisphereLight args={["#ffffff", "#a8cf8e", 1.1]} />
-      <ambientLight intensity={0.35} />
+      <color attach="background" args={[light.sky]} />
+      <fog attach="fog" args={[light.sky, span * 2.2, span * 5]} />
+      <hemisphereLight args={[light.sky, light.ground, light.hemi]} />
+      <ambientLight intensity={light.ambient} />
       <directionalLight
-        position={[span * 0.4, span * 0.9, span * 0.55]}
-        intensity={1.5}
+        position={[span * light.sunPosition[0], span * light.sunPosition[1], span * light.sunPosition[2]]}
+        color={light.sun}
+        intensity={light.sunIntensity}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-span * 0.75}
@@ -400,12 +429,17 @@ function CityScene({
 
       <Ground layout={layout} onPoint={walking ? goTo : undefined} />
       <Roads layout={layout} />
-      <Scenery layout={layout} />
+      <Scenery layout={layout} lamps={light.lamps} />
+      <Plaza layout={layout} walkerRef={walkerRef} walking={walking} lamps={light.lamps} />
+      <OwlioFountain layout={layout} lamps={light.lamps} />
+      <TrafficSignals layout={layout} />
+      <Traffic layout={layout} lamps={light.lamps} />
 
       {layout.lots.map((lot) => (
         <Lot
           key={lot.space.id}
           lot={lot}
+          glow={light.lamps}
           walking={walking}
           nearby={nearbyId === lot.space.id}
           onActivate={onActivate}
@@ -488,32 +522,37 @@ function Ground({ layout, onPoint }: { layout: CityLayout; onPoint?: (point: Poi
 }
 
 function Roads({ layout }: { layout: CityLayout }) {
-  const { width, depth, roadsX, roadsZ } = layout
+  const { width, depth, roadsX, roadsZ, roundabout } = layout
   const asphalt = "#5d6878"
   const roadWidth = ROAD - 1.2
+  const nearRing = (x: number, z: number, pad = 0.6) => Math.hypot(x - roundabout.x, z - roundabout.z) < roundabout.ring + pad
   const dashes: { x: number; z: number; along: "x" | "z" }[] = []
 
   roadsZ.forEach((z) => {
     for (let index = 0; index < roadsX.length - 1; index += 1) {
       const from = roadsX[index] + ROAD / 2 + 0.8
       const to = roadsX[index + 1] - ROAD / 2 - 0.8
-      for (let x = from + 0.6; x < to; x += 2.4) dashes.push({ x, z, along: "x" })
+      for (let x = from + 2.6; x < to - 2; x += 2.4) if (!nearRing(x, z)) dashes.push({ x, z, along: "x" })
     }
   })
   roadsX.forEach((x) => {
     for (let index = 0; index < roadsZ.length - 1; index += 1) {
       const from = roadsZ[index] + ROAD / 2 + 0.8
       const to = roadsZ[index + 1] - ROAD / 2 - 0.8
-      for (let z = from + 0.6; z < to; z += 2.4) dashes.push({ x, z, along: "z" })
+      for (let z = from + 2.6; z < to - 2; z += 2.4) if (!nearRing(x, z)) dashes.push({ x, z, along: "z" })
     }
   })
 
-  const crossings: { x: number; z: number }[] = []
+  // Zebra crossings on every approach to an intersection, except round the roundabout.
+  const crossings: { x: number; z: number; along: "x" | "z" }[] = []
   roadsX.forEach((x) =>
     roadsZ.forEach((z) => {
+      if (nearRing(x, z, 0)) return
       ;[-1, 1].forEach((side) => {
         const cx = x + side * (ROAD / 2 + 0.9)
-        if (Math.abs(cx) < width / 2 - 0.6) crossings.push({ x: cx, z })
+        if (Math.abs(cx) < width / 2 - 0.6) crossings.push({ x: cx, z, along: "x" })
+        const cz = z + side * (ROAD / 2 + 0.9)
+        if (Math.abs(cz) < depth / 2 - 0.6) crossings.push({ x, z: cz, along: "z" })
       })
     })
   )
@@ -539,16 +578,23 @@ function Roads({ layout }: { layout: CityLayout }) {
         </mesh>
       ))}
       {crossings.map((crossing) =>
-        Array.from({ length: 5 }, (_, index) => (
-          <mesh
-            key={`c-${crossing.x}-${crossing.z}-${index}`}
-            position={[crossing.x, 0.031, crossing.z - roadWidth / 2 + 0.45 + index * ((roadWidth - 0.9) / 4)]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
-            <planeGeometry args={[1.3, 0.34]} />
-            <meshStandardMaterial color="#f8fafc" />
-          </mesh>
-        ))
+        Array.from({ length: 5 }, (_, index) => {
+          const offset = -roadWidth / 2 + 0.45 + index * ((roadWidth - 0.9) / 4)
+          return (
+            <mesh
+              key={`c-${crossing.along}-${crossing.x}-${crossing.z}-${index}`}
+              position={
+                crossing.along === "x"
+                  ? [crossing.x, 0.031, crossing.z + offset]
+                  : [crossing.x + offset, 0.031, crossing.z]
+              }
+              rotation={[-Math.PI / 2, 0, 0]}
+            >
+              <planeGeometry args={crossing.along === "x" ? [1.3, 0.34] : [0.34, 1.3]} />
+              <meshStandardMaterial color="#f8fafc" />
+            </mesh>
+          )
+        })
       )}
       {roadsZ.slice(1).map((z, index) => (
         <Html key={`street-${z}`} position={[-width / 2 + 3.2, 0.1, z]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
@@ -561,8 +607,9 @@ function Roads({ layout }: { layout: CityLayout }) {
   )
 }
 
-function Scenery({ layout }: { layout: CityLayout }) {
-  const { width, depth, lots } = layout
+function Scenery({ layout, lamps }: { layout: CityLayout; lamps: number }) {
+  const { width, depth, lots, roundabout } = layout
+  const clearOfRing = (x: number, z: number) => Math.hypot(x - roundabout.x, z - roundabout.z) > roundabout.ring + 1.2
   const trees = useMemo(() => {
     const result: { x: number; z: number; s: number }[] = []
     const step = 5
@@ -588,13 +635,17 @@ function Scenery({ layout }: { layout: CityLayout }) {
         <group key={lot.space.id}>
           <Tree position={[lot.x - LOT_W / 2 + 0.9, 0, lot.z - LOT_D / 2 + 0.9]} scale={0.75} />
           <Tree position={[lot.x + LOT_W / 2 - 0.9, 0, lot.z - LOT_D / 2 + 0.9]} scale={0.75} />
-          <StreetLamp position={[lot.x - LOT_W / 2 + 0.5, 0, lot.z + LOT_D / 2 - 0.4]} />
-          {[-1, 1].map((side) => (
-            <mesh key={side} position={[lot.x + side * (LOT_W / 2 - 1.3), 0.15, lot.z + LOT_D / 2 - 1.4]} castShadow receiveShadow>
-              <boxGeometry args={[1.8, 0.3, 1.2]} />
-              <meshStandardMaterial color="#7cc46a" />
-            </mesh>
-          ))}
+          {clearOfRing(lot.x - LOT_W / 2 + 0.5, lot.z + LOT_D / 2 - 0.4) ? (
+            <StreetLamp position={[lot.x - LOT_W / 2 + 0.5, 0, lot.z + LOT_D / 2 - 0.4]} glow={lamps} />
+          ) : null}
+          {[-1, 1].map((side) =>
+            clearOfRing(lot.x + side * (LOT_W / 2 - 1.3), lot.z + LOT_D / 2 - 1.4) ? (
+              <mesh key={side} position={[lot.x + side * (LOT_W / 2 - 1.3), 0.15, lot.z + LOT_D / 2 - 1.4]} castShadow receiveShadow>
+                <boxGeometry args={[1.8, 0.3, 1.2]} />
+                <meshStandardMaterial color="#7cc46a" />
+              </mesh>
+            ) : null
+          )}
         </group>
       ))}
     </group>
@@ -603,12 +654,14 @@ function Scenery({ layout }: { layout: CityLayout }) {
 
 function Lot({
   lot,
+  glow,
   walking,
   nearby,
   onActivate,
   onWalkTo,
 }: {
   lot: CityLot
+  glow: number
   walking: boolean
   nearby: boolean
   onActivate: (lot: CityLot) => void
@@ -645,7 +698,7 @@ function Lot({
         }}
         onPointerOut={() => setHovered(false)}
       >
-        <Building kind={lot.space.kind} footprint={building} locked={locked} name={lot.space.name} />
+        <Building kind={lot.space.kind} footprint={building} locked={locked} name={lot.space.name} glow={glow} />
       </group>
       <BuildingLabel lot={lot} y={billboardTop + 1.1} highlighted={hovered || nearby} onActivate={() => onActivate(lot)} />
     </group>

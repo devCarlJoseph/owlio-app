@@ -80,6 +80,42 @@ export function phaseForHour(hour: number): LightPhase {
   return "night"
 }
 
+// Outdoor look for the study hall city at each phase.
+export const HALL_LIGHTING: Record<LightPhase, { sky: string; ground: string; hemi: number; sun: string; sunIntensity: number; sunPosition: [number, number, number]; ambient: number; lamps: number }> = {
+  morning: { sky: "#dcebfb", ground: "#b6dc8c", hemi: 1, sun: "#ffe6bf", sunIntensity: 1.3, sunPosition: [-0.6, 0.7, 0.5], ambient: 0.3, lamps: 0 },
+  day: { sky: "#e3f1fb", ground: "#a8cf8e", hemi: 1.1, sun: "#ffffff", sunIntensity: 1.5, sunPosition: [0.4, 0.9, 0.55], ambient: 0.35, lamps: 0 },
+  evening: { sky: "#f6cfa6", ground: "#a59a7a", hemi: 0.75, sun: "#ffa45c", sunIntensity: 1.1, sunPosition: [0.9, 0.35, 0.2], ambient: 0.28, lamps: 0.6 },
+  night: { sky: "#141d36", ground: "#2a3350", hemi: 0.4, sun: "#9fb4ec", sunIntensity: 0.3, sunPosition: [-0.4, 0.8, -0.3], ambient: 0.18, lamps: 1 },
+}
+
+const LIGHT_STORAGE_KEY = "owlio.study-light.v1"
+
+function loadLightSetting(): LightSetting {
+  if (typeof window === "undefined") return "auto"
+  try {
+    const stored = window.localStorage.getItem(LIGHT_STORAGE_KEY)
+    return LIGHT_SETTINGS.includes(stored as LightSetting) ? (stored as LightSetting) : "auto"
+  } catch {
+    return "auto"
+  }
+}
+
+// One browser-local light setting shared by the study hall and every room.
+export function useSharedLightSetting() {
+  const [setting, setSetting] = useState<LightSetting>(loadLightSetting)
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LIGHT_STORAGE_KEY, setting)
+    } catch {
+      return
+    }
+  }, [setting])
+
+  const cycle = () => setSetting((current) => LIGHT_SETTINGS[(LIGHT_SETTINGS.indexOf(current) + 1) % LIGHT_SETTINGS.length])
+  return { setting, cycle }
+}
+
 // Follows the local clock in "auto", checking once a minute.
 export function useLightPhase(setting: LightSetting): LightPhase {
   const [hour, setHour] = useState(() => new Date().getHours())

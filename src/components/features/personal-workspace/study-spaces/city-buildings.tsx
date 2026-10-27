@@ -19,20 +19,31 @@ const KIND_STYLE: Record<StudySpaceKind, KindStyle> = {
 
 const PX = 40
 
-function facadeCanvas(width: number, height: number, style: KindStyle, kind: StudySpaceKind, front: boolean, locked: boolean) {
+// With `mask` the canvas is black except for warm window glass, used as a night-time emissive map.
+function facadeCanvas(
+  width: number,
+  height: number,
+  style: KindStyle,
+  kind: StudySpaceKind,
+  front: boolean,
+  locked: boolean,
+  mask = false
+) {
   const canvas = document.createElement("canvas")
   canvas.width = Math.round(width * PX)
   canvas.height = Math.round(height * PX)
   const ctx = canvas.getContext("2d")
   if (!ctx) return canvas
 
-  ctx.fillStyle = tone(style.wall, locked)
+  ctx.fillStyle = mask ? "#000000" : tone(style.wall, locked)
   ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.fillStyle = tone(style.trim, locked)
-  ctx.fillRect(0, canvas.height - 0.35 * PX, canvas.width, 0.35 * PX)
+  if (!mask) {
+    ctx.fillStyle = tone(style.trim, locked)
+    ctx.fillRect(0, canvas.height - 0.35 * PX, canvas.width, 0.35 * PX)
+  }
 
-  const glass = tone(style.glass, locked)
-  const frame = tone("#ffffff", locked)
+  const glass = mask ? "#ffd27a" : tone(style.glass, locked)
+  const frame = mask ? "#000000" : tone("#ffffff", locked)
 
   if (kind === "focused") {
     const floors = Math.max(2, Math.round((height - 1.6) / 1.8))
@@ -48,7 +59,7 @@ function facadeCanvas(width: number, height: number, style: KindStyle, kind: Stu
         ctx.fillStyle = glass
         ctx.fillRect(x, y, cellW * 0.6, cellH * 0.62)
       }
-      ctx.fillStyle = tone(style.trim, locked)
+      ctx.fillStyle = mask ? "#000000" : tone(style.trim, locked)
       ctx.fillRect(0, 0.3 * PX + (floor + 1) * cellH - 3, canvas.width, 4)
     }
   } else {
@@ -74,13 +85,13 @@ function facadeCanvas(width: number, height: number, style: KindStyle, kind: Stu
   return canvas
 }
 
-function useFacade(width: number, height: number, kind: StudySpaceKind, front: boolean, locked: boolean) {
+function useFacade(width: number, height: number, kind: StudySpaceKind, front: boolean, locked: boolean, mask = false) {
   const texture = useMemo(() => {
-    const created = new CanvasTexture(facadeCanvas(width, height, KIND_STYLE[kind], kind, front, locked))
+    const created = new CanvasTexture(facadeCanvas(width, height, KIND_STYLE[kind], kind, front, locked, mask))
     created.colorSpace = SRGBColorSpace
     created.anisotropy = 4
     return created
-  }, [width, height, kind, front, locked])
+  }, [width, height, kind, front, locked, mask])
   useEffect(() => () => texture.dispose(), [texture])
   return texture
 }
@@ -179,20 +190,35 @@ function Door({ z, color, locked }: { z: number; color: string; locked: boolean 
   )
 }
 
-function Body({ footprint, kind, locked, height }: { footprint: Footprint; kind: StudySpaceKind; locked: boolean; height: number }) {
+function Body({
+  footprint,
+  kind,
+  locked,
+  height,
+  glow,
+}: {
+  footprint: Footprint
+  kind: StudySpaceKind
+  locked: boolean
+  height: number
+  glow: number
+}) {
   const front = useFacade(footprint.w, height, kind, true, locked)
   const side = useFacade(footprint.d, height, kind, false, locked)
+  const frontLit = useFacade(footprint.w, height, kind, true, locked, true)
+  const sideLit = useFacade(footprint.d, height, kind, false, locked, true)
   const roof = tone(KIND_STYLE[kind].wall, locked)
+  const lit = glow * (locked ? 0.35 : 1.1)
 
   return (
     <mesh position={[0, height / 2, 0]} castShadow receiveShadow>
       <boxGeometry args={[footprint.w, height, footprint.d]} />
-      <meshStandardMaterial attach="material-0" map={side} />
-      <meshStandardMaterial attach="material-1" map={side} />
+      <meshStandardMaterial attach="material-0" map={side} emissive="#ffffff" emissiveMap={sideLit} emissiveIntensity={lit} />
+      <meshStandardMaterial attach="material-1" map={side} emissive="#ffffff" emissiveMap={sideLit} emissiveIntensity={lit} />
       <meshStandardMaterial attach="material-2" color={roof} />
       <meshStandardMaterial attach="material-3" color={roof} />
-      <meshStandardMaterial attach="material-4" map={front} />
-      <meshStandardMaterial attach="material-5" map={front} />
+      <meshStandardMaterial attach="material-4" map={front} emissive="#ffffff" emissiveMap={frontLit} emissiveIntensity={lit} />
+      <meshStandardMaterial attach="material-5" map={front} emissive="#ffffff" emissiveMap={frontLit} emissiveIntensity={lit} />
     </mesh>
   )
 }
@@ -212,12 +238,12 @@ function RoofCap({ w, d, y, color, locked }: { w: number; d: number; y: number; 
   )
 }
 
-function Tower({ footprint, locked, name }: BuildingProps) {
+function Tower({ footprint, locked, name, glow = 0 }: BuildingProps) {
   const style = KIND_STYLE.focused
   const h = footprint.h
   return (
     <group>
-      <Body footprint={footprint} kind="focused" locked={locked} height={h} />
+      <Body footprint={footprint} kind="focused" locked={locked} height={h} glow={glow} />
       <RoofCap w={footprint.w} d={footprint.d} y={h} color={style.roof} locked={locked} />
       <mesh position={[footprint.w / 2 - 0.9, h + 0.9, -footprint.d / 2 + 0.9]} castShadow>
         <boxGeometry args={[1.1, 0.9, 1.1]} />
@@ -233,12 +259,12 @@ function Tower({ footprint, locked, name }: BuildingProps) {
   )
 }
 
-function Hall({ footprint, locked, name }: BuildingProps) {
+function Hall({ footprint, locked, name, glow = 0 }: BuildingProps) {
   const style = KIND_STYLE.collaborative
   const h = footprint.h
   return (
     <group>
-      <Body footprint={footprint} kind="collaborative" locked={locked} height={h} />
+      <Body footprint={footprint} kind="collaborative" locked={locked} height={h} glow={glow} />
       <RoofCap w={footprint.w} d={footprint.d} y={h} color={style.roof} locked={locked} />
       <Billboard name={name} kind="collaborative" locked={locked} y={h + 0.5} width={Math.min(footprint.w - 1, 5.2)} />
       <Door z={footprint.d / 2} color={style.roof} locked={locked} />
@@ -258,13 +284,13 @@ function Hall({ footprint, locked, name }: BuildingProps) {
   )
 }
 
-function Cafe({ footprint, locked, name }: BuildingProps) {
+function Cafe({ footprint, locked, name, glow = 0 }: BuildingProps) {
   const style = KIND_STYLE.lounge
   const h = footprint.h
   const stripes = 8
   return (
     <group>
-      <Body footprint={footprint} kind="lounge" locked={locked} height={h} />
+      <Body footprint={footprint} kind="lounge" locked={locked} height={h} glow={glow} />
       <RoofCap w={footprint.w} d={footprint.d} y={h} color={style.roof} locked={locked} />
       <Billboard name={name} kind="lounge" locked={locked} y={h + 0.5} width={Math.min(footprint.w - 0.8, 4.6)} />
       <Door z={footprint.d / 2} color={style.roof} locked={locked} />
@@ -300,7 +326,7 @@ function Cafe({ footprint, locked, name }: BuildingProps) {
   )
 }
 
-type BuildingProps = { footprint: Footprint; locked: boolean; name: string }
+type BuildingProps = { footprint: Footprint; locked: boolean; name: string; glow?: number }
 
 export function Building({ kind, ...props }: BuildingProps & { kind: StudySpaceKind }) {
   if (kind === "focused") return <Tower {...props} />
@@ -327,7 +353,7 @@ export function Tree({ position, scale = 1 }: { position: [number, number, numbe
   )
 }
 
-export function StreetLamp({ position }: { position: [number, number, number] }) {
+export function StreetLamp({ position, glow = 0 }: { position: [number, number, number]; glow?: number }) {
   return (
     <group position={position}>
       <mesh position={[0, 0.06, 0]}>
@@ -344,7 +370,7 @@ export function StreetLamp({ position }: { position: [number, number, number] })
       </mesh>
       <mesh position={[0, 2.92, 0]}>
         <sphereGeometry args={[0.16, 12, 10]} />
-        <meshStandardMaterial color="#fff7d6" emissive="#fde68a" emissiveIntensity={0.8} />
+        <meshStandardMaterial color="#fff7d6" emissive="#fde68a" emissiveIntensity={0.4 + glow * 2.2} />
       </mesh>
     </group>
   )

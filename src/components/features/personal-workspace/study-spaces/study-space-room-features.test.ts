@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { getSampleRoster, SAMPLE_NAMES } from "./space-roster"
-import { buildSeats, meetingRoom, roomPlan } from "./detail/study-space-seats"
+import { getSampleNappers, getSampleRoster, SAMPLE_NAMES } from "./space-roster"
+import { buildRoomSpots, buildSeats, discussionTable, napArea, roomPlan, watchRoom } from "./detail/study-space-seats"
 import { sampleCreatedSpaces, sampleJoinedSpaces, type StudySpaceRecord } from "./study-spaces-records"
 import { canManageTasks, canTickTask, createRoomTask, moveRoomTask, toggleRoomTask } from "./detail/room-tasks"
 import { parseYouTubeId, youTubeEmbedUrl } from "./detail/room-tv"
@@ -29,31 +29,56 @@ describe("sample roster", () => {
   })
 })
 
-describe("working and meeting areas", () => {
-  const inside = (seat: { sitPoint: { x: number; z: number } }) =>
-    seat.sitPoint.x > meetingRoom.minX &&
-    seat.sitPoint.x < meetingRoom.maxX &&
-    seat.sitPoint.z > meetingRoom.minZ &&
-    seat.sitPoint.z < meetingRoom.maxZ
+describe("discussion table, nap area and watch room", () => {
+  const inside = (point: { x: number; z: number }, area: { minX: number; maxX: number; minZ: number; maxZ: number }) =>
+    point.x > area.minX && point.x < area.maxX && point.z > area.minZ && point.z < area.maxZ
 
-  it("keeps meeting seats inside the glass room and working seats outside it", () => {
+  it("seats everyone at one table that matches the capacity, facing the table", () => {
     for (const kind of ["focused", "collaborative", "lounge"] as const) {
-      for (const seat of buildSeats(kind, 8)) {
-        expect(Math.abs(seat.sitPoint.x)).toBeLessThan(roomPlan.halfWidth)
-        expect(Math.abs(seat.sitPoint.z)).toBeLessThan(roomPlan.halfDepth)
-        expect(inside(seat)).toBe(seat.zone === "meeting")
+      for (const capacity of [2, 4, 8]) {
+        const seats = buildSeats(kind, capacity)
+        expect(seats).toHaveLength(capacity)
+        for (const seat of seats) {
+          expect(seat.zone).toBe("discussion")
+          expect(Math.abs(seat.sitPoint.x)).toBeLessThan(roomPlan.halfWidth)
+          expect(Math.abs(seat.sitPoint.z)).toBeLessThan(roomPlan.halfDepth)
+          expect(inside(seat.sitPoint, napArea) || inside(seat.sitPoint, watchRoom)).toBe(false)
+          const toTable = Math.atan2(discussionTable.x - seat.sitPoint.x, discussionTable.z - seat.sitPoint.z)
+          expect(seat.faceRotation).toBeCloseTo(toTable)
+        }
       }
     }
+    expect(buildSeats("lounge", 4).every((seat) => seat.furniture === "armchair")).toBe(true)
+    expect(buildSeats("focused", 4).every((seat) => seat.furniture === "chair")).toBe(true)
   })
 
-  it("puts meeting chairs around the conference table in every room type", () => {
-    const meeting = buildSeats("collaborative", 8).filter((seat) => seat.zone === "meeting")
-    expect(meeting.length).toBeGreaterThanOrEqual(4)
-    meeting.forEach((seat) => {
-      expect(seat.furniture).toBe("chair")
-      expect(Math.abs(seat.sitPoint.z - meetingRoom.table.z)).toBeCloseTo(1.25)
+  it("puts nap mats in the nap area and sofa seats facing the watch-room screen", () => {
+    const spots = buildRoomSpots()
+    const mats = spots.filter((spot) => spot.furniture === "mat")
+    const sofas = spots.filter((spot) => spot.furniture === "sofa")
+
+    expect(mats.length).toBeGreaterThanOrEqual(2)
+    mats.forEach((mat) => expect(inside(mat.anchor, napArea)).toBe(true))
+    expect(sofas.length).toBeGreaterThanOrEqual(2)
+    sofas.forEach((sofa) => {
+      expect(inside(sofa.sitPoint, watchRoom)).toBe(true)
+      expect(sofa.faceRotation).toBeCloseTo(Math.PI / 2)
     })
-    expect(buildSeats("focused", 8).some((seat) => seat.zone === "meeting")).toBe(true)
+    expect(new Set(spots.map((spot) => spot.id)).size).toBe(spots.length)
+  })
+
+  it("adds at most one sample napper on a free mat with a name not already in the room", () => {
+    for (const space of [...sampleCreatedSpaces, ...sampleJoinedSpaces]) {
+      const seats = buildSeats(space.kind, space.capacity)
+      const roster = getSampleRoster(space, seats.length)
+      const nappers = getSampleNappers(space, roster, seats.length, 3)
+      expect(nappers.length).toBeLessThanOrEqual(1)
+      nappers.forEach((napper) => {
+        expect(roster.map((person) => person.name)).not.toContain(napper.name)
+        expect(napper.seatIndex).toBeGreaterThanOrEqual(seats.length)
+        expect(napper.seatIndex).toBeLessThan(seats.length + 3)
+      })
+    }
   })
 })
 

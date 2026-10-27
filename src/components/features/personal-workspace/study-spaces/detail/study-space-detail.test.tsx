@@ -3,13 +3,13 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpaceDetailView } from "./study-space-detail-view"
-import { getSampleRoster } from "../space-roster"
+import { getSampleNappers, getSampleRoster } from "../space-roster"
 import {
   sampleCreatedSpaces,
   studyHallCharacterStorageKey,
   studySpaceCharacterStoragePrefix,
 } from "../study-spaces-records"
-import { buildSeats } from "./study-space-seats"
+import { buildRoomSpots, buildSeats } from "./study-space-seats"
 import { getSampleLockers } from "./room-lockers"
 import type { SpaceRoomSceneProps } from "./space-room-scene"
 
@@ -340,6 +340,51 @@ describe("study space detail room", () => {
 
     await user.click(screen.getByRole("button", { name: "Room lighting: Auto light" }))
     expect(screen.getByRole("button", { name: "Room lighting: Morning light" })).toBeTruthy()
+  })
+
+  it("lets the owl nap on a mat with a napping status and wake up again", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const space = sampleCreatedSpaces.find((record) => record.id === sampleSpaceId)!
+    const roster = getSampleRoster(space, buildSeats(space.kind, space.capacity).length)
+    const tableCount = buildSeats(space.kind, space.capacity).length
+    const nappers = getSampleNappers(space, roster, tableCount, 3)
+    const mats = buildRoomSpots().filter((spot) => spot.furniture === "mat")
+    const freeMat = mats.find((_, index) => !nappers.some((napper) => napper.seatIndex === tableCount + index))!
+
+    await user.click(screen.getByRole("button", { name: freeMat.name }))
+    await user.click(screen.getByRole("button", { name: "Rest here" }))
+
+    const banner = screen.getByRole("region", { name: "Nap status" })
+    expect(banner.textContent).toContain("You're napping")
+    expect(screen.getByText(`Resting on ${freeMat.name}`)).toBeTruthy()
+
+    await user.click(within(banner).getByRole("button", { name: "Wake up" }))
+    expect(screen.queryByRole("region", { name: "Nap status" })).toBeNull()
+  })
+
+  it("opens the room TV when sitting on a watch-room sofa", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const sofa = buildRoomSpots().find((spot) => spot.furniture === "sofa")!
+    await user.click(screen.getByRole("button", { name: sofa.name }))
+    await user.click(screen.getByRole("button", { name: "Sit and watch" }))
+
+    expect(screen.getByRole("dialog", { name: "Room TV" })).toBeTruthy()
+    expect(screen.getByText(`Seated at ${sofa.name}`)).toBeTruthy()
+  })
+
+  it("shares the lighting choice with the study hall in this browser", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Room lighting: Auto light" }))
+    expect(window.localStorage.getItem("owlio.study-light.v1")).toBe("morning")
   })
 
   it("offers generated lo-fi and piano tracks that need no audio file", async () => {

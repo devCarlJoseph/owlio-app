@@ -25,6 +25,32 @@ export function hashString(value: string): number {
   return hash
 }
 
+// Some rooms have one extra sample owl resting in the nap area. `seatIndex` counts from
+// `firstSpotIndex`, the index of the first nap mat in the combined seat list.
+export function getSampleNappers(
+  space: StudySpaceRecord,
+  roster: SamplePerson[],
+  firstSpotIndex: number,
+  matCount: number
+): SamplePerson[] {
+  const hash = hashString(`${space.id}:nap`)
+  if (hash % 3 === 0 || matCount === 0) return []
+  const name = SAMPLE_NAMES.find(
+    (candidate, index) => !roster.some((person) => person.name === candidate) && index >= hash % SAMPLE_NAMES.length
+  ) ?? SAMPLE_NAMES.find((candidate) => !roster.some((person) => person.name === candidate))
+  if (!name) return []
+  return [
+    {
+      id: `sample-${space.id}-nap`,
+      name,
+      seatIndex: firstSpotIndex + (hash % matCount),
+      skin: SAMPLE_SKINS[hash % SAMPLE_SKINS.length],
+      shirt: SAMPLE_SHIRTS[(hash >> 3) % SAMPLE_SHIRTS.length],
+      hair: SAMPLE_HAIRS[(hash >> 6) % SAMPLE_HAIRS.length],
+    },
+  ]
+}
+
 // One seat is always left free so the student can take a place.
 export function getSampleRoster(space: StudySpaceRecord, seatCount: number): SamplePerson[] {
   if (seatCount < 2) return []

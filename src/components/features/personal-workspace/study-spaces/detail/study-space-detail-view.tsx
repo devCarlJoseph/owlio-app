@@ -30,7 +30,8 @@ import { CharacterDialog } from "./character-dialog"
 import { DrawerPanel } from "./drawer-panel"
 import { LockerPanel } from "./locker-panel"
 import type { LockerSlot } from "./room-extras"
-import { LIGHT_LABELS, LIGHT_SETTINGS, useLightPhase, type LightSetting } from "./room-ambience"
+import { LIGHT_LABELS, useLightPhase, useSharedLightSetting } from "./room-ambience"
+import { NapBanner } from "./nap-banner"
 import { getSampleLockers, loadOwnLockerCode, saveOwnLockerCode } from "./room-lockers"
 import { FocusMusicPanel } from "./focus-music-panel"
 import { PomodoroChip, PomodoroPanel } from "./pomodoro-chip"
@@ -48,10 +49,10 @@ import {
   type RoomTask,
 } from "./room-tasks"
 import { loadRoomTvVideo, saveRoomTvVideo, type RoomTvVideo } from "./room-tv"
-import { getSampleRoster, sampleRosterNotice } from "../space-roster"
+import { getSampleNappers, getSampleRoster, sampleRosterNotice } from "../space-roster"
 import { SpaceRoomScene, type CameraResetHandle } from "./space-room-scene"
 import { focusMusicTracks } from "./focus-music"
-import { buildSeats, roomSpawnPoint } from "./study-space-seats"
+import { buildRoomSpots, buildSeats, roomSpawnPoint } from "./study-space-seats"
 import { useFocusMusic } from "./use-focus-music"
 import { usePomodoro } from "./use-pomodoro"
 import {
@@ -68,6 +69,8 @@ import {
 const BUBBLE_DURATION_MS = 6000
 const GARDEN_TRACK_ID = "forest-breeze"
 const OWN_LOCKER_ID = "mine"
+const ROOM_SPOTS = buildRoomSpots()
+const NAP_MAT_COUNT = ROOM_SPOTS.filter((spot) => spot.furniture === "mat").length
 
 export function StudySpaceDetailView() {
   const { spaceId } = useParams()
@@ -76,8 +79,13 @@ export function StudySpaceDetailView() {
     () => loadStudySpaces().find((record) => record.id === spaceId) ?? null,
     [spaceId]
   )
-  const seats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
-  const samplePeople = useMemo(() => (space ? getSampleRoster(space, seats.length) : []), [space, seats.length])
+  const tableSeats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
+  const seats = useMemo(() => [...tableSeats, ...ROOM_SPOTS], [tableSeats])
+  const roster = useMemo(() => (space ? getSampleRoster(space, tableSeats.length) : []), [space, tableSeats.length])
+  const samplePeople = useMemo(
+    () => (space ? [...roster, ...getSampleNappers(space, roster, tableSeats.length, NAP_MAT_COUNT)] : []),
+    [space, roster, tableSeats.length]
+  )
 
   // A room-specific character wins; otherwise the study hall character walks in by default.
   const [character, setCharacter] = useState<StudySpaceCharacter | null>(() =>
@@ -90,7 +98,7 @@ export function StudySpaceDetailView() {
   const [chatOpen, setChatOpen] = useState(false)
   const [panel, setPanel] = useState<"music" | "timer" | "drawer" | "lockers" | "tasks" | "tv" | null>(null)
   const [expanded, setExpanded] = useState(false)
-  const [lightSetting, setLightSetting] = useState<LightSetting>("auto")
+  const { setting: lightSetting, cycle: cycleLight } = useSharedLightSetting()
   const lightPhase = useLightPhase(lightSetting)
   const lockers = useMemo(() => (space ? getSampleLockers(space.id, samplePeople) : []), [space, samplePeople])
   const [unlockedLockerIds, setUnlockedLockerIds] = useState<string[]>([])
@@ -161,7 +169,8 @@ export function StudySpaceDetailView() {
   const characterDialogOpen = character === null || editDialogOpen
   const selectedSeat = seats.find((seat) => seat.id === selectedSeatId) ?? null
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
-  const freeSeats = seats.length - samplePeople.length - (seatedSeatId ? 1 : 0)
+  const freeSeats = tableSeats.length - roster.length - (seatedSeat?.zone === "discussion" ? 1 : 0)
+  const napping = seatedSeat?.furniture === "mat"
   const selectedTaker = selectedSeat ? samplePeople.find((person) => seats[person.seatIndex]?.id === selectedSeat.id) ?? null : null
   const isLeader = canManageTasks(space)
   const activeTrack =
@@ -188,6 +197,10 @@ export function StudySpaceDetailView() {
     setSeatedSeatId(selectedSeat.id)
     setWalkTarget(selectedSeat.sitPoint)
     setSelectedSeatId(null)
+    if (selectedSeat.furniture === "sofa") {
+      setChatOpen(false)
+      setPanel("tv")
+    }
   }
 
   function standUp() {
@@ -251,10 +264,6 @@ export function StudySpaceDetailView() {
     if (spaceId) saveOwnLockerCode(spaceId, code)
   }
 
-  function cycleLight() {
-    setLightSetting((current) => LIGHT_SETTINGS[(LIGHT_SETTINGS.indexOf(current) + 1) % LIGHT_SETTINGS.length])
-  }
-
   function sendMessage() {
     const text = draft.trim()
     if (text.length === 0 || !character) return
@@ -298,7 +307,7 @@ export function StudySpaceDetailView() {
             Local preview
           </Badge>
           <span className="hidden text-xs text-slate-500 sm:inline">
-            {freeSeats} of {seats.length} seats open
+            {freeSeats} of {tableSeats.length} table seats open
           </span>
         </div>
 
@@ -467,6 +476,7 @@ export function StudySpaceDetailView() {
           <div className="absolute inset-0">
           <SpaceRoomScene
             character={character}
+            kind={space.kind}
             seats={seats}
             samplePeople={samplePeople}
             tasks={tasks}
@@ -580,6 +590,8 @@ export function StudySpaceDetailView() {
           />
         ) : null}
 
+        {napping && seatedSeat ? <NapBanner key={seatedSeat.id} onWake={standUp} /> : null}
+
         <p className="sr-only" role="status" aria-live="polite">
           {bubble ? `You said: ${bubble.text}` : ""}
           {timer.status === "finished" ? " Focus timer finished." : ""}
@@ -589,7 +601,7 @@ export function StudySpaceDetailView() {
           {seatedSeat ? (
             <span className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
               <Armchair className="size-3.5" aria-hidden="true" />
-              Seated at {seatedSeat.name}
+              {napping ? `Resting on ${seatedSeat.name}` : `Seated at ${seatedSeat.name}`}
               <Button
                 type="button"
                 size="xs"
@@ -597,7 +609,7 @@ export function StudySpaceDetailView() {
                 onClick={standUp}
                 className="text-emerald-700 hover:text-emerald-900"
               >
-                Stand up
+                {napping ? "Get up" : "Stand up"}
               </Button>
             </span>
           ) : (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { constrainWalker, layoutCity, nearestDoor, streetAt } from "./city-layout"
+import { constrainWalker, layoutCity, nearestDoor, ROAD, streetAt } from "./city-layout"
 import { sampleCreatedSpaces, sampleDiscoverySpaces, sampleJoinedSpaces } from "./study-spaces-records"
 
 function sampleCity() {
@@ -52,6 +52,31 @@ describe("study hall city layout", () => {
     const city = layoutCity([{ role: "owner", spaces: [] }])
     expect(city.lots).toHaveLength(0)
     expect(city.width).toBeGreaterThan(0)
-    expect(streetAt(0, city)).toBe(1)
+    expect(streetAt(-city.depth / 2 + 6, city)).toBe(1)
+  })
+
+  it("keeps the central plaza free of buildings and puts the fountain roundabout on its corner intersection", () => {
+    const city = sampleCity()
+    const { plaza, roundabout } = city
+
+    for (const lot of city.lots) {
+      const overlapsPlaza = Math.abs(lot.x - plaza.x) < plaza.w / 2 && Math.abs(lot.z - plaza.z) < plaza.d / 2
+      expect(overlapsPlaza).toBe(false)
+    }
+    expect(Math.abs(plaza.x)).toBeLessThan(0.01)
+    expect(city.roadsX.some((x) => Math.abs(x - roundabout.x) < 0.01)).toBe(true)
+    expect(city.roadsZ.some((z) => Math.abs(z - roundabout.z) < 0.01)).toBe(true)
+    expect(roundabout.x).toBeCloseTo(plaza.x + plaza.w / 2 + ROAD / 2)
+    expect(roundabout.z).toBeCloseTo(plaza.z + plaza.d / 2 + ROAD / 2)
+
+    const pushed = constrainWalker({ x: roundabout.x, z: roundabout.z }, city)
+    expect(Math.hypot(pushed.x - roundabout.x, pushed.z - roundabout.z)).toBeGreaterThanOrEqual(roundabout.island)
+  })
+
+  it("grows the city with more rows when there are many spaces", () => {
+    const many = Array.from({ length: 30 }, (_, index) => ({ ...sampleCreatedSpaces[0], id: `space-${index}` }))
+    const city = layoutCity([{ role: "owner", spaces: many }])
+    expect(city.lots).toHaveLength(30)
+    expect(new Set(city.lots.map((lot) => `${lot.x},${lot.z}`)).size).toBe(30)
   })
 })
