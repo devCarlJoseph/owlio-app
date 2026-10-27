@@ -7,7 +7,9 @@ import type { SamplePerson } from "../space-roster"
 import type { StudySpaceCharacter } from "../study-spaces-records"
 import { useWalkKeys, walkDirection, type WalkKey } from "../use-walk-keys"
 import { CharacterFigure, type FigureMode } from "./character-figure"
-import { DrawerCabinet, RadioSet, RoomTv, TaskWhiteboard } from "./room-extras"
+import { LockerWall, RadioSet, RoomTv, TaskWhiteboard, type LockerSlot } from "./room-extras"
+import { LIGHTING, type LightPhase } from "./room-ambience"
+import { RoomGarden } from "./room-garden"
 import type { RoomTask } from "./room-tasks"
 import { loungeTable, meetingRoom, roomPlan, workRug, type SeatDef } from "./study-space-seats"
 
@@ -21,7 +23,9 @@ export type SpaceRoomSceneProps = {
   samplePeople?: SamplePerson[]
   tasks?: RoomTask[]
   tvHasVideo?: boolean
-  drawerOpen?: boolean
+  lockers?: LockerSlot[]
+  lightPhase?: LightPhase
+  gardenSoundOn?: boolean
   musicPlaying?: boolean
   selectedSeatId: string | null
   seatedSeatId: string | null
@@ -34,7 +38,8 @@ export type SpaceRoomSceneProps = {
   onSeatSelect: (seatId: string) => void
   onOpenTasks?: () => void
   onOpenTv?: () => void
-  onToggleDrawer?: () => void
+  onSelectLocker?: (lockerId: string) => void
+  onToggleGardenSound?: () => void
   onToggleMusic?: () => void
   onExit?: () => void
 }
@@ -59,7 +64,9 @@ export function SpaceRoomScene({
   samplePeople = [],
   tasks = [],
   tvHasVideo = false,
-  drawerOpen = false,
+  lockers = [],
+  lightPhase = "day",
+  gardenSoundOn = false,
   musicPlaying = false,
   selectedSeatId,
   seatedSeatId,
@@ -72,7 +79,8 @@ export function SpaceRoomScene({
   onSeatSelect,
   onOpenTasks = () => undefined,
   onOpenTv = () => undefined,
-  onToggleDrawer = () => undefined,
+  onSelectLocker = () => undefined,
+  onToggleGardenSound = () => undefined,
   onToggleMusic = () => undefined,
   onExit,
 }: SpaceRoomSceneProps) {
@@ -92,6 +100,7 @@ export function SpaceRoomScene({
   }
 
   const destination = seatedSeat ? seatedSeat.sitPoint : walkTarget
+  const light = LIGHTING[lightPhase]
 
   return (
     <Canvas
@@ -106,12 +115,21 @@ export function SpaceRoomScene({
         </div>
       }
     >
-      <color attach="background" args={["#e8eef6"]} />
-      <hemisphereLight args={["#ffffff", "#cdd8e6", 0.9]} />
-      <ambientLight intensity={0.55} />
+      <color attach="background" args={[light.background]} />
+      <hemisphereLight args={[light.hemiSky, light.hemiGround, light.hemiIntensity]} />
+      <ambientLight intensity={light.ambient} />
+      {light.lamps > 0 ? (
+        <>
+          <pointLight position={[-9.5, 1.7, 4.7]} intensity={5 * light.lamps} distance={7} color="#fbbf24" />
+          <pointLight position={[loungeTable.x, 2.2, loungeTable.z]} intensity={5 * light.lamps} distance={8} color="#fcd9a0" />
+          <pointLight position={[workRug.x, 2.4, workRug.z]} intensity={4 * light.lamps} distance={9} color="#fde7c0" />
+          <pointLight position={[meetingRoom.table.x, 2.4, meetingRoom.table.z]} intensity={4 * light.lamps} distance={8} color="#e0ecff" />
+        </>
+      ) : null}
       <directionalLight
-        position={[12, 20, 9]}
-        intensity={1.3}
+        position={light.sunPosition}
+        color={light.sunColor}
+        intensity={light.sunIntensity}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-20}
@@ -139,14 +157,15 @@ export function SpaceRoomScene({
       <CameraFit />
       <CameraHeightRig level={cameraLevel} controlsRef={cameraResetRef} />
 
-      <RoomShell onFloorClick={handleFloorClick} />
+      <RoomShell onFloorClick={handleFloorClick} lamps={light.lamps} />
+      <RoomGarden position={[-0.3, 0, 6]} lamps={light.lamps} soundOn={gardenSoundOn} onToggleSound={onToggleGardenSound} />
       {onExit ? <ExitPortal position={[EXIT_PORTAL.x, 0, EXIT_PORTAL.z]} onExit={onExit} /> : null}
 
       <BoardStand x={-0.2} z={-ROOM.halfDepth + 0.3} postX={1.3} height={1.05} />
       <TaskWhiteboard position={[-0.2, 1.9, -ROOM.halfDepth + 0.3]} tasks={tasks} onOpen={onOpenTasks} />
       <BoardStand x={meetingRoom.table.x} z={-ROOM.halfDepth + 0.3} postX={1.3} height={0.35} />
       <RoomTv position={[meetingRoom.table.x, 1.95, -ROOM.halfDepth + 0.3]} hasVideo={tvHasVideo} onOpen={onOpenTv} />
-      <DrawerCabinet position={[-ROOM.halfWidth + 0.33, 0, 1.6]} open={drawerOpen} onToggle={onToggleDrawer} />
+      <LockerWall position={[-ROOM.halfWidth + 0.34, 0, 2.6]} slots={lockers} onSelect={onSelectLocker} />
       <RadioSet
         position={[-6.75, 0.5, 4.95]}
         playing={musicPlaying}
@@ -186,7 +205,7 @@ export function SpaceRoomScene({
               reducedMotion={reducedMotion}
             />
             {showNameTag ? (
-              <Html position={[0, 1.55, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[18, 0]}>
+              <Html position={[0, 2.05, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[18, 0]}>
                 <span className="block rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-700 shadow">
                   {person.name} · sample
                 </span>
@@ -358,7 +377,7 @@ function CameraHeightRig({
   return null
 }
 
-function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: number }) => void }) {
+function RoomShell({ onFloorClick, lamps }: { onFloorClick: (point: { x: number; z: number }) => void; lamps: number }) {
   const backZ = -ROOM.halfDepth
   const leftX = -ROOM.halfWidth
   const floor = useFloorTexture()
@@ -425,7 +444,7 @@ function RoomShell({ onFloorClick }: { onFloorClick: (point: { x: number; z: num
         </mesh>
         <mesh position={[0, 1.62, 0]}>
           <coneGeometry args={[0.26, 0.3, 20, 1, true]} />
-          <meshStandardMaterial color="#f5e6c8" emissive="#fbbf24" emissiveIntensity={0.5} />
+          <meshStandardMaterial color="#f5e6c8" emissive="#fbbf24" emissiveIntensity={0.3 + lamps * 1.2} />
         </mesh>
       </group>
 
@@ -888,8 +907,8 @@ function SpaceCharacter({
     }
   })
 
-  const tagY = seated ? 1.68 : 1.95
-  const bubbleY = seated ? 2.05 : 2.3
+  const tagY = seated ? 2.05 : 1.8
+  const bubbleY = seated ? 2.45 : 2.2
 
   return (
     <group ref={groupRef} position={[start.x, 0, start.z]}>

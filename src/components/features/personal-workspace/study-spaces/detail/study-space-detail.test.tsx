@@ -10,6 +10,7 @@ import {
   studySpaceCharacterStoragePrefix,
 } from "../study-spaces-records"
 import { buildSeats } from "./study-space-seats"
+import { getSampleLockers } from "./room-lockers"
 import type { SpaceRoomSceneProps } from "./space-room-scene"
 
 vi.mock("./space-room-scene", () => ({
@@ -280,6 +281,65 @@ describe("study space detail room", () => {
     await user.type(within(tv).getByLabelText(/Video for the group/), "https://youtu.be/dQw4w9WgXcQ")
     await user.click(within(tv).getByRole("button", { name: "Play" }))
     expect(within(tv).getByTitle("Room TV video").getAttribute("src")).toContain("youtube-nocookie.com/embed/dQw4w9WgXcQ")
+  })
+
+  it("keeps sample study-mate lockers locked until their code is entered", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const space = sampleCreatedSpaces.find((record) => record.id === sampleSpaceId)!
+    const roster = getSampleRoster(space, buildSeats(space.kind, space.capacity).length)
+    const [locker] = getSampleLockers(sampleSpaceId, roster)
+    const name = locker.owner.name
+
+    await user.click(screen.getByRole("button", { name: "Lockers" }))
+    const panel = screen.getByRole("dialog", { name: "Study room lockers" })
+    expect(panel.textContent).toContain("Preview lockers")
+
+    await user.click(within(panel).getByRole("button", { name: `Enter code for ${name}'s locker` }))
+    const input = within(panel).getByLabelText("Locker code")
+    await user.type(input, locker.code === "0000" ? "1111" : "0000")
+    await user.click(within(panel).getByRole("button", { name: "Unlock locker" }))
+    expect(within(panel).getByText(`That code does not open ${name}'s locker.`)).toBeTruthy()
+    expect(within(panel).queryByRole("list", { name: `${name}'s files` })).toBeNull()
+
+    await user.clear(input)
+    await user.type(input, locker.code)
+    await user.click(within(panel).getByRole("button", { name: "Unlock locker" }))
+    const files = within(panel).getByRole("list", { name: `${name}'s files` })
+    expect(files.textContent).toContain(locker.files[0].name)
+    expect(files.textContent).toContain("sample")
+  })
+
+  it("saves the user's own locker code in this browser", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Lockers" }))
+    const panel = screen.getByRole("dialog", { name: "Study room lockers" })
+    await user.click(within(panel).getByRole("button", { name: "Set a code" }))
+    await user.type(within(panel).getByLabelText("New locker code"), "12")
+    await user.click(within(panel).getByRole("button", { name: "Save code" }))
+    expect(within(panel).getByText("Use 4 to 6 digits.")).toBeTruthy()
+
+    await user.type(within(panel).getByLabelText("New locker code"), "34")
+    await user.click(within(panel).getByRole("button", { name: "Save code" }))
+    expect(within(panel).getByText("Code set")).toBeTruthy()
+    expect(window.localStorage.getItem(`owlio.study-space-locker-code.${sampleSpaceId}`)).toBe("1234")
+  })
+
+  it("expands the room to full screen and cycles room lighting", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Expand room to full screen" }))
+    expect(screen.getByRole("button", { name: "Exit full screen" }).getAttribute("aria-pressed")).toBe("true")
+
+    await user.click(screen.getByRole("button", { name: "Room lighting: Auto light" }))
+    expect(screen.getByRole("button", { name: "Room lighting: Morning light" })).toBeTruthy()
   })
 
   it("offers generated lo-fi and piano tracks that need no audio file", async () => {

@@ -188,56 +188,93 @@ export function RoomTv({
   )
 }
 
-export function DrawerCabinet({
-  position,
-  open,
-  onToggle,
-}: {
-  position: Vec3
-  open: boolean
-  onToggle: () => void
-}) {
-  const { hovered, handlers } = useHoverClick(onToggle)
-  const drawer = useRef<Group>(null)
+export type LockerSlot = { id: string; label: string; color: string; mine: boolean; open: boolean }
+
+const LOCKER_W = 0.7
+const LOCKER_H = 0.88
+
+function LockerDoor({ slot, x, y, onSelect }: { slot: LockerSlot; x: number; y: number; onSelect: (id: string) => void }) {
+  const { hovered, handlers } = useHoverClick(() => onSelect(slot.id))
+  const door = useRef<Group>(null)
+  const swing = slot.open ? -0.9 : 0
 
   useFrame((_, delta) => {
-    const node = drawer.current
-    if (!node) return
-    const target = open ? 0.55 : 0
-    node.position.z += (target - node.position.z) * Math.min(1, delta * 8)
+    const node = door.current
+    if (node) node.rotation.y += (swing - node.rotation.y) * Math.min(1, delta * 8)
   })
 
+  const status = slot.mine ? "your locker" : slot.open ? "unlocked" : "locked — needs their code"
+
   return (
-    <group position={position} rotation={[0, Math.PI / 2, 0]} {...handlers}>
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <boxGeometry args={[1.5, 1.1, 0.6]} />
-        <meshStandardMaterial color={hovered ? "#9b7a48" : "#8a6d42"} />
+    <group position={[x, y, 0.31]} {...handlers}>
+      <mesh position={[0, LOCKER_H / 2, -0.04]}>
+        <boxGeometry args={[LOCKER_W - 0.08, LOCKER_H - 0.08, 0.02]} />
+        <meshStandardMaterial color="#1e293b" />
       </mesh>
-      {[0.22, 0.55, 0.88].map((y) => (
-        <mesh key={y} position={[0, y, 0.31]}>
-          <boxGeometry args={[1.4, 0.3, 0.02]} />
-          <meshStandardMaterial color="#a5854f" />
+      {slot.open ? (
+        <mesh position={[0, LOCKER_H * 0.35, -0.02]}>
+          <boxGeometry args={[0.4, 0.2, 0.02]} />
+          <meshStandardMaterial color="#fef08a" />
         </mesh>
-      ))}
-      <group ref={drawer} position={[0, 0, 0]}>
-        <mesh position={[0, 0.88, 0.5]}>
-          <boxGeometry args={[1.36, 0.26, 0.4]} />
-          <meshStandardMaterial color="#b0905a" />
+      ) : null}
+      <group ref={door} position={[-LOCKER_W / 2 + 0.04, 0, 0]}>
+        <mesh position={[LOCKER_W / 2 - 0.04, LOCKER_H / 2, 0]} castShadow>
+          <boxGeometry args={[LOCKER_W - 0.06, LOCKER_H - 0.06, 0.04]} />
+          <meshStandardMaterial color={slot.color} emissive={slot.color} emissiveIntensity={hovered ? 0.25 : 0} />
         </mesh>
-        <mesh position={[0, 0.9, 0.72]}>
-          <boxGeometry args={[0.3, 0.04, 0.04]} />
-          <meshStandardMaterial color="#334155" />
+        {[0.62, 0.68, 0.74].map((vy) => (
+          <mesh key={vy} position={[LOCKER_W / 2 - 0.04, vy, 0.025]}>
+            <boxGeometry args={[0.3, 0.025, 0.01]} />
+            <meshStandardMaterial color="#0f172a" transparent opacity={0.35} />
+          </mesh>
+        ))}
+        <mesh position={[LOCKER_W - 0.16, LOCKER_H / 2 - 0.06, 0.035]}>
+          <boxGeometry args={[0.08, 0.1, 0.03]} />
+          <meshStandardMaterial
+            color={slot.mine || slot.open ? "#22c55e" : "#ef4444"}
+            emissive={slot.mine || slot.open ? "#22c55e" : "#ef4444"}
+            emissiveIntensity={0.5}
+          />
         </mesh>
-        {open
-          ? [-0.4, -0.1, 0.2].map((x, index) => (
-              <mesh key={x} position={[x, 1.03, 0.5]} rotation={[0, 0, index * 0.1]}>
-                <boxGeometry args={[0.22, 0.02, 0.3]} />
-                <meshStandardMaterial color={["#fef08a", "#bfdbfe", "#fecaca"][index]} />
-              </mesh>
-            ))
-          : null}
       </group>
-      {hovered ? <HoverTag label={open ? "Close my drawer" : "My drawer"} /> : null}
+      {hovered ? <HoverTag label={`${slot.label} · ${status}`} /> : null}
+    </group>
+  )
+}
+
+// Two-row locker wall; one locker per person in the room. Opening others needs their code.
+export function LockerWall({ position, slots, onSelect }: { position: Vec3; slots: LockerSlot[]; onSelect: (id: string) => void }) {
+  const columns = Math.max(1, Math.ceil(slots.length / 2))
+  const width = columns * LOCKER_W + 0.1
+
+  return (
+    <group position={position} rotation={[0, Math.PI / 2, 0]}>
+      <mesh position={[0, LOCKER_H + 0.12, 0]} castShadow receiveShadow>
+        <boxGeometry args={[width, LOCKER_H * 2 + 0.24, 0.6]} />
+        <meshStandardMaterial color="#cbd5e1" />
+      </mesh>
+      <mesh position={[0, LOCKER_H * 2 + 0.27, 0]}>
+        <boxGeometry args={[width + 0.08, 0.06, 0.66]} />
+        <meshStandardMaterial color="#2f6fe4" />
+      </mesh>
+      {slots.map((slot, index) => {
+        const column = Math.floor(index / 2)
+        const row = index % 2
+        return (
+          <LockerDoor
+            key={slot.id}
+            slot={slot}
+            x={-width / 2 + 0.05 + column * LOCKER_W + LOCKER_W / 2}
+            y={row === 0 ? LOCKER_H + 0.16 : 0.08}
+            onSelect={onSelect}
+          />
+        )
+      })}
+      <Html position={[0, LOCKER_H * 2 + 0.6, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[12, 0]}>
+        <span className="block whitespace-nowrap rounded-full bg-blue-600 px-2.5 py-0.5 text-[11px] font-semibold text-white shadow">
+          Lockers
+        </span>
+      </Html>
     </group>
   )
 }

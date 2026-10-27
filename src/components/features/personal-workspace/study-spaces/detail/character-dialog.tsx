@@ -136,7 +136,7 @@ function CharacterForm({
       <DialogHeader>
         <DialogTitle className="text-lg font-semibold text-slate-900">{title}</DialogTitle>
         <DialogDescription className="text-slate-600">
-          Your character only appears in this browser preview. It is not shown to other students.
+          Your Owlio owl only appears in this browser preview. It is not shown to other students.
           {hall ? " Rooms use it by default, and you can still customize it per room." : ""}
         </DialogDescription>
       </DialogHeader>
@@ -158,8 +158,8 @@ function CharacterForm({
           <FieldError id="character-name-error">{nameError}</FieldError>
         </Field>
 
-        <div role="radiogroup" aria-label="Body color" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Body color</span>
+        <div role="radiogroup" aria-label="Owl feather color" className="grid gap-2">
+          <span className="text-sm font-medium text-slate-700">Feather color</span>
           <div className="flex flex-wrap gap-2">
             {BODY_COLORS.map((color) => (
               <ColorSwatch
@@ -173,8 +173,8 @@ function CharacterForm({
           </div>
         </div>
 
-        <div role="radiogroup" aria-label="Accent color" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Accent color</span>
+        <div role="radiogroup" aria-label="Owl ear tuft color" className="grid gap-2">
+          <span className="text-sm font-medium text-slate-700">Ear tuft color</span>
           <div className="flex flex-wrap gap-2">
             {ACCENT_COLORS.map((color) => (
               <ColorSwatch

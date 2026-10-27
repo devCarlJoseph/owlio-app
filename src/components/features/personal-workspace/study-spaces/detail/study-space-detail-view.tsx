@@ -7,20 +7,31 @@ import {
   ClipboardList,
   DoorOpen,
   FolderOpen,
+  KeyRound,
+  Maximize2,
   MessageCircle,
+  Minimize2,
+  Moon,
   Music,
   PencilLine,
   RotateCcw,
   Send,
+  Sun,
+  Sunset,
   Tags,
   Tv,
 } from "lucide-react"
+import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { CharacterDialog } from "./character-dialog"
 import { DrawerPanel } from "./drawer-panel"
+import { LockerPanel } from "./locker-panel"
+import type { LockerSlot } from "./room-extras"
+import { LIGHT_LABELS, LIGHT_SETTINGS, useLightPhase, type LightSetting } from "./room-ambience"
+import { getSampleLockers, loadOwnLockerCode, saveOwnLockerCode } from "./room-lockers"
 import { FocusMusicPanel } from "./focus-music-panel"
 import { PomodoroChip, PomodoroPanel } from "./pomodoro-chip"
 import { RoomChatPanel, type RoomMessage } from "./room-chat-panel"
@@ -55,6 +66,8 @@ import {
 } from "../study-spaces-records"
 
 const BUBBLE_DURATION_MS = 6000
+const GARDEN_TRACK_ID = "forest-breeze"
+const OWN_LOCKER_ID = "mine"
 
 export function StudySpaceDetailView() {
   const { spaceId } = useParams()
@@ -75,7 +88,14 @@ export function StudySpaceDetailView() {
   const [bubble, setBubble] = useState<{ id: string; text: string } | null>(null)
   const [showNameTags, setShowNameTags] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
-  const [panel, setPanel] = useState<"music" | "timer" | "drawer" | "tasks" | "tv" | null>(null)
+  const [panel, setPanel] = useState<"music" | "timer" | "drawer" | "lockers" | "tasks" | "tv" | null>(null)
+  const [expanded, setExpanded] = useState(false)
+  const [lightSetting, setLightSetting] = useState<LightSetting>("auto")
+  const lightPhase = useLightPhase(lightSetting)
+  const lockers = useMemo(() => (space ? getSampleLockers(space.id, samplePeople) : []), [space, samplePeople])
+  const [unlockedLockerIds, setUnlockedLockerIds] = useState<string[]>([])
+  const [selectedLockerId, setSelectedLockerId] = useState<string | null>(null)
+  const [ownLockerCode, setOwnLockerCode] = useState<string | null>(() => (spaceId ? loadOwnLockerCode(spaceId) : null))
   const [tasks, setTasks] = useState<RoomTask[]>(() => (space ? loadRoomTasks(space) : []))
   const [tvVideo, setTvVideo] = useState<RoomTvVideo | null>(() => (spaceId ? loadRoomTvVideo(spaceId) : null))
   const [standHint, setStandHint] = useState(false)
@@ -99,6 +119,15 @@ export function StudySpaceDetailView() {
   useEffect(() => {
     if (spaceId) markStudySpaceVisited(spaceId)
   }, [spaceId])
+
+  useEffect(() => {
+    if (!expanded) return
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape" && !document.querySelector("[data-slot='dialog-content']")) setExpanded(false)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [expanded])
 
   if (!space) {
     return (
@@ -189,6 +218,43 @@ export function StudySpaceDetailView() {
     if (spaceId) saveRoomTvVideo(spaceId, video)
   }
 
+  const gardenTrack = focusMusicTracks.find((track) => track.id === GARDEN_TRACK_ID) ?? null
+  const gardenSoundOn = music.playback.playing && music.playback.trackId === GARDEN_TRACK_ID
+  const lockerSlots: LockerSlot[] = [
+    { id: OWN_LOCKER_ID, label: "Your locker", color: "#2f6fe4", mine: true, open: true },
+    ...lockers.map((locker) => ({
+      id: locker.owner.id,
+      label: `${locker.owner.name}'s locker (sample)`,
+      color: locker.owner.shirt,
+      mine: false,
+      open: unlockedLockerIds.includes(locker.owner.id),
+    })),
+  ]
+
+  function toggleGardenSound() {
+    if (gardenSoundOn) music.pause()
+    else if (gardenTrack) music.play(gardenTrack)
+  }
+
+  function openLocker(lockerId: string) {
+    setChatOpen(false)
+    if (lockerId === OWN_LOCKER_ID) {
+      setPanel("drawer")
+      return
+    }
+    setSelectedLockerId(lockerId)
+    setPanel("lockers")
+  }
+
+  function handleOwnCodeChange(code: string | null) {
+    setOwnLockerCode(code)
+    if (spaceId) saveOwnLockerCode(spaceId, code)
+  }
+
+  function cycleLight() {
+    setLightSetting((current) => LIGHT_SETTINGS[(LIGHT_SETTINGS.indexOf(current) + 1) % LIGHT_SETTINGS.length])
+  }
+
   function sendMessage() {
     const text = draft.trim()
     if (text.length === 0 || !character) return
@@ -208,7 +274,14 @@ export function StudySpaceDetailView() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100svh-6rem)] min-h-[560px] w-full flex-col gap-2 sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]">
+    <div
+      className={cn(
+        "flex w-full flex-col gap-2",
+        expanded
+          ? "fixed inset-0 z-40 bg-slate-100 p-2"
+          : "mx-auto h-[calc(100svh-6rem)] min-h-[560px] sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
+      )}
+    >
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-base font-semibold tracking-tight text-slate-900">
@@ -298,6 +371,20 @@ export function StudySpaceDetailView() {
             type="button"
             variant="ghost"
             size="icon-sm"
+            aria-pressed={panel === "lockers"}
+            onClick={() => {
+              setSelectedLockerId(null)
+              togglePanel("lockers")
+            }}
+            aria-label="Lockers"
+            title="Study-mate lockers"
+          >
+            <KeyRound aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
             aria-pressed={panel === "tasks"}
             onClick={() => togglePanel("tasks")}
             aria-label="Group tasks"
@@ -342,6 +429,27 @@ export function StudySpaceDetailView() {
             <PencilLine aria-hidden="true" />
           </Button>
           <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={cycleLight}
+            aria-label={`Room lighting: ${LIGHT_LABELS[lightSetting]}`}
+            title={`${LIGHT_LABELS[lightSetting]} — click to change`}
+          >
+            {lightPhase === "night" ? <Moon aria-hidden="true" /> : lightPhase === "evening" ? <Sunset aria-hidden="true" /> : <Sun aria-hidden="true" />}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-pressed={expanded}
+            onClick={() => setExpanded((current) => !current)}
+            aria-label={expanded ? "Exit full screen" : "Expand room to full screen"}
+            title={expanded ? "Exit full screen (Esc)" : "Full screen"}
+          >
+            {expanded ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
+          </Button>
+          <Button
             nativeButton={false}
             variant="ghost"
             size="icon-sm"
@@ -363,11 +471,14 @@ export function StudySpaceDetailView() {
             samplePeople={samplePeople}
             tasks={tasks}
             tvHasVideo={tvVideo !== null}
-            drawerOpen={panel === "drawer"}
+            lockers={lockerSlots}
+            lightPhase={lightPhase}
+            gardenSoundOn={gardenSoundOn}
             musicPlaying={music.playback.playing}
             onOpenTasks={() => setPanel("tasks")}
             onOpenTv={() => setPanel("tv")}
-            onToggleDrawer={() => togglePanel("drawer")}
+            onSelectLocker={openLocker}
+            onToggleGardenSound={toggleGardenSound}
             onToggleMusic={music.toggle}
             selectedSeatId={selectedSeatId}
             seatedSeatId={seatedSeatId}
@@ -415,6 +526,22 @@ export function StudySpaceDetailView() {
         ) : null}
 
         {panel === "drawer" ? <DrawerPanel spaceId={space.id} onClose={() => setPanel(null)} /> : null}
+
+        {panel === "lockers" ? (
+          <LockerPanel
+            lockers={lockers}
+            selectedId={selectedLockerId}
+            unlockedIds={unlockedLockerIds}
+            ownCode={ownLockerCode}
+            onSelect={setSelectedLockerId}
+            onUnlock={(ownerId) =>
+              setUnlockedLockerIds((current) => (current.includes(ownerId) ? current : [...current, ownerId]))
+            }
+            onOwnCodeChange={handleOwnCodeChange}
+            onOpenMine={() => setPanel("drawer")}
+            onClose={() => setPanel(null)}
+          />
+        ) : null}
 
         {panel === "tasks" ? (
           <TaskBoardPanel
