@@ -54,6 +54,7 @@ function Wheels({ length }: { length: number }) {
   )
 }
 
+// Headlights and tail lights glow from evening onward, and the headlights light the road ahead.
 function Lights({ length, lamps }: { length: number; lamps: number }) {
   return (
     <>
@@ -61,14 +62,15 @@ function Lights({ length, lamps }: { length: number; lamps: number }) {
         <group key={x}>
           <mesh position={[x, 0.42, length / 2 + 0.005]}>
             <boxGeometry args={[0.18, 0.1, 0.02]} />
-            <meshStandardMaterial color="#fef9c3" emissive="#fef08a" emissiveIntensity={0.3 + lamps * 2} />
+            <meshStandardMaterial color="#fef9c3" emissive="#fef08a" emissiveIntensity={0.3 + lamps * 3} toneMapped={false} />
           </mesh>
           <mesh position={[x, 0.42, -length / 2 - 0.005]}>
             <boxGeometry args={[0.18, 0.08, 0.02]} />
-            <meshStandardMaterial color="#b91c1c" emissive="#ef4444" emissiveIntensity={0.3 + lamps * 1.2} />
+            <meshStandardMaterial color="#b91c1c" emissive="#ef4444" emissiveIntensity={0.3 + lamps * 2} toneMapped={false} />
           </mesh>
         </group>
       ))}
+      {lamps > 0 ? <pointLight position={[0, 0.5, length / 2 + 1.1]} intensity={3 * lamps} distance={5} color="#fef3c7" /> : null}
     </>
   )
 }

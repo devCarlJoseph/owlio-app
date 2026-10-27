@@ -428,7 +428,6 @@ function CityScene({
       />
 
       <Ground layout={layout} onPoint={walking ? goTo : undefined} />
-      {light.lamps > 0 ? <StreetLighting layout={layout} lamps={light.lamps} /> : null}
       <Roads layout={layout} />
       <Scenery layout={layout} lamps={light.lamps} />
       <Plaza layout={layout} walkerRef={walkerRef} walking={walking} lamps={light.lamps} />
@@ -518,20 +517,6 @@ function Ground({ layout, onPoint }: { layout: CityLayout; onPoint?: (point: Poi
         <planeGeometry args={[layout.width, layout.depth]} />
         <meshStandardMaterial map={tiles} />
       </mesh>
-    </group>
-  )
-}
-
-// Real light sources over every intersection at dusk and night, so streets and buildings stay lit.
-function StreetLighting({ layout, lamps }: { layout: CityLayout; lamps: number }) {
-  return (
-    <group>
-      {layout.roadsX.flatMap((x) =>
-        layout.roadsZ.map((z) => (
-          <pointLight key={`${x}-${z}`} position={[x, 5, z]} intensity={40 * lamps} distance={18} decay={1.6} color="#ffe2a8" />
-        ))
-      )}
-      <pointLight position={[layout.plaza.x, 6, layout.plaza.z]} intensity={45 * lamps} distance={20} decay={1.6} color="#fff1c9" />
     </group>
   )
 }

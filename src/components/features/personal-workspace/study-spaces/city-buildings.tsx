@@ -372,6 +372,8 @@ export function StreetLamp({ position, glow = 0 }: { position: [number, number, 
         <sphereGeometry args={[0.16, 12, 10]} />
         <meshStandardMaterial color="#fff7d6" emissive="#fde68a" emissiveIntensity={0.4 + glow * 3} toneMapped={false} />
       </mesh>
+      {/* Same warm lamp light the study room uses at night, centred on the bulb. */}
+      {glow > 0 ? <pointLight position={[0, 2.85, 0]} intensity={5 * glow} distance={7} color="#fbbf24" /> : null}
     </group>
   )
 }

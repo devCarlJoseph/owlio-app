@@ -278,7 +278,6 @@ export function Plaza({
       ].map(([x, z]) => (
         <StreetLamp key={`${x}-${z}`} position={[x, 0, z]} glow={lamps} />
       ))}
-      {lamps > 0 ? <pointLight position={[plaza.x, 3, plaza.z]} intensity={10 * lamps} distance={14} color="#fde68a" /> : null}
 
       <Hopscotch origin={{ x: left + 3, z: bottom - 2.2 }} walkerRef={walkerRef} walking={walking} />
       <PlayBall
@@ -386,7 +385,6 @@ export function OwlioFountain({ layout, lamps }: { layout: CityLayout; lamps: nu
           </mesh>
         </group>
       ))}
-      {lamps > 0 ? <pointLight position={[0, 1.2, 0]} intensity={6 * lamps} distance={7} color="#93c5fd" /> : null}
 
       <Html position={[0, 3.6, 0]} center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
         <span className="whitespace-nowrap rounded-full bg-amber-500 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
