@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react"
-import { CanvasTexture, Color, SRGBColorSpace } from "three"
+import { AdditiveBlending, CanvasTexture, Color, SRGBColorSpace } from "three"
 import type { Footprint } from "./city-layout"
 import type { StudySpaceKind } from "./study-spaces-records"
 
@@ -370,8 +370,21 @@ export function StreetLamp({ position, glow = 0 }: { position: [number, number, 
       </mesh>
       <mesh position={[0, 2.92, 0]}>
         <sphereGeometry args={[0.16, 12, 10]} />
-        <meshStandardMaterial color="#fff7d6" emissive="#fde68a" emissiveIntensity={0.4 + glow * 2.2} />
+        <meshStandardMaterial color="#fff7d6" emissive="#fde68a" emissiveIntensity={0.4 + glow * 3} toneMapped={false} />
       </mesh>
+      {glow > 0 ? (
+        <>
+          {/* Soft halo round the bulb and a warm pool of light on the pavement. */}
+          <mesh position={[0, 2.92, 0]}>
+            <sphereGeometry args={[0.45, 16, 12]} />
+            <meshBasicMaterial color="#fde68a" transparent opacity={0.22 * glow} depthWrite={false} blending={AdditiveBlending} />
+          </mesh>
+          <mesh position={[0, 0.045, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[3.2, 32]} />
+            <meshBasicMaterial color="#fcd982" transparent opacity={0.28 * glow} depthWrite={false} blending={AdditiveBlending} />
+          </mesh>
+        </>
+      ) : null}
     </group>
   )
 }

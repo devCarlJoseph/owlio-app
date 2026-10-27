@@ -84,8 +84,9 @@ export function phaseForHour(hour: number): LightPhase {
 export const HALL_LIGHTING: Record<LightPhase, { sky: string; ground: string; hemi: number; sun: string; sunIntensity: number; sunPosition: [number, number, number]; ambient: number; lamps: number }> = {
   morning: { sky: "#dcebfb", ground: "#b6dc8c", hemi: 1, sun: "#ffe6bf", sunIntensity: 1.3, sunPosition: [-0.6, 0.7, 0.5], ambient: 0.3, lamps: 0 },
   day: { sky: "#e3f1fb", ground: "#a8cf8e", hemi: 1.1, sun: "#ffffff", sunIntensity: 1.5, sunPosition: [0.4, 0.9, 0.55], ambient: 0.35, lamps: 0 },
-  evening: { sky: "#f6cfa6", ground: "#a59a7a", hemi: 0.75, sun: "#ffa45c", sunIntensity: 1.1, sunPosition: [0.9, 0.35, 0.2], ambient: 0.28, lamps: 0.6 },
-  night: { sky: "#141d36", ground: "#2a3350", hemi: 0.4, sun: "#9fb4ec", sunIntensity: 0.3, sunPosition: [-0.4, 0.8, -0.3], ambient: 0.18, lamps: 1 },
+  evening: { sky: "#f6cfa6", ground: "#a59a7a", hemi: 0.85, sun: "#ffa45c", sunIntensity: 1.15, sunPosition: [0.9, 0.35, 0.2], ambient: 0.38, lamps: 0.7 },
+  // Night stays readable: a bright moon, a blue-lit sky and strong street lighting.
+  night: { sky: "#22325c", ground: "#4a5a80", hemi: 0.95, sun: "#c9d8ff", sunIntensity: 0.85, sunPosition: [-0.4, 0.8, -0.3], ambient: 0.5, lamps: 1 },
 }
 
 const LIGHT_STORAGE_KEY = "owlio.study-light.v1"
