@@ -2,9 +2,10 @@ import { Pin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { NoteCardMenu } from "./note-card-menu"
-import type { NoteCardActions } from "./note-card-actions"
+import type { NoteCardActions } from "../contents/note-card-actions"
 import { NoteLabels } from "./note-labels"
-import { getNoteColorMeta, getNoteTitle, type NoteRecord } from "./note-records"
+import type { NoteRecord } from "../contents/note-records"
+import { getNoteColorMeta, getNoteTitle } from "../utils/note-records"
 
 const timestampFormatter = new Intl.DateTimeFormat(undefined, {
   day: "2-digit",

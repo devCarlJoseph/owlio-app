@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import type { NoteLabelGroup } from "./note-records"
+import type { NoteLabelGroup } from "../contents/note-records"
 
 type NoteLabelChipsProps = {
   groups: NoteLabelGroup[]

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { DEMO_LEARNER_ID } from "./classroom-mock-data"
+import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { AttendanceStatus, Classroom, WorkspaceRole } from "./classroom-types"
 
@@ -156,13 +156,14 @@ export function ClassroomScheduleView({ classroom, role }: { classroom: Classroo
 }
 
 export function ClassroomAttendanceView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
+  const currentLearnerId = useAuthSession().user?.id
   const { markAttendance } = useClassroomPrototype()
   const [status, setStatus] = useState("")
   const isStudent = role === "students"
   const sessions = classroom.sessions
   const statuses: AttendanceStatus[] = ["Present", "Absent", "Late", "Excused"]
   const learnerMembers = classroom.members.filter((member) => member.role === "student")
-  const visibleMembers = isStudent ? learnerMembers.filter((member) => member.id === DEMO_LEARNER_ID) : learnerMembers
+  const visibleMembers = isStudent ? learnerMembers.filter((member) => member.id === currentLearnerId) : learnerMembers
 
   return (
     <section className="space-y-4" aria-labelledby="attendance-heading">
@@ -221,9 +222,10 @@ export function ClassroomAttendanceView({ classroom, role }: { classroom: Classr
 }
 
 export function ClassroomProgressView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
+  const currentLearnerId = useAuthSession().user?.id
   const isStudent = role === "students"
   const progress = classroom.progress.filter((record) => isStudent
-    ? record.learnerId === DEMO_LEARNER_ID && record.released
+    ? record.learnerId === currentLearnerId && record.released
     : true,
   )
 

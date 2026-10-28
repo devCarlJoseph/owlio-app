@@ -25,15 +25,11 @@ export function ClassroomCreateDialog({ open, onOpenChange, onSubmit, pending, e
         <form id="create-class-form" onSubmit={onSubmit} aria-busy={pending} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="class-name">Classroom name</Label>
-            <Input id="class-name" name="class-name" required maxLength={80} placeholder="e.g. Foundations of Biology" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="class-subject">Subject or learning focus</Label>
-            <Input id="class-subject" name="class-subject" required maxLength={80} placeholder="e.g. Life science" />
+            <Input id="class-name" name="class-name" required maxLength={120} placeholder="e.g. Foundations of Biology" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="class-description">Description</Label>
-            <Textarea id="class-description" name="class-description" maxLength={500} placeholder="What will learners explore in this class?" />
+            <Textarea id="class-description" name="class-description" maxLength={2000} placeholder="What will learners explore in this class?" />
           </div>
           {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
         </form>
@@ -76,7 +72,7 @@ export function ClassroomJoinDialog({ open, onOpenChange, onSubmit, code, onCode
             onChange={(event) => onCodeChange(event.currentTarget.value)}
             autoComplete="off"
             disabled={joining}
-            placeholder="OWLIO-0123ABCDEF"
+            placeholder="Paste your classroom invite code"
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "join-disclosure join-status" : "join-disclosure"}
           />
