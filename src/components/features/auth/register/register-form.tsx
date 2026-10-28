@@ -10,10 +10,11 @@ import type { RegisterValues } from "./register.schema"
 import { FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { AccountType } from "@/services/api/api.types"
 
 type RegisterFormProps = {
   onSubmit: (values: RegisterValues) => void
-  onGoogle: (accountType: 'student' | 'educator') => void
+  onGoogle: (accountType: AccountType) => void
   googlePending: boolean
 }
 

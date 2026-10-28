@@ -126,7 +126,7 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
       </div>
 
       <p className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
-        {drawerNotice} Other people&apos;s drawers are private.
+        {drawerNotice} This is your locker; study-mates&apos; lockers open only with their code.
       </p>
 
       {available ? (

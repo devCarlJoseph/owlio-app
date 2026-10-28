@@ -26,7 +26,7 @@ export function PomodoroChip({ timer, onOpen }: { timer: PomodoroControls; onOpe
       size="sm"
       onClick={onOpen}
       aria-label={`${label}. Open focus timer`}
-      className="border-slate-600 bg-slate-800 text-slate-100 hover:bg-slate-700 hover:text-white"
+      className="rounded-full border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
     >
       <Timer aria-hidden="true" />
       <span className="tabular-nums">{label}</span>

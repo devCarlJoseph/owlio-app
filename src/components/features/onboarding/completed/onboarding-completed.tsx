@@ -25,6 +25,7 @@ export function OnboardingCompleted({ entity, values, headingRef }: OnboardingCo
       title={nextStep.title}
       description={`Welcome to Owlio${values.displayName ? `, ${values.displayName}` : ""}. This is your starting point.`}
       headingRef={headingRef}
+      mascotState="complete"
       eyebrow={(
         <div className="mb-6 flex items-center" aria-hidden="true">
           <span className="flex size-14 -rotate-6 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 ring-4 ring-white">

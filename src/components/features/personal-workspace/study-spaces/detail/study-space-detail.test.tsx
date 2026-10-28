@@ -3,9 +3,14 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpaceDetailView } from "./study-space-detail-view"
-import { getSampleRoster } from "../space-roster"
-import { sampleCreatedSpaces, studySpaceCharacterStoragePrefix } from "../study-spaces-records"
-import { buildSeats } from "./study-space-seats"
+import { getSampleNappers, getSampleRoster } from "../space-roster"
+import {
+  sampleCreatedSpaces,
+  studyHallCharacterStorageKey,
+  studySpaceCharacterStoragePrefix,
+} from "../study-spaces-records"
+import { buildRoomSpots, buildSeats } from "./study-space-seats"
+import { getSampleLockers } from "./room-lockers"
 import type { SpaceRoomSceneProps } from "./space-room-scene"
 
 vi.mock("./space-room-scene", () => ({
@@ -91,6 +96,28 @@ describe("study space detail room", () => {
     expect(screen.queryByRole("dialog")).toBeNull()
     expect(screen.getByTestId("name-tag").textContent).toBe("Sam")
     expect(screen.getByRole("button", { name: "Edit character" })).toBeTruthy()
+  })
+
+  it("uses the study hall character by default when the room has none", () => {
+    window.localStorage.setItem(
+      studyHallCharacterStorageKey,
+      JSON.stringify({ name: "Hall Walker", bodyColor: "#16a34a", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    renderAt(sampleSpaceId)
+
+    expect(screen.queryByRole("dialog")).toBeNull()
+    expect(screen.getByTestId("name-tag").textContent).toBe("Hall Walker")
+  })
+
+  it("prefers a room-specific character over the hall character", () => {
+    window.localStorage.setItem(
+      studyHallCharacterStorageKey,
+      JSON.stringify({ name: "Hall Walker", bodyColor: "#16a34a", accentColor: "#f59e0b", createdAt: "2026-10-01T00:00:00.000Z" })
+    )
+    seedCharacter("Room Sam")
+    renderAt(sampleSpaceId)
+
+    expect(screen.getByTestId("name-tag").textContent).toBe("Room Sam")
   })
 
   it("shows sent messages in the chat panel and as a bubble", async () => {
@@ -254,6 +281,110 @@ describe("study space detail room", () => {
     await user.type(within(tv).getByLabelText(/Video for the group/), "https://youtu.be/dQw4w9WgXcQ")
     await user.click(within(tv).getByRole("button", { name: "Play" }))
     expect(within(tv).getByTitle("Room TV video").getAttribute("src")).toContain("youtube-nocookie.com/embed/dQw4w9WgXcQ")
+  })
+
+  it("keeps sample study-mate lockers locked until their code is entered", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const space = sampleCreatedSpaces.find((record) => record.id === sampleSpaceId)!
+    const roster = getSampleRoster(space, buildSeats(space.kind, space.capacity).length)
+    const [locker] = getSampleLockers(sampleSpaceId, roster)
+    const name = locker.owner.name
+
+    await user.click(screen.getByRole("button", { name: "Lockers" }))
+    const panel = screen.getByRole("dialog", { name: "Study room lockers" })
+    expect(panel.textContent).toContain("Preview lockers")
+
+    await user.click(within(panel).getByRole("button", { name: `Enter code for ${name}'s locker` }))
+    const input = within(panel).getByLabelText("Locker code")
+    await user.type(input, locker.code === "0000" ? "1111" : "0000")
+    await user.click(within(panel).getByRole("button", { name: "Unlock locker" }))
+    expect(within(panel).getByText(`That code does not open ${name}'s locker.`)).toBeTruthy()
+    expect(within(panel).queryByRole("list", { name: `${name}'s files` })).toBeNull()
+
+    await user.clear(input)
+    await user.type(input, locker.code)
+    await user.click(within(panel).getByRole("button", { name: "Unlock locker" }))
+    const files = within(panel).getByRole("list", { name: `${name}'s files` })
+    expect(files.textContent).toContain(locker.files[0].name)
+    expect(files.textContent).toContain("sample")
+  })
+
+  it("saves the user's own locker code in this browser", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Lockers" }))
+    const panel = screen.getByRole("dialog", { name: "Study room lockers" })
+    await user.click(within(panel).getByRole("button", { name: "Set a code" }))
+    await user.type(within(panel).getByLabelText("New locker code"), "12")
+    await user.click(within(panel).getByRole("button", { name: "Save code" }))
+    expect(within(panel).getByText("Use 4 to 6 digits.")).toBeTruthy()
+
+    await user.type(within(panel).getByLabelText("New locker code"), "34")
+    await user.click(within(panel).getByRole("button", { name: "Save code" }))
+    expect(within(panel).getByText("Code set")).toBeTruthy()
+    expect(window.localStorage.getItem(`owlio.study-space-locker-code.${sampleSpaceId}`)).toBe("1234")
+  })
+
+  it("expands the room to full screen and cycles room lighting", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Expand room to full screen" }))
+    expect(screen.getByRole("button", { name: "Exit full screen" }).getAttribute("aria-pressed")).toBe("true")
+
+    await user.click(screen.getByRole("button", { name: "Room lighting: Auto light" }))
+    expect(screen.getByRole("button", { name: "Room lighting: Morning light" })).toBeTruthy()
+  })
+
+  it("lets the owl nap on a mat with a napping status and wake up again", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const space = sampleCreatedSpaces.find((record) => record.id === sampleSpaceId)!
+    const roster = getSampleRoster(space, buildSeats(space.kind, space.capacity).length)
+    const tableCount = buildSeats(space.kind, space.capacity).length
+    const nappers = getSampleNappers(space, roster, tableCount, 3)
+    const mats = buildRoomSpots().filter((spot) => spot.furniture === "mat")
+    const freeMat = mats.find((_, index) => !nappers.some((napper) => napper.seatIndex === tableCount + index))!
+
+    await user.click(screen.getByRole("button", { name: freeMat.name }))
+    await user.click(screen.getByRole("button", { name: "Rest here" }))
+
+    const banner = screen.getByRole("region", { name: "Nap status" })
+    expect(banner.textContent).toContain("You're napping")
+    expect(screen.getByText(`Resting on ${freeMat.name}`)).toBeTruthy()
+
+    await user.click(within(banner).getByRole("button", { name: "Wake up" }))
+    expect(screen.queryByRole("region", { name: "Nap status" })).toBeNull()
+  })
+
+  it("opens the room TV when sitting on a watch-room sofa", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    const sofa = buildRoomSpots().find((spot) => spot.furniture === "sofa")!
+    await user.click(screen.getByRole("button", { name: sofa.name }))
+    await user.click(screen.getByRole("button", { name: "Sit and watch" }))
+
+    expect(screen.getByRole("dialog", { name: "Room TV" })).toBeTruthy()
+    expect(screen.getByText(`Seated at ${sofa.name}`)).toBeTruthy()
+  })
+
+  it("shares the lighting choice with the study hall in this browser", async () => {
+    const user = userEvent.setup()
+    seedCharacter()
+    renderAt(sampleSpaceId)
+
+    await user.click(screen.getByRole("button", { name: "Room lighting: Auto light" }))
+    expect(window.localStorage.getItem("owlio.study-light.v1")).toBe("morning")
   })
 
   it("offers generated lo-fi and piano tracks that need no audio file", async () => {

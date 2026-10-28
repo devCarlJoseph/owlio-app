@@ -1,11 +1,13 @@
-import { GraduationCap, School } from "lucide-react"
+import { GraduationCap, Languages, School, UserRound } from "lucide-react"
 import { Controller, useFormContext } from "react-hook-form"
 import { FieldError } from "@/components/ui/field"
 import type { RegisterValues } from "./register.schema"
 
 const accountTypes = [
   { value: "student", label: "Student", description: "For learners", Icon: GraduationCap },
-  { value: "educator", label: "Educator", description: "Teachers, tutors, and ESL educators", Icon: School },
+  { value: "educator", label: "Educator", description: "School and college teachers", Icon: School },
+  { value: "tutor", label: "Tutor", description: "One-to-one and small-group tutoring", Icon: UserRound },
+  { value: "esl", label: "ESL Teacher", description: "English and language lessons", Icon: Languages },
 ] as const
 
 export function AccountTypeSelector() {

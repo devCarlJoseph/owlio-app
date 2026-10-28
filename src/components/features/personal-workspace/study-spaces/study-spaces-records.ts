@@ -48,6 +48,8 @@ export const studySpacesStorageKey = "owlio.student-study-spaces.v1"
 
 export const studySpaceCharacterStoragePrefix = "owlio.study-space-character."
 
+export const studyHallCharacterStorageKey = "owlio.study-hall-character.v1"
+
 export const studySpacesGuidance =
   "A study space is for peer collaboration, not an official classroom. It never carries official grades, attendance, or educator feedback."
 
@@ -310,11 +312,11 @@ function isStudySpaceCharacter(value: unknown): value is StudySpaceCharacter {
   )
 }
 
-export function loadSpaceCharacter(spaceId: string): StudySpaceCharacter | null {
+function loadCharacter(key: string): StudySpaceCharacter | null {
   if (typeof window === "undefined") return null
 
   try {
-    const stored = window.localStorage.getItem(`${studySpaceCharacterStoragePrefix}${spaceId}`)
+    const stored = window.localStorage.getItem(key)
     if (!stored) return null
 
     const parsed: unknown = JSON.parse(stored)
@@ -324,12 +326,29 @@ export function loadSpaceCharacter(spaceId: string): StudySpaceCharacter | null 
   }
 }
 
-export function saveSpaceCharacter(spaceId: string, character: StudySpaceCharacter): void {
+function saveCharacter(key: string, character: StudySpaceCharacter): void {
   if (typeof window === "undefined") return
 
   try {
-    window.localStorage.setItem(`${studySpaceCharacterStoragePrefix}${spaceId}`, JSON.stringify(character))
+    window.localStorage.setItem(key, JSON.stringify(character))
   } catch {
     return
   }
+}
+
+export function loadSpaceCharacter(spaceId: string): StudySpaceCharacter | null {
+  return loadCharacter(`${studySpaceCharacterStoragePrefix}${spaceId}`)
+}
+
+export function saveSpaceCharacter(spaceId: string, character: StudySpaceCharacter): void {
+  saveCharacter(`${studySpaceCharacterStoragePrefix}${spaceId}`, character)
+}
+
+// One browser-local character for walking the study hall; rooms default to it until customized.
+export function loadHallCharacter(): StudySpaceCharacter | null {
+  return loadCharacter(studyHallCharacterStorageKey)
+}
+
+export function saveHallCharacter(character: StudySpaceCharacter): void {
+  saveCharacter(studyHallCharacterStorageKey, character)
 }

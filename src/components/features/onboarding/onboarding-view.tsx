@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { FormProvider, useForm, useWatch, type FieldPath } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Card } from "@/components/ui/card"
+import type { OwlioMascotState } from "@/components/common/owlio-mascot/owlio-mascot"
 import { ONBOARDING_STEPS } from "./onboarding.constants"
 import { entityDetailsSchema, entitySelectionSchema, onboardingFormSchema, profileBasicsSchema } from "./onboarding.schema"
 import type { Entity, OnboardingFormValues, StepId } from "./onboarding.types"
@@ -16,6 +17,11 @@ import { StepActions } from "./shared/step-actions"
 import { StudentDetailsStep } from "./student/student-details-step"
 
 const stepOrder: StepId[] = ["entity", "profile", "details", "review"]
+const selectionFields = [
+  "entity", "educationLevel", "teachingContext", "othersSubtype", "interests",
+  "studyGoals", "subjectsTaught", "gradeLevels", "languagesOrSubjects",
+  "learnerLevels", "sessionFormats", "availability",
+] as const satisfies readonly (keyof OnboardingFormValues)[]
 const fieldsByStep: Record<StepId, FieldPath<OnboardingFormValues>[]> = {
   entity: ["entity"],
   profile: ["displayName", "timezone", "preferredLanguage"],
@@ -94,12 +100,41 @@ export function OnboardingView() {
   const [returnToReview, setReturnToReview] = useState<StepId | null>(null)
   const [isFinishing, setIsFinishing] = useState(false)
   const [isDone, setIsDone] = useState(false)
+  const [mascot, setMascot] = useState<{ state: OwlioMascotState; replayKey: number }>({ state: "welcome", replayKey: 0 })
+  const finishTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const stepInfo = ONBOARDING_STEPS.find(({ id }) => id === step)!
 
   useEffect(() => {
     headingRef.current?.focus()
   }, [step, isDone])
+
+  useEffect(() => {
+    let previous = form.getValues()
+    return form.subscribe({
+      formState: { values: true },
+      callback: ({ values, name }) => {
+        const field = selectionFields.find((field) => field === name)
+        if (field) {
+          const value = values[field]
+          const oldValue = previous[field]
+          const addedChoice = Array.isArray(value)
+            ? value.some((item) => !Array.isArray(oldValue) || !oldValue.includes(item))
+            : Boolean(value) && value !== oldValue
+          if (addedChoice) setMascot((current) => ({ state: "selection", replayKey: current.replayKey + 1 }))
+        }
+        previous = form.getValues()
+      },
+    })
+  }, [form])
+
+  useEffect(() => () => {
+    if (finishTimer.current !== null) window.clearTimeout(finishTimer.current)
+  }, [])
+
+  function playNext() {
+    setMascot((current) => ({ state: "next", replayKey: current.replayKey + 1 }))
+  }
 
   function resetEntityDetails() {
     form.setValue("educationLevel", undefined)
@@ -162,15 +197,18 @@ export function OnboardingView() {
   }
 
   async function goNext() {
+    if (isFinishing) return
     if (!(await validateCurrentStep())) return
     if (step === "review") {
       setIsFinishing(true)
-      window.setTimeout(() => {
+      finishTimer.current = window.setTimeout(() => {
+        finishTimer.current = null
         setIsFinishing(false)
         setIsDone(true)
       }, 650)
       return
     }
+    playNext()
     if (returnToReview === step) {
       setReturnToReview(null)
       setStep("review")
@@ -219,6 +257,8 @@ export function OnboardingView() {
           title={stepInfo.title}
           description={stepInfo.description}
           headingRef={headingRef}
+          mascotState={mascot.state}
+          mascotReplayKey={mascot.replayKey}
           actions={(
             <StepActions
               onBack={step === "entity" ? undefined : goBack}

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { buildSeats, loungeTable, roomPlan, ROOM_SCALE, workRug } from "./detail/study-space-seats"
+import { buildSeats, discussionTable, napArea, roomPlan, watchRoom } from "./detail/study-space-seats"
 import { TILE_ART_CX, TILE_ART_CY, TILE_H, TILE_W } from "./space-map-layout"
 import type { StudySpaceKind } from "./study-spaces-records"
 
@@ -82,31 +82,27 @@ const NAVY = { top: "#4a5a80", left: "#262f45", right: "#33415c" }
 function buildItems(kind: StudySpaceKind, capacity: number): Item[] {
   const items: Item[] = []
 
+  const { x: tx, z: tz } = discussionTable
+  const shape = discussionTable.shape[kind]
+  if (shape === "rect") {
+    const { w, d } = discussionTable.rect
+    items.push(box("table", tx - w / 2, tz - d / 2, w, d, 0.5, OAK))
+  } else {
+    const r = shape === "oval" ? discussionTable.oval.rx * 0.8 : discussionTable.round.r
+    items.push(cylinder("table", tx, tz, r, 0.5, "#a5854f", "#6f562f"))
+  }
+
   buildSeats(kind, Math.min(Math.max(capacity, 0), 8)).forEach((seat) => {
-    if (seat.furniture === "desk") {
-      items.push(box(`desk-${seat.id}`, seat.anchor.x - 0.8, seat.anchor.z - 0.4, 1.6, 0.8, 0.45, OAK))
-      items.push({
-        depth: seat.anchor.x + seat.anchor.z + 0.5,
-        node: <circle key={`lamp-${seat.id}`} cx={project(seat.anchor.x + 0.55, seat.anchor.z - 0.2, 0.7)[0]} cy={project(seat.anchor.x + 0.55, seat.anchor.z - 0.2, 0.7)[1]} r={1.8} fill="#f2b84b" />,
-      })
-      items.push(box(`chair-${seat.id}`, seat.sitPoint.x - 0.18, seat.sitPoint.z - 0.18, 0.36, 0.36, 0.3, NAVY))
-    } else if (seat.furniture === "stool") {
-      items.push(cylinder(`stool-${seat.id}`, seat.anchor.x, seat.anchor.z, 0.38, 0.28, "#4a5a80", "#33415c"))
-    } else {
-      items.push(box(`arm-${seat.id}`, seat.anchor.x - 0.33, seat.anchor.z - 0.3, 0.66, 0.6, 0.45, NAVY))
-    }
+    const size = seat.furniture === "armchair" ? 0.8 : 0.6
+    items.push(box(`seat-${seat.id}`, seat.anchor.x - size / 2, seat.anchor.z - size / 2, size, size, 0.4, NAVY))
   })
 
-  items.push(cylinder("lounge-table", loungeTable.x, loungeTable.z, 0.72, 0.5, "#a5854f", "#6f562f"))
-
   ;([
-    [-6.2, -4.1],
-    [6.2, 4.3],
-    [1.9, 4.4],
+    [-9.3, -6.2],
+    [3.4, -0.9],
+    [2.9, 6.6],
   ] as Pt[]).forEach(([x, z]) => {
-    x *= ROOM_SCALE
-    z *= ROOM_SCALE
-    items.push(cylinder(`plant-${x}-${z}`, x, z, 0.4, 0.9, "#3f7d4e", "#2c5a38"))
+    items.push(cylinder(`plant-${x}-${z}`, x, z, 0.5, 0.9, "#3f7d4e", "#2c5a38"))
   })
 
   return items.sort((a, b) => a.depth - b.depth)
@@ -138,8 +134,16 @@ export function SpaceMapArt({ kind, capacity, locked, className }: SpaceMapArtPr
       <polygon points={pts([west, south, thick(south), thick(west)])} fill="#262f45" />
       <polygon points={pts([south, east, thick(east), thick(south)])} fill="#33415c" />
       <polygon points={pts([north, east, south, west])} fill="#f3ead9" stroke="#a5854f" strokeWidth={3} strokeLinejoin="round" />
-      <polygon points={pts(circle(workRug.x, workRug.z, workRug.radius))} fill="#33415c" opacity={0.14} />
-      <polygon points={pts(circle(loungeTable.x, loungeTable.z, 1.7))} fill="#2f6b4f" opacity={0.28} />
+      <polygon
+        points={pts([project(napArea.minX, napArea.minZ), project(napArea.maxX, napArea.minZ), project(napArea.maxX, napArea.maxZ), project(napArea.minX, napArea.maxZ)])}
+        fill="#a78bfa"
+        opacity={0.25}
+      />
+      <polygon
+        points={pts([project(watchRoom.minX, watchRoom.minZ), project(watchRoom.maxX, watchRoom.minZ), project(watchRoom.maxX, watchRoom.maxZ), project(watchRoom.minX, watchRoom.maxZ)])}
+        fill="#2f6fe4"
+        opacity={0.16}
+      />
       {buildItems(kind, capacity).map((item) => item.node)}
     </svg>
   )

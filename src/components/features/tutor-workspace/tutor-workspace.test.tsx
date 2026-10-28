@@ -130,18 +130,18 @@ describe("tutor workspace pages", () => {
       "/tutors/learning-plans",
       "/tutors/classwork",
       "/tutors/sessions",
-      "/tutors/attendance",
       "/tutors/session-notes",
       "/tutors/classrooms/meeting-room",
-      "/tutors/communication",
       "/tutors/announcements",
-      "/tutors/notifications",
       "/tutors/materials",
       "/tutors/progress",
       "/tutors/ai-assistant",
-      "/tutors/settings",
     ]) {
       expect(hrefs.has(href)).toBe(true)
+    }
+
+    for (const path of ["attendance", "communication", "notifications", "settings", "account/security"]) {
+      expect(hrefs.has(`/tutors/${path}`)).toBe(false)
     }
 
     expect(links.every(({ href }) => href.startsWith("/tutors"))).toBe(true)

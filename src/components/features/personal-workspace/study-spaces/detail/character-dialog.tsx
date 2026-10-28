@@ -40,9 +40,18 @@ type CharacterDialogProps = {
   required: boolean
   initial: StudySpaceCharacter | null
   onSubmit: (draft: CharacterDraft) => void
+  // "hall" is the study hall map character; "room" is the per-room character.
+  context?: "room" | "hall"
 }
 
-export function CharacterDialog({ open, onOpenChange, required, initial, onSubmit }: CharacterDialogProps) {
+export function CharacterDialog({
+  open,
+  onOpenChange,
+  required,
+  initial,
+  onSubmit,
+  context = "room",
+}: CharacterDialogProps) {
   return (
     <Dialog open={open} onOpenChange={required ? () => {} : onOpenChange}>
       <DialogContent className="sm:max-w-lg" showCloseButton={!required}>
@@ -50,6 +59,7 @@ export function CharacterDialog({ open, onOpenChange, required, initial, onSubmi
           key={`${open ? "open" : "closed"}-${initial?.createdAt ?? "new"}`}
           required={required}
           initial={initial}
+          context={context}
           onCancel={required ? undefined : () => onOpenChange(false)}
           onSubmit={onSubmit}
         />
@@ -87,14 +97,26 @@ function ColorSwatch({
 function CharacterForm({
   required,
   initial,
+  context,
   onCancel,
   onSubmit,
 }: {
   required: boolean
   initial: StudySpaceCharacter | null
+  context: "room" | "hall"
   onCancel?: () => void
   onSubmit: (draft: CharacterDraft) => void
 }) {
+  const hall = context === "hall"
+  const isNew = initial === null
+  const title = hall
+    ? isNew
+      ? "Create your study hall character"
+      : "Edit your study hall character"
+    : required
+      ? "Create your character"
+      : "Edit your character"
+  const submitLabel = hall ? (isNew ? "Start walking" : "Save character") : required ? "Enter room" : "Save character"
   const [name, setName] = useState(initial?.name ?? "")
   const [bodyColor, setBodyColor] = useState<string>(initial?.bodyColor ?? BODY_COLORS[0].value)
   const [accentColor, setAccentColor] = useState<string>(initial?.accentColor ?? ACCENT_COLORS[0].value)
@@ -112,11 +134,10 @@ function CharacterForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">
-          {required ? "Create your character" : "Edit your character"}
-        </DialogTitle>
+        <DialogTitle className="text-lg font-semibold text-slate-900">{title}</DialogTitle>
         <DialogDescription className="text-slate-600">
-          Your character only appears in this browser preview. It is not shown to other students.
+          Your Owlio owl only appears in this browser preview. It is not shown to other students.
+          {hall ? " Rooms use it by default, and you can still customize it per room." : ""}
         </DialogDescription>
       </DialogHeader>
 
@@ -137,8 +158,8 @@ function CharacterForm({
           <FieldError id="character-name-error">{nameError}</FieldError>
         </Field>
 
-        <div role="radiogroup" aria-label="Body color" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Body color</span>
+        <div role="radiogroup" aria-label="Owl feather color" className="grid gap-2">
+          <span className="text-sm font-medium text-slate-700">Feather color</span>
           <div className="flex flex-wrap gap-2">
             {BODY_COLORS.map((color) => (
               <ColorSwatch
@@ -152,8 +173,8 @@ function CharacterForm({
           </div>
         </div>
 
-        <div role="radiogroup" aria-label="Accent color" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Accent color</span>
+        <div role="radiogroup" aria-label="Owl ear tuft color" className="grid gap-2">
+          <span className="text-sm font-medium text-slate-700">Ear tuft color</span>
           <div className="flex flex-wrap gap-2">
             {ACCENT_COLORS.map((color) => (
               <ColorSwatch
@@ -180,7 +201,7 @@ function CharacterForm({
         )}
         <Button type="button" className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleSubmit}>
           <UserRound aria-hidden="true" />
-          {required ? "Enter room" : "Save character"}
+          {submitLabel}
         </Button>
       </DialogFooter>
     </>

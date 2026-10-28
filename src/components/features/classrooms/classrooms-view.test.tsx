@@ -117,6 +117,56 @@ describe("student My Classes", () => {
     expect(currentPath).toBe("/students/classrooms/class-biology?tab=classwork")
   })
 
+  it("switches between grid and list layouts without changing the classes shown", async () => {
+    const user = userEvent.setup()
+    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
+    renderView()
+
+    expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
+    expect(screen.queryByRole("table", { name: "Classes" })).toBeNull()
+
+    const listToggle = screen.getByRole("button", { name: "List view" })
+    await user.click(listToggle)
+
+    const table = await screen.findByRole("table", { name: "Classes" })
+    expect(within(table).getByText("Foundations of Biology")).toBeTruthy()
+    expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
+    expect(screen.getByRole("button", { name: "List view" }).getAttribute("aria-pressed")).toBe("true")
+
+    await user.click(screen.getByRole("button", { name: "Grid view" }))
+    expect(screen.queryByRole("table", { name: "Classes" })).toBeNull()
+    expect(screen.getByText("Foundations of Biology")).toBeTruthy()
+  })
+
+  it("filters classes by subject and search", async () => {
+    const user = userEvent.setup()
+    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
+    renderView()
+
+    expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
+
+    const filters = screen.getByRole("group", { name: "Filter classes by subject" })
+    await user.click(within(filters).getByRole("button", { name: /Life science/ }))
+    expect(screen.getByText("Foundations of Biology")).toBeTruthy()
+    expect(screen.queryByText("Biology 101")).toBeNull()
+
+    await user.click(within(filters).getByRole("button", { name: /^All/ }))
+    await user.type(screen.getByRole("searchbox", { name: "Search classes" }), "zzz-no-match")
+    expect(screen.getByText("No classes match your filters")).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: "Clear filters" }))
+    expect(screen.getByText("Foundations of Biology")).toBeTruthy()
+  })
+
+  it("lets the connected-vs-demo notice be dismissed", async () => {
+    const user = userEvent.setup()
+    renderView()
+
+    expect(await screen.findByText(/connected · 3 demo previews/)).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Dismiss notice" }))
+    expect(screen.queryByText(/connected · 3 demo previews/)).toBeNull()
+  })
+
   it("confirms a join only after the classroom service responds", async () => {
     const user = userEvent.setup()
     let resolveJoin: ((classroom: ApiClassroom) => void) | undefined

@@ -134,7 +134,7 @@ For exact page behavior, follow the matching plan and inspect current source. Do
 |---|---|---|
 | `/` | `src/pages/App.tsx` | Placeholder heading. |
 | `/onboarding` | `OnboardingView` in `src/components/features/onboarding/` | Local React Hook Form wizard; the route passes `needsOnboarding={true}` explicitly. This is not server-driven onboarding gating. |
-| `/register` | Registration view/form/schema | Calls `POST /api/v1/auth/register` for email/password or starts Google registration after explicit account-type and terms selection. Accepted roles are `student` and `educator`. Email/password registration proceeds to OTP verification. |
+| `/register` | Registration view/form/schema | Calls `POST /api/v1/auth/register` for email/password or starts Google registration after explicit account-type and terms selection. Accepted account types are `student`, `educator`, `tutor`, and `esl`. Email/password registration proceeds to OTP verification. |
 | `/login` | Login view/form/schema | Calls `POST /api/v1/auth/login` or starts the backend Google OIDC flow; API JWT/refresh cookies are HttpOnly and the in-memory auth session is established after callback. |
 | `/email-verification` | Verification/resend view | Verifies a six-digit code via `POST /api/v1/auth/verify-email`; still accepts unexpired legacy verification links, removes their tokens from the visible URL, and sends them only in the API request body. |
 | `/forgot-password` | Recovery form | Calls `POST /api/v1/auth/forgot-password` and shows the generic account-safe response. |
@@ -152,7 +152,7 @@ Onboarding's current UX is a four-step local wizard: entity selection → profil
 
 ### Important role-contract mismatch
 
-Registration now uses `student` and `educator`, matching the v1 auth API. Onboarding still uses `student`, `educator`, and `others` with tutor/ESL/freelance subtypes; those subtypes are not persisted by authentication. Do not infer or route educator subtypes until the backend profile contract is defined. Frontend route guards are UX only; resource authorization remains a backend responsibility.
+Registration now uses `student`, `educator`, `tutor`, and `esl`, matching the v1 auth API source; the API roles are `STUDENT`, `EDUCATOR`, `TUTOR`, and `ESL`, and post-login routing maps each role to its workspace. Onboarding still uses `student`, `educator`, and `others` with tutor/ESL/freelance subtypes; those subtypes are not persisted by authentication. Do not infer or route educator subtypes until the backend profile contract is defined. Frontend route guards are UX only; resource authorization remains a backend responsibility.
 
 ### API foundation and security
 
@@ -221,6 +221,12 @@ For every change:
 3. Run `npm run lint` for full-repository status; separate pre-existing failures from newly introduced ones and do not disable rules broadly.
 4. Run `git diff --check`, inspect the final diff/status, and verify routes/links or UI states relevant to the change.
 5. Report commands actually run, pass/fail, and known blockers. `npx vite build` alone does not replace the TypeScript check in `npm run build`.
+
+On Windows the default Vitest `forks` pool can time out while starting workers ("Timeout waiting for worker to respond"); `npx vitest run <path> --pool=threads` runs the same tests reliably.
+
+Study Spaces (`src/components/features/personal-workspace/study-spaces/`): the list page is a three.js "study hall" city (`study-hall-world.tsx`, lazy-loaded) with buildings from `city-layout.ts`/`city-buildings.tsx`. Each building's shape follows the room kind. There is an Explore mode (pan/zoom) and a Walk mode (WASD, using `use-walk-keys.ts`), plus a CSS full-screen toggle and a List view, which is the default without WebGL and in jsdom. The room (`detail/space-room-scene.tsx`) uses the same walk keys. The hall character and the per-room characters are browser-local only.
+
+The hall city has a central Owlio Plaza block and an Owlio fountain roundabout (`city-plaza.tsx`). Decorative cars obey the traffic lights (`traffic-paths.ts` holds the paths and signals, `city-traffic.tsx` renders them). Each room has one discussion table whose shape depends on the room type (`detail/study-space-seats.ts`), plus nap mats and watch-room sofas. The day/night setting is stored under `owlio.study-light.v1` and shared by the hall and rooms (`detail/room-ambience.ts`). Characters are cartoon owls (`detail/character-figure.tsx`). Nap status and sample nappers exist only in local previews.
 
 At context capture on 2026-10-14, `npm run lint` reported 13 `react-refresh/only-export-components` errors in `src/components/ui/{badge,button,combobox,marker,message-scroller,navigation-menu,tabs,toast,toggle}.tsx`. Re-run lint before relying on this baseline; do not assume it remains current or attribute unrelated findings to a feature change.
 

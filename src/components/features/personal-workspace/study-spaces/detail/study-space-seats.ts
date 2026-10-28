@@ -1,13 +1,11 @@
 import type { StudySpaceKind } from "../study-spaces-records"
 
-// Shared with space-room-scene.tsx and the dialog floor-plan previews.
-// Every plan coordinate below was authored for a 14x10 room and is spread by ROOM_SCALE.
-export const ROOM_SCALE = 1.5
-export const roomPlan = { halfWidth: 7 * ROOM_SCALE, halfDepth: 5 * ROOM_SCALE }
+// Shared with space-room-scene.tsx and the floor-plan previews.
+export const roomPlan = { halfWidth: 10.5, halfDepth: 7.5 }
 
-export type StudyZone = "quiet" | "collaborative" | "reading" | "lounge" | "meeting"
+export type StudyZone = "discussion" | "nap" | "watch"
 
-export type SeatFurniture = "desk" | "stool" | "armchair" | "chair"
+export type SeatFurniture = "chair" | "armchair" | "mat" | "sofa"
 
 export type SeatDef = {
   id: string
@@ -16,236 +14,121 @@ export type SeatDef = {
   zoneLabel: string
   characteristic: string
   furniture: SeatFurniture
-  // Where the desk/stool/armchair renders in the room.
+  // Where the chair, mat or sofa seat renders in the room.
   anchor: { x: number; z: number }
-  // Rotation applied to desk furniture so its chair faces the room.
   furnitureRotationY: number
-  // Where the character stands/sits and the direction it faces when seated.
+  // Where the character sits or lies and the direction it faces.
   sitPoint: { x: number; z: number }
   faceRotation: number
 }
 
-const ZONE_LABELS: Record<StudyZone, string> = {
-  quiet: "Quiet study",
-  collaborative: "Collaborative tables",
-  reading: "Reading corner",
-  lounge: "Lounge",
-  meeting: "Meeting room",
+export type TableShape = "rect" | "oval" | "round"
+
+// One discussion table per room; the room type picks its shape.
+export const discussionTable = {
+  x: -3.4,
+  z: -1.6,
+  shape: { focused: "rect", collaborative: "oval", lounge: "round" } as Record<StudySpaceKind, TableShape>,
+  rect: { w: 4.6, d: 1.7 },
+  oval: { rx: 2.5, rz: 1.35 },
+  round: { r: 1.35 },
 }
 
-type SeatSpec = Omit<SeatDef, "id" | "zoneLabel">
+export const napArea = { minX: 4.2, maxX: 10.5, minZ: -7.5, maxZ: -1.8 }
+export const watchRoom = { minX: 4.2, maxX: 10.5, minZ: 0.4, maxZ: 7.5, screenZ: 3.95 }
 
-function spread(specs: SeatSpec[]): SeatSpec[] {
-  return specs.map((spec) => {
-    const anchor = { x: spec.anchor.x * ROOM_SCALE, z: spec.anchor.z * ROOM_SCALE }
+const ZONE_LABELS: Record<StudyZone, string> = {
+  discussion: "Discussion table",
+  nap: "Nap area",
+  watch: "Watch room",
+}
+
+const face = (x: number, z: number, tx: number, tz: number) => Math.atan2(tx - x, tz - z)
+
+type Spot = { x: number; z: number; characteristic: string }
+
+function rectSpots(capacity: number): Spot[] {
+  const { x: tx, z: tz, rect } = discussionTable
+  const north = Math.ceil(capacity / 2)
+  const south = capacity - north
+  const side = (count: number, z: number, characteristic: string) =>
+    Array.from({ length: count }, (_, index) => ({
+      x: tx + (index - (count - 1) / 2) * 1.1,
+      z,
+      characteristic,
+    }))
+  return [
+    ...side(north, tz - rect.d / 2 - 0.55, "Facing the room, back to the whiteboard"),
+    ...side(south, tz + rect.d / 2 + 0.55, "Facing the whiteboard"),
+  ]
+}
+
+function ellipseSpots(capacity: number, rx: number, rz: number, characteristic: string): Spot[] {
+  const { x: tx, z: tz } = discussionTable
+  return Array.from({ length: capacity }, (_, index) => {
+    const angle = -Math.PI / 2 + (index / capacity) * Math.PI * 2
+    return { x: tx + Math.cos(angle) * rx, z: tz + Math.sin(angle) * rz, characteristic }
+  })
+}
+
+export function buildSeats(kind: StudySpaceKind, capacity: number): SeatDef[] {
+  const count = Math.max(0, Math.min(capacity, 8))
+  const shape = discussionTable.shape[kind]
+  const spots =
+    shape === "rect"
+      ? rectSpots(count)
+      : shape === "oval"
+        ? ellipseSpots(count, discussionTable.oval.rx + 0.75, discussionTable.oval.rz + 0.75, "Around the oval table")
+        : ellipseSpots(count, discussionTable.round.r + 0.95, discussionTable.round.r + 0.95, "Cosy armchair by the round table")
+  const furniture: SeatFurniture = shape === "round" ? "armchair" : "chair"
+
+  return spots.map((spot, index) => {
+    const rotation = face(spot.x, spot.z, discussionTable.x, discussionTable.z)
     return {
-      ...spec,
-      anchor,
-      sitPoint: {
-        x: anchor.x + (spec.sitPoint.x - spec.anchor.x),
-        z: anchor.z + (spec.sitPoint.z - spec.anchor.z),
-      },
+      id: `${furniture}-${index}`,
+      name: `Table seat ${index + 1}`,
+      zone: "discussion",
+      zoneLabel: ZONE_LABELS.discussion,
+      characteristic: spot.characteristic,
+      furniture,
+      anchor: { x: spot.x, z: spot.z },
+      furnitureRotationY: rotation,
+      sitPoint: { x: spot.x, z: spot.z },
+      faceRotation: rotation,
     }
   })
 }
 
-// Working area: desks along the back wall and paired tables, left of the glass meeting room.
-const QUIET_DESKS: SeatSpec[] = [
-  {
-    name: "Window Seat 1",
-    zone: "quiet",
-    characteristic: "Natural light from the window",
-    furniture: "desk",
-    anchor: { x: -8.4, z: -5.25 },
+// Nap mats and watch-room sofa seats, the same in every room.
+export function buildRoomSpots(): SeatDef[] {
+  const mats: SeatDef[] = [6, 7.8, 9.6].map((x, index) => ({
+    id: `mat-${index}`,
+    name: `Nap mat ${index + 1}`,
+    zone: "nap",
+    zoneLabel: ZONE_LABELS.nap,
+    characteristic: "Soft mat with a pillow and blanket",
+    furniture: "mat",
+    anchor: { x, z: -5 },
     furnitureRotationY: 0,
-    sitPoint: { x: -8.4, z: -4.51 },
-    faceRotation: Math.PI,
-  },
-  {
-    name: "Window Seat 2",
-    zone: "quiet",
-    characteristic: "Natural light from the window",
-    furniture: "desk",
-    anchor: { x: -5, z: -5.25 },
-    furnitureRotationY: 0,
-    sitPoint: { x: -5, z: -4.51 },
-    faceRotation: Math.PI,
-  },
-  {
-    name: "Focus Desk 3",
-    zone: "quiet",
-    characteristic: "Facing the board",
-    furniture: "desk",
-    anchor: { x: -1.6, z: -5.25 },
-    furnitureRotationY: 0,
-    sitPoint: { x: -1.6, z: -4.51 },
-    faceRotation: Math.PI,
-  },
-  {
-    name: "Focus Desk 4",
-    zone: "quiet",
-    characteristic: "Facing the board",
-    furniture: "desk",
-    anchor: { x: 1.8, z: -5.25 },
-    furnitureRotationY: 0,
-    sitPoint: { x: 1.8, z: -4.51 },
-    faceRotation: Math.PI,
-  },
-]
-
-const COLLAB_DESKS: SeatSpec[] = [
-  {
-    name: "Shared Table A",
-    zone: "collaborative",
-    characteristic: "Face-to-face partner desk",
-    furniture: "desk",
-    anchor: { x: -6.6, z: -1.7 },
-    furnitureRotationY: 0,
-    sitPoint: { x: -6.6, z: -0.98 },
-    faceRotation: Math.PI,
-  },
-  {
-    name: "Shared Table B",
-    zone: "collaborative",
-    characteristic: "Face-to-face partner desk",
-    furniture: "desk",
-    anchor: { x: -6.6, z: 0.5 },
-    furnitureRotationY: Math.PI,
-    sitPoint: { x: -6.6, z: -0.22 },
+    sitPoint: { x, z: -5.45 },
     faceRotation: 0,
-  },
-  {
-    name: "Shared Table C",
-    zone: "collaborative",
-    characteristic: "Face-to-face partner desk",
-    furniture: "desk",
-    anchor: { x: -2.6, z: -1.7 },
-    furnitureRotationY: 0,
-    sitPoint: { x: -2.6, z: -0.98 },
-    faceRotation: Math.PI,
-  },
-  {
-    name: "Shared Table D",
-    zone: "collaborative",
-    characteristic: "Face-to-face partner desk",
-    furniture: "desk",
-    anchor: { x: -2.6, z: 0.5 },
-    furnitureRotationY: Math.PI,
-    sitPoint: { x: -2.6, z: -0.22 },
-    faceRotation: 0,
-  },
-]
-
-const LOUNGE_TABLE = { x: 4.6 * ROOM_SCALE, z: 3.0 * ROOM_SCALE }
-
-const LOUNGE_STOOLS: SeatSpec[] = [
-  {
-    name: "Lounge Stool 1",
-    zone: "lounge",
-    characteristic: "Casual round-table seat",
-    furniture: "stool",
-    anchor: { x: LOUNGE_TABLE.x, z: LOUNGE_TABLE.z - 1.15 },
-    furnitureRotationY: 0,
-    sitPoint: { x: LOUNGE_TABLE.x, z: LOUNGE_TABLE.z - 1.15 },
-    faceRotation: 0,
-  },
-  {
-    name: "Lounge Stool 2",
-    zone: "lounge",
-    characteristic: "Casual round-table seat",
-    furniture: "stool",
-    anchor: { x: LOUNGE_TABLE.x + 1.15, z: LOUNGE_TABLE.z },
-    furnitureRotationY: 0,
-    sitPoint: { x: LOUNGE_TABLE.x + 1.15, z: LOUNGE_TABLE.z },
-    faceRotation: -Math.PI / 2,
-  },
-  {
-    name: "Lounge Stool 3",
-    zone: "lounge",
-    characteristic: "Casual round-table seat",
-    furniture: "stool",
-    anchor: { x: LOUNGE_TABLE.x, z: LOUNGE_TABLE.z + 1.15 },
-    furnitureRotationY: 0,
-    sitPoint: { x: LOUNGE_TABLE.x, z: LOUNGE_TABLE.z + 1.15 },
-    faceRotation: Math.PI,
-  },
-  {
-    name: "Lounge Stool 4",
-    zone: "lounge",
-    characteristic: "Casual round-table seat",
-    furniture: "stool",
-    anchor: { x: LOUNGE_TABLE.x - 1.15, z: LOUNGE_TABLE.z },
-    furnitureRotationY: 0,
-    sitPoint: { x: LOUNGE_TABLE.x - 1.15, z: LOUNGE_TABLE.z },
-    faceRotation: Math.PI / 2,
-  },
-]
-
-export const meetingRoom = { minX: 3.2, maxX: 10.3, minZ: -7.3, maxZ: -0.2, table: { x: 6.8, z: -3.6 } }
-
-const MEETING_CHAIRS: SeatSpec[] = [
-  [5.4, -1.25],
-  [5.4, 1.25],
-  [6.8, -1.25],
-  [6.8, 1.25],
-  [8.2, -1.25],
-  [8.2, 1.25],
-].map(([x, offset], index) => {
-  const north = offset < 0
-  const z = meetingRoom.table.z + offset
-  return {
-    name: `Meeting Seat ${index + 1}`,
-    zone: "meeting" as const,
-    characteristic: "Glass-walled meeting room",
-    furniture: "chair" as const,
-    anchor: { x, z },
-    furnitureRotationY: north ? 0 : Math.PI,
-    sitPoint: { x, z },
-    faceRotation: north ? 0 : Math.PI,
-  }
-})
-
-// Center of the rug under the paired working tables.
-export const workRug = { x: -4.6, z: -0.6, radius: 3.7 }
-
-const READING_SEATS: SeatSpec[] = spread([
-  {
-    name: "Reading Armchair",
-    zone: "reading",
-    characteristic: "By the bookshelf",
-    furniture: "armchair",
-    anchor: { x: -5.4, z: 2.4 },
-    furnitureRotationY: Math.PI / 2,
-    sitPoint: { x: -5.4, z: 2.4 },
-    faceRotation: Math.PI / 2,
-  },
-  {
-    name: "Quiet Corner",
-    zone: "reading",
-    characteristic: "Tucked beside the plants",
-    furniture: "armchair",
-    anchor: { x: -5.4, z: 4.1 },
-    furnitureRotationY: Math.PI / 2,
-    sitPoint: { x: -5.4, z: 4.1 },
-    faceRotation: Math.PI / 2,
-  },
-])
-
-const SEAT_ORDER: Record<StudySpaceKind, SeatSpec[]> = {
-  focused: [...QUIET_DESKS, ...COLLAB_DESKS.slice(0, 2), ...MEETING_CHAIRS.slice(0, 2)],
-  collaborative: [...COLLAB_DESKS, ...MEETING_CHAIRS.slice(0, 4)],
-  lounge: [...LOUNGE_STOOLS, ...READING_SEATS, ...MEETING_CHAIRS.slice(0, 2)],
-}
-
-export const loungeTable = LOUNGE_TABLE
-
-// Characters enter near the door on the left wall.
-export const roomSpawnPoint = { x: -roomPlan.halfWidth + 2, z: roomPlan.halfDepth - 3 }
-
-export function buildSeats(kind: StudySpaceKind, capacity: number): SeatDef[] {
-  return SEAT_ORDER[kind].slice(0, capacity).map((spec, index) => ({
-    ...spec,
-    id: `${spec.furniture}-${index}`,
-    zoneLabel: ZONE_LABELS[spec.zone],
   }))
+  const sofas: SeatDef[] = [2.4, 5.4].flatMap((z, sofa) =>
+    [-0.6, 0.6].map((offset, index) => ({
+      id: `sofa-${sofa * 2 + index}`,
+      name: `Sofa seat ${sofa * 2 + index + 1}`,
+      zone: "watch" as const,
+      zoneLabel: ZONE_LABELS.watch,
+      characteristic: "Faces the big screen",
+      furniture: "sofa" as const,
+      anchor: { x: 6.6, z: z + offset },
+      furnitureRotationY: Math.PI / 2,
+      sitPoint: { x: 6.6, z: z + offset },
+      faceRotation: Math.PI / 2,
+    }))
+  )
+  return [...mats, ...sofas]
 }
+
+// Characters enter near the exit portal in the front-left corner.
+export const roomSpawnPoint = { x: -roomPlan.halfWidth + 2.4, z: roomPlan.halfDepth - 2.4 }

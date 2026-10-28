@@ -4,7 +4,7 @@ import { passwordSchema } from "../shared/password-rules"
 export const registerSchema = z.object({
   fullName: z.string().trim().min(1, "Enter your full name."),
   email: z.string().trim().email("Enter a valid email address."),
-  accountType: z.enum(["student", "educator"], { error: "Choose an account type." }),
+  accountType: z.enum(["student", "educator", "tutor", "esl"], { error: "Choose an account type." }),
   password: passwordSchema,
   passwordConfirmation: z.string().min(1, "Confirm your password."),
   acceptTerms: z.boolean().refine((accepted) => accepted, "Accept the terms to continue."),
