@@ -1,5 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react"
-import { afterEach, describe, expect, it } from "vitest"
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter } from "react-router"
 import type { ComponentType, ReactNode } from "react"
 import { getDashboardNavigation } from "@/components/common/dashboard-navigation"
@@ -42,6 +42,29 @@ const disconnectedPages: [string, ComponentType, string][] = [
 ]
 
 describe("tutor workspace pages", () => {
+  it("lets the tutor chat with the AI assistant preview and use related topics", () => {
+    vi.useFakeTimers()
+    renderPage(<TutorAiAssistantView />)
+
+    expect(screen.getByRole("heading", { name: "Ask the AI Tutor Assistant" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "Related topics" })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole("button", { name: /Chain rule/ }))
+    const input = screen.getByLabelText("Message the AI Tutor Assistant") as HTMLTextAreaElement
+    expect(input.value).toContain("Chain rule")
+
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }))
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    vi.useRealTimers()
+
+    expect(screen.getAllByText(/sample preview response/).length).toBeGreaterThan(0)
+    const saveButtons = screen.getAllByRole("button", { name: "Save as draft" })
+    fireEvent.click(saveButtons[saveButtons.length - 1])
+    expect(screen.getByText("3 suggestions in preview mode")).toBeTruthy()
+  })
+
   it("shows an honest overview and links to tutor workspaces", () => {
     renderPage(<TutorOverviewView />)
 
