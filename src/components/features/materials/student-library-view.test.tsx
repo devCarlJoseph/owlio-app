@@ -271,8 +271,8 @@ describe("student Study Library", () => {
 
   it("uses the same design for classroom and study space libraries", () => {
     const classroom = renderPage(<StudentClassroomMaterialsPage />)
-    expect(classroom.container.querySelector(".from-sky-50")).toBeTruthy()
-    expect(classroom.container.querySelector(".to-blue-50")).toBeTruthy()
+    expect(classroom.container.querySelector(".from-sky-100")).toBeTruthy()
+    expect(classroom.container.querySelector(".to-blue-100")).toBeTruthy()
     expect(classroom.hrefs).toContain("/students/materials/classroom/biology-101")
 
     const studySpace = renderPage(<StudentStudySpaceMaterialsPage />)
