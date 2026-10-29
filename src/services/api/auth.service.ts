@@ -14,7 +14,7 @@ import type {
 
 const authPath = '/api/v1/auth'
 type CsrfResponse = { csrfToken: string }
-type RegisterResponse = AuthMessage & { user: AuthUser }
+type RegisterResponse = AuthMessage
 type CsrfErrorResponse = { code?: string }
 
 let csrfToken: string | undefined
@@ -26,7 +26,7 @@ function rememberCsrfToken(data: unknown) {
   }
 }
 
-async function getCsrfToken(forceRefresh = false): Promise<string> {
+export async function getCsrfToken(forceRefresh = false): Promise<string> {
   if (forceRefresh) {
     csrfToken = undefined
     csrfRequest = undefined
@@ -54,7 +54,7 @@ export async function postApiWithCsrf<T>(path: string, body?: unknown): Promise<
   try {
     response = await send(await getCsrfToken())
   } catch (error) {
-    if (!axios.isAxiosError<CsrfErrorResponse>(error) || error.response?.data.code !== 'EBADCSRFTOKEN') {
+    if (!axios.isAxiosError<CsrfErrorResponse>(error) || error.response?.status !== 403 || error.response.data.code !== 'INVALID_CSRF') {
       throw error
     }
     response = await send(await getCsrfToken(true))
