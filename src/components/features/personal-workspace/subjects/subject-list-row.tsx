@@ -31,7 +31,7 @@ export function SubjectListRow({ subject, href }: SubjectListRowProps) {
           <div className="min-w-0">
             <Link
               to={href}
-              className="block truncate rounded text-sm font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:content-[''] hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="block truncate rounded text-sm font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:content-[''] hover:text-[#6842c5] hover:underline focus-visible:ring-2 focus-visible:ring-[#8a60f1] focus-visible:ring-offset-2"
             >
               {subject.name}
             </Link>
@@ -51,7 +51,7 @@ export function SubjectListRow({ subject, href }: SubjectListRowProps) {
             <Progress
               aria-hidden="true"
               value={progress}
-              className="h-2 flex-1 gap-0 [&_[data-slot=progress-track]]:bg-white/70 [&_[data-slot=progress-indicator]]:bg-blue-600"
+              className="h-2 flex-1 gap-0 [&_[data-slot=progress-track]]:bg-white/70 [&_[data-slot=progress-indicator]]:bg-[#8a60f1]"
             />
           </div>
         </CardContent>
