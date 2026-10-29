@@ -203,6 +203,72 @@ describe("student Study Library", () => {
     expect(hrefs).toContain("/students/materials/personal/mathematics")
   })
 
+  it("lays the personal resources card out as a left-aligned banner", () => {
+    renderPage(<StudentPersonalMaterialsPage />)
+
+    const heading = screen.getByRole("heading", { level: 2, name: "Personal resources" })
+    const banner = heading.closest("section")
+
+    expect(banner?.textContent).toContain("You own these")
+    expect(banner?.textContent).toContain(
+      "Your own notes and references, kept in your workspace."
+    )
+    expect(banner?.querySelector("svg")).toBeTruthy()
+
+    const actions = Array.from(banner?.querySelectorAll("a") ?? [])
+    expect(actions.length).toBe(1)
+    expect(actions[0]?.textContent?.trim()).toBe("Open My Learning")
+    expect(actions[0]?.className).toContain("bg-amber-600")
+    expect(screen.queryByRole("link", { name: "Open Notes" })).toBeNull()
+  })
+
+  it("adds subject categories with All selected by default", () => {
+    renderPage(<StudentPersonalMaterialsPage />)
+
+    expect(screen.getByRole("button", { name: "All" }).getAttribute("aria-pressed")).toBe("true")
+    expect(
+      screen.getByRole("button", { name: "Chemistry I" }).getAttribute("aria-pressed")
+    ).toBe("false")
+    expect(screen.getByRole("group", { name: "Subject categories" })).toBeTruthy()
+  })
+
+  it("hides the resource count copy once a subject category is selected", async () => {
+    const user = userEvent.setup()
+    renderPage(<StudentPersonalMaterialsPage />)
+
+    expect(screen.getByText("12 resources shown")).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: "English" }))
+
+    expect(screen.queryByText(/resources shown/)).toBeNull()
+  })
+
+  it("jumps to a subject category from the show more arrow", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentPersonalMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: "Show all Chemistry I resources" }))
+
+    expect(
+      screen.getByRole("button", { name: /^Chemistry I/ }).getAttribute("aria-pressed")
+    ).toBe("true")
+    expect(container.querySelectorAll("ul li").length).toBe(5)
+    expect(screen.queryByRole("button", { name: "Show all Chemistry I resources" })).toBeNull()
+    expect(screen.queryByText("Wave equation checklist")).toBeNull()
+    expect(screen.getByText("Chemical bonding recap")).toBeTruthy()
+  })
+
+  it("filters the library to one subject category", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentPersonalMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: /^English/ }))
+
+    expect(container.querySelectorAll("ul li").length).toBe(2)
+    expect(screen.getByText("Essay intro outline")).toBeTruthy()
+    expect(screen.queryByText("Chemical bonding recap")).toBeNull()
+  })
+
   it("uses the same design for classroom and study space libraries", () => {
     const classroom = renderPage(<StudentClassroomMaterialsPage />)
     expect(classroom.container.querySelector(".from-sky-50")).toBeTruthy()
