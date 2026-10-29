@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { ChevronLeft, ChevronRight, FolderOpen, Info } from "lucide-react"
+import { ChevronLeft, ChevronRight, FolderOpen } from "lucide-react"
 import { Link } from "react-router"
 import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
@@ -12,7 +12,6 @@ import {
   filterLibraryResources,
   groupLibraryResources,
   librarySourceMeta,
-  libraryStorageNotice,
   librarySubjectPreviewLimit,
   previewLibraryResources,
   slugifyLibraryContext,
@@ -95,7 +94,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
             to={meta.ownerHref}
             className={cn(
               buttonVariants({ variant: "default", size: "default" }),
-              "bg-blue-700 text-white hover:bg-blue-800",
+              meta.buttonClassName,
             )}
           >
             {meta.ownerAction}
@@ -123,10 +122,6 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         <p className="flex-1 text-sm leading-6 text-blue-800">
           Opening a resource takes you to the context that owns it. Nothing here is copied, moved, or
           shared between contexts.
-        </p>
-        <p className="flex w-full items-start gap-2 border-t border-blue-100 pt-2 text-xs leading-5 text-blue-800 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
-          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          {libraryStorageNotice}
         </p>
       </section>
 

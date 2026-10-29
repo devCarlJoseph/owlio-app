@@ -77,6 +77,50 @@ describe("student Study Library", () => {
     expect(footer?.textContent).not.toContain("resources listed")
   })
 
+  it("uses a dark teal hero instead of the dark slate gradient", () => {
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    expect(container.querySelector(".from-cyan-700")).toBeTruthy()
+    expect(container.querySelector(".to-emerald-700")).toBeTruthy()
+    expect(container.querySelector(".from-slate-950")).toBeNull()
+  })
+
+  it("drops the intro guidance and learning context headings", () => {
+    const { text } = renderPage(<StudentMaterialsPage />)
+
+    expect(text).not.toContain("Your Study Library collects")
+    expect(text).not.toContain("The materials service is not connected yet")
+    expect(text).not.toContain("Pick up where you left off")
+    expect(text).not.toContain("Where are you learning?")
+  })
+
+  it("keeps the source colours on list rows", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: "List view" }))
+
+    const row = container.querySelector("li.group\\/resource")
+    const icon = row?.querySelector("span")
+
+    expect(icon?.className).toContain("bg-amber-100")
+    expect(icon?.className).toContain("text-amber-800")
+  })
+
+  it("colours the active layout and source tab", async () => {
+    const user = userEvent.setup()
+    renderPage(<StudentMaterialsPage />)
+
+    const listButton = screen.getByRole("button", { name: "List view" })
+    await user.click(listButton)
+    expect(listButton.className).toContain("bg-sky-600")
+    expect(listButton.className).toContain("text-white")
+
+    const personalTab = screen.getByRole("tab", { name: /Personal/ })
+    expect(personalTab.className).toContain("data-active:text-amber-800")
+    expect(personalTab.className).toContain("data-active:after:bg-amber-500")
+  })
+
   it("switches the resource layout and filters by kind", async () => {
     const user = userEvent.setup()
     const { container } = renderPage(<StudentMaterialsPage />)

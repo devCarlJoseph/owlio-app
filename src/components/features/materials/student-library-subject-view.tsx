@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { ChevronLeft, Info } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import { Link, useParams } from "react-router"
 import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +9,6 @@ import { ResourceCard } from "./resource-card"
 import {
   findLibraryContextBySlug,
   librarySourceMeta,
-  libraryStorageNotice,
   previewLibraryResources,
 } from "./library-records"
 import type { LibrarySource } from "./library-types"
@@ -154,11 +153,6 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
               </li>
             ))}
           </ul>
-
-          <p className="flex items-start gap-2 text-xs leading-5 text-slate-600">
-            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-            {libraryStorageNotice}
-          </p>
         </CardContent>
       </Card>
     </div>

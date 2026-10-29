@@ -16,15 +16,6 @@ import type {
   LibrarySourceMeta,
 } from "./library-types"
 
-export const libraryGuidance =
-  "Your Study Library collects the resources you can reach, and keeps each one with the context that owns it: your own notes, a classroom you joined, or a study space you are part of."
-
-export const libraryStorageNotice =
-  "The materials service is not connected yet. Every resource below is placeholder content for reviewing the layout, and no file is uploaded, previewed, or downloaded."
-
-export const librarySourceNotice =
-  "Opening a resource always takes you to the context that owns it. Owlio never moves a personal note, a class file, or a peer-shared resource somewhere else."
-
 export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
   personal: {
     id: "personal",
