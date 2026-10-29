@@ -2,7 +2,7 @@ import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { notesStorageKey } from "@/components/features/personal-workspace/notes/note-records"
+import { notesStorageKey } from "@/components/features/personal-workspace/notes/contents/note-records"
 import { tasksStorageKey } from "@/components/features/personal-workspace/tasks/task-records"
 import { SubjectDetailView } from "./subject-detail-view"
 import {

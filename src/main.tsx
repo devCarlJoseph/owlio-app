@@ -2,7 +2,7 @@ import "@/styles/global.css";
 
 import { createRoot } from "react-dom/client";
 import { Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
 import OnboardingPage from "@/pages/onboarding";
 import RegisterPage from "@/pages/auth/register";
 import LoginPage from "@/pages/auth/login";
@@ -65,6 +65,9 @@ import AiAssistantPage from "@/pages/dashboard/ai-assistant";
 import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
 import { AuthSessionProvider } from "@/components/features/auth/auth-session-provider";
 import { RequireAuth } from "@/components/features/auth/require-auth";
+import { RequireGuest } from "@/components/features/auth/require-guest";
+import { RequireRole } from "@/components/features/auth/require-role";
+import { NoWorkspaceView } from "@/components/features/auth/no-workspace-view";
 import { API_INTEGRATION_ENABLED } from "@/lib/api-mode";
 
 createRoot(document.getElementById("root")!).render(
@@ -76,30 +79,28 @@ createRoot(document.getElementById("root")!).render(
         </div>
       )}
       <Routes>
-        <Route path="/onboarding" element={<OnboardingPage />} />
-
-        {/*Auth Pages */}
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/email-verification" element={<EmailVerificationPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/password-reset" element={<PasswordResetPage />} />
+        <Route element={<RequireGuest />}>
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/email-verification" element={<EmailVerificationPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/password-reset" element={<PasswordResetPage />} />
+          <Route path="/auth/*" element={<AuthRouteRedirect />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Route>
         <Route path="/oauth/google/callback" element={<GoogleOAuthCallbackPage />} />
-        <Route path="/auth/*" element={<AuthRouteRedirect />} />
+        <Route path="/access-denied" element={<NoWorkspaceView />} />
 
         {/*App Pages */}
         <Route
           element={
-            API_INTEGRATION_ENABLED ? (
-              <RequireAuth>
-                <PlatformLayout />
-              </RequireAuth>
-            ) : (
-              <PlatformLayout />
-            )
+            <RequireAuth>
+              <Outlet />
+            </RequireAuth>
           }
         >
-          <Route path="/students">
+          <Route path="/students" element={<RequireRole role="STUDENT"><PlatformLayout /></RequireRole>}>
             <Route index element={<StudentsPage />} />
             <Route path="subjects" element={<StudentSubjectsPage />} />
             <Route path="subjects/:subjectId" element={<StudentSubjectDetailPage />} />
@@ -158,7 +159,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="ai-assistant" element={<AiAssistantPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
-          <Route path="/educators">
+          <Route path="/educators" element={<RequireRole role="EDUCATOR"><PlatformLayout /></RequireRole>}>
             <Route index element={<EducatorsPage />} />
             <Route path="classwork" element={<EducatorClassworkPage />} />
             <Route path="attendance" element={<EducatorAttendancePage />} />
@@ -194,7 +195,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="ai-assistant" element={<AiAssistantPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
-          <Route path="/tutors">
+          <Route path="/tutors" element={<RequireRole role="TUTOR"><PlatformLayout /></RequireRole>}>
             <Route index element={<TutorsPage />} />
             <Route path="sessions" element={<TutorSessionsPage />} />
             <Route path="classwork" element={<TutorClassworkPage />} />
@@ -236,7 +237,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="settings" element={<TutorSettingsPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
-          <Route path="/esl">
+          <Route path="/esl" element={<RequireRole role="ESL"><PlatformLayout /></RequireRole>}>
             <Route index element={<EslPage />} />
             <Route path="lessons" element={<EslLessonsPage />} />
             <Route path="classwork" element={<EslClassworkPage />} />
@@ -276,7 +277,7 @@ createRoot(document.getElementById("root")!).render(
           </Route>
         </Route>
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthSessionProvider>
   </BrowserRouter>,

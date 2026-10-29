@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import type { NoteRecord } from "./note-records"
+import type { NoteRecord } from "../contents/note-records"
 
 type NoteDeleteDialogProps = {
   open: boolean

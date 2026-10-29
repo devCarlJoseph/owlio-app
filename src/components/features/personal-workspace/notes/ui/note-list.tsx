@@ -2,8 +2,9 @@ import { Archive, ArchiveRestore, NotebookPen, Search, Trash } from "lucide-reac
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { NoteCard } from "./note-card"
-import type { NoteCardActions } from "./note-card-actions"
-import { getNoteTitle, type NoteBucket, type NoteRecord } from "./note-records"
+import type { NoteCardActions } from "../contents/note-card-actions"
+import type { NoteBucket, NoteRecord } from "../contents/note-records"
+import { getNoteTitle } from "../utils/note-records"
 
 type NoteListProps = {
   notes: NoteRecord[]

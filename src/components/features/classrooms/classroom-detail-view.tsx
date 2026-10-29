@@ -1,381 +1,50 @@
-import { useState } from "react"
-import {
-  BookOpen,
-  CalendarDays,
-  ClipboardList,
-  Copy,
-  FolderOpen,
-  GraduationCap,
-  MessageCircle,
-  MessagesSquare,
-  School,
-  Users,
-} from "lucide-react"
-import { Link, useLocation, useParams, useSearchParams } from "react-router"
-import { getDashboardRole } from "@/components/common/dashboard-navigation"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useAuthSession } from "@/components/features/auth/auth-session-context"
-import { formatMeetingCode } from "@/lib/meeting-code"
-import { getApiErrorMessage } from "@/services/api/api-error"
-import { createMeeting } from "@/services/api/meeting.service"
-import { ClassroomChatView } from "./classroom-chat-view"
-import { ClassroomClassworkView } from "./classroom-classwork-view"
-import { getClassroomCoverUrl } from "./classroom-covers"
-import { getNextSession } from "./classroom-list-meta"
-import { StatusChip } from "./classroom-list-ui"
-import { ClassroomFeedView } from "./classroom-feed-view"
-import { useClassroomPrototype } from "./classroom-prototype-context"
-import { ClassroomMembersView } from "./classroom-members-view"
-import type { WorkspaceRole } from "./classroom-types"
-import { PersonAvatar, UnderDevelopment } from "./classroom-ui"
+import { useState } from 'react'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
+import { getDashboardRole } from '@/components/common/dashboard-navigation'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useClassroomPrototype } from './classroom-prototype-context'
+import { ClassroomMembersView } from './classroom-members-view'
+import { UnderDevelopment } from './classroom-ui'
 
-const underDevelopmentTabs = new Set(["materials", "schedule", "media", "files", "attendance", "progress"])
-
-const tabItems = [
-  { value: "feed", label: "Discussion", icon: MessagesSquare },
-  { value: "chat", label: "Chat", icon: MessageCircle },
-  { value: "classwork", label: "Classwork", icon: ClipboardList },
-  { value: "materials", label: "Materials", icon: BookOpen },
-  { value: "people", label: "People", icon: Users },
-  { value: "schedule", label: "Schedule", icon: CalendarDays },
-  { value: "attendance", label: "Attendance", icon: GraduationCap },
-  { value: "progress", label: "Progress", icon: School },
-] as const
-
-const educatorTabItems = [
-  { value: "about", label: "About", icon: School },
-  { value: "feed", label: "Discussion", icon: MessagesSquare },
-  { value: "chat", label: "Chat", icon: MessageCircle },
-  { value: "people", label: "Members", icon: Users },
-  { value: "schedule", label: "Events", icon: CalendarDays },
-  { value: "media", label: "Media", icon: BookOpen },
-  { value: "files", label: "Files", icon: FolderOpen },
-  { value: "classwork", label: "Classwork", icon: ClipboardList },
-  { value: "attendance", label: "Attendance", icon: GraduationCap },
-  { value: "progress", label: "Progress", icon: School },
-] as const
-
+const tabs = [{ value: 'about', label: 'About' }, { value: 'people', label: 'Members' },
+  { value: 'feed', label: 'Discussion' }, { value: 'chat', label: 'Chat' }, { value: 'classwork', label: 'Classwork' },
+  { value: 'materials', label: 'Materials' }, { value: 'schedule', label: 'Schedule' },
+  { value: 'attendance', label: 'Attendance' }, { value: 'progress', label: 'Progress' }]
 export function ClassroomDetailView() {
   const { pathname } = useLocation()
-  const role = getDashboardRole(pathname) ?? "students"
+  const role = getDashboardRole(pathname) ?? 'students'
   const { classroomId } = useParams()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const { getClassroom, createMeetingLink, classroomsLoading } = useClassroomPrototype()
-  const { user } = useAuthSession()
-  const [status, setStatus] = useState("")
-  const [meetingError, setMeetingError] = useState("")
-  const [creatingMeeting, setCreatingMeeting] = useState(false)
-  const visibleTabItems = role === "educators" ? educatorTabItems : tabItems
+  const [params, setParams] = useSearchParams()
+  const { getClassroom, classroomsLoading, classroomsError, reloadClassrooms } = useClassroomPrototype()
+  const [notice, setNotice] = useState('')
   const classroom = classroomId ? getClassroom(classroomId) : undefined
-  const isStudent = role === "students"
-  const hasAccessInDemo = classroom && (classroom.isMock
-    ? isStudent
-      ? classroom.enrolledLearnerIds.includes("demo-learner")
-      : classroom.ownerWorkspace === role
-    : isStudent
-      ? classroom.access === "student"
-      : classroom.access === "owner")
-  const isClassOwner = classroom && (classroom.isMock
-    ? classroom.ownerWorkspace === role
-    : classroom.access === "owner" && !isStudent)
-  const canCreateMeeting = Boolean(
-    classroom
-      && !classroom.isMock
-      && isClassOwner
-      && !isStudent
-      && user?.roles.includes("EDUCATOR"),
-  )
-  const meetingUrl = classroom?.meetingId
-    ? new URL(`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`, window.location.origin).toString()
-    : null
-  const requestedTab = searchParams.get("tab")
-  const activeTab = visibleTabItems.find((item) => item.value === requestedTab)?.value
-    ?? visibleTabItems[0].value
-  const selectTab = (tab: string) => {
-    if (!visibleTabItems.some((item) => item.value === tab)) return
-
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current)
-      if (tab === visibleTabItems[0].value) next.delete("tab")
-      else next.set("tab", tab)
-      return next
-    }, { replace: true })
-  }
-
-  if (!classroom && classroomsLoading) {
-    return <p role="status" className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Loading classroom…</p>
-  }
-
-  if (!classroom || !hasAccessInDemo) {
-    return (
-      <Card className="mx-auto max-w-2xl">
-        <CardContent className="items-center py-10 text-center">
-          <h2 className="text-lg font-semibold text-slate-900">Classroom unavailable in this demo</h2>
-          <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">Return to your classroom list and choose a class available in this workspace.</p>
-          <Link to={`/${role}/classrooms`} className="mt-4 inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-semibold text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
-            Back to classrooms
-          </Link>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const handleCopyMeetingLink = async () => {
-    if (!meetingUrl) return
-    try {
-      await navigator.clipboard.writeText(meetingUrl)
-      setStatus("Meeting invite copied.")
-    } catch {
-      setStatus(`Meeting invite: ${meetingUrl}`)
-    }
-  }
-
-  const handleCopyMeetingCode = async () => {
-    if (!classroom?.meetingId) return
-    const code = formatMeetingCode(classroom.meetingId)
-    try {
-      await navigator.clipboard.writeText(code)
-      setStatus("Owlio meeting code copied.")
-    } catch {
-      setStatus(`Owlio meeting code: ${code}`)
-    }
-  }
-
-  const handleCreateMeeting = async () => {
-    if (!canCreateMeeting || creatingMeeting || !classroom) return
-    setCreatingMeeting(true)
-    setMeetingError("")
-    setStatus("")
-    try {
-      const { meetingId } = await createMeeting(classroom.id)
-      createMeetingLink(classroom.id, meetingId)
-      setStatus("Meeting room created and linked to this classroom. Enrolled students can now see and join it.")
-    } catch (error) {
-      setMeetingError(getApiErrorMessage(error, "Could not create the meeting room. Please try again."))
-    } finally {
-      setCreatingMeeting(false)
-    }
-  }
-
-  const handleCopyInviteCode = async () => {
+  const tab = tabs.find(item => item.value === params.get('tab'))?.value ?? 'about'
+  const owned = classroom?.access === 'owner'
+  const visible = classroom && (role === 'students' ? !owned : owned)
+  if (classroomsLoading) return <p role="status">Loading classroom…</p>
+  if (classroomsError) return <section role="alert" className="space-y-3 rounded-xl border p-6"><h2>Classroom could not be loaded</h2><p>{classroomsError}</p><Button onClick={reloadClassrooms}>Try again</Button></section>
+  if (!classroom || !visible) return <section className="space-y-3 rounded-xl border p-6"><h2>Classroom unavailable</h2>
+    <p>This classroom is not available to your account in this workspace.</p><Link to={'/' + role + '/classrooms'}>Back to classrooms</Link></section>
+  async function copyCode() {
     if (!classroom?.joinCode) return
-    try {
-      await navigator.clipboard.writeText(classroom.joinCode)
-      setStatus(classroom.isMock ? "Demo invite code copied. It is not a real enrollment token." : "Classroom invite code copied.")
-    } catch {
-      setStatus(classroom.isMock
-        ? `Demo invite code: ${classroom.joinCode}. It is not a real enrollment token.`
-        : `Classroom invite code: ${classroom.joinCode}`,
-      )
-    }
+    try { await navigator.clipboard.writeText(classroom.joinCode); setNotice('Classroom invite code copied.') }
+    catch { setNotice('Copy was unavailable. Select the invite code to copy it manually.') }
   }
-
-  const meetingCard = (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="meeting-link-heading">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 id="meeting-link-heading" className="text-sm font-semibold text-slate-900">Class meeting</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Live teaching opens in the separate Meeting Room.</p>
-        </div>
-        <Badge variant="outline" className={classroom.meetingId
-          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-          : "border-slate-200 bg-slate-50 text-slate-600"}
-        >{classroom.meetingId ? "Room ready" : "No room"}</Badge>
-      </div>
-      {meetingUrl ? (
-        <>
-          <p className="mt-3 text-xs font-medium text-slate-500">Room code</p>
-          <code className="mt-1 block break-all rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{formatMeetingCode(classroom.meetingId ?? "")}</code>
-          {role !== "educators" && <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{meetingUrl}</code>}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link
-              to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
-              className="inline-flex min-h-9 items-center rounded-lg bg-brand px-3 text-sm font-semibold text-brand-foreground hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-            >Join meeting</Link>
-            <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingLink()}><Copy aria-hidden="true" /> Copy link</Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyMeetingCode()}><Copy aria-hidden="true" /> Copy code</Button>
-          </div>
-          {canCreateMeeting && <Button type="button" variant="outline" size="sm" className="mt-2" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>{creatingMeeting ? "Checking room…" : "Refresh meeting link"}</Button>}
-        </>
-      ) : isStudent ? (
-        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">The educator has not created a meeting room for this class yet.</p>
-      ) : canCreateMeeting ? (
-        <Button type="button" size="sm" className="mt-3" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()}>{creatingMeeting ? "Creating room…" : "Create meeting room"}</Button>
-      ) : classroom.isMock ? (
-        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">Create a connected classroom before attaching a real meeting room.</p>
-      ) : (
-        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">An educator account must create the meeting room.</p>
-      )}
-      {meetingError && <p role="alert" className="mt-2 text-xs text-rose-700">{meetingError}</p>}
-      <p className="mt-2 text-[11px] leading-4 text-slate-500">{classroom.isMock ? "Demo classrooms are not stored by the API." : "Meeting links use the connected classroom record."}</p>
-    </section>
-  )
-
-  const inviteCard = isClassOwner && classroom.joinCode ? (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="invite-code-heading">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 id="invite-code-heading" className="text-sm font-semibold text-slate-900">Student invite code</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Share this code with students to join the classroom.</p>
-        </div>
-        <Badge variant="outline" className={classroom.isMock ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}>{classroom.isMock ? "Demo" : "Connected"}</Badge>
-      </div>
-      <code className="mt-3 block break-all rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold tracking-wider text-slate-800">{classroom.joinCode}</code>
-      <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void handleCopyInviteCode()}><Copy aria-hidden="true" /> {classroom.isMock ? "Copy demo code" : "Copy invite code"}</Button>
-    </section>
-  ) : null
-
-  return (
-    <div className="mx-auto w-full max-w-7xl space-y-5">
-      <nav aria-label="Breadcrumb">
-        <ol className="flex min-w-0 items-center gap-1.5 text-sm text-slate-600">
-          <li>
-            <Link
-              to={`/${role}/classrooms`}
-              className="rounded font-medium outline-none hover:text-slate-900 hover:underline focus-visible:ring-2 focus-visible:ring-brand"
-            >
-              My Classes
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="truncate font-medium text-slate-900">{classroom.name}</li>
-        </ol>
-      </nav>
-
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusChip status={classroom.isMock ? { label: "Demo classroom", tone: "demo" } : { label: "Connected classroom", tone: "connected" }} />
-            {classroom.subject && <Badge variant="outline">{classroom.subject}</Badge>}
-          </div>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{classroom.name}</h2>
-          {classroom.description && <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{classroom.description}</p>}
-          <p className="mt-2 text-sm font-medium text-slate-700">Educator: {classroom.instructorName}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {meetingUrl ? (
-            <Link
-              to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId ?? ""))}`}
-              className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground outline-none hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-            >
-              Open meeting room
-            </Link>
-          ) : canCreateMeeting ? (
-            <Button type="button" disabled={creatingMeeting} onClick={() => void handleCreateMeeting()} className="bg-brand text-brand-foreground hover:bg-brand/90">
-              {creatingMeeting ? "Creating room…" : "Create meeting room"}
-            </Button>
-          ) : null}
-        </div>
-      </header>
-
-      {status && <p role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">{status}</p>}
-
-      <Alert className="border-amber-200 bg-amber-50 text-amber-900">
-        <School aria-hidden="true" />
-        <AlertTitle>{classroom.isMock ? "Classroom workflow preview" : "Connected classroom"}</AlertTitle>
-        <AlertDescription className="text-amber-800">
-          {classroom.isMock
-            ? "This demo classroom and its content exist only in this app session."
-            : "Classroom membership and meeting links are connected to the API. Posts, messages, classwork, attendance, sessions, and learner records remain mock data held in this app session only."}
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => selectTab(String(value))}
-          className="min-w-0 flex-col rounded-2xl border border-slate-200 bg-white shadow-sm"
-        >
-          <TabsList variant="line" className="w-full max-w-full justify-start gap-1 overflow-x-auto border-b border-slate-200 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {visibleTabItems.map(({ value, label, icon: Icon }) => (
-              <TabsTrigger key={value} value={value} className="h-11 min-w-fit flex-none rounded-none px-3 group-data-[orientation=horizontal]/tabs:after:bottom-0">
-                <Icon aria-hidden="true" className="size-4" /> {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {role === "educators" && <TabsContent value="about" className="p-4 sm:p-5">
-            <div className="grid gap-4 lg:grid-cols-2">
-              <Card>
-                <CardContent className="space-y-4 p-5 sm:p-6">
-                  <div>
-                    <h3 className="text-base font-semibold text-slate-900">About this class</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{classroom.description || "No class description has been provided."}</p>
-                  </div>
-                  <dl className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
-                    <div><dt className="text-xs text-slate-500">Subject</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.subject}</dd></div>
-                    <div><dt className="text-xs text-slate-500">Educator</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.instructorName}</dd></div>
-                    <div><dt className="text-xs text-slate-500">Class record</dt><dd className="mt-1 text-sm font-medium text-slate-900">{classroom.isMock ? "Demo preview" : "Connected"}</dd></div>
-                  </dl>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="space-y-3 p-5 sm:p-6">
-                  <h3 className="text-base font-semibold text-slate-900">Class access</h3>
-                  <p className="text-sm leading-5 text-slate-600">Use the class details beside this panel to open the meeting room or share the student invite code.</p>
-                  {classroom.isMock && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo controls only</Badge>}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>}
-          <TabsContent value="feed" className="p-4 sm:p-5">
-            <ClassroomFeedView classroom={classroom} role={role as WorkspaceRole} onOpenMembers={() => selectTab("people")} />
-          </TabsContent>
-          <TabsContent value="chat" className="p-4 sm:p-5">
-            <ClassroomChatView classroom={classroom} role={role as WorkspaceRole} />
-          </TabsContent>
-          <TabsContent value="classwork" className="p-4 sm:p-5">
-            <ClassroomClassworkView classroom={classroom} role={role as WorkspaceRole} />
-          </TabsContent>
-          <TabsContent value="people" className="p-4 sm:p-5">
-            <ClassroomMembersView classroom={classroom} role={role as WorkspaceRole} />
-          </TabsContent>
-          {visibleTabItems.filter(({ value }) => underDevelopmentTabs.has(value)).map(({ value, label }) => (
-            <TabsContent key={value} value={value} className="p-4 sm:p-5">
-              <UnderDevelopment title={label} />
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        <aside aria-label="Class details" className="min-w-0 space-y-4">
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" aria-labelledby="class-info-heading">
-            <img
-              src={getClassroomCoverUrl(classroom.id)}
-              alt=""
-              aria-hidden="true"
-              className="h-32 w-full rounded-xl object-cover"
-            />
-            <div className="space-y-3 p-3">
-              <h3 id="class-info-heading" className="text-sm font-semibold text-slate-900">Class info</h3>
-              <dl className="grid grid-cols-2 gap-3">
-                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Subject</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{classroom.subject || "-"}</dd></div>
-                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Educator</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{classroom.instructorName || "-"}</dd></div>
-                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Next session</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{getNextSession(classroom)}</dd></div>
-                <div className="min-w-0"><dt className="text-[11px] text-slate-500">Class record</dt><dd className="mt-0.5 truncate text-sm font-medium text-slate-900">{classroom.isMock ? "Demo preview" : "Connected"}</dd></div>
-              </dl>
-            </div>
-          </section>
-          {inviteCard}
-          {meetingCard}
-          {classroom.members.length > 0 && (
-            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" aria-labelledby="people-summary-heading">
-              <h3 id="people-summary-heading" className="text-sm font-semibold text-slate-900">People</h3>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  {classroom.members.slice(0, 4).map((member) => (
-                    <PersonAvatar key={member.id} name={member.name} size="sm" className="ring-2 ring-white" />
-                  ))}
-                </div>
-                <p className="text-sm text-slate-600">{classroom.members.length} {classroom.isMock ? "demo members" : "members"}</p>
-              </div>
-              <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => selectTab("people")}>View people</Button>
-            </section>
-          )}
-        </aside>
-      </div>
-    </div>
-  )
+  return <div className="mx-auto max-w-7xl space-y-5">
+    <Link className="underline" to={'/' + role + '/classrooms'}>Back to classrooms</Link>
+    <header><h2 className="text-2xl font-semibold">{classroom.name}</h2><p className="mt-2 text-muted-foreground">{classroom.description}</p></header>
+    {owned && <section aria-label="Classroom invite" className="space-y-3 rounded-xl border p-4"><h3 className="font-semibold">Student invite code</h3>
+      {classroom.joinCode ? <><code className="block break-all select-all">{classroom.joinCode}</code><Button variant="outline" onClick={() => void copyCode()}>Copy invite code</Button>
+        <p className="text-sm text-muted-foreground">Keep this code private. Save it now; it cannot be retrieved after reloading or signing out.</p></>
+        : <p className="text-sm text-muted-foreground">The code was shown when this classroom was created. Retrieving or replacing a lost code is not available yet.</p>}
+      {notice && <p role="status">{notice}</p>}</section>}
+    <Tabs value={tab} onValueChange={value => setParams(value === 'about' ? {} : { tab: value }, { replace: true })}>
+      <TabsList className="h-auto flex-wrap">{tabs.map(item => <TabsTrigger key={item.value} value={item.value}>{item.label}</TabsTrigger>)}</TabsList>
+      <TabsContent value="about" className="space-y-3 p-4"><h3 className="font-semibold">About this classroom</h3><p>{classroom.description || 'No description provided.'}</p>
+        <p className="text-sm text-muted-foreground">Classroom creation and enrollment are connected. Meetings and learning activities are not available in this classroom yet.</p></TabsContent>
+      <TabsContent value="people" className="p-4"><ClassroomMembersView classroom={classroom} role={role} /></TabsContent>
+      {tabs.filter(item => item.value !== 'about' && item.value !== 'people').map(item => <TabsContent key={item.value} value={item.value} className="p-4"><UnderDevelopment title={item.label} /></TabsContent>)}
+    </Tabs>
+  </div>
 }

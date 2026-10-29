@@ -9,7 +9,7 @@ export type ApiHealth = {
   timestamp: string
 }
 
-export type AuthRole = "STUDENT" | "EDUCATOR" | "TUTOR" | "ESL"
+export type AuthRole = "STUDENT" | "EDUCATOR" | "TUTOR" | "ESL" | "ADMIN"
 
 export type AccountType = "student" | "educator" | "tutor" | "esl"
 
@@ -17,7 +17,7 @@ export type AuthUser = {
   id: string
   email: string
   name: string
-  status: "PENDING_VERIFICATION" | "ACTIVE" | "SUSPENDED"
+  status: "PENDING_VERIFICATION" | "ACTIVE" | "DISABLED"
   emailVerifiedAt: string | null
   roles: AuthRole[]
   createdAt: string
@@ -60,5 +60,4 @@ export type GoogleStartResponse = {
 
 export type GoogleLinkStatus = {
   linked: boolean
-  email: string | null
 }

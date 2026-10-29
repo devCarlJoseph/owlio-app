@@ -3,7 +3,7 @@ import { Maximize2, Minimize2, Trophy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DEMO_LEARNER_ID } from "./classroom-mock-data"
+import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { Classroom, ClassroomActivity } from "./classroom-types"
 import { QuizCountdown } from "./quiz-countdown"
@@ -14,7 +14,7 @@ import { QuizResultCard } from "./quiz-result-card"
 import { buildLeaderboard, formatDuration, getQuizTimingState, type QuizPhase } from "./quiz-timing"
 import { useNow } from "./use-now"
 
-const LEARNER_LABEL = "You · demo learner"
+const LEARNER_LABEL = "You"
 
 const phaseMessages: Partial<Record<QuizPhase, string>> = {
   ready: "Press Start quiz when you are ready. The questions appear once the timer begins.",
@@ -25,9 +25,10 @@ const phaseMessages: Partial<Record<QuizPhase, string>> = {
 
 export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; activity: ClassroomActivity }) {
   const { submitActivity, startActivityAttempt } = useClassroomPrototype()
+  const currentLearnerId = useAuthSession().user?.id
   const timing = activity.timing
-  const submission = activity.submissions.find((item) => item.learnerId === DEMO_LEARNER_ID)
-  const attempt = activity.attempts?.find((item) => item.learnerId === DEMO_LEARNER_ID)
+  const submission = activity.submissions.find((item) => item.learnerId === currentLearnerId)
+  const attempt = activity.attempts?.find((item) => item.learnerId === currentLearnerId)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [status, setStatus] = useState("")
   const [confirming, setConfirming] = useState(false)
@@ -44,7 +45,7 @@ export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; a
   const questionsVisible = phase === "running" || phase === "expired"
   const locked = phase === "expired"
   const leaderboard = useMemo(() => buildLeaderboard(activity), [activity])
-  const myEntry = leaderboard.find((entry) => entry.learnerId === DEMO_LEARNER_ID)
+  const myEntry = leaderboard.find((entry) => entry.learnerId === currentLearnerId)
   const unanswered = activity.questions.filter((question) => !isAnswered(answers[question.id])).length
   const autoSubmitOnTimeUp = Boolean(timing?.autoSubmitOnTimeUp)
 
@@ -181,7 +182,7 @@ export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; a
 
         <TabsContent value="leaderboard" className="pt-4">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <QuizLeaderboard enabled={Boolean(activity.showLeaderboard)} entries={leaderboard} currentLearnerId={DEMO_LEARNER_ID} />
+            <QuizLeaderboard enabled={Boolean(activity.showLeaderboard)} entries={leaderboard} currentLearnerId={currentLearnerId ?? ""} />
             <aside aria-label="Your result" className="min-w-0">
               <QuizResultCard activity={activity} submission={submission} myEntry={myEntry} learnerName={LEARNER_LABEL} />
             </aside>

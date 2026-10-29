@@ -7,7 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getNoteTitle, type NoteRecord } from "./note-records"
+import type { NoteRecord } from "../contents/note-records"
+import { getNoteTitle } from "../utils/note-records"
 
 type NoteCardMenuProps = {
   note: NoteRecord

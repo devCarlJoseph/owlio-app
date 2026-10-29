@@ -158,6 +158,7 @@ export type ClassroomProgressRecord = {
 }
 
 export type Classroom = {
+  ownerId?: string
   id: string
   name: string
   subject: string
@@ -182,7 +183,6 @@ export type Classroom = {
 
 export type CreateClassroomInput = {
   name: string
-  subject: string
   description: string
 }
 

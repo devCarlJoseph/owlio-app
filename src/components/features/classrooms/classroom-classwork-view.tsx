@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react"
+import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { ArrowRight, BookOpen, ClipboardCheck, FileText, FlaskConical, Mic, MessagesSquare, Paperclip, Plus, Presentation, TriangleAlert, Wrench, FolderKanban, type LucideIcon } from "lucide-react"
 import { Link, useLocation } from "react-router"
 import { getDashboardRole } from "@/components/common/dashboard-navigation"
@@ -53,6 +54,7 @@ const questionTypes: QuestionType[] = [
 ]
 
 export function ClassroomClassworkView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
+  const currentLearnerId = useAuthSession().user?.id
   const { pathname } = useLocation()
   const workspace = getDashboardRole(pathname) ?? "students"
   const { createActivity } = useClassroomPrototype()
@@ -63,7 +65,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
   const [status, setStatus] = useState("")
   const [timingErrors, setTimingErrors] = useState<TimingFormResult["errors"]>({})
   const isFormBased = activityType === "Quiz" || activityType === "Test"
-  const mySubmitted = classroom.activities.filter((activity) => activity.submissions.some((item) => item.learnerId === "demo-learner")).length
+  const mySubmitted = classroom.activities.filter((activity) => activity.submissions.some((item) => item.learnerId === currentLearnerId)).length
   const toReview = classroom.activities.reduce((total, activity) => total + activity.submissions.filter((item) => item.status === "In review").length, 0)
   const nextDue = classroom.activities.map((activity) => activity.dueDate).filter(Boolean).sort()[0]
   const stats = [
@@ -275,7 +277,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
               </h4>
               <ul className="divide-y divide-slate-100">
                 {section.items.map((activity) => {
-                  const submission = activity.submissions.find((item) => item.learnerId === "demo-learner")
+                  const submission = activity.submissions.find((item) => item.learnerId === currentLearnerId)
                   const Icon = activityIcons[activity.type]
                   const statusLabel = isStudent ? submission?.status ?? "Not started" : activity.status === "Draft" ? "Draft" : "Assigned"
                   return (

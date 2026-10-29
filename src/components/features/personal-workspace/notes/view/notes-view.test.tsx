@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { NotesView } from "./notes-view"
-import { notesStorageKey } from "./note-records"
+import { notesStorageKey } from "../contents/note-records"
 
 function renderNotes() {
   return render(

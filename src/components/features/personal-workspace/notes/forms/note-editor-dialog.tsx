@@ -29,17 +29,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { NoteLabels } from "./note-labels"
+import { NoteLabels } from "../ui/note-labels"
 import {
-  createChecklistItemId,
-  getNoteColorMeta,
-  normalizeLabels,
   noteColors,
   type NoteChecklistItem,
   type NoteColor,
   type NoteKind,
   type NoteRecord,
-} from "./note-records"
+} from "../contents/note-records"
+import { createChecklistItemId, getNoteColorMeta, normalizeLabels } from "../utils/note-records"
+import { handleAddItem } from "../utils/handle-add-item"
 
 const editedFormatter = new Intl.DateTimeFormat(undefined, {
   day: "numeric",
@@ -98,9 +97,8 @@ export function NoteEditorDialog({
     update({ labels: current.labels.filter((item) => item !== label) })
   }
 
-  function handleAddItem() {
-    const item: NoteChecklistItem = { id: createChecklistItemId(), text: "", done: false }
-    update({ kind: "checklist", items: [...current.items, item] })
+  function addItem() {
+    update(handleAddItem(current))
   }
 
   function handleUpdateItem(itemId: string, patch: Partial<NoteChecklistItem>) {
@@ -175,7 +173,7 @@ export function NoteEditorDialog({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={handleAddItem}
+                onClick={addItem}
                 className="w-fit text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               >
                 <Plus aria-hidden="true" />

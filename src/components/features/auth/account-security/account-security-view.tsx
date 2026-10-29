@@ -59,7 +59,7 @@ export function AccountSecurityView() {
             <p role="status" className="text-sm text-slate-500">Checking linked accounts…</p>
           ) : googleStatus?.linked ? (
             <p role="status" className="text-sm text-slate-700">
-              Google is connected{googleStatus.email ? ` as ${googleStatus.email}` : ''}.
+              Google is connected.
             </p>
           ) : (
             <Button type="button" disabled={linking} onClick={() => void linkGoogle()}>

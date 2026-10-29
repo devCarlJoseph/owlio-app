@@ -6,7 +6,7 @@ import { AuthShowcaseLayout } from '../shared/auth-showcase-layout'
 import { authPrimaryButtonClassName } from '../shared/auth-input-styles'
 import { useAuthSession } from '../auth-session-context'
 import { getWorkspacePath } from '@/lib/workspace-path'
-import { getCurrentUser } from '@/services/api/auth.service'
+import { getCurrentUser, getCsrfToken } from '@/services/api/auth.service'
 import { getApiErrorMessage } from '@/services/api/api-error'
 
 export function GoogleOAuthCallbackView() {
@@ -22,21 +22,21 @@ export function GoogleOAuthCallbackView() {
     const result = new URLSearchParams(location.search).get('result')
     navigate(location.pathname, { replace: true })
 
-    if (result === 'verification-required') {
+    if (result === 'verification_required') {
       navigate('/email-verification', {
         replace: true,
         state: { source: 'google', resendCooldownSeconds: 60 },
       })
       return
     }
-    if (result === 'registration-required') {
+    if (result === 'registration_required') {
       navigate('/register', {
         replace: true,
         state: { oauthNotice: 'No Google-linked Owlio account was found. Choose a role and sign up with Google.' },
       })
       return
     }
-    if (result === 'account-link-required') {
+    if (result === 'link_required') {
       navigate('/login', {
         replace: true,
         state: { oauthNotice: 'Sign in to your existing account, then link Google from Account Security.' },
@@ -53,10 +53,11 @@ export function GoogleOAuthCallbackView() {
 
     void (async () => {
       try {
+        await getCsrfToken(true)
         const user = await getCurrentUser()
         await refreshCurrentUser()
         const workspace = getWorkspacePath(user.roles)
-        navigate(result === 'linked' ? `${workspace}/account/security` : workspace, { replace: true })
+        navigate(result === 'linked' && workspace !== '/access-denied' ? `${workspace}/account/security` : workspace, { replace: true })
       } catch (requestError) {
         setError(getApiErrorMessage(requestError, 'Could not finish Google sign-in. Please try again.'))
       }

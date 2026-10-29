@@ -6,50 +6,33 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { NoteDeleteDialog } from "./note-delete-dialog"
-import { NoteEditorDialog } from "./note-editor-dialog"
-import { NoteLabelChips } from "./note-label-chips"
-import { NoteList } from "./note-list"
+import { NoteDeleteDialog } from "../ui/note-delete-dialog"
+import { NoteEditorDialog } from "../forms/note-editor-dialog"
+import { NoteLabelChips } from "../ui/note-label-chips"
+import { NoteList } from "../ui/note-list"
 import {
   countNotesInBucket,
-  createNoteId,
+  createEmptyNote,
   getNoteLabels,
   groupNotesByLabel,
   loadNotes,
-  notesBucketLabels,
-  notesGuidance,
-  notesStorageNotice,
   noteMatchesQuery,
   saveNotes,
   sortNotes,
+} from "../utils/note-records"
+import { toggleItem } from "../utils/toggle-item"
+import {
+  notesBucketLabels,
+  notesGuidance,
+  notesStorageNotice,
   type NoteBucket,
   type NoteRecord,
-} from "./note-records"
-
-const notesIntro =
-  "Capture what you learn in your own words. Write a note or tick off a checklist, then keep it where you can find it again."
+} from "../contents/note-records"
+import { noteBuckets, notesIntro } from "../contents/notes-content"
 
 type UndoState =
   | { message: string; kind: "restore"; note: NoteRecord }
   | { message: string; kind: "remove"; noteId: string }
-
-function createEmptyNote(): NoteRecord {
-  const timestamp = new Date().toISOString()
-
-  return {
-    id: createNoteId(),
-    title: "",
-    body: "",
-    labels: [],
-    updatedAt: timestamp,
-    pinned: false,
-    kind: "text",
-    color: "default",
-    items: [],
-    archived: false,
-    trashed: false,
-  }
-}
 
 export function NotesView() {
   const [notes, setNotes] = useState<NoteRecord[]>(() => loadNotes())
@@ -138,16 +121,7 @@ export function NotesView() {
 
   function handleToggleItem(note: NoteRecord, itemId: string) {
     setNotes((current) =>
-      current.map((item) =>
-        item.id === note.id
-          ? {
-              ...item,
-              items: item.items.map((entry) =>
-                entry.id === itemId ? { ...entry, done: !entry.done } : entry
-              ),
-            }
-          : item
-      )
+      current.map((item) => (item.id === note.id ? toggleItem(item, itemId) : item))
     )
   }
 
@@ -488,5 +462,3 @@ export function NotesView() {
     </div>
   )
 }
-
-const noteBuckets: NoteBucket[] = ["notes", "archive", "trash"]

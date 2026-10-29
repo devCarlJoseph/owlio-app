@@ -14,13 +14,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { NoteEditorDialog } from "@/components/features/personal-workspace/notes/note-editor-dialog"
+import { NoteEditorDialog } from "@/components/features/personal-workspace/notes/forms/note-editor-dialog"
 import {
   createNoteId,
   loadNotes,
   saveNotes,
-  type NoteRecord,
-} from "@/components/features/personal-workspace/notes/note-records"
+} from "@/components/features/personal-workspace/notes/utils/note-records"
+import type { NoteRecord } from "@/components/features/personal-workspace/notes/contents/note-records"
 import { TaskComposerDialog } from "@/components/features/personal-workspace/tasks/task-composer-dialog"
 import {
   createTaskId,

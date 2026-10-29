@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import { getWorkspacePath } from '@/lib/workspace-path'
+import { getLoginDestination } from '@/lib/workspace-path'
 import { startGoogleOAuth } from '@/services/api/auth.service'
 import { useAuthSession } from '../auth-session-context'
 import { AuthFeedback } from '../shared/auth-feedback'
@@ -27,10 +27,8 @@ export function LoginView() {
     setSubmitError(null)
     try {
       const session = await signIn(values)
-      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
-      const safeReturnPath = from?.startsWith('/') && !from.startsWith('//') ? from : null
-      const defaultPath = getWorkspacePath(session.user.roles)
-      navigate(safeReturnPath ?? defaultPath, { replace: true })
+      const from = (location.state as { from?: unknown } | null)?.from
+      navigate(getLoginDestination(session.user.roles, from), { replace: true })
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, 'Could not sign in. Check your credentials and try again.'))
     }

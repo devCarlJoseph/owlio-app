@@ -1,53 +1,33 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import { MemoryRouter } from "react-router"
-import { afterEach, describe, expect, it } from "vitest"
-import { ClassroomPrototypeProvider } from "./classroom-prototype-provider"
-import { ClassroomsView } from "./classrooms-view"
-
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getClassrooms, joinClassroomByCode } from '@/services/api/classroom.service'
+import { ClassroomsView } from './classrooms-view'
+import { TestSession } from './classroom-test-fixtures'
+vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 afterEach(cleanup)
-
-function renderView() {
-  return render(
-    <MemoryRouter initialEntries={["/students/classrooms"]}>
-      <ClassroomPrototypeProvider>
-        <ClassroomsView />
-      </ClassroomPrototypeProvider>
-    </MemoryRouter>,
-  )
-}
-
-describe("My Classes join dialog accessibility", () => {
-  it("opens a labelled dialog and returns focus to the trigger when it is discarded", async () => {
+beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]) })
+describe('classroom join accessibility', () => {
+  it('labels the dialog and restores focus after discard', async () => {
     const user = userEvent.setup()
-    renderView()
-
-    const toggle = screen.getAllByRole("button", { name: /join a class/i })[0]
-    expect(toggle.getAttribute("aria-haspopup")).toBe("dialog")
-
-    await user.click(toggle)
-
-    const dialog = await screen.findByRole("dialog", { name: /join a classroom/i })
-    expect(dialog).toBeTruthy()
-
-    await user.click(screen.getByRole("button", { name: /discard/i }))
-
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-    await waitFor(() => expect(document.activeElement).toBe(toggle))
+    render(<TestSession><ClassroomsView /></TestSession>)
+    const trigger = screen.getByRole('button', { name: 'Join a class' })
+    await user.click(trigger)
+    expect(await screen.findByRole('dialog', { name: 'Join a classroom' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Discard' }))
+    await waitFor(() => expect(document.activeElement).toBe(trigger))
   })
-
-  it("marks the code field invalid and keeps focus in it when a code cannot be verified", async () => {
+  it('keeps invalid codes and focuses the field after an API rejection', async () => {
+    vi.mocked(joinClassroomByCode).mockRejectedValue(new Error('Join code is invalid.'))
     const user = userEvent.setup()
-    renderView()
-
-    await user.click(screen.getAllByRole("button", { name: /join a class/i })[0])
-    const input = await screen.findByLabelText("Classroom invite code")
-    await user.type(input, "OWLIO-NOT-A-CODE")
-    await user.click(screen.getByRole("button", { name: /^Join class$/ }))
-
-    const alert = await screen.findByRole("alert")
-    expect(alert.textContent).toMatch(/not verified in preview mode/i)
-    expect(input.getAttribute("aria-invalid")).toBe("true")
-    expect(document.activeElement).toBe(input)
+    render(<TestSession><ClassroomsView /></TestSession>)
+    await user.click(screen.getByRole('button', { name: 'Join a class' }))
+    const input = screen.getByLabelText('Classroom invite code') as HTMLInputElement
+    await user.type(input, 'invalid-code')
+    await user.click(screen.getByRole('button', { name: 'Join class' }))
+    expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Join code is invalid.')
+    expect(input.value).toBe('invalid-code')
+    expect(input.getAttribute('aria-invalid')).toBe('true')
+    await waitFor(() => expect(document.activeElement).toBe(input))
   })
 })

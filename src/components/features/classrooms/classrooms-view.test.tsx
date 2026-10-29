@@ -1,218 +1,103 @@
-import { cleanup, render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import { MemoryRouter, useLocation } from "react-router"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import {
-  getClassrooms,
-  joinClassroomByCode,
-  type ApiClassroom,
-} from "@/services/api/classroom.service"
-import { ClassroomPrototypeProvider } from "./classroom-prototype-provider"
-import { ClassroomsView } from "./classrooms-view"
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createClassroom, getClassrooms, joinClassroomByCode } from '@/services/api/classroom.service'
+import { ClassroomsView } from './classrooms-view'
+import { TestSession } from './classroom-test-fixtures'
+import { classroom, student, teacher } from './classroom-test-data'
 
-vi.mock("@/lib/api-mode", () => ({ API_INTEGRATION_ENABLED: true }))
-
-vi.mock("@/services/api/classroom.service", () => ({
-  getClassrooms: vi.fn(),
-  createClassroom: vi.fn(),
-  joinClassroomByCode: vi.fn(),
-}))
-
-const mockedGetClassrooms = vi.mocked(getClassrooms)
-const mockedJoinClassroomByCode = vi.mocked(joinClassroomByCode)
-
-const enrolledClassroom: ApiClassroom = {
-  id: "class-biology",
-  name: "Foundations of Biology",
-  subject: "Life science",
-  description: "Explore living systems and ecosystems.",
-  instructorName: "Morgan Chen",
-  joinCode: "OWLIO-1234",
-  meetingId: null,
-  access: "student",
-}
-
-function renderView() {
-  return render(
-    <MemoryRouter initialEntries={["/students/classrooms"]}>
-      <ClassroomPrototypeProvider>
-        <ClassroomsView />
-      </ClassroomPrototypeProvider>
-    </MemoryRouter>,
-  )
-}
-
-async function openJoinForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getAllByRole("button", { name: /join a class/i })[0])
-  return screen.getByLabelText("Classroom invite code")
-}
-
-describe("student My Classes", () => {
-  beforeEach(() => {
-    mockedGetClassrooms.mockResolvedValue([])
-    mockedJoinClassroomByCode.mockResolvedValue(enrolledClassroom)
+vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
+afterEach(cleanup)
+beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]) })
+describe('API classroom list', () => {
+  it('has no sample classes when the API returns empty', async () => {
+    render(<TestSession><ClassroomsView /></TestSession>)
+    expect(await screen.findByText('No classes joined yet')).toBeTruthy()
+    expect(screen.queryByText('Biology 101')).toBeNull()
+    expect(screen.queryByText(/demo previews/i)).toBeNull()
   })
-
-  afterEach(() => {
-    cleanup()
+  it('loads only API classrooms', async () => {
+    vi.mocked(getClassrooms).mockResolvedValue([classroom])
+    render(<TestSession><ClassroomsView /></TestSession>)
+    expect(await screen.findByText(classroom.name)).toBeTruthy()
   })
-
-  it("shows service-confirmed classes and demo previews in one gallery", async () => {
-    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
-    renderView()
-
-    expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
-    expect(screen.getByText("My Classes")).toBeTruthy()
-    expect(screen.getByText(/1 connected · 3 demo previews/)).toBeTruthy()
-    expect(screen.getByText("Enrolled")).toBeTruthy()
-    expect(screen.getAllByText("Demo").length).toBeGreaterThan(0)
-    expect(screen.getByText(/Membership comes from the classroom service/)).toBeTruthy()
-  })
-
-  it("gives every class card classwork and materials shortcuts", async () => {
-    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
-    renderView()
-
-    const classworkLink = await screen.findByRole("link", {
-      name: "Open Foundations of Biology classwork",
-    })
-    const materialsLink = screen.getByRole("link", {
-      name: "Open Foundations of Biology materials",
-    })
-
-    expect(classworkLink.getAttribute("href")).toBe(
-      "/students/classrooms/class-biology?tab=classwork",
-    )
-    expect(materialsLink.getAttribute("href")).toBe(
-      "/students/classrooms/class-biology?tab=materials",
-    )
-  })
-
-  it("navigates to the classwork tab from the card menu", async () => {
+  it('keeps grid and list views backed by the same server records', async () => {
+    vi.mocked(getClassrooms).mockResolvedValue([classroom])
     const user = userEvent.setup()
-    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
-
-    let currentPath = ""
-    function LocationProbe() {
-      const location = useLocation()
-      currentPath = `${location.pathname}${location.search}`
-      return null
-    }
-
-    render(
-      <MemoryRouter initialEntries={["/students/classrooms"]}>
-        <ClassroomPrototypeProvider>
-          <ClassroomsView />
-          <LocationProbe />
-        </ClassroomPrototypeProvider>
-      </MemoryRouter>,
-    )
-
-    await user.click(
-      await screen.findByRole("button", { name: "More options for Foundations of Biology" }),
-    )
-    const menu = await screen.findByRole("menu")
-    await user.click(within(menu).getByRole("menuitem", { name: "Classwork" }))
-
-    expect(currentPath).toBe("/students/classrooms/class-biology?tab=classwork")
+    render(<TestSession><ClassroomsView /></TestSession>)
+    await screen.findByText(classroom.name)
+    await user.click(screen.getByRole('button', { name: /list view/i }))
+    expect(screen.getByRole('table', { name: 'Classes' })).toBeTruthy()
+    expect(screen.getByText(classroom.name)).toBeTruthy()
   })
-
-  it("switches between grid and list layouts without changing the classes shown", async () => {
-    const user = userEvent.setup()
-    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
-    renderView()
-
-    expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
-    expect(screen.queryByRole("table", { name: "Classes" })).toBeNull()
-
-    const listToggle = screen.getByRole("button", { name: "List view" })
-    await user.click(listToggle)
-
-    const table = await screen.findByRole("table", { name: "Classes" })
-    expect(within(table).getByText("Foundations of Biology")).toBeTruthy()
-    expect(within(table).getAllByRole("row").length).toBeGreaterThan(1)
-    expect(screen.getByRole("button", { name: "List view" }).getAttribute("aria-pressed")).toBe("true")
-
-    await user.click(screen.getByRole("button", { name: "Grid view" }))
-    expect(screen.queryByRole("table", { name: "Classes" })).toBeNull()
-    expect(screen.getByText("Foundations of Biology")).toBeTruthy()
+  it('shows an error instead of sample data on a failed load', async () => {
+    vi.mocked(getClassrooms).mockRejectedValue(new Error('Service unavailable'))
+    render(<TestSession><ClassroomsView /></TestSession>)
+    expect(await screen.findByRole('alert')).toHaveProperty('textContent', expect.stringContaining('Service unavailable'))
+    expect(screen.queryByText('No classes joined yet')).toBeNull()
+    expect(screen.queryByText('Biology 101')).toBeNull()
   })
-
-  it("filters classes by subject and search", async () => {
+  it.each(['ESL', 'TUTOR'] as const)('lets %s create through the API', async role => {
+    const account = { ...teacher, roles: [role] }
+    vi.mocked(createClassroom).mockResolvedValue({ classroom, joinCode: 'a'.repeat(43) })
     const user = userEvent.setup()
-    mockedGetClassrooms.mockResolvedValue([enrolledClassroom])
-    renderView()
-
-    expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
-
-    const filters = screen.getByRole("group", { name: "Filter classes by subject" })
-    await user.click(within(filters).getByRole("button", { name: /Life science/ }))
-    expect(screen.getByText("Foundations of Biology")).toBeTruthy()
-    expect(screen.queryByText("Biology 101")).toBeNull()
-
-    await user.click(within(filters).getByRole("button", { name: /^All/ }))
-    await user.type(screen.getByRole("searchbox", { name: "Search classes" }), "zzz-no-match")
-    expect(screen.getByText("No classes match your filters")).toBeTruthy()
-
-    await user.click(screen.getByRole("button", { name: "Clear filters" }))
-    expect(screen.getByText("Foundations of Biology")).toBeTruthy()
+    render(<TestSession user={account} path={role === 'ESL' ? '/esl/classrooms' : '/tutors/classrooms'}><ClassroomsView /></TestSession>)
+    await screen.findByText('No classrooms yet')
+    await user.click(screen.getByRole('button', { name: 'Create class' }))
+    await user.type(screen.getByLabelText('Classroom name'), classroom.name)
+    expect(screen.queryByLabelText('Subject or learning focus')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Create classroom' }))
+    await waitFor(() => expect(createClassroom).toHaveBeenCalledWith({ name: classroom.name, description: '' }))
+    expect(await screen.findByText(/was created/)).toBeTruthy()
   })
-
-  it("lets the connected-vs-demo notice be dismissed", async () => {
+  it('does not claim creation succeeded if the API rejects it', async () => {
+    vi.mocked(createClassroom).mockRejectedValue(new Error('Creation denied'))
     const user = userEvent.setup()
-    renderView()
-
-    expect(await screen.findByText(/connected · 3 demo previews/)).toBeTruthy()
-    await user.click(screen.getByRole("button", { name: "Dismiss notice" }))
-    expect(screen.queryByText(/connected · 3 demo previews/)).toBeNull()
+    render(<TestSession user={teacher} path="/educators/classrooms"><ClassroomsView /></TestSession>)
+    await user.click(screen.getByRole('button', { name: 'Create class' }))
+    await user.type(screen.getByLabelText('Classroom name'), 'Math')
+    await user.click(screen.getByRole('button', { name: 'Create classroom' }))
+    expect(await screen.findByText('Creation denied')).toBeTruthy()
+    expect(screen.queryByText(/was created/)).toBeNull()
   })
-
-  it("confirms a join only after the classroom service responds", async () => {
+  it('waits for server enrollment and prevents duplicate submissions', async () => {
+    let resolve!: (value: typeof classroom) => void
+    vi.mocked(joinClassroomByCode).mockReturnValue(new Promise(done => { resolve = done }))
     const user = userEvent.setup()
-    let resolveJoin: ((classroom: ApiClassroom) => void) | undefined
-    mockedJoinClassroomByCode.mockImplementation(() => new Promise((resolve) => {
-      resolveJoin = resolve
-    }))
-    renderView()
-
-    const input = await openJoinForm(user)
-    await user.type(input, "OWLIO-ABCD")
-    await user.click(screen.getByRole("button", { name: /^Join class$/ }))
-
-    expect(await screen.findByRole("button", { name: /Joining/ })).toBeTruthy()
-    expect(screen.queryByText(/was added to your class list/)).toBeNull()
-
-    resolveJoin?.(enrolledClassroom)
-
+    render(<TestSession><ClassroomsView /></TestSession>)
+    await user.click(screen.getByRole('button', { name: 'Join a class' }))
+    await user.type(screen.getByLabelText('Classroom invite code'), 'a'.repeat(43))
+    await user.click(screen.getByRole('button', { name: 'Join class' }))
+    expect((screen.getByRole('button', { name: 'Joining…' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByText(/was added/)).toBeNull()
+    expect(joinClassroomByCode).toHaveBeenCalledTimes(1)
+    resolve(classroom)
     expect(await screen.findByText(/was added to your class list/)).toBeTruthy()
-    expect(await screen.findByText("Foundations of Biology")).toBeTruthy()
   })
-
-  it("does not submit a second join while a request is in flight", async () => {
-    const user = userEvent.setup()
-    mockedJoinClassroomByCode.mockImplementation(() => new Promise(() => {}))
-    renderView()
-
-    const input = await openJoinForm(user)
-    await user.type(input, "OWLIO-ABCD")
-    await user.click(screen.getByRole("button", { name: /^Join class$/ }))
-
-    const pendingButton = await screen.findByRole("button", { name: /Joining/ })
-    expect((pendingButton as HTMLButtonElement).disabled).toBe(true)
-    expect(mockedJoinClassroomByCode).toHaveBeenCalledTimes(1)
+  it('ignores the old account request when it finishes after account switching', async () => {
+    let resolveOld!: (value: typeof classroom[]) => void
+    vi.mocked(getClassrooms).mockReturnValueOnce(new Promise(done => { resolveOld = done }))
+    const view = render(<TestSession user={student}><ClassroomsView /></TestSession>)
+    const differentClass = { ...classroom, name: 'New account class' }
+    vi.mocked(getClassrooms).mockResolvedValueOnce([differentClass])
+    view.rerender(<TestSession user={{ ...student, id: 'different-id' }}><ClassroomsView /></TestSession>)
+    await screen.findByText(differentClass.name)
+    await act(async () => { resolveOld([classroom]) })
+    expect(screen.queryByText(classroom.name)).toBeNull()
+    expect(screen.getByText(differentClass.name)).toBeTruthy()
   })
-
-  it("keeps the list unchanged and explains the next step when the join fails", async () => {
-    const user = userEvent.setup()
-    mockedJoinClassroomByCode.mockRejectedValue(new Error("Invite code not found"))
-    renderView()
-
-    const input = await openJoinForm(user)
-    await user.type(input, "OWLIO-ABCD")
-    await user.click(screen.getByRole("button", { name: /^Join class$/ }))
-
-    expect(await screen.findByText("Invite code not found")).toBeTruthy()
-    expect(screen.getAllByText("Biology 101").length).toBeGreaterThan(0)
-    expect((input as HTMLInputElement).value).toBe("OWLIO-ABCD")
+  it('clears the previous account classes and ignores late responses', async () => {
+    vi.mocked(getClassrooms).mockResolvedValueOnce([classroom])
+    const nextClass = { ...classroom, id: 'other-class', name: 'Other account class' }
+    const view = render(<TestSession user={student}><ClassroomsView /></TestSession>)
+    await screen.findByText(classroom.name)
+    let resolve!: (value: typeof classroom[]) => void
+    vi.mocked(getClassrooms).mockReturnValueOnce(new Promise(done => { resolve = done }))
+    view.rerender(<TestSession user={{ ...student, id: 'different-user' }}><ClassroomsView /></TestSession>)
+    expect(screen.queryByText(classroom.name)).toBeNull()
+    resolve([nextClass])
+    expect(await screen.findByText(nextClass.name)).toBeTruthy()
+    view.rerender(<TestSession user={null}><ClassroomsView /></TestSession>)
+    expect(screen.queryByText(nextClass.name)).toBeNull()
   })
 })
