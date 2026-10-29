@@ -4,7 +4,13 @@ Updated: 29 October 2026.
 
 This integration uses the existing Owlio API. It does not change backend routes, security settings, environment values, database schema, or role assignments.
 
-## Route access
+## Development preview mode
+
+Set `API_INTEGRATION_ENABLED = false` in `src/lib/api-mode.ts` to browse every registered student, educator, tutor, ESL, and authentication/onboarding page without signing in or holding a matching role. This bypasses frontend session and role redirects only; it does not create an authenticated user, assign roles, or enable API calls. Pages that require server records may show empty/unavailable states. Dynamic detail URLs still need suitable records to display their content.
+
+The preview banner remains visible. API requests, real sign-in, and server writes stay paused. Set the flag back to `true` to restore API-backed sessions and all access rules below. The selected flag value applies to the built frontend bundle as well as local development.
+
+## Route access (API integration enabled)
 
 | API role | Permitted workspace |
 | --- | --- |
@@ -20,7 +26,7 @@ The login, registration, verification, password recovery/reset, legacy auth, and
 
 Anonymous users are redirected to login before feature components render. The login return target is restricted to a workspace assigned by the API; authorized deep links retain their search/fragment. Redirects replace browser history entries so Back cannot bypass the guards.
 
-## Session behavior
+## Session behavior (API integration enabled)
 
 - Restore the session from GET /api/v1/auth/me.
 - On 401, try the existing cookie-based refresh endpoint; a refresh 401 means anonymous.
