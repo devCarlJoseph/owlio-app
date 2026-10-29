@@ -9,6 +9,8 @@ import { RequireGuest } from './require-guest'
 import { RequireRole } from './require-role'
 import { NoWorkspaceView } from './no-workspace-view'
 
+vi.mock('@/lib/api-mode', () => ({ API_INTEGRATION_ENABLED: true }))
+
 afterEach(cleanup)
 const workspaces = [['STUDENT', '/students'], ['EDUCATOR', '/educators'], ['TUTOR', '/tutors'], ['ESL', '/esl']] as const
 function session(roles: AuthRole[] | null): AuthSessionContextValue {
