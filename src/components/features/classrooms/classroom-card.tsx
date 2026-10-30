@@ -1,8 +1,8 @@
-import { ArrowRight, ClipboardList, Folder, MoreVertical } from "lucide-react"
+import { ArrowRight, MoreHorizontal } from "lucide-react"
 import { Link } from "react-router"
 import { cn } from "cn"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getClassroomCoverUrl } from "./classroom-covers"
-import { getClassroomMeta } from "./classroom-list-meta"
-import { MetaCell, StatusChip } from "./classroom-list-ui"
+import { getClassroomCategory, getClassroomMeta } from "./classroom-list-meta"
+import { StatusChip } from "./classroom-list-ui"
 import type { Classroom, WorkspaceRole } from "./classroom-types"
 
 type ClassroomCardProps = {
@@ -20,11 +20,6 @@ type ClassroomCardProps = {
   role: WorkspaceRole
 }
 
-const shortcutClassName = cn(
-  buttonVariants({ variant: "ghost", size: "icon" }),
-  "rounded-full text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-)
-
 function ClassroomMenu({ classroom, href }: { classroom: Classroom; href: string }) {
   return (
     <DropdownMenu>
@@ -32,14 +27,14 @@ function ClassroomMenu({ classroom, href }: { classroom: Classroom; href: string
         render={
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
             size="icon"
             aria-label={`More options for ${classroom.name}`}
-            className="rounded-full text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            className="h-10 w-12 rounded-xl text-muted-foreground"
           />
         }
       >
-        <MoreVertical aria-hidden="true" />
+        <MoreHorizontal aria-hidden="true" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
@@ -51,62 +46,25 @@ function ClassroomMenu({ classroom, href }: { classroom: Classroom; href: string
   )
 }
 
-export function ClassroomCard({ classroom, href, role }: ClassroomCardProps) {
-  const { cells, status } = getClassroomMeta(classroom, role)
-
-  return (
-    <Card className="flex h-full flex-col overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm ring-0 transition-shadow hover:shadow-md">
-      <div className="relative p-2 pb-0">
-        <img
-          src={getClassroomCoverUrl(classroom.id)}
-          alt=""
-          aria-hidden="true"
-          className="h-36 w-full rounded-xl object-cover"
-        />
-        {classroom.subject ? (
-          <span className="absolute left-5 top-5 max-w-[70%] truncate rounded-md bg-white/95 px-2 py-0.5 text-xs font-medium text-slate-800 shadow-sm">
-            {classroom.subject}
-          </span>
-        ) : null}
+export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
+  return <Card className="flex h-full flex-col gap-5 rounded-2xl border border-border bg-card p-5 shadow-none ring-0">
+    <div className="flex flex-1 items-start gap-4">
+      <div className="relative shrink-0">
+        <img src={getClassroomCoverUrl(classroom.id)} alt="" className="size-20 rounded-xl object-cover sm:size-24" />
+        <img src="/mascot/owlio-mark.png" alt="" className="absolute inset-0 m-auto size-10 object-contain drop-shadow-sm" />
       </div>
-
-      <CardContent className="flex-1 gap-4 pt-3">
-        <h3 className="line-clamp-2 min-h-12 text-base font-semibold leading-6 text-slate-900">
-          <Link
-            to={href}
-            className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand"
-          >
-            {classroom.name}
-          </Link>
-        </h3>
-        <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-3">
-          {cells.map((cell) => (
-            <MetaCell key={cell.label} label={cell.label}>{cell.value}</MetaCell>
-          ))}
-          <MetaCell label="Status"><StatusChip status={status} /></MetaCell>
-        </div>
-      </CardContent>
-
-      <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2">
-        <div className="flex items-center">
-          <Link to={`${href}?tab=classwork`} aria-label={`Open ${classroom.name} classwork`} className={shortcutClassName}>
-            <ClipboardList aria-hidden="true" />
-          </Link>
-          <Link to={`${href}?tab=materials`} aria-label={`Open ${classroom.name} materials`} className={shortcutClassName}>
-            <Folder aria-hidden="true" />
-          </Link>
-          <ClassroomMenu classroom={classroom} href={href} />
-        </div>
-        <Link
-          to={href}
-          aria-label={`Open class ${classroom.name}`}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-brand-soft-foreground outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          Open class <ArrowRight aria-hidden="true" className="size-4" />
-        </Link>
+      <div className="min-w-0 py-0.5">
+        <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-soft-foreground">{getClassroomCategory(classroom)}</p>
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug"><Link to={href} className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand">{classroom.name}</Link></h3>
+        <p className="mt-2 text-xs text-muted-foreground">{classroom.instructorName || 'Instructor details unavailable'}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{classroom.isMock ? `${classroom.previewStatus === 'inactive' ? 'Inactive' : 'Active'} · preview` : classroom.access === 'owner' ? 'Connected classroom' : 'Enrolled classroom'}</p>
       </div>
-    </Card>
-  )
+    </div>
+    <div className="flex items-center gap-2.5">
+      <Link to={href} aria-label={`View class ${classroom.name}`} className={cn(buttonVariants({ variant: 'secondary' }), 'h-10 flex-1 rounded-xl bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/70')}>View class</Link>
+      <ClassroomMenu classroom={classroom} href={href} />
+    </div>
+  </Card>
 }
 
 const listColumns = "md:grid-cols-[minmax(0,2.4fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_8rem_auto]"

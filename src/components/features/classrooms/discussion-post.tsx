@@ -7,6 +7,11 @@ import { DiscussionText } from "./discussion-text"
 import { PersonAvatar } from "./classroom-ui"
 import type { ClassroomPost } from "./classroom-types"
 
+function displayDate(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
 function participantNames(post: ClassroomPost) {
   const names = new Set<string>()
   post.comments.forEach((comment) => names.add(comment.authorName))
@@ -40,9 +45,9 @@ export function DiscussionPost({
         <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
           <div className="min-w-0">
             <h4 id={`post-author-${post.id}`} className="truncate text-sm font-semibold text-foreground">{post.authorName}</h4>
-            <p className="text-xs capitalize text-muted-foreground">{post.kind === "announcement" ? "Announcement" : post.authorRole}</p>
+            <p className="text-xs capitalize text-muted-foreground">{post.authorRole} · {post.kind} · class members</p>
           </div>
-          <span className="text-xs text-muted-foreground">{post.createdAt}</span>
+          <time dateTime={post.createdAt} className="text-xs text-muted-foreground">{displayDate(post.createdAt)}</time>
         </div>
       </header>
 
@@ -66,7 +71,7 @@ export function DiscussionPost({
               {repliers.slice(0, 3).map((name) => <PersonAvatar key={name} name={name} size="sm" />)}
             </AvatarGroup>
             <span>
-              {post.comments.length} {post.comments.length === 1 ? "reply" : "replies"} · last reply {lastReply.createdAt}
+              {post.comments.length} {post.comments.length === 1 ? "reply" : "replies"} · last reply {displayDate(lastReply.createdAt)}
             </span>
           </button>
         )}
@@ -91,7 +96,7 @@ export function DiscussionPost({
               <PersonAvatar name={comment.authorName} size="sm" />
               <div className="min-w-0 flex-1 rounded-xl bg-muted/60 px-3 py-2">
                 <p className="text-xs font-semibold text-foreground">
-                  {comment.authorName} <span className="font-normal text-muted-foreground">· {comment.authorRole} · {comment.createdAt}</span>
+                  {comment.authorName} <span className="font-normal text-muted-foreground">· {comment.authorRole} · {displayDate(comment.createdAt)}</span>
                 </p>
                 <DiscussionText text={comment.body} className="mt-1 text-sm text-foreground/90" />
               </div>

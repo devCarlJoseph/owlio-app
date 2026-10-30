@@ -35,6 +35,7 @@ export type ClassroomPost = {
   body: string
   createdAt: string
   comments: ClassroomComment[]
+  reactionMembers?: Record<string, string[]>
 }
 
 export type ClassroomChatReplyRef = {
@@ -164,7 +165,8 @@ export type Classroom = {
   subject: string
   description: string
   instructorName: string
-  ownerWorkspace: Exclude<WorkspaceRole, "students">
+  ownerWorkspace: Exclude<WorkspaceRole, "students"> | null
+  previewStatus?: "active" | "inactive"
   joinCode: string | null
   meetingId: string | null
   access: "owner" | "student"

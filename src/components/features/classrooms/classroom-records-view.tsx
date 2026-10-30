@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { AttendanceStatus, Classroom, WorkspaceRole } from "./classroom-types"
 
@@ -58,7 +57,7 @@ export function ClassroomPeopleView({ classroom }: { classroom: Classroom }) {
       <div>
         <h3 id="people-heading" className="text-lg font-semibold text-slate-900">People in this class</h3>
         <p className="mt-1 text-sm text-slate-600">{classroom.isMock
-          ? `${classroom.members.length} demo members.`
+          ? classroom.access === 'student' ? 'Your instructor and your own enrollment.' : `${classroom.members.length} demo members.`
           : "Connected classroom membership is verified by the API."}
         </p>
       </div>
@@ -156,8 +155,7 @@ export function ClassroomScheduleView({ classroom, role }: { classroom: Classroo
 }
 
 export function ClassroomAttendanceView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
-  const currentLearnerId = useAuthSession().user?.id
-  const { markAttendance } = useClassroomPrototype()
+  const { markAttendance, currentLearnerId } = useClassroomPrototype()
   const [status, setStatus] = useState("")
   const isStudent = role === "students"
   const sessions = classroom.sessions
@@ -171,7 +169,7 @@ export function ClassroomAttendanceView({ classroom, role }: { classroom: Classr
         <h3 id="attendance-heading" className="text-lg font-semibold text-slate-900">Attendance</h3>
         <p className="mt-1 text-sm text-slate-600">{isStudent ? "Your permitted attendance preview for this class." : "Educator-managed attendance preview for this class."}</p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">Attendance here is mock data and does not create an official record.</p>
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">Attendance here is mock data and does not create an official record. It is recorded explicitly by the teacher, never inferred from meeting presence.</p>
       {status && <p role="status" className="text-sm text-amber-800">{status}</p>}
       {sessions.length === 0 ? (
         <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">Add a demo session before viewing attendance.</CardContent></Card>
@@ -222,7 +220,7 @@ export function ClassroomAttendanceView({ classroom, role }: { classroom: Classr
 }
 
 export function ClassroomProgressView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
-  const currentLearnerId = useAuthSession().user?.id
+  const { currentLearnerId } = useClassroomPrototype()
   const isStudent = role === "students"
   const progress = classroom.progress.filter((record) => isStudent
     ? record.learnerId === currentLearnerId && record.released
@@ -232,7 +230,7 @@ export function ClassroomProgressView({ classroom, role }: { classroom: Classroo
   return (
     <section className="space-y-4" aria-labelledby="progress-heading">
       <div>
-        <h3 id="progress-heading" className="text-lg font-semibold text-slate-900">{isStudent ? "Your released results" : role === "tutors" || role === "esl" ? "Learner evaluations" : "Grades & progress"}</h3>
+        <h3 id="progress-heading" className="text-lg font-semibold text-slate-900">{isStudent ? "Your released results" : classroom.ownerWorkspace === "tutors" || classroom.ownerWorkspace === "esl" ? "Learner evaluations" : "Grades & progress"}</h3>
         <p className="mt-1 text-sm text-slate-600">{isStudent ? "Only your released classroom feedback is shown." : `Mock learning records for ${classroom.name}.`}</p>
       </div>
       <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">Preview records only. These are not official grades or saved progress.</p>
@@ -249,7 +247,7 @@ export function ClassroomProgressView({ classroom, role }: { classroom: Classroo
                       <h4 className="font-semibold text-slate-900">{record.activityTitle}</h4>
                       {!isStudent && <p className="mt-1 text-xs text-slate-500">{record.learnerName}</p>}
                     </div>
-                    <Badge variant="outline">{record.evaluation}</Badge>
+                    <Badge variant="outline">{record.evaluation} · {record.released ? 'Released' : 'Unreleased'}</Badge>
                   </div>
                   {record.feedback && <p className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700">{record.feedback}</p>}
                 </CardContent>

@@ -56,7 +56,7 @@ export function DiscussionComposer({
           onChange={(event) => setDraft(event.currentTarget.value)}
           maxLength={1000}
           placeholder={placeholder}
-          className="min-h-16 resize-none border-0 bg-transparent px-1 shadow-none focus-visible:ring-0"
+          className="min-h-16 resize-none bg-transparent px-2 shadow-none"
         />
         {emojiOpen && (
           <div role="group" aria-label="Insert emoji" className="mb-2 flex flex-wrap gap-1">

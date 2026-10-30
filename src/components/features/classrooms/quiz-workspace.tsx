@@ -3,7 +3,6 @@ import { Maximize2, Minimize2, Trophy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { useClassroomPrototype } from "./classroom-prototype-context"
 import type { Classroom, ClassroomActivity } from "./classroom-types"
 import { QuizCountdown } from "./quiz-countdown"
@@ -24,8 +23,7 @@ const phaseMessages: Partial<Record<QuizPhase, string>> = {
 }
 
 export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; activity: ClassroomActivity }) {
-  const { submitActivity, startActivityAttempt } = useClassroomPrototype()
-  const currentLearnerId = useAuthSession().user?.id
+  const { submitActivity, startActivityAttempt, currentLearnerId } = useClassroomPrototype()
   const timing = activity.timing
   const submission = activity.submissions.find((item) => item.learnerId === currentLearnerId)
   const attempt = activity.attempts?.find((item) => item.learnerId === currentLearnerId)

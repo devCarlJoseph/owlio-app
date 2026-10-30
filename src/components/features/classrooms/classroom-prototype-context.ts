@@ -19,13 +19,15 @@ export type ClassroomPrototypeContextValue = {
   classroomsLoading: boolean
   classroomsError: string | null
   connectedModeEnabled: boolean
+  currentLearnerId?: string
   getClassroom: (classroomId: string) => Classroom | undefined
   getClassroomsForWorkspace: (role: WorkspaceRole) => Classroom[]
   reloadClassrooms: () => void
   createClassroom: (input: CreateClassroomInput, ownerWorkspace: Exclude<WorkspaceRole, "students">) => Promise<Classroom>
   joinClassroom: (joinCode: string) => Promise<JoinClassroomResult>
   createMeetingLink: (classroomId: string, meetingId: string) => void
-  createPost: (classroomId: string, input: { title: string; body: string; authorRole: "student" | "educator" }) => void
+  createPost: (classroomId: string, input: { title: string; body: string; authorRole: "student" | "educator"; kind?: "announcement" | "discussion" }) => void
+  togglePostReaction: (classroomId: string, postId: string, emoji: string) => void
   addComment: (classroomId: string, postId: string, body: string, authorRole: "student" | "educator") => void
   requestMember: (classroomId: string, input: { name: string; email: string }, requestedByRole: "student" | "educator") => void
   resolveMemberRequest: (classroomId: string, requestId: string, decision: "accept" | "decline") => void

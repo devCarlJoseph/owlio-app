@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from "react"
-import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { ArrowRight, BookOpen, ClipboardCheck, FileText, FlaskConical, Mic, MessagesSquare, Paperclip, Plus, Presentation, TriangleAlert, Wrench, FolderKanban, type LucideIcon } from "lucide-react"
 import { Link, useLocation } from "react-router"
 import { getDashboardRole } from "@/components/common/dashboard-navigation"
@@ -54,10 +53,9 @@ const questionTypes: QuestionType[] = [
 ]
 
 export function ClassroomClassworkView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
-  const currentLearnerId = useAuthSession().user?.id
   const { pathname } = useLocation()
   const workspace = getDashboardRole(pathname) ?? "students"
-  const { createActivity } = useClassroomPrototype()
+  const { createActivity, currentLearnerId } = useClassroomPrototype()
   const isStudent = role === "students"
   const [showCreate, setShowCreate] = useState(false)
   const [activityType, setActivityType] = useState<ActivityType>("Assignment")
