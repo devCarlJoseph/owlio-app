@@ -1,6 +1,6 @@
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
-import { libraryKindIcons } from "./library-records"
+import { libraryKindIcons, librarySourceMeta } from "./library-records"
 import type { LibraryResource } from "./library-types"
 
 type ResourceListRowProps = {
@@ -9,12 +9,13 @@ type ResourceListRowProps = {
 
 export function ResourceListRow({ resource }: ResourceListRowProps) {
   const KindIcon = libraryKindIcons[resource.kind]
+  const sourceMeta = librarySourceMeta[resource.source]
 
   return (
     <li className="group/resource relative flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:border-slate-300 hover:shadow-sm">
       <span
         aria-hidden="true"
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600"
+        className={`inline-flex size-9 shrink-0 items-center justify-center rounded-lg ${sourceMeta.iconClassName}`}
       >
         <KindIcon className="size-4" />
       </span>

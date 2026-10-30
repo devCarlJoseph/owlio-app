@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { BookOpenCheck, CircleHelp, FolderOpen, Info, Sparkles } from "lucide-react"
+import { BookOpenCheck, FolderOpen, Info, Sparkles } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { LibraryCategoryRow } from "./library-category-row"
@@ -11,10 +11,7 @@ import { ResourceSourceFilter } from "./resource-source-filter"
 import {
   countLibraryResources,
   filterLibraryResources,
-  libraryGuidance,
   librarySourceMeta,
-  librarySourceNotice,
-  libraryStorageNotice,
   previewLibraryResources,
   type LibraryFilter,
 } from "./library-records"
@@ -62,21 +59,21 @@ export function StudentLibraryView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 px-6 py-8 text-white shadow-lg shadow-sky-950/10 sm:px-9 sm:py-10 lg:px-11">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-700 via-teal-700 to-emerald-700 px-6 py-8 text-white shadow-lg shadow-teal-950/25 sm:px-9 sm:py-10 lg:px-11">
         <div
           aria-hidden="true"
-          className="absolute -right-24 -top-40 -z-10 size-96 rounded-full bg-emerald-400/25 blur-3xl"
+          className="absolute -right-24 -top-40 -z-10 size-96 rounded-full bg-cyan-200/30 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="absolute -bottom-52 left-1/3 -z-10 size-96 rounded-full bg-cyan-400/15 blur-3xl"
+          className="absolute -bottom-52 left-1/3 -z-10 size-96 rounded-full bg-emerald-300/25 blur-3xl"
         />
-        <div aria-hidden="true" className="absolute right-[28%] top-8 -z-10 hidden rotate-12 text-white/[0.04] lg:block">
+        <div aria-hidden="true" className="absolute right-[28%] top-8 -z-10 hidden rotate-12 text-white/[0.08] lg:block">
           <BookOpenCheck className="size-56" strokeWidth={1} />
         </div>
 
         <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-200/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-200">
+          <span className="inline-flex items-center gap-2 rounded-full border border-teal-100/40 bg-teal-50/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-teal-50">
             <Sparkles aria-hidden="true" className="size-3" />
             Learning library
           </span>
@@ -89,12 +86,12 @@ export function StudentLibraryView() {
           <button
             type="button"
             aria-label="About the Study Library"
-            className="group/info relative inline-flex size-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-slate-200 outline-none transition hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white"
+            className="group/info relative inline-flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-teal-50 outline-none transition hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white"
           >
             <Info aria-hidden="true" className="size-4" />
             <span
               role="tooltip"
-              className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-64 rounded-xl bg-slate-950 p-3 text-left text-xs leading-5 text-white opacity-0 shadow-lg ring-1 ring-white/15 transition-opacity group-hover/info:opacity-100 group-focus-visible/info:opacity-100"
+              className="pointer-events-none absolute bottom-full right-0 z-20 mb-2 w-64 rounded-xl bg-teal-950 p-3 text-left text-xs leading-5 text-white opacity-0 shadow-lg ring-1 ring-white/15 transition-opacity group-hover/info:opacity-100 group-focus-visible/info:opacity-100"
             >
               Every resource you can reach, kept with the context that owns it: the notes you wrote, a
               class you joined, or a study space you are part of.
@@ -103,30 +100,7 @@ export function StudentLibraryView() {
         </div>
       </section>
 
-      <section
-        aria-label="Study Library guidance"
-        className="flex flex-wrap items-start gap-3 rounded-2xl border border-cyan-100 bg-gradient-to-r from-sky-50 via-white to-emerald-50 px-4 py-3"
-      >
-        <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-800">
-          <FolderOpen className="size-4" aria-hidden="true" />
-        </span>
-        <p className="flex-1 text-sm leading-6 text-sky-950">{libraryGuidance}</p>
-        <p className="flex w-full items-start gap-2 border-t border-cyan-100 pt-2 text-xs leading-5 text-slate-600 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
-          <Info className="mt-0.5 size-3.5 shrink-0 text-emerald-700" aria-hidden="true" />
-          {libraryStorageNotice}
-        </p>
-      </section>
-
-      <section aria-labelledby="library-contexts-heading" className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
-            Pick up where you left off
-          </p>
-          <h3 id="library-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
-            Where are you learning?
-          </h3>
-        </div>
-
+      <section aria-label="Study Library sources">
         <LibraryContextCards />
       </section>
 
@@ -218,20 +192,6 @@ export function StudentLibraryView() {
           </Tabs>
         </CardContent>
       </Card>
-
-      <aside className="flex items-start gap-3 rounded-2xl border border-dashed border-amber-300 bg-gradient-to-r from-amber-50 via-white to-sky-50 p-5 sm:p-6">
-        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
-          <CircleHelp aria-hidden="true" className="size-4" />
-        </span>
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-slate-900">Your material library is not connected yet</h3>
-          <p className="text-sm leading-6 text-slate-600">{librarySourceNotice}</p>
-          <p className="text-sm leading-6 text-slate-600">
-            Resource browsing, uploads, and sharing will appear here once the materials service is in
-            place.
-          </p>
-        </div>
-      </aside>
     </div>
   )
 }

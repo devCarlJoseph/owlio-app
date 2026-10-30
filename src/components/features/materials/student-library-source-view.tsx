@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react"
-import { ChevronLeft, ChevronRight, FolderOpen, Info } from "lucide-react"
+import { ChevronLeft, ChevronRight, FolderOpen } from "lucide-react"
 import { Link } from "react-router"
 import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { LibrarySearchField } from "./library-search-field"
 import { ResourceCard } from "./resource-card"
@@ -12,7 +12,6 @@ import {
   filterLibraryResources,
   groupLibraryResources,
   librarySourceMeta,
-  libraryStorageNotice,
   librarySubjectPreviewLimit,
   previewLibraryResources,
   slugifyLibraryContext,
@@ -20,10 +19,7 @@ import {
 import type { LibrarySource } from "./library-types"
 
 const sourceSecondaryLinks: Record<LibrarySource, { label: string; href: string }[]> = {
-  personal: [
-    { label: "Open Notes", href: "/students/notes" },
-    { label: "Open My Learning", href: "/students/subjects" },
-  ],
+  personal: [],
   classroom: [{ label: "Open My Classes", href: "/students/classrooms" }],
   "study-space": [{ label: "Open Study Spaces", href: "/students/study-spaces" }],
 }
@@ -36,13 +32,33 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
   const meta = librarySourceMeta[source]
   const SourceIcon = meta.icon
   const [query, setQuery] = useState("")
+  const [activeContext, setActiveContext] = useState("all")
 
   const resources = useMemo(
     () => filterLibraryResources(previewLibraryResources, source, query),
     [source, query]
   )
 
-  const groups = useMemo(() => groupLibraryResources(resources), [resources])
+  const subjectCategories = useMemo(() => {
+    const contexts = new Set<string>()
+
+    for (const resource of previewLibraryResources) {
+      if (resource.source === source) contexts.add(resource.context)
+    }
+
+    return [...contexts].sort((a, b) => a.localeCompare(b))
+  }, [source])
+
+  const visibleResources = useMemo(
+    () =>
+      activeContext === "all"
+        ? resources
+        : resources.filter((resource) => resource.context === activeContext),
+    [activeContext, resources]
+  )
+
+  const groups = useMemo(() => groupLibraryResources(visibleResources), [visibleResources])
+  const isPreviewing = activeContext === "all"
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -68,34 +84,45 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
 
       <section
         className={cn(
-          "rounded-2xl border p-6 shadow-sm sm:p-8",
+          "rounded-3xl border p-6 shadow-sm sm:p-8",
           meta.headerClassName,
         )}
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <Badge variant="outline" className={meta.badgeClassName}>
-              {meta.ownerLabel}
-            </Badge>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-              {meta.label}
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{meta.description}</p>
-          </div>
-
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 sm:gap-x-5">
           <span
-            className={`inline-flex size-12 shrink-0 items-center justify-center rounded-2xl ${meta.iconClassName}`}
+            className={cn(
+              "col-start-1 row-span-3 row-start-1 inline-flex w-16 shrink-0 items-center justify-center rounded-3xl sm:w-22",
+              meta.iconClassName,
+            )}
           >
-            <SourceIcon aria-hidden="true" className="size-6" />
+            <SourceIcon aria-hidden="true" className="size-7 sm:size-9" />
           </span>
+
+          <p
+            className={cn(
+              "col-start-2 row-start-1 text-[11px] font-semibold tracking-[0.16em] uppercase",
+              meta.eyebrowClassName,
+            )}
+          >
+            {meta.ownerLabel}
+          </p>
+
+          <h2 className="col-start-2 row-start-2 mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            {meta.label}
+          </h2>
+
+          <p className="col-start-2 row-start-3 mt-2 max-w-xl text-sm leading-6 text-slate-600">
+            {meta.description}
+          </p>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
+        <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">
           <Link
             to={meta.ownerHref}
             className={cn(
               buttonVariants({ variant: "default", size: "default" }),
-              "bg-blue-700 text-white hover:bg-blue-800",
+              "px-5",
+              meta.buttonClassName,
             )}
           >
             {meta.ownerAction}
@@ -107,7 +134,11 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
               <Link
                 key={link.href}
                 to={link.href}
-                className={buttonVariants({ variant: "outline", size: "default" })}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "default" }),
+                  "px-4",
+                  meta.ghostClassName,
+                )}
               >
                 {link.label}
               </Link>
@@ -123,10 +154,6 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         <p className="flex-1 text-sm leading-6 text-blue-800">
           Opening a resource takes you to the context that owns it. Nothing here is copied, moved, or
           shared between contexts.
-        </p>
-        <p className="flex w-full items-start gap-2 border-t border-blue-100 pt-2 text-xs leading-5 text-blue-800 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
-          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          {libraryStorageNotice}
         </p>
       </section>
 
@@ -148,17 +175,64 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
             />
           </div>
 
-          <p className="text-xs text-slate-500" role="status">
-            {resources.length} {resources.length === 1 ? "resource" : "resources"} shown
-          </p>
+          <div
+            role="group"
+            aria-label="Subject categories"
+            className="flex flex-wrap items-center gap-2"
+          >
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              aria-pressed={activeContext === "all"}
+              onClick={() => setActiveContext("all")}
+              className={cn(
+                activeContext === "all"
+                  ? cn("border-transparent", meta.buttonClassName)
+                  : "border-slate-200 bg-white/70 text-slate-600 hover:bg-white",
+              )}
+            >
+              All
+            </Button>
 
-          {resources.length > 0 ? (
+            {subjectCategories.map((context) => {
+              const isActive = activeContext === context
+
+              return (
+                <Button
+                  key={context}
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  aria-pressed={isActive}
+                  onClick={() => setActiveContext(context)}
+                  className={cn(
+                    "min-w-0",
+                    isActive
+                      ? cn("border-transparent", meta.buttonClassName)
+                      : "border-slate-200 bg-white/70 text-slate-600 hover:bg-white",
+                  )}
+                >
+                  <span className="truncate">{context}</span>
+                </Button>
+              )
+            })}
+          </div>
+
+          {isPreviewing ? (
+            <p className="text-xs text-slate-500" role="status">
+              {visibleResources.length}{" "}
+              {visibleResources.length === 1 ? "resource" : "resources"} shown
+            </p>
+          ) : null}
+
+          {visibleResources.length > 0 ? (
             <div className="space-y-6">
               {groups.map((group) => {
                 const groupId = `group-${source}-${slugifyLibraryContext(group.context)}`
                 const subjectHref = `${meta.libraryHref}/${slugifyLibraryContext(group.context)}`
                 const visibleItems =
-                  group.items.length > librarySubjectPreviewLimit
+                  isPreviewing && group.items.length > librarySubjectPreviewLimit
                     ? group.items.slice(0, librarySubjectPreviewLimit)
                     : group.items
                 const hiddenCount = group.items.length - visibleItems.length
@@ -189,7 +263,14 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
 
                         {hiddenCount > 0 ? (
                           <>
-                            <ChevronRight aria-hidden="true" className="size-4 text-slate-500" />
+                            <button
+                              type="button"
+                              aria-label={`Show all ${group.context} resources`}
+                              onClick={() => setActiveContext(group.context)}
+                              className="inline-flex size-6 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-600 outline-none transition hover:bg-white hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                            >
+                              <ChevronRight aria-hidden="true" className="size-4" />
+                            </button>
                             <span
                               role="tooltip"
                               className="pointer-events-none absolute bottom-full right-0 z-10 mb-1 rounded-md bg-slate-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/count:opacity-100"
@@ -214,7 +295,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
             </div>
           ) : (
             <ResourceList
-              resources={resources}
+              resources={visibleResources}
               isFiltered={query.trim().length > 0}
               onClearFilters={() => setQuery("")}
               emptyTitle="No resources match this search"

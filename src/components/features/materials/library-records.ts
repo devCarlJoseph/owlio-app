@@ -16,15 +16,6 @@ import type {
   LibrarySourceMeta,
 } from "./library-types"
 
-export const libraryGuidance =
-  "Your Study Library collects the resources you can reach, and keeps each one with the context that owns it: your own notes, a classroom you joined, or a study space you are part of."
-
-export const libraryStorageNotice =
-  "The materials service is not connected yet. Every resource below is placeholder content for reviewing the layout, and no file is uploaded, previewed, or downloaded."
-
-export const librarySourceNotice =
-  "Opening a resource always takes you to the context that owns it. Owlio never moves a personal note, a class file, or a peer-shared resource somewhere else."
-
 export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
   personal: {
     id: "personal",
@@ -34,6 +25,7 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     description: "Your own notes and references, kept in your workspace.",
     icon: NotebookPen,
     iconClassName: "bg-amber-100 text-amber-800",
+    eyebrowClassName: "text-amber-700",
     badgeClassName: "border-amber-200 bg-white/80 text-amber-800",
     cardClassName: "border-amber-200 bg-amber-50",
     buttonClassName: "bg-amber-600 text-white hover:bg-amber-700",
@@ -42,8 +34,8 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     linkClassName: "hover:text-amber-700",
     panelClassName: "border-amber-200 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/70",
     libraryHref: "/students/materials/personal",
-    ownerHref: "/students/notes",
-    ownerAction: "Open Notes",
+    ownerHref: "/students/subjects",
+    ownerAction: "Open My Learning",
   },
   classroom: {
     id: "classroom",
@@ -53,13 +45,14 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     description: "Files your educator published to a class you joined.",
     icon: GraduationCap,
     iconClassName: "bg-sky-100 text-sky-800",
+    eyebrowClassName: "text-sky-700",
     badgeClassName: "border-sky-200 bg-white/80 text-sky-800",
     cardClassName: "border-sky-200 bg-sky-50",
     buttonClassName: "bg-sky-600 text-white hover:bg-sky-700",
     ghostClassName: "text-sky-800 hover:bg-sky-100",
-    headerClassName: "border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50",
+    headerClassName: "border-sky-200 bg-gradient-to-br from-sky-100 via-white to-blue-100",
     linkClassName: "hover:text-sky-700",
-    panelClassName: "border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/70",
+    panelClassName: "border-sky-200 bg-gradient-to-br from-sky-100 via-white to-blue-100",
     libraryHref: "/students/materials/classroom",
     ownerHref: "/students/classrooms",
     ownerAction: "Open My Classes",
@@ -72,6 +65,7 @@ export const librarySourceMeta: Record<LibrarySource, LibrarySourceMeta> = {
     description: "What your peers shared in a space you belong to.",
     icon: Users,
     iconClassName: "bg-emerald-100 text-emerald-800",
+    eyebrowClassName: "text-emerald-700",
     badgeClassName: "border-emerald-200 bg-white/80 text-emerald-800",
     cardClassName: "border-emerald-200 bg-emerald-50",
     buttonClassName: "bg-emerald-600 text-white hover:bg-emerald-700",

@@ -35,6 +35,7 @@ export type LibrarySourceMeta = {
   description: string
   icon: LucideIcon
   iconClassName: string
+  eyebrowClassName: string
   badgeClassName: string
   cardClassName: string
   buttonClassName: string

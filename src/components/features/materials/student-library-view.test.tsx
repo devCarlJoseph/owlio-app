@@ -77,6 +77,50 @@ describe("student Study Library", () => {
     expect(footer?.textContent).not.toContain("resources listed")
   })
 
+  it("uses a dark teal hero instead of the dark slate gradient", () => {
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    expect(container.querySelector(".from-cyan-700")).toBeTruthy()
+    expect(container.querySelector(".to-emerald-700")).toBeTruthy()
+    expect(container.querySelector(".from-slate-950")).toBeNull()
+  })
+
+  it("drops the intro guidance and learning context headings", () => {
+    const { text } = renderPage(<StudentMaterialsPage />)
+
+    expect(text).not.toContain("Your Study Library collects")
+    expect(text).not.toContain("The materials service is not connected yet")
+    expect(text).not.toContain("Pick up where you left off")
+    expect(text).not.toContain("Where are you learning?")
+  })
+
+  it("keeps the source colours on list rows", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: "List view" }))
+
+    const row = container.querySelector("li.group\\/resource")
+    const icon = row?.querySelector("span")
+
+    expect(icon?.className).toContain("bg-amber-100")
+    expect(icon?.className).toContain("text-amber-800")
+  })
+
+  it("colours the active layout and source tab", async () => {
+    const user = userEvent.setup()
+    renderPage(<StudentMaterialsPage />)
+
+    const listButton = screen.getByRole("button", { name: "List view" })
+    await user.click(listButton)
+    expect(listButton.className).toContain("bg-sky-600")
+    expect(listButton.className).toContain("text-white")
+
+    const personalTab = screen.getByRole("tab", { name: /Personal/ })
+    expect(personalTab.className).toContain("data-active:text-amber-800")
+    expect(personalTab.className).toContain("data-active:after:bg-amber-500")
+  })
+
   it("switches the resource layout and filters by kind", async () => {
     const user = userEvent.setup()
     const { container } = renderPage(<StudentMaterialsPage />)
@@ -159,10 +203,76 @@ describe("student Study Library", () => {
     expect(hrefs).toContain("/students/materials/personal/mathematics")
   })
 
+  it("lays the personal resources card out as a left-aligned banner", () => {
+    renderPage(<StudentPersonalMaterialsPage />)
+
+    const heading = screen.getByRole("heading", { level: 2, name: "Personal resources" })
+    const banner = heading.closest("section")
+
+    expect(banner?.textContent).toContain("You own these")
+    expect(banner?.textContent).toContain(
+      "Your own notes and references, kept in your workspace."
+    )
+    expect(banner?.querySelector("svg")).toBeTruthy()
+
+    const actions = Array.from(banner?.querySelectorAll("a") ?? [])
+    expect(actions.length).toBe(1)
+    expect(actions[0]?.textContent?.trim()).toBe("Open My Learning")
+    expect(actions[0]?.className).toContain("bg-amber-600")
+    expect(screen.queryByRole("link", { name: "Open Notes" })).toBeNull()
+  })
+
+  it("adds subject categories with All selected by default", () => {
+    renderPage(<StudentPersonalMaterialsPage />)
+
+    expect(screen.getByRole("button", { name: "All" }).getAttribute("aria-pressed")).toBe("true")
+    expect(
+      screen.getByRole("button", { name: "Chemistry I" }).getAttribute("aria-pressed")
+    ).toBe("false")
+    expect(screen.getByRole("group", { name: "Subject categories" })).toBeTruthy()
+  })
+
+  it("hides the resource count copy once a subject category is selected", async () => {
+    const user = userEvent.setup()
+    renderPage(<StudentPersonalMaterialsPage />)
+
+    expect(screen.getByText("12 resources shown")).toBeTruthy()
+
+    await user.click(screen.getByRole("button", { name: "English" }))
+
+    expect(screen.queryByText(/resources shown/)).toBeNull()
+  })
+
+  it("jumps to a subject category from the show more arrow", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentPersonalMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: "Show all Chemistry I resources" }))
+
+    expect(
+      screen.getByRole("button", { name: /^Chemistry I/ }).getAttribute("aria-pressed")
+    ).toBe("true")
+    expect(container.querySelectorAll("ul li").length).toBe(5)
+    expect(screen.queryByRole("button", { name: "Show all Chemistry I resources" })).toBeNull()
+    expect(screen.queryByText("Wave equation checklist")).toBeNull()
+    expect(screen.getByText("Chemical bonding recap")).toBeTruthy()
+  })
+
+  it("filters the library to one subject category", async () => {
+    const user = userEvent.setup()
+    const { container } = renderPage(<StudentPersonalMaterialsPage />)
+
+    await user.click(screen.getByRole("button", { name: /^English/ }))
+
+    expect(container.querySelectorAll("ul li").length).toBe(2)
+    expect(screen.getByText("Essay intro outline")).toBeTruthy()
+    expect(screen.queryByText("Chemical bonding recap")).toBeNull()
+  })
+
   it("uses the same design for classroom and study space libraries", () => {
     const classroom = renderPage(<StudentClassroomMaterialsPage />)
-    expect(classroom.container.querySelector(".from-sky-50")).toBeTruthy()
-    expect(classroom.container.querySelector(".to-blue-50")).toBeTruthy()
+    expect(classroom.container.querySelector(".from-sky-100")).toBeTruthy()
+    expect(classroom.container.querySelector(".to-blue-100")).toBeTruthy()
     expect(classroom.hrefs).toContain("/students/materials/classroom/biology-101")
 
     const studySpace = renderPage(<StudentStudySpaceMaterialsPage />)
