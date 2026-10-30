@@ -496,10 +496,21 @@ export function getSubjectListBackground(subject: SubjectRecord): string {
 }
 
 export function getSubjectTheme(subject: SubjectRecord): SubjectTheme {
-  if (subject.coverImage) return subjectThemes.blue
+  return subjectThemes[getSubjectThemeColorName(subject)] ?? subjectThemes.blue
+}
 
-  const color = getSubjectCoverColor(subject.coverColor)
-  return subjectThemes[color.value] ?? subjectThemes.blue
+export function getSubjectThemeColorName(subject: SubjectRecord): string {
+  const preset = subject.coverImage?.split("/").pop()?.replace(/\.svg$/i, "")
+  const presetTheme: Record<string, string> = {
+    orbit: "violet",
+    flask: "emerald",
+    globe: "emerald",
+    books: "rose",
+    graph: "blue",
+    atom: "violet",
+  }
+
+  return presetTheme[preset ?? ""] ?? getSubjectCoverColor(subject.coverColor).value
 }
 
 export function getSubjectMilestoneState(subject: SubjectRecord): SubjectMilestoneState {

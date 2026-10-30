@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import {
   ArrowLeft,
+  ArrowRight,
   ClipboardList,
   FolderOpen,
   NotebookPen,
@@ -36,10 +37,13 @@ import { SubjectDeleteDialog } from "./subject-delete-dialog"
 import { SubjectMilestoneDeleteDialog } from "./subject-milestone-delete-dialog"
 import { SubjectMilestoneDialog } from "./subject-milestone-dialog"
 import { SubjectMilestonesCard } from "./subject-milestones-card"
+import { SubjectStudyContent } from "./subject-study-content"
+import { getSubjectAppearance } from "./subject-appearance"
 import {
   createMilestoneId,
   findSubjectById,
   getSubjectCoverColor,
+  getSubjectMilestoneState,
   getSubjectTag,
   getSubjectTheme,
   loadSubjects,
@@ -298,15 +302,14 @@ export function SubjectDetailView() {
     updateSubject({ milestones: activateNextMilestone(subject.milestones) })
   }
 
-  function handleCompleteMilestone() {
+  function handleCompleteMilestone(milestoneId?: string) {
     if (!subject) return
 
     pushMilestoneHistory()
-    const activeId = subject.milestones.find(
-      (item) => item.status === "in-progress"
-    )?.id
     const milestones: SubjectMilestone[] = subject.milestones.map((item) =>
-      item.id === activeId ? { ...item, status: "completed" } : item
+      item.id === (milestoneId ?? subject.milestones.find((milestone) => milestone.status === "in-progress")?.id)
+        ? { ...item, status: "completed" }
+        : item
     )
     const allDone =
       milestones.length > 0 && milestones.every((item) => item.status === "completed")
@@ -361,6 +364,8 @@ export function SubjectDetailView() {
 
   const coverColor = getSubjectCoverColor(subject.coverColor)
   const theme = getSubjectTheme(subject)
+  const appearance = getSubjectAppearance(subject)
+  const progress = getSubjectMilestoneState(subject)
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
@@ -369,7 +374,8 @@ export function SubjectDetailView() {
           <li>
             <Link
               to="/students/subjects"
-              className="inline-flex items-center gap-1 rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1 rounded-md font-medium text-slate-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{ color: appearance.accent }}
             >
               <ArrowLeft aria-hidden="true" className="size-4" />
               My subjects
@@ -384,45 +390,66 @@ export function SubjectDetailView() {
         </ol>
       </nav>
 
-      <Card className="relative gap-0 overflow-visible border border-slate-200 bg-white py-0 shadow-sm ring-0">
-        <section aria-label="Subject cover" className="relative h-44 overflow-hidden rounded-xl">
-          {subject.coverImage ? (
-            <>
-              <img
-                src={subject.coverImage}
-                alt=""
-                aria-hidden="true"
-                className="size-full object-cover"
-              />
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-black/45 to-black/10" />
-            </>
-          ) : (
-            <div aria-hidden="true" className={`absolute inset-0 ${coverColor.className}`} />
-          )}
-
-          <div className="absolute inset-0 flex flex-col justify-end gap-1 p-6">
-            <div className="flex flex-wrap items-center gap-2">
-              {subject.code ? (
-                <span className="rounded-4xl bg-white/20 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-                  {subject.code}
-                </span>
-              ) : null}
-              <span className="text-xs font-medium text-white/85">Personal subject</span>
+      <section
+        className="relative isolate overflow-hidden rounded-[1.75rem] border px-5 py-7 shadow-xl ring-1 ring-white/80 sm:px-8 lg:px-10"
+        style={{ borderColor: appearance.border, background: `linear-gradient(120deg, ${appearance.background}, #ffffff 58%, ${appearance.background})`, boxShadow: `0 24px 60px -32px ${appearance.glow}99` }}
+      >
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 size-80 rounded-full bg-white/60 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-48 left-[28%] size-80 rounded-full blur-3xl" style={{ backgroundColor: `${appearance.glow}55` }} />
+        <div aria-hidden="true" className="absolute inset-y-8 left-0 w-1 rounded-r-full" style={{ background: `linear-gradient(to bottom, ${appearance.glow}, ${appearance.accent}, ${appearance.border})` }} />
+        <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
+          <div className="relative z-10 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600">
+              <span className="rounded-full border bg-white/85 px-3 py-1 shadow-sm" style={{ borderColor: appearance.border, color: appearance.accent }}>Personal subject</span>
+              {subject.code ? <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.code}</span> : null}
+              <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.milestones.length} study topics</span>
             </div>
-            <h2 className="text-3xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-4xl">
+            <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1b1a21] sm:text-4xl">
               {subject.name}
-            </h2>
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
+              Keep your notes, personal study topics, and learning progress together in one place.
+            </p>
             {subject.instructor ? (
-              <p className="text-sm text-white/90">{subject.instructor}</p>
+              <p className="mt-4 flex items-center gap-2 text-sm text-slate-700">
+                <NotebookPen aria-hidden="true" className="size-4 text-slate-500" />
+                Instructor reference: <span className="font-medium underline decoration-slate-300 underline-offset-2">{subject.instructor}</span>
+              </p>
             ) : null}
+            {progress.total > 0 ? (
+              <div className="mt-5 max-w-lg">
+                <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+                  <span className="font-medium text-[#1b1a21]">{progress.active?.title ?? (progress.allDone ? "All topics complete" : "Ready for your next topic")}</span>
+                  <span className="shrink-0 text-slate-500">{progress.completed} of {progress.total} complete</span>
+                </div>
+                <div role="progressbar" aria-label={`${subject.name} topic progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.progress} className="h-2.5 overflow-hidden rounded-full bg-white/80 shadow-inner" style={{ boxShadow: `inset 0 0 0 1px ${appearance.border}` }}>
+                  <div className="h-full rounded-full transition-[width]" style={{ width: `${progress.progress}%`, backgroundColor: appearance.accent }} />
+                </div>
+              </div>
+            ) : null}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <a
+                href="#study-outline"
+                className={cn(buttonVariants({ size: "default" }), "text-white shadow-sm transition hover:-translate-y-0.5 hover:brightness-95 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none")}
+                style={{ backgroundColor: appearance.accent, boxShadow: `0 4px 12px ${appearance.glow}88` }}
+              >
+                Continue studying <ArrowRight aria-hidden="true" />
+              </a>
+              <span className="text-xs text-slate-500">Added {formatSubjectDate(subject.createdAt)}</span>
+            </div>
           </div>
 
-          <p className="absolute bottom-3 right-4 text-xs text-white/80">
-            Added {formatSubjectDate(subject.createdAt)}
-          </p>
-        </section>
+          <div className="relative z-10 mx-auto flex h-52 w-full max-w-lg items-center justify-center overflow-hidden rounded-2xl shadow-xl ring-4 ring-white/80 sm:h-64">
+            {subject.coverImage ? (
+              <img src={subject.coverImage} alt="" aria-hidden="true" className="size-full object-cover" />
+            ) : (
+              <div aria-hidden="true" className={`absolute inset-0 ${coverColor.className}`} />
+            )}
+            <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-tr from-slate-950/10 to-transparent" />
+          </div>
+        </div>
 
-        <div className="absolute right-4 top-4 flex flex-col gap-2">
+        <div className="absolute right-3 top-3 z-20 flex gap-2">
           <SubjectActionButton
             icon={Palette}
             label="Customize"
@@ -435,7 +462,13 @@ export function SubjectDetailView() {
             onClick={() => setDeleteTarget(subject)}
           />
         </div>
-      </Card>
+      </section>
+
+      <SubjectStudyContent
+        subject={subject}
+        onStartProgress={handleStartProgress}
+        onCompleteMilestone={handleCompleteMilestone}
+      />
 
       <SubjectMilestonesCard
         subject={subject}
