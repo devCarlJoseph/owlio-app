@@ -11,11 +11,14 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   getDashboardNavigation,
+  getDashboardNotificationHref,
   getDashboardPageTitle,
+  getDashboardRole,
   getDashboardSidebarNavigation,
   getDashboardWorkspace,
 } from "@/components/common/dashboard-navigation"
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
+import { NotificationsTrigger } from "@/components/features/notifications/notifications-trigger"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { getAccountLabel } from "@/lib/workspace-path"
 import { getApiErrorMessage } from "@/services/api/api-error"
@@ -39,7 +42,8 @@ export default function PlatformLayout() {
   const matchingPages = navigationItems.filter(({ label }) =>
     label.toLowerCase().includes(searchQuery.trim().toLowerCase())
   )
-  const notificationHref = navigationItems.find(({ label }) => label === "Notifications")?.href ?? "/"
+  const dashboardRole = getDashboardRole(pathname)
+  const notificationHref = getDashboardNotificationHref(pathname)
   const menuItems = getDashboardSidebarNavigation(pathname).flatMap(({ items }) => items)
   const findHref = (...labels: string[]) => menuItems.find(({ label, href }) => href && labels.includes(label))?.href
   const profileHref = findHref("Profile & Settings")
@@ -47,7 +51,7 @@ export default function PlatformLayout() {
     { label: profileHref ? "Profile & Settings" : "My Profile", href: profileHref, icon: UserRound },
     ...(profileHref ? [] : [{ label: "Settings", icon: Settings }]),
     { label: "Account security", href: findHref("Account security"), icon: ShieldCheck },
-    { label: "Notifications", href: findHref("Notifications"), icon: Bell },
+    { label: "Notifications", href: notificationHref, icon: Bell },
   ]
   const supportEntries: MenuEntry[] = [{ label: "Help & support", href: findHref("Help & Support", "Help & support"), icon: CircleHelp }]
   const workspaceLabel = getDashboardWorkspace(pathname)?.label
@@ -162,16 +166,7 @@ export default function PlatformLayout() {
             )}
           </form>
           <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
-            <Button
-              render={<Link to={notificationHref} />}
-              variant="ghost"
-              size="icon"
-              aria-label="Notifications"
-              title="Notifications"
-              className="relative size-10 rounded-full text-slate-600 hover:bg-slate-100"
-            >
-              <Bell aria-hidden="true" />
-            </Button>
+            {dashboardRole && <NotificationsTrigger key={pathname} role={dashboardRole} />}
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label="Account menu"

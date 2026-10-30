@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { getActiveDashboardHref, getDashboardNavigation, getDashboardPageTitle } from "./dashboard-navigation"
+import { getActiveDashboardHref, getDashboardNavigation, getDashboardNotificationHref, getDashboardPageTitle } from "./dashboard-navigation"
 
 const classroomRoles = ["students", "educators", "esl", "tutors"] as const
 
@@ -16,5 +16,18 @@ describe("My Classes sidebar item", () => {
     expect(getActiveDashboardHref(`/${role}/classrooms/class-1/classwork/activity-1`)).toBe(`/${role}/classrooms`)
     expect(getActiveDashboardHref(`/${role}/classrooms/meeting-room`)).toBe(`/${role}/classrooms/meeting-room`)
     expect(getDashboardPageTitle(`/${role}/classrooms/meeting-room`)).toBe("Meeting Room")
+  })
+})
+
+describe("workspace notification destinations", () => {
+  it.each(classroomRoles)("resolves %s without relying on sidebar items", (role) => {
+    expect(getDashboardNotificationHref(`/${role}`)).toBe(`/${role}/notifications`)
+    expect(getDashboardNotificationHref(`/${role}/classrooms/class-1`)).toBe(`/${role}/notifications`)
+    expect(getDashboardPageTitle(`/${role}/notifications`)).toBe("Notifications")
+  })
+
+  it("does not invent a destination for an unknown workspace", () => {
+    expect(getDashboardNotificationHref("/")).toBeUndefined()
+    expect(getDashboardNotificationHref("/students-other")).toBeUndefined()
   })
 })

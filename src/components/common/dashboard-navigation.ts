@@ -225,6 +225,11 @@ export function getDashboardWorkspace(pathname: string): { label: string; icon: 
   return role ? { label: `${workspaceLabels[role]} workspace`, icon: workspaceIcons[role], homeHref: `/${role}` } : undefined
 }
 
+export function getDashboardNotificationHref(pathname: string): string | undefined {
+  const role = getDashboardRole(pathname)
+  return role ? `/${role}/notifications` : undefined
+}
+
 export function getActiveDashboardHref(pathname: string): string | undefined {
   const role = getDashboardRole(pathname)
 
@@ -252,6 +257,7 @@ function matchesRoute(pathname: string, href: string, role: DashboardRole | unde
 
 export function getDashboardPageTitle(pathname: string): string {
   const role = getDashboardRole(pathname)
+  if (pathname === getDashboardNotificationHref(pathname)) return "Notifications"
   const currentPage = getDashboardNavigation(pathname)
     .flatMap(({ items }) => items)
     .filter(({ href }) => matchesRoute(pathname, href, role))
