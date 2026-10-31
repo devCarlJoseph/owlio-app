@@ -145,8 +145,8 @@ function isTaskRecord(value: unknown): value is TaskRecord {
     typeof task.title === "string" &&
     typeof task.subject === "string" &&
     typeof task.dueDate === "string" &&
-    typeof task.priority === "string" &&
-    typeof task.status === "string" &&
+    (task.priority === "low" || task.priority === "medium" || task.priority === "high") &&
+    (task.status === "todo" || task.status === "in-progress" || task.status === "done") &&
     typeof task.notes === "string" &&
     typeof task.createdAt === "string"
   )
@@ -194,12 +194,28 @@ export function loadTasks(): TaskRecord[] {
   }
 }
 
-export function saveTasks(tasks: TaskRecord[]): void {
-  if (typeof window === "undefined") return
+export function isExampleTask(task: TaskRecord): boolean {
+  const sample = sampleTasks.find(item => item.id === task.id)
+  return sample !== undefined && (Object.keys(sample) as (keyof TaskRecord)[]).every(key => sample[key] === task[key])
+}
+
+export function loadPersonalTasks(): { tasks: TaskRecord[]; error: boolean } {
+  try {
+    const stored = window.localStorage.getItem(tasksStorageKey)
+    if (!stored) return { tasks: [], error: false }
+    const parsed: unknown = JSON.parse(stored)
+    if (!Array.isArray(parsed) || !parsed.every(isTaskRecord)) return { tasks: [], error: true }
+    return { tasks: parsed.filter(task => !isExampleTask(task)), error: false }
+  } catch { return { tasks: [], error: true } }
+}
+
+export function saveTasks(tasks: TaskRecord[]): boolean {
+  if (typeof window === "undefined") return false
 
   try {
     window.localStorage.setItem(tasksStorageKey, JSON.stringify(tasks))
+    return true
   } catch {
-    return
+    return false
   }
 }

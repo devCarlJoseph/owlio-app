@@ -5,7 +5,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { loadTasks, sampleTasks } from "@/components/features/personal-workspace/tasks/task-records"
+import { loadPersonalTasks } from "@/components/features/personal-workspace/tasks/task-records"
 import { DocumentEditor, DocumentPreview, editorSelectClass } from "./document-editor"
 import { PresentationEditor, SlidePreview } from "./presentation-editor"
 import { createWorkId, loadWork, reviseWork, saveWork, workHref, workStoragePrefix, type LibraryWork } from "./work-records"
@@ -38,7 +38,7 @@ function WorkEditor({ initial, savedRevision, unsaved }: { initial: LibraryWork;
   const [previewIndex, setPreviewIndex] = useState(0)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteError, setDeleteError] = useState(false)
-  const [tasks] = useState(() => loadTasks().filter(task => !sampleTasks.some(sample => sample.id === task.id)))
+  const [tasks] = useState(() => loadPersonalTasks().tasks)
   const revision = useRef(savedRevision)
   const navigate = useNavigate()
 

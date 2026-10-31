@@ -140,6 +140,8 @@ The sidebar should remain concise. Context-specific tabs/actions belong inside a
 - Assigned work lists educator-provided instructions, class, due date, supported work type, submission status, and released evaluation/feedback. The student must not edit the educator's activity or official result.
 - Search/filter may apply within each scope; counts and states must derive from real data, not preview records.
 - Existing routes: `/students/tasks` supports localStorage CRUD; `/students/classwork` is sample-only. They can be surfaced from one sidebar entry, but retain distinct views and record boundaries.
+- The personal page defaults to a compact three-column board (To do, In progress, Done), with List and By subject views, shared search/status/subject filters, per-column creation, and completion/reopening controls. Opening a task reveals a right-side modal panel with metadata, status changes, personal notes, and only Owlio Study Library files linked to that task. Edit and confirmed delete remain same-page dialogs. On small screens, board columns stack and the panel fills the viewport.
+- Keep the example board read-only and separate from personal records. Never persist examples on page load; retain previously edited legacy examples as personal work. Local read/save errors must preserve saved data or the current draft and provide retry. Counts derive from the selected personal collection or explicitly labeled examples; the reference image does not authorize uploads, subtasks, comments, collaborators, activity feeds, or invented progress percentages.
 
 ### Progress & Grades
 
@@ -236,7 +238,7 @@ src/
         learning/                               # P: my-learning-view, quick-actions, subject rail
         subjects/                               # E: subject list/cards; P: subject-detail-view
         notes/                                  # E: list, tag groups, composer/detail/delete dialogs
-        tasks/                                  # E: list, groups, composer/detail/delete dialogs
+        tasks/                                  # E: board/list/groups, right-side detail panel, composer/delete dialogs
         study-spaces/                           # E: list/rails/dialogs; P: space-detail-view
         classwork/                              # E: assigned list sample; P: server-backed view
       classrooms/                               # E: shared class list/detail/activity/records views
@@ -261,7 +263,7 @@ src/
 | `pages/dashboard/students/learning/index.tsx` P | `components/features/personal-workspace/learning/my-learning-view.tsx` P | `personal-subject-list.tsx`, `continue-learning.tsx`, `learning-shortcuts.tsx` P. |
 | `pages/dashboard/students/subjects/index.tsx` E; `subjects/detail/index.tsx` E | `components/features/personal-workspace/subjects/subjects-view.tsx` E; `subject-detail-view.tsx` E | `continue-learning.tsx`, `subject-card.tsx`, `subject-study-content.tsx`, local composer/milestone dialogs E. Account-scoped subject/lesson services remain future. |
 | `pages/dashboard/students/notes/index.tsx` E | `components/features/personal-workspace/notes/notes-view.tsx` E | `note-list.tsx`, `note-groups.tsx`, `note-composer-dialog.tsx`, `note-detail-dialog.tsx`, `note-records.ts` E. |
-| `pages/dashboard/students/tasks/index.tsx` E | `components/features/personal-workspace/tasks/tasks-view.tsx` E | `task-list.tsx`, `task-subject-groups.tsx`, `task-composer-dialog.tsx`, `task-detail-dialog.tsx`, `task-records.ts` E; P scope switch when backed. |
+| `pages/dashboard/students/tasks/index.tsx` E | `components/features/personal-workspace/tasks/tasks-view.tsx` E | `task-board.tsx`, `task-list.tsx`, `task-subject-groups.tsx`, composer/detail/delete dialogs, and `task-records.ts` E. Personal/assigned scope links, browser-local records, separate read-only examples, and linked personal Study Library files. |
 | `pages/dashboard/students/classwork/index.tsx` E | `components/features/personal-workspace/classwork/classwork-view.tsx` E | `classwork-card.tsx`, `sample-classwork.ts` E; P authorized assigned-work repository/hook after contract. |
 | `pages/dashboard/students/study-spaces/index.tsx` E; `study-spaces/detail/index.tsx` P | `components/features/personal-workspace/study-spaces/study-spaces-view.tsx` E; `study-space-detail-view.tsx` P | `create-space-dialog.tsx`, `join-space-dialog.tsx`, `space-circle-rail.tsx` E; `member-list.tsx`, `space-tabs.tsx` P. |
 | `pages/dashboard/classroom/index.tsx` E; `detail/index.tsx`, `activity/index.tsx` P adapter migrations | `components/features/classrooms/classrooms-view.tsx`, `classroom-detail-view.tsx`, `classroom-activity-view.tsx` E | `classroom-classwork-view.tsx`, `classroom-feed-view.tsx`, `classroom-records-view.tsx` E; preserve role-aware shared behavior. |
@@ -588,19 +590,20 @@ flowchart LR
 
 ### Tasks & Assessments: `/students/tasks` (E entry) and `/students/classwork` (E)
 
-**Sections:** A target `TasksAndAssessmentsView` can provide distinct "Personal tasks" and "Assigned classwork" scope tabs/links. Existing `TasksView` owns personal task dialogs and browser-local persistence; `ClassworkView` displays sample assigned work and has no submission action.
+**Sections:** `TasksView` provides distinct Personal tasks and Assigned classwork scope links. Personal tasks use a reference-aligned board with To do, In progress, and Done columns, plus List/By subject views, search/status/subject filters, and a right-side `TaskDetailDialog`. The panel shows title, priority, status, subject, created/due dates, personal notes, and browser-local Study Library files whose task link matches the selected task. Status changes and completion affect only the personal record; creation can preselect a column's status, and edit/delete retain their existing dialogs. Example tasks are read-only, clearly labeled, and never saved on page load. Existing edited legacy examples are retained; read failures block replacing unreadable data, and write failures retain the on-page changes with retry. `ClassworkView` remains a sample assigned-work page with no submission action.
 
 ```mermaid
 flowchart LR
   WORK(["Tasks & Assessments -> /students/tasks E"]) --> SCOPE{"Choose work owner"}
   subgraph PERSONAL["My personal tasks"]
-    T["Tasks list /students/tasks E"]
+    T["Task board / list / subjects at /students/tasks E"]
     FORM["TaskComposerDialog: same page E"]
     LOCAL["Browser-local task list E"]
-    DETAIL["Task detail/delete dialog: same page E"]
+    DETAIL["Right-side task detail + confirmed delete: same page E"]
     T -->|"Create / edit"| FORM
-    FORM -->|"Save today"| LOCAL
+    FORM -->|"Save in this browser / retry on failure"| LOCAL
     T -->|"Open / complete / delete"| DETAIL
+    DETAIL -->|"Open linked personal file"| FILE["Study Library workspace /students/materials/workspace/:resourceId E"]
   end
   subgraph ASSIGNED["Educator-assigned classwork"]
     CW["Classwork /students/classwork E"]

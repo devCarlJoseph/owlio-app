@@ -68,6 +68,7 @@ export function TaskSubjectGroups({ tasks, onOpen }: TaskSubjectGroupsProps) {
                   return (
                     <li key={task.id}>
                       <button
+                        data-task-open={task.id}
                         type="button"
                         onClick={() => onOpen(task)}
                         className="flex w-full items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-500"

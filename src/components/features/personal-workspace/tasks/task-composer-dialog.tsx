@@ -25,6 +25,7 @@ type TaskComposerDialogProps = {
   open: boolean
   task: TaskRecord | null
   initialSubject?: string
+  initialStatus?: TaskStatus
   onOpenChange: (open: boolean) => void
   onSubmit: (draft: TaskDraft) => void
 }
@@ -33,16 +34,18 @@ export function TaskComposerDialog({
   open,
   task,
   initialSubject,
+  initialStatus,
   onOpenChange,
   onSubmit,
 }: TaskComposerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
         <TaskComposerForm
-          key={task?.id ?? "new-task"}
+          key={task?.id ?? `new-task-${initialStatus ?? "todo"}`}
           task={task}
           initialSubject={initialSubject}
+          initialStatus={initialStatus}
           onCancel={() => onOpenChange(false)}
           onSubmit={onSubmit}
         />
@@ -54,17 +57,18 @@ export function TaskComposerDialog({
 type TaskComposerFormProps = {
   task: TaskRecord | null
   initialSubject?: string
+  initialStatus?: TaskStatus
   onCancel: () => void
   onSubmit: (draft: TaskDraft) => void
 }
 
-function TaskComposerForm({ task, initialSubject, onCancel, onSubmit }: TaskComposerFormProps) {
+function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSubmit }: TaskComposerFormProps) {
   const [draft, setDraft] = useState<TaskDraft>({
     title: task?.title ?? "",
     subject: task?.subject ?? initialSubject ?? "",
     dueDate: task?.dueDate ?? "",
     priority: task?.priority ?? "medium",
-    status: task?.status ?? "todo",
+    status: task?.status ?? initialStatus ?? "todo",
     notes: task?.notes ?? "",
   })
   const [titleError, setTitleError] = useState<string | null>(null)
@@ -223,7 +227,7 @@ function TaskComposerForm({ task, initialSubject, onCancel, onSubmit }: TaskComp
             className="border-slate-200 bg-slate-50"
           />
           <FieldDescription className="text-slate-500">
-            Only you can see these notes. They are not shared with educators.
+            Personal notes stay with your task in this browser. They aren’t sent to educators or synced to an account.
           </FieldDescription>
         </Field>
       </div>
