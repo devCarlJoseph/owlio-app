@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
-import { LayoutGrid, List, Plus, Search } from "lucide-react"
+import { ArrowRight, LayoutGrid, List, Plus, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { SampleDataNotice } from "./sample-data-notice"
@@ -9,11 +9,16 @@ import { SubjectCard } from "./subject-card"
 import { SubjectComposerDialog } from "./subject-composer-dialog"
 import { SubjectDeleteDialog } from "./subject-delete-dialog"
 import { SubjectListRow } from "./subject-list-row"
+import { SubjectStudyContent } from "./subject-study-content"
+import { defaultSubjectAppearance, getSubjectAppearance } from "./subject-appearance"
 import { SubjectsHero } from "./subjects-hero"
+import { cn } from "cn"
 import {
   createSubjectId,
   defaultSubjectCoverColor,
   getDefaultSubjectCover,
+  getSubjectCoverColor,
+  getSubjectMilestoneState,
   loadSubjects,
   saveSubjects,
   sortSubjects,
@@ -37,6 +42,7 @@ export function SubjectsView() {
   const [composerOpen, setComposerOpen] = useState(false)
   const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<SubjectRecord | null>(null)
+  const [featuredSubjectId, setFeaturedSubjectId] = useState<string | null>(null)
 
   useEffect(() => {
     saveSubjects(subjects)
@@ -57,6 +63,16 @@ export function SubjectsView() {
     () => subjects.find((subject) => subject.id === editingSubjectId) ?? null,
     [subjects, editingSubjectId]
   )
+
+  const featuredSubject = useMemo(
+    () =>
+      subjects.find((subject) => subject.id === featuredSubjectId) ??
+      sortSubjects(subjects)[0] ??
+      null,
+    [subjects, featuredSubjectId]
+  )
+  const featuredProgress = featuredSubject ? getSubjectMilestoneState(featuredSubject) : null
+  const featuredTheme = featuredSubject ? getSubjectAppearance(featuredSubject) : defaultSubjectAppearance
 
   function openCreateDialog() {
     setEditingSubjectId(null)
@@ -122,7 +138,46 @@ export function SubjectsView() {
 
   function handleDelete(subject: SubjectRecord) {
     setSubjects((current) => current.filter((item) => item.id !== subject.id))
+    if (featuredSubjectId === subject.id) setFeaturedSubjectId(null)
     setDeleteTarget(null)
+  }
+
+  function startFeaturedProgress() {
+    if (!featuredSubject) return
+
+    setSubjects((current) =>
+      current.map((subject) => {
+        if (subject.id !== featuredSubject.id) return subject
+        const nextIndex = subject.milestones.findIndex((item) => item.status === "not-started")
+        return {
+          ...subject,
+          progressStarted: true,
+          milestones: subject.milestones.map((item, index) =>
+            index === nextIndex ? { ...item, status: "in-progress" } : item
+          ),
+          updatedAt: new Date().toISOString(),
+        }
+      })
+    )
+  }
+
+  function completeFeaturedMilestone(milestoneId: string) {
+    if (!featuredSubject) return
+
+    setSubjects((current) =>
+      current.map((subject) =>
+        subject.id === featuredSubject.id
+          ? {
+              ...subject,
+              progressStarted: true,
+              milestones: subject.milestones.map((item) =>
+                item.id === milestoneId ? { ...item, status: "completed" } : item
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : subject
+      )
+    )
   }
 
   function clearFilters() {
@@ -132,31 +187,114 @@ export function SubjectsView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <SubjectsHero intro={subjectsIntro} onCreate={openCreateDialog} />
+      {featuredSubject ? (
+        <>
+          <nav aria-label="Breadcrumb">
+            <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+              <li><a href="#subject-library" className="rounded-sm transition-colors hover:text-[#6842c5] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8a60f1]">My Learning</a></li>
+              <li aria-hidden="true">/</li>
+              <li aria-current="page" className="font-medium text-slate-900">{featuredSubject.name}</li>
+            </ol>
+          </nav>
+
+          <section
+            className="relative isolate grid items-center gap-7 overflow-hidden rounded-[1.75rem] border p-5 shadow-xl ring-1 ring-white/80 transition-colors duration-500 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)] motion-reduce:transition-none"
+            style={{ borderColor: featuredTheme.border, background: `linear-gradient(120deg, ${featuredTheme.background}, #ffffff 58%, ${featuredTheme.background})`, boxShadow: `0 24px 60px -32px ${featuredTheme.glow}99` }}
+          >
+            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 z-0 size-80 rounded-full bg-white/60 blur-3xl" />
+            <div aria-hidden="true" className="pointer-events-none absolute -bottom-48 left-[28%] z-0 size-80 rounded-full blur-3xl" style={{ backgroundColor: `${featuredTheme.glow}55` }} />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-8 left-0 z-0 w-1 rounded-r-full" style={{ background: `linear-gradient(to bottom, ${featuredTheme.glow}, ${featuredTheme.accent}, ${featuredTheme.border})` }} />
+            <div className="relative z-10 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600">
+                <span className="rounded-full border bg-white/85 px-3 py-1 shadow-sm" style={{ borderColor: featuredTheme.border, color: featuredTheme.accent }}>Current focus</span>
+                {featuredSubject.code ? <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{featuredSubject.code}</span> : null}
+                <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{featuredSubject.milestones.length} study topics</span>
+              </div>
+              <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1b1a21] sm:text-4xl">
+                {featuredSubject.name}
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
+                Pick up where you left off in your personal learning plan.
+              </p>
+              {featuredSubject.instructor ? (
+                <p className="mt-4 text-sm text-slate-700">
+                  Instructor reference: <span className="font-medium text-[#1b1a21]">{featuredSubject.instructor}</span>
+                </p>
+              ) : null}
+              {featuredProgress && featuredProgress.total > 0 ? (
+                <div className="mt-5 max-w-lg">
+                  <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+                    <span className="font-medium text-[#1b1a21]">{featuredProgress.active?.title ?? (featuredProgress.allDone ? "All topics complete" : "Ready for your next topic")}</span>
+                    <span className="shrink-0 text-slate-500">{featuredProgress.completed} of {featuredProgress.total} complete</span>
+                  </div>
+                  <div role="progressbar" aria-label={`${featuredSubject.name} topic progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={featuredProgress.progress} className="h-2.5 overflow-hidden rounded-full bg-white/80 shadow-inner" style={{ boxShadow: `inset 0 0 0 1px ${featuredTheme.border}` }}>
+                    <div className="h-full rounded-full transition-[width]" style={{ width: `${featuredProgress.progress}%`, backgroundColor: featuredTheme.accent }} />
+                  </div>
+                </div>
+              ) : null}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <a href="#study-outline" className={cn(buttonVariants(), "rounded-lg text-white shadow-sm transition hover:-translate-y-0.5 hover:brightness-95 hover:shadow-md focus-visible:ring-2 motion-reduce:transform-none motion-reduce:transition-none")} style={{ backgroundColor: featuredTheme.accent, boxShadow: `0 4px 12px ${featuredTheme.glow}88` }}>
+                  Continue studying <ArrowRight aria-hidden="true" />
+                </a>
+                <a href="#subject-library" className={cn(buttonVariants({ variant: "outline" }), "rounded-lg bg-white/90 text-[#1b1a21] shadow-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none")} style={{ borderColor: featuredTheme.border }}>
+                  Browse subjects
+                </a>
+              </div>
+            </div>
+
+            <div className="relative z-10 mx-auto h-52 w-full max-w-lg overflow-hidden rounded-2xl shadow-xl ring-4 ring-white/80 sm:h-64" style={{ backgroundColor: featuredTheme.background, boxShadow: `0 20px 35px -22px ${featuredTheme.glow}` }}>
+              {featuredSubject.coverImage ? (
+                <img src={featuredSubject.coverImage} alt="" aria-hidden="true" className="size-full object-cover" />
+              ) : (
+                <div aria-hidden="true" className={`absolute inset-0 ${getSubjectCoverColor(featuredSubject.coverColor).className}`} />
+              )}
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-tr from-[#1b1a21]/10 to-transparent" />
+              <label className="absolute bottom-3 right-3">
+                <span className="sr-only">Choose subject to feature</span>
+                <select
+                  value={featuredSubject.id}
+                  onChange={(event) => setFeaturedSubjectId(event.currentTarget.value)}
+                  className="max-w-52 rounded-xl border border-white/80 bg-white/95 px-3 py-2 text-sm font-medium text-[#1b1a21] shadow-md shadow-violet-900/10 outline-none focus-visible:ring-2 focus-visible:ring-[#8a60f1]"
+                >
+                  {sortSubjects(subjects).map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <SubjectStudyContent
+            subject={featuredSubject}
+            onStartProgress={startFeaturedProgress}
+            onCompleteMilestone={completeFeaturedMilestone}
+          />
+        </>
+      ) : (
+        <SubjectsHero intro={subjectsIntro} onCreate={openCreateDialog} />
+      )}
 
       <SampleDataNotice />
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
-        <CardHeader>
+      <Card id="subject-library" className="overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-lg shadow-violet-100/50 ring-0">
+        <CardHeader className="border-b border-violet-100/80 bg-gradient-to-r from-violet-50/80 via-white to-white">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle>
-                <h3 className="text-base font-semibold text-slate-900">Subjects</h3>
+                <h3 className="text-lg font-semibold tracking-tight text-[#1b1a21]">Your learning library</h3>
               </CardTitle>
               <p className="mt-1 text-sm text-slate-500">
-                Search by subject name, code, or instructor.
+                Find a subject and continue building your own study plan.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
+              <Badge variant="outline" className="rounded-full border-violet-200 bg-violet-50/70 px-2.5 text-[#6842c5]">
                 {visibleSubjects.length} shown
               </Badge>
 
               <div
                 role="group"
                 aria-label="Subject layout"
-                className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1"
+                className="inline-flex rounded-xl border border-violet-100 bg-violet-50/60 p-1"
               >
                 {(
                   [
@@ -174,9 +312,9 @@ export function SubjectsView() {
                       aria-pressed={isActive}
                       aria-label={option.label}
                       onClick={() => setView(option.value)}
-                      className={`inline-flex size-8 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                      className={`inline-flex size-8 items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#8a60f1] ${
                         isActive
-                          ? "bg-white text-slate-900 shadow-sm"
+                        ? "bg-white text-[#6842c5] shadow-sm"
                           : "text-slate-500 hover:text-slate-900"
                       }`}
                     >
@@ -202,7 +340,7 @@ export function SubjectsView() {
                 onChange={(event) => setQuery(event.currentTarget.value)}
                 aria-label="Search subjects"
                 placeholder="Search subjects..."
-                className="h-9 rounded-lg border-slate-200 bg-slate-50 pl-9"
+                className="h-11 rounded-xl border-slate-200 bg-slate-50/80 pl-9 shadow-sm focus-visible:border-[#8a60f1] focus-visible:bg-white focus-visible:ring-[#8a60f1]/25"
               />
             </div>
 
@@ -224,8 +362,8 @@ export function SubjectsView() {
                     onClick={() => setFilter(option.value)}
                     className={
                       isActive
-                        ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "rounded-full border-[#8a60f1] bg-[#8a60f1] px-4 text-white shadow-sm shadow-violet-200 hover:border-[#7447dc] hover:bg-[#7447dc]"
+                        : "rounded-full border-slate-200 bg-white px-4 text-slate-600 hover:border-violet-200 hover:bg-violet-50/60 hover:text-[#6842c5]"
                     }
                   >
                     {option.label}
@@ -275,7 +413,7 @@ export function SubjectsView() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="mt-4 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                  className="mt-4 border-[#dfd4f7] bg-[#f7f3ff] text-[#6842c5] hover:bg-[#eee8ff] hover:text-[#52349d]"
                   onClick={openCreateDialog}
                 >
                   <Plus aria-hidden="true" />
@@ -286,7 +424,7 @@ export function SubjectsView() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="mt-4 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                  className="mt-4 border-[#dfd4f7] bg-[#f7f3ff] text-[#6842c5] hover:bg-[#eee8ff] hover:text-[#52349d]"
                   onClick={clearFilters}
                 >
                   Clear search

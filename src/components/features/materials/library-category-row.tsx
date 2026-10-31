@@ -84,8 +84,8 @@ export function LibraryCategoryRow({
               onClick={() => onLayoutChange(option.value)}
               className={`inline-flex size-8 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 isActive
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-sky-600 text-white shadow-sm"
+                  : "text-slate-500 hover:bg-white hover:text-slate-900"
               }`}
             >
               <OptionIcon aria-hidden="true" className="size-4" />
