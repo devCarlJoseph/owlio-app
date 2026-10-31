@@ -505,6 +505,8 @@ Preserve the dashboard header/sidebar throughout category entry, lobby, call, an
 
 **Sections:** standalone lobby, LiveKit stage, participant/chat panels, existing controls, and an ESL-only whiteboard stage available only after an authorized room is connected.
 
+**Current visual workflow:** ESL uses the supplied coaching reference: a featured participant, thumbnail strip, participant/chat cards, and persistent media/leave controls. Grid/spotlight and pinning affect only the viewer's layout. AI session notes and Session summary cards are explicitly unavailable; the design does not activate recording, transcription, AI processing, or private/published teaching notes. `?join=1&layout-preview=1` is a layout-only preview with zero connected attendees and no media requests or publishing. The separate `whiteboard-preview=1` route behavior is preserved; layout previews do not enable whiteboard synchronization or expand its authorization/scope. Shared meeting implementation lives under `components/features/meeting-room/` behind the existing route adapter.
+
 ```mermaid
 flowchart LR
   ROOM(["Meeting Room /esl/classrooms/meeting-room E"]) --> ENTRY{"How does the teacher enter?"}

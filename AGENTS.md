@@ -240,6 +240,8 @@ Handoff summary should include: behavior changed, key files/routes, verification
 
 Student Study Library (`src/components/features/materials/workspace/`) has Owlio-owned document and presentation editors at `/students/materials/workspace/:resourceId`. Personal files are stored separately under `owlio.study-library-work.v1.<id>` in browser local storage, with revision checks, save-error recovery, and Owlio JSON backup export/import. They appear in the all/personal library views and may link real browser-local personal tasks without modifying them. These are not Google integrations, account-synced files, shared resources, or classroom submissions; the existing example collections remain sample data.
 
+Meeting Room keeps `src/pages/dashboard/classroom/meeting-room.tsx` as a thin adapter to `src/components/features/meeting-room/meeting-room-view.tsx`. ESL/tutors use the coaching card layout; students/educators use a Meet-inspired dark stage. Shared controls, tiles, panels, and scoped CSS preserve the existing LiveKit transport. `layout-preview=1` is layout-only and cannot connect/publish/request media; API integration remains paused. Recording, transcription, and AI summary cards are unavailable, and the separate ESL whiteboard preview is unchanged.
+
 ## 8. Agent/parallel-work protocol
 
 - Do not delegate or start subagents unless the session's higher-priority instructions or the user explicitly permit it.

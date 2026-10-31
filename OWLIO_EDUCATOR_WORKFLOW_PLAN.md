@@ -535,6 +535,8 @@ Preserve the dashboard header/sidebar throughout category entry, lobby, and call
 
 **Sections:** standalone lobby, connected participant grid, room controls, `MeetingChatPanel`, and `PeoplePanel`; class/session pages deep-link to the same route when a valid meeting exists.
 
+**Current visual workflow:** School educator rooms use the same Google Meet-inspired presentation as the student workspace: dark video stage, grid/spotlight layouts, local pinning, persistent bottom media/leave controls, and optional people/chat panels. `?join=1&layout-preview=1` previews this design without connecting, requesting media, or publishing chat. Host/create/end visibility still follows existing authenticated/service state, not the educator URL. LiveKit transport and current room contracts remain in place; recording, transcription, AI summaries, and Google Meet integration are not implemented. Shared implementation lives in `components/features/meeting-room/` behind the existing route adapter.
+
 ```mermaid
 flowchart LR
   ROOM(["Meeting Room /educators/classrooms/meeting-room E"]) --> ENTRY{"Arrival path"}

@@ -540,6 +540,8 @@ Preserve the dashboard header/sidebar throughout category entry, lobby, and call
 
 **Sections:** invite/code lobby, connected LiveKit stage, participant panel, opt-in media controls, transient in-call chat/hand raise, and leave/host-end actions.
 
+**Current visual workflow:** The tutor workspace uses the supplied card-based reference: a featured participant with thumbnail strip, participant and room-chat cards, and persistent bottom controls. Grid/spotlight selection and local pinning are presentation only. AI session notes and Session summary cards explicitly show unavailable status; there is no recording, transcription, automatic Session Notes capture, or AI summary operation. Existing tutor-only Session Notes remain a separate workflow. The `layout-preview=1` query offers a labeled layout-only state with no connected participants or media/publishing actions, and Exit preview returns to the lobby. Shared behavior lives under `components/features/meeting-room/`; the existing URL and LiveKit service boundary remain unchanged.
+
 ```mermaid
 flowchart LR
   ROOM(["Meeting Room /tutors/classrooms/meeting-room E"]) --> ARRIVE{"Arrival path"}

@@ -59,4 +59,14 @@ describe('meeting room entry', () => {
     expect(screen.getByLabelText('Invite link or room code')).toBeTruthy()
     expect(screen.queryByRole('group', { name: 'Meeting categories' })).toBeNull()
   })
+
+  it.each(['students', 'educators', 'esl', 'tutors'])('previews the %s layout without enabling live media and returns to the lobby', role => {
+    open(`/${role}/classrooms/meeting-room`)
+    fireEvent.click(screen.getByRole('link', { name: 'Preview room layout' }))
+    expect(screen.getByRole('region', { name: 'Meeting room' }).getAttribute('data-meeting-design')).toBe(role === 'esl' || role === 'tutors' ? 'coaching' : 'classroom')
+    expect(screen.getByRole('button', { name: 'Turn camera on' }).hasAttribute('disabled')).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Exit preview' }))
+    expect(screen.getByLabelText('Invite link or room code')).toBeTruthy()
+    expect(screen.getByRole('navigation', { name: 'Workspace navigation' })).toBeTruthy()
+  })
 })

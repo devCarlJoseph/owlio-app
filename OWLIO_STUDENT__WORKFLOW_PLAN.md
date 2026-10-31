@@ -475,6 +475,8 @@ The page preserves the dashboard header/sidebar and opens with Classroom, Tutor,
 
 **Sections:** Category entry, `MeetingLobby`, `ParticipantGrid`, `RoomControls`, `MeetingChatPanel`, and `PeoplePanel` inside the dashboard shell. An eligible classroom/session may link to the same route with a room code. The preserved connected room uses LiveKit; API integration is currently paused.
 
+**Current visual workflow:** Student rooms use a Google Meet-inspired dark video stage with grid/spotlight selection, local-only participant pinning, persistent bottom call controls, and optional chat/people panels. The viewer stays in `/students` even when browsing Tutor/ESL categories; categories do not grant teaching tools or host privileges. Preview room layout opens `?join=1&layout-preview=1` with zero connected attendees and disabled media/publishing controls; Exit preview returns to the lobby. The route adapter delegates to `components/features/meeting-room/meeting-room-view.tsx`, with shared screen, tile, panel, and CSS modules. No Google integration or new meeting permissions are added.
+
 ```mermaid
 flowchart LR
   R(["Meeting Room /students/classrooms/meeting-room E"]) --> ENTRY{"Arrival path"}

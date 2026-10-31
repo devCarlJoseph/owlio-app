@@ -11,7 +11,7 @@ Follow the [product Meeting Room and whiteboard scope](../../../OWLIO_PRODUCT_PL
 
 ## Current implementation
 
-- The page lives at `src/pages/dashboard/classroom/meeting-room.tsx` and is mounted below each role-prefixed classroom route.
+- `src/pages/dashboard/classroom/meeting-room.tsx` is a thin adapter mounted below each role-prefixed classroom route. State/LiveKit orchestration lives in `components/features/meeting-room/meeting-room-view.tsx`; screen, panel, participant-tile, and scoped CSS modules own presentation.
 - `src/services/api/meeting.service.ts` preserves create/join/end clients. When enabled and successful, joining returns short-lived LiveKit credentials and `livekit-client` handles media/presence. Check `src/lib/api-mode.ts`: requests are currently paused globally for UI work, so the preserved implementation is not currently enabled connected behavior. Do not change this mode as a side effect of UI work.
 - The backend implementation is not in this frontend repository. Confirm its contracts and permissions before adding routes, roles, or server-side behavior.
 - Chat and raised hands use small, reliable LiveKit data packets in the connected room. They are transient UI state, not persisted chat or official participation records. Do not claim delivery or retention guarantees.
@@ -44,7 +44,8 @@ The aligned product and ESL plans include a constrained temporary whiteboard ins
 
 - Preserve the dashboard header/sidebar rather than covering it with a viewport-fixed meeting or whiteboard container. The shared entry offers Classroom, Tutor, and ESL categories using existing workspace-scoped classes; student category links retain the student prefix. Preview classes are not live rooms. Connected category discovery requires backend teaching-category and linked-meeting fields; retain invite entry without inferring categories or permissions from URLs.
 
-- Match the dashboard's blue, slate, and white palette, Inter typography, and shared spacing/focus conventions. Use amber or rose only for status and destructive states.
+- Preserve Inter, semantic theme tokens, and shared spacing/focus conventions. ESL/tutors use the owner's warm-accent card-based coaching reference; students/educators use a Meet-inspired dark stage and bottom controls. Layout selection by workspace is presentation, never permission. Keep app appearance compatible with Light/Dark/System and keep controls visible within the dashboard shell.
+- `layout-preview=1` is explicitly layout-only: no live roster, media permission requests, chat/hand publishing, API calls, or host privileges. Exit preview returns to the lobby. AI notes/summary cards in coaching layouts stay unavailable until approved services and privacy contracts exist; the reference's recording/AI controls do not establish implementation. Preserve the separate ESL whiteboard preview and its current scope.
 - Keep controls keyboard-operable with visible focus, accessible names, pressed state, and concise error feedback.
 - Make chat and participant panels usable on narrow viewports; announce newly received messages without moving focus.
 - Show only the current LiveKit roster. Do not insert example attendees or activity as if they were real.
