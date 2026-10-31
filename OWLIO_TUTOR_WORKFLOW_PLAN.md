@@ -113,7 +113,7 @@ ACCOUNT
 - Activity detail contains instructions, related plan/session/materials, learner-specific responses, and any approved evaluation criteria.
 - Provide a submission/review queue; tutor evaluations and feedback are controlled by the tutor. Distinguish a private observation from feedback released to the learner.
 - Use the API’s status lifecycle. Do not assume that school-oriented points, grades, auto-grading, late rules, or revision windows apply to tutoring.
-- Existing route: `/tutors/classwork` is explanatory copy only. Shared classroom activity forms are in-memory demo state; there is no tutor activity/submission service.
+- Existing `/tutors/classwork` uses the shared teaching activity workspace with tutoring wording and owned preview learner groups. Grouped grid/list views, search, type/status/due filters, creation, activity details and explicit evaluation/feedback release use classroom preview state in the current tab. No tutor activity/submission service or account persistence exists; refresh resets changes.
 
 ### Sessions & Schedule
 
@@ -244,7 +244,7 @@ This is the target frontend architecture, not a statement that all listed pages/
 | Overview | `/tutors` | E. Tutor dashboard scaffold. |
 | My Learners | `/tutors/learners` | E. Current placeholder directory/group view. |
 | Learning Plans | `/tutors/learning-plans` | P. Multi-session goal/plan workspace, distinct from one-session agenda. |
-| Activities & Evaluations | `/tutors/classwork` | E. Current explanatory activity/evaluation page. |
+| Activities & Evaluations | `/tutors/classwork` | E. Shared role-scoped activity library, composer and detail/review panel; in-memory classroom preview only. |
 | Sessions & Schedule | `/tutors/sessions` | E. Current session-planning scaffold; target becomes the tutoring-session hub/calendar entry. Keep `/tutors/schedule` as a role-prefixed calendar deep link where useful. |
 | Session Attendance | `/tutors/attendance` | E. Empty attendance/history preview, no record service. |
 | Session Notes | `/tutors/session-notes` | P. Tutor-only notes; separate from feedback published to learners. |
@@ -303,9 +303,7 @@ src/components/features/
     learners/learner-detail-view.tsx              # P
     learning-plans/learning-plans-view.tsx        # P
     learning-plans/plan-editor.tsx                # P
-    activities/tutor-activities-view.tsx           # P
-    activities/activity-builder/                  # P: form sections/schemas
-    activities/submission-review-queue.tsx         # P
+    activities/tutor-activities-view.tsx           # E: TeachingActivitiesView with tutor copy
     sessions/tutor-sessions-view.tsx               # P: refactor existing placeholder
     sessions/session-calendar.tsx                  # P
     sessions/session-detail-view.tsx               # P
@@ -322,6 +320,7 @@ src/components/features/
     notifications/tutor-notifications-view.tsx        # P
     ai/tutor-ai-assistant-view.tsx                     # P
     settings/tutor-settings-view.tsx                   # P
+  teaching-activities/                              # E: shared library, composer, details and review
   classrooms/                                      # E: shared class detail/feed/records/activity views
   meeting-room/                                    # E/P: extract shared LiveKit screen
   schedule/                                        # P: shared calendar sections
@@ -434,7 +433,9 @@ flowchart LR
 
 ### Activities & Evaluations: `/tutors/classwork` (E)
 
-**Sections:** learner/group and session context, practice/activity list, submission review, tutor evaluation, and a distinct publish-feedback action.
+**Sections:** shared `TeachingActivitiesView`, learner/group activity library, preview counts, search/type/status/due filters, grid/list views, activity composer, and an Overview/Responses detail panel with a distinct release-feedback action.
+
+**Current preview workflow:** Create a Published example in an active owned preview learner group; set instructions, response type, optional due date and evaluation criteria. Quiz/test previews reuse the one-question builder and validated browser timer. Open the owning group or full activity through existing routes. To review filters actual unreleased responses; choose a learner, write a tutor evaluation and learner-visible feedback, then explicitly release both to that learner in the preview. Existing points are preserved, but no school grading scale or automatic scoring is introduced. Session Notes remain private and outside this form; session/plan linkage requires a future contract. The classroom preview source is shared in the current tab and resets on refresh, with no account save, server assignment, real upload or AI generation. Connected mode shows an unavailable state rather than sample records. The diagram below remains the future service-backed workflow.
 
 ```mermaid
 flowchart LR
@@ -450,7 +451,7 @@ flowchart LR
   LEARNER -->|"Submit supported response"| REVIEW["Tutor reviews evidence P"]
   REVIEW --> EVAL["Tutor evaluation / feedback draft P"]
   EVAL -->|"Publish feedback intentionally"| PROGRESS["Student Progress /tutors/progress E"]
-  ACT -->|"No activity service today"| EMPTY["Current explanatory scaffold E"]
+  ACT -->|"API paused; no activity service"| EMPTY["Shared in-memory activity and evaluation workspace E"]
 ```
 
 **Boundary:** Do not assume school grading scales, supported response types, scoring, or lifecycle labels for tutoring. Tutor evaluations are not institutional grades.

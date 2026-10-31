@@ -97,7 +97,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Teaching & Management",
       items: [
         { label: "My Classes", href: "/educators/classrooms", icon: School },
-        { label: "Classworks and Assessments", href: "/educators/classwork", icon: ClipboardList },
+        { label: "Classwork & Assessments", href: "/educators/classwork", icon: ClipboardList },
         { label: "Students", href: "/educators/learners", icon: Users },
         { label: "Attendance", href: "/educators/attendance", icon: CalendarCheck },
         { label: "Grade Book", icon: BookOpenCheck },
@@ -141,7 +141,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
         { label: "My Classes", href: "/esl/classrooms", icon: School },
         { label: "Lesson Plans", href: "/esl/lessons", icon: BookOpen },
         { label: "Teaching Materials", href: "/esl/materials", icon: FolderOpen },
-        { label: "Activities and Assessment", href: "/esl/classwork", icon: ClipboardList },
+        { label: "Activities & Assessments", href: "/esl/classwork", icon: ClipboardList },
       ],
     },
     {
@@ -180,7 +180,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
         { label: "My Learners", href: "/tutors/learners", icon: Users },
         { label: "My Classes", href: "/tutors/classrooms", icon: School },
         { label: "Learning Plans", href: "/tutors/learning-plans", icon: BookOpen },
-        { label: "Activities and Evaluation", href: "/tutors/classwork", icon: ClipboardList },
+        { label: "Activities & Evaluations", href: "/tutors/classwork", icon: ClipboardList },
       ],
     },
     {

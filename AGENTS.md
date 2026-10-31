@@ -242,6 +242,8 @@ Student Study Library (`src/components/features/materials/workspace/`) has Owlio
 
 Meeting Room keeps `src/pages/dashboard/classroom/meeting-room.tsx` as a thin adapter to `src/components/features/meeting-room/meeting-room-view.tsx`. ESL/tutors use the coaching card layout; students/educators use a Meet-inspired dark stage. Shared controls, tiles, panels, and scoped CSS preserve the existing LiveKit transport. `layout-preview=1` is layout-only and cannot connect/publish/request media; API integration remains paused. Recording, transcription, and AI summary cards are unavailable, and the separate ESL whiteboard preview is unchanged.
 
+Educator, ESL, and tutor classwork pages share `src/components/features/teaching-activities/` with role-specific labels and owned classroom-preview records. The grouped grid/list library, filters, composer and response/feedback panel use the same in-memory source as classroom detail. Changes reset on refresh; counts are derived from labeled examples, not live records. No activity/submission API, account save, server assignment or real upload is connected. Connected mode shows unavailable activity services rather than falling back to samples. Keep private notes out of deliberately released learner feedback and tutor evaluations distinct from school grades.
+
 ## 8. Agent/parallel-work protocol
 
 - Do not delegate or start subagents unless the session's higher-priority instructions or the user explicitly permit it.

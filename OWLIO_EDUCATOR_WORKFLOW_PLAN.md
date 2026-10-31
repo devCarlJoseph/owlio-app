@@ -105,7 +105,7 @@ ACCOUNT
 - Submission queue should support review by class/activity/student, missing work when reliably derivable, supported evidence preview, grade/evaluation, written feedback, and return/revision where the contract allows it.
 - Distinguish unpublished drafts, published activities, in-progress work, submitted work, review, and released results according to the actual server lifecycle; do not hard-code the product-plan example status flow prematurely.
 - Show the human educator as final decision-maker for every official grade/evaluation. AI suggestions remain drafts until explicitly reviewed and accepted.
-- Existing `/educators/classwork` is a sample weekly activity board, not connected to classroom data. Creation/review in classroom detail is a temporary in-memory prototype; no classwork/submission API service is present.
+- Existing `/educators/classwork` uses the shared teaching activity workspace and classroom preview store. Cross-class grouping, grid/list views, search and type/status/due filters, preview creation, activity details, and explicit feedback release work only in memory in the current tab. No classwork/submission API service is present; refresh resets changes.
 
 ### Students
 
@@ -236,7 +236,7 @@ This is the target frontend architecture, not a declaration that every route or 
 |---|---|---|
 | Overview | `/educators` | E. Teaching-day dashboard. |
 | My Classes | `/educators/classrooms` | E. Existing shared class list/create flow; opens `/educators/classrooms/:classroomId`. |
-| Classwork & Assessments | `/educators/classwork` | E. Current sample weekly board; target cross-class activity and review queue. |
+| Classwork & Assessments | `/educators/classwork` | E. Shared cross-class activity library, composer, detail/review panel; classroom preview state only. |
 | Students | `/educators/learners` | E. Current sample learner board; target authorized roster/directory. Keep existing path for compatibility. |
 | Attendance | `/educators/attendance` | E. Current disabled sample board; target official session register/history. |
 | Gradebook | `/educators/gradebook` | P. New educator route; do not point to generic Progress and claim gradebook behavior. |
@@ -269,7 +269,7 @@ The filenames below describe target locations, not files to create in this docum
 ```text
 src/pages/dashboard/educators/
   index.tsx                          # E: route adapter -> EducatorOverviewView
-  classwork/index.tsx                # E: route adapter -> EducatorClassworkView
+  classwork/index.tsx                # E: route adapter -> TeachingActivitiesView (educators)
   learners/index.tsx                 # E: route adapter -> EducatorStudentsView
   learners/detail/index.tsx          # P: route adapter -> EducatorStudentDetailView
   attendance/index.tsx               # E: route adapter -> EducatorAttendanceView
@@ -289,12 +289,12 @@ src/components/features/
     educator-overview-view.tsx       # P: dashboard composition
     teaching-day-agenda.tsx          # P: upcoming lesson/session list
     needs-attention.tsx              # P: sourced submission/attendance actions
-  educator-classwork/
-    educator-classwork-view.tsx      # P: refactor existing sample page
-    activity-list.tsx                # P
-    submission-review-queue.tsx      # P
-    activity-builder/                 # P: activity form sections/schema
-    activity-detail.tsx              # P
+  teaching-activities/               # E: shared educator/ESL/tutor composition
+    teaching-activities-view.tsx     # E: role-scoped library and review queue
+    activity-collection.tsx          # E: grouped grid/list
+    activity-composer.tsx            # E: preview form/schema
+    activity-details.tsx             # E: instructions, responses, deliberate feedback release
+    activity-workspace-model.ts      # E: role copy, ownership and filtering
   educator-students/
     educator-students-view.tsx       # P: refactor existing sample learner page
     student-directory.tsx            # P
@@ -433,12 +433,14 @@ flowchart LR
 
 ### Classwork & Assessments: `/educators/classwork` (E)
 
-**Sections:** `EducatorClassworkView`, class/week filters, classroom/group/table/list views, activity rows, proposed creation action, and `SubmissionReviewQueue`.
+**Sections:** shared `TeachingActivitiesView` with educator copy, classroom groups, derived preview counts, search/type/status/due filters, grid/list views, `ActivityComposer`, and `ActivityDetails` with Overview/Responses tabs.
+
+**Current preview workflow:** Open a class group or activity; create a Published example in an active owned preview class; choose instructions, response type, optional due date and criteria. Quizzes/tests use the existing single-question builder and validated browser timer. To review filters actual unreleased preview responses. The educator selects a learner, writes an evaluation and feedback, then explicitly releases both to that learner in the preview. Existing points are preserved; no automatic scoring, official Gradebook update, or private-note publication is introduced. Changes share the classroom detail source and reset on refresh. Loading/error/empty/filter-empty and unconnected-service states stay explicit; connected mode never falls back to samples. The diagram below remains the target service-backed lifecycle.
 
 ```mermaid
 flowchart LR
   CW(["Classwork & Assessments /educators/classwork E"]) --> FILTER{"Select class / type / status"}
-  FILTER --> LIST["Activity list or board on same page E; sample today"]
+  FILTER --> LIST["Grouped activity grid/list E; classroom preview today"]
   subgraph AUTHOR["Author and publish"]
     BUILD["Activity builder in class context P"]
     DRAFT["Draft activity P"]
@@ -788,7 +790,7 @@ flowchart LR
 | Routes | `src/main.tsx` | Educator routes exist for Overview, classwork, attendance, learners, classrooms/list/detail/activity, meeting room, and role-prefixed shared pages. No gradebook, lesson planner, announcements, or settings route exists. |
 | Overview | `src/pages/dashboard/educators/index.tsx` | Teaching shortcuts and honest empty states; no dashboard query or live task counts. |
 | Classes | `src/services/api/classroom.service.ts`, `src/components/features/classrooms/classroom-prototype-provider.tsx`, `classrooms-view.tsx`, `classroom-detail-view.tsx` | API list/create/join calls exist. The provider mixes connected classroom summaries with demo data; details and many classroom tabs are local in-memory prototype state. Confirm contracts and authorization before extending. |
-| Classwork | `src/pages/dashboard/educators/classwork/index.tsx`; `src/components/features/classrooms/classroom-classwork-view.tsx`; `classroom-activity-view.tsx` | Cross-class weekly board and learner/classwork records are sample data. Classroom detail has an in-memory authoring/review preview. No classwork/submission service. |
+| Classwork | `src/pages/dashboard/educators/classwork/index.tsx`; `src/components/features/teaching-activities/`; classroom prototype provider/store | Shared role-scoped library, preview creation, activity details and response/feedback review use the same in-memory source as classroom detail. No classwork/submission service or account persistence. |
 | Students | `src/pages/dashboard/educators/learners/index.tsx` | Search, filters, board/table/list are driven by hard-coded sample learners; no student/roster API. |
 | Attendance | `src/pages/dashboard/educators/attendance/index.tsx` | Hard-coded sample sessions/totals; disabled filters and roll call; no attendance API. |
 | Gradebook/insights | `src/pages/dashboard/progress/index.tsx`, classroom progress views | Shared page is an empty explanatory scaffold; classroom grade/progress preview is in-memory. No official gradebook/progress service. |

@@ -28,4 +28,6 @@ Objective auto-grading may use educator-defined answer keys and points when supp
 
 Tutor-only Session Notes are not activity feedback and must not be surfaced to learners. A learner-visible feedback/evaluation action must have an explicit audience and follow the role-specific plan.
 
+The three teaching classwork pages share `src/components/features/teaching-activities/`, with role-specific wording and owned classroom-preview records. Reuse this library/composer/detail layout rather than creating three separate activity stores. Keep filtering and derived counts scoped to the active teaching role; preserve the existing score when reviewing text feedback. The current preview changes only in-memory classroom state and resets on refresh. Do not show mock records as a connected-service fallback, invent learner responses, add private notes to released fields, or imply preview publication assigns work on the server. Check current runtime/source before extending this implementation.
+
 Use [AI assistance](../ai-assistant/SKILL.md) for generation/evaluation safeguards and [learner progress/reporting](../learner-progress-reporting/SKILL.md) for records and summaries. Never claim a submission, grade, or feedback was saved unless an API confirms it.

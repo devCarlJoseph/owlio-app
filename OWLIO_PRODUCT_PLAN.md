@@ -188,6 +188,10 @@ Educators create and distribute activities, set supported due dates/scoring rule
 
 Objective auto-grading may use educator-defined answer keys and points when supported. Written-response evaluation may use rubrics or AI suggestions, but the educator retains final decision authority.
 
+The three teaching destinations use one activity-workspace layout: Classwork & Assessments for educators, Activities & Assessments for ESL, and Activities & Evaluations for tutors. Group activities by their owning classroom or learner group, with grid/list views, search, type/status/due filters, a response-review queue, and an activity detail panel. Role wording and record ownership stay distinct; tutor evaluations do not become school grades, and private teaching or Session Notes are separate from released feedback.
+
+The current `/{educators|esl|tutors}/classwork` pages share `components/features/teaching-activities/` and the classroom preview store. Creation and explicit learner-feedback release update only in-memory preview records in the current tab, resetting on refresh. Counts come from those labeled examples; responses are not fabricated. Quiz/test authoring uses the existing one-question and browser-timer prototype. There is no activity/submission service, account save, server assignment, real file upload, automatic grading, or AI generation. Connected mode shows an unavailable state rather than substituting samples. Topic grouping and a focused response/feedback panel take inspiration from [Google Classroom](https://support.google.com/edu/classroom/answer/9582854?hl=en) and [Canvas SpeedGrader](https://community.instructure.com/en/kb/articles/662775-what-is-speedgrader).
+
 ### Student personal tasks
 
 Personal tasks support work such as studying for an exam, reading a chapter, practicing programming, preparing a presentation, or completing personal study work. A task may contain title, description, subject, due date, priority, status, and personal notes. Personal tasks must remain separate from educator-assigned classwork.

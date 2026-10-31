@@ -124,7 +124,7 @@ ACCOUNT
 - Each activity may specify instructions, target skill, learner/group, due/session context, response type, and evaluation criteria only where confirmed.
 - Review submissions and educator observations; keep a teacher's suggested evaluation distinct from a published result. Final judgments remain educator-controlled.
 - Use status labels from the actual service. Do not assume quiz types, file submission rules, scoring, revision windows, or grade release behavior.
-- Existing route: `/esl/classwork` is a language-activity overview and explicitly states no ESL activities/submissions are connected. Classroom prototype classwork is in-memory, shared across roles, and not saved.
+- Existing `/esl/classwork` uses the shared teaching activity workspace with ESL wording and owned preview learning groups. Search, type/status/due filters, grid/list views, preview creation, details, responses and explicit learner-feedback release share the classroom in-memory source. No ESL activities/submissions service or account persistence exists; refresh resets changes.
 
 ### Lesson Attendance
 
@@ -240,7 +240,7 @@ This is the target frontend architecture, not a claim that every route or operat
 | My Learners | `/esl/learners` | E. Current empty learner-context page. |
 | Lesson Plans | `/esl/lessons` | E. Skill-category/lesson preview; plan records not connected. |
 | Teaching Materials | `/esl/materials` | E. Shared material-context selector, not a library/upload service. |
-| Activities & Assessments | `/esl/classwork` | E. Language activity preview; no activities/submissions service. |
+| Activities & Assessments | `/esl/classwork` | E. Shared role-scoped activity library, composer and detail/review panel; in-memory classroom preview only. |
 | Lesson Attendance | `/esl/attendance` | E. Check-in/history preview; no attendance service. |
 | Meeting Room | `/esl/classrooms/meeting-room` | E. Standalone shared LiveKit room. Whiteboard remains an in-room tool only. |
 | Lesson Schedule | `/esl/schedule` | E. Shared calendar grid; no event data or persistence. |
@@ -293,9 +293,7 @@ src/components/features/
     lesson-plans/esl-lesson-plans-view.tsx        # P: reusable plans
     lesson-plans/lesson-plan-editor.tsx           # P
     materials/esl-materials-view.tsx              # P: role-aware library view
-    activities/esl-activities-view.tsx            # P: practice/evaluation lists
-    activities/activity-builder.tsx               # P
-    activities/submission-review-queue.tsx        # P
+    activities/esl-activities-view.tsx            # E: TeachingActivitiesView with ESL copy
     attendance/esl-attendance-view.tsx             # P
     attendance/lesson-session-picker.tsx           # P
     attendance/attendance-roster.tsx               # P
@@ -310,6 +308,7 @@ src/components/features/
     feedback-notes/esl-feedback-notes-view.tsx      # P: private and published records
     ai-assistant/esl-ai-lesson-assistant-view.tsx   # P: educator-reviewed drafts
     settings/esl-settings-view.tsx                  # P
+  teaching-activities/                              # E: shared library, composer, details and review
   classrooms/                                      # E: shared classroom/detail/activity views
   meeting-room/                                    # E/P: extract shared LiveKit page as a feature view
   ui/                                              # E: domain-neutral wrappers
@@ -453,7 +452,9 @@ flowchart LR
 
 ### Activities & Assessments: `/esl/classwork` (E)
 
-**Sections:** practice/activity list, learner/group and lesson filters, activity builder, learner submissions/responses, educator review, and feedback publication.
+**Sections:** shared `TeachingActivitiesView`, learning-group activity library, preview counts, search/type/status/due filters, grid/list views, activity composer, and an Overview/Responses detail panel.
+
+**Current preview workflow:** Select an owned preview learning group, create a Published example (Speaking practice by default), and open instructions and criteria alongside existing learner responses. Quiz/test previews use one question and the existing browser timer. To review contains only actual unreleased preview responses; feedback is released only after the teacher explicitly acts, with the individual learner audience stated. Practice does not create a grade or proficiency level; private teaching notes remain separate. Lesson linkage, language skill tags and proficiency scales still need approved contracts. State is shared with classroom detail in the current tab, resets on refresh, and has no activity API, real upload, account save or AI generation. Connected mode shows an unavailable state. The diagram below describes the future service-backed flow.
 
 ```mermaid
 flowchart LR
@@ -470,7 +471,7 @@ flowchart LR
   LEARNER -->|"Learner submits supported response"| REVIEW["Submission review queue P"]
   REVIEW -->|"Tutor/teacher evaluates"| FEEDBACK["Private draft or explicit published feedback"]
   FEEDBACK -->|"Published record"| PROGRESS["Learner Progress /esl/progress E"]
-  ACT -->|"No activity/submission service"| EMPTY["Current activity-category preview E"]
+  ACT -->|"API paused; no activity/submission service"| EMPTY["Shared in-memory activity and review workspace E"]
 ```
 
 **Boundary:** Activity types, file/link response types, statuses, assessment scales, and feedback release rules must follow the API contract. Whiteboard interaction is a live practice action, not a submission or grade.
@@ -758,7 +759,7 @@ flowchart LR
 | Overview | `src/pages/dashboard/esl/index.tsx` | Placeholder cards for learner, upcoming, and progress sections; no live dashboard query. |
 | Learners | `src/pages/dashboard/esl/learners/index.tsx` | Explains desired goal/activity/feedback areas but no learner profile or language-progress data is loaded. |
 | Lesson Plans | `src/pages/dashboard/esl/lessons/index.tsx` | Skill-category copy and an empty-state message; no lesson plan, learner level, or schedule service. |
-| Activities | `src/pages/dashboard/esl/classwork/index.tsx` | Activity type preview and empty feedback copy; no ESL activity/submission API. |
+| Activities | `src/pages/dashboard/esl/classwork/index.tsx`; `src/components/features/esl-teaching/activities/esl-activities-view.tsx`; `src/components/features/teaching-activities/` | Shared learning-group library, composer, activity details and deliberate feedback release use classroom preview records only. No ESL activity/submission API or account persistence. |
 | Attendance | `src/pages/dashboard/esl/attendance/index.tsx` | Empty check-in/history preview; no attendance service. |
 | Classroom details | `src/components/features/classrooms/classroom-detail-view.tsx`, `classroom-records-view.tsx`, `classroom-prototype-provider.tsx` | Shared class shell. The service provides classroom list/create/join; provider adds initial sample classes and holds details, materials, sessions, posts, chat, attendance, activities, submissions, and progress in memory. An ESL sample class exists, but is not live data. |
 | Meeting Room | `src/pages/dashboard/classroom/meeting-room.tsx`; `src/services/api/meeting.service.ts` | Full-screen LiveKit page with create/join/end API, video/audio, screen share, transient chat/hand raise, participant list and opt-in media. No whiteboard component/events/service are present. The page is shared across role-prefixed routes. |
