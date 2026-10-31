@@ -8,6 +8,7 @@ import { LibrarySearchField } from "./library-search-field"
 import { ResourceList } from "./resource-list"
 import { ResourceListRow } from "./resource-list-row"
 import { ResourceSourceFilter } from "./resource-source-filter"
+import { PersonalLibraryWork } from "./workspace/personal-library-work"
 import {
   countLibraryResources,
   filterLibraryResources,
@@ -96,6 +97,7 @@ export function StudentLibraryView() {
 
           return (
             <TabsContent key={source} value={source} className="space-y-6">
+              {(source === "all" || source === "personal") && <PersonalLibraryWork query={query} kinds={selectedKinds} />}
               <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 text-xs leading-5 text-muted-foreground">
                 <p className="flex max-w-xl items-start gap-1.5"><Info aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" /><span><strong className="font-medium text-foreground">Sample collection.</strong> Illustrative covers and example resources. Files, uploads, and sync aren’t connected.</span></p>
                 <p role="status">{shownCount} {shownCount === 1 ? "resource" : "resources"} shown{showCollections ? ` of ${counts.all}` : ""}</p>

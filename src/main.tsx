@@ -25,6 +25,7 @@ import StudentStudySpaceDetailPage from "@/pages/dashboard/students/study-spaces
 import StudentClassworkPage from "@/pages/dashboard/students/classwork";
 import StudentMaterialsPage from "@/pages/dashboard/students/materials";
 import StudentPersonalMaterialsPage from "@/pages/dashboard/students/materials/personal";
+import StudentLibraryWorkspacePage from "@/pages/dashboard/students/materials/workspace";
 import StudentPersonalMaterialSubjectPage from "@/pages/dashboard/students/materials/personal/subject";
 import StudentClassroomMaterialSubjectPage from "@/pages/dashboard/students/materials/classroom/subject";
 import StudentStudySpaceMaterialSubjectPage from "@/pages/dashboard/students/materials/study-spaces/subject";
@@ -75,7 +76,7 @@ createRoot(document.getElementById("root")!).render(
     <AuthSessionProvider>
       {!API_INTEGRATION_ENABLED && (
         <div role="status" className="bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-950">
-          UI preview mode: API integrations are paused. API-backed actions are unavailable and changes are not saved.
+          UI preview mode: API integrations are paused. API-backed actions are unavailable; API-backed changes are not saved.
         </div>
       )}
       <Routes>
@@ -147,6 +148,7 @@ createRoot(document.getElementById("root")!).render(
             />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="materials" element={<StudentMaterialsPage />} />
+            <Route path="materials/workspace/:resourceId" element={<StudentLibraryWorkspacePage />} />
             <Route path="materials/personal" element={<StudentPersonalMaterialsPage />} />
             <Route path="materials/personal/:subject" element={<StudentPersonalMaterialSubjectPage />} />
             <Route path="materials/classroom/:subject" element={<StudentClassroomMaterialSubjectPage />} />

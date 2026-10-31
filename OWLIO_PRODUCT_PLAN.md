@@ -210,6 +210,8 @@ Educators may need learner profiles, classroom membership/enrollment status, cla
 
 Educators may organize documents, PDFs, presentations, images, videos, and links by classroom/topic/lesson/resource. Students may organize personal notes, files, references, and study resources. Tutors may organize materials by learner, topic, lesson, skill, or session.
 
+The student Study Library also supports Owlio-owned document and presentation editors. Students create/open personal work inside Owlio, optionally link an existing personal task, format document blocks, organize slides and speaker notes, preview/present, and export/import Owlio JSON backups. The current implementation saves only in the current browser, with save failures surfaced; it has no Google integration, account sync, collaboration, or classroom-submission behavior. Personal work remains separate from the labeled sample resource collections.
+
 Keep the owner and context visible: personal resource, peer-shared study-space resource, educator-published classroom resource, or student submission. Do not invent accepted file types, upload limits, integrations, or permissions.
 
 ### Discussions, announcements, and polls

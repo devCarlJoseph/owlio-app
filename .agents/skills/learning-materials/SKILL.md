@@ -23,6 +23,8 @@ Do not expose a private personal resource to a class or peer group without an ex
 
 The educator, ESL, and tutor plans each specify one Teaching Materials destination; do not add duplicate libraries or mix resource management with Progress/Insights. The student Study Library may aggregate sources for discovery, but must show the owner/context and preserve each source's access rules. Personal notes are not the same as uploaded resources.
 
+Student Study Library personal documents/presentations use Owlio-owned editors in `components/features/materials/workspace/`, with `/students/materials/workspace/:resourceId` as a thin route adapter. They save only in the current browser and remain separate from sample collections and shared/classroom files. Keep save errors, revision conflicts, missing/unreadable local files, and backup export/import explicit. Linking a real personal task is context only; never mutate task completion, classwork, or submissions from editor changes. Owlio JSON backups do not establish Google sync, DOCX/PPTX compatibility, collaboration, or server storage.
+
 ## Safety and UX
 
 Do not invent file limits, preview support, virus scanning, external provider integrations, or upload success states. Do not log sensitive file contents or expose raw storage errors. Verify access on the server; UI visibility is not authorization. Provide file/link labels, upload progress/errors when implemented, accessible actions, and empty/unavailable states.

@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { LibrarySearchField } from "./library-search-field"
 import { ResourceCard } from "./resource-card"
 import { ResourceList } from "./resource-list"
+import { PersonalLibraryWork } from "./workspace/personal-library-work"
 import {
   filterLibraryResources,
   groupLibraryResources,
@@ -146,14 +147,15 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         </div>
       </section>
 
+      {source === "personal" && <PersonalLibraryWork query={query} />}
+
       <section
         aria-label="Library guidance"
         className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3"
       >
         <FolderOpen className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
         <p className="flex-1 text-sm leading-6 text-blue-800">
-          Opening a resource takes you to the context that owns it. Nothing here is copied, moved, or
-          shared between contexts.
+          {source === "personal" ? "Your documents open in Owlio. Example resources below link to their owning context." : "Opening a resource takes you to the context that owns it. Nothing here is copied, moved, or shared between contexts."}
         </p>
       </section>
 
@@ -161,9 +163,9 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Resources in this library</h3>
+              <h3 className="text-base font-semibold text-slate-900">Sample resources in this library</h3>
               <p className="mt-1 text-sm text-slate-500">
-                Search by title, resource kind, context, or who shared it.
+                Example resources link to their owning context. External files and account sync aren’t connected.
               </p>
             </div>
 

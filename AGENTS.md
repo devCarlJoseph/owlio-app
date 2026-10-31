@@ -234,6 +234,8 @@ At context capture on 2026-10-14, `npm run lint` reported 13 `react-refresh/only
 
 Handoff summary should include: behavior changed, key files/routes, verification run and results, unimplemented/backend dependencies, and any product decisions that need owner input. Mention if a request was intentionally kept UI-only.
 
+Student Study Library (`src/components/features/materials/workspace/`) has Owlio-owned document and presentation editors at `/students/materials/workspace/:resourceId`. Personal files are stored separately under `owlio.study-library-work.v1.<id>` in browser local storage, with revision checks, save-error recovery, and Owlio JSON backup export/import. They appear in the all/personal library views and may link real browser-local personal tasks without modifying them. These are not Google integrations, account-synced files, shared resources, or classroom submissions; the existing example collections remain sample data.
+
 ## 8. Agent/parallel-work protocol
 
 - Do not delegate or start subagents unless the session's higher-priority instructions or the user explicitly permit it.

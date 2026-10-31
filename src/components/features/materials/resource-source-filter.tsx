@@ -60,6 +60,8 @@ export function ResourceSourceFilter({ counts }: ResourceSourceFilterProps) {
           >
             {option.label}
             <span
+              title={`${counts[option.value]} sample resources; personal editor files are listed separately`}
+              aria-label={`${counts[option.value]} sample resources`}
               className={cn(
                 "rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-slate-500",
                 accent.badge,
