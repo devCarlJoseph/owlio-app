@@ -222,6 +222,8 @@ All four role workflows use contextual Discussions in place of a general Message
 
 ### Standalone Meeting Room and temporary ESL whiteboard
 
+Meeting Room stays inside the dashboard shell, preserving the header and sidebar in the category page, invite lobby, call, and local ESL whiteboard preview. Its entry page offers Classroom (school educator), Tutor, and ESL choices. Students browse their enrolled classes in the selected category without switching workspace; teachers retain their own workspace and class scope. Only a real linked meeting may offer direct joining; otherwise use the teacher's invite. Current preview classes have no connected meetings. The classroom API does not yet provide owner teaching categories or linked meeting IDs, so connected category discovery depends on an extended backend contract; invite-based entry remains separate.
+
 Meeting Room is a separate full page and sidebar destination in all four workspaces, with an invite/code lobby, connected-room state, recoverable connection feedback, and clean leave/end behavior. Classes and eligible scheduled lessons/sessions can deep-link into that same page with valid room context. Standalone entry does not imply room history, recordings, scheduled-room lists, or student host permissions.
 
 Preserve opt-in microphone/camera and supported screen sharing, participants, room chat, and hand raises. Host/create/end actions require server authorization. Chat, hand raises, and participant presence remain transient room interactions, separate from saved Discussions, attendance, notes, and academic records.

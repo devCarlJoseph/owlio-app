@@ -42,6 +42,8 @@ The aligned product and ESL plans include a constrained temporary whiteboard ins
 
 ## UI and accessibility
 
+- Preserve the dashboard header/sidebar rather than covering it with a viewport-fixed meeting or whiteboard container. The shared entry offers Classroom, Tutor, and ESL categories using existing workspace-scoped classes; student category links retain the student prefix. Preview classes are not live rooms. Connected category discovery requires backend teaching-category and linked-meeting fields; retain invite entry without inferring categories or permissions from URLs.
+
 - Match the dashboard's blue, slate, and white palette, Inter typography, and shared spacing/focus conventions. Use amber or rose only for status and destructive states.
 - Keep controls keyboard-operable with visible focus, accessible names, pressed state, and concise error feedback.
 - Make chat and participant panels usable on narrow viewports; announce newly received messages without moving focus.

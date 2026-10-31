@@ -531,6 +531,8 @@ flowchart LR
 
 ### Meeting Room: `/educators/classrooms/meeting-room` (E)
 
+Preserve the dashboard header/sidebar throughout category entry, lobby, and call. The shared entry offers Classroom, Tutor, and ESL choices, scoped to the viewer's existing classes and workspace. Preview classes have no live room. Connected category discovery requires backend teaching-category and linked-meeting fields; direct invites remain supported.
+
 **Sections:** standalone lobby, connected participant grid, room controls, `MeetingChatPanel`, and `PeoplePanel`; class/session pages deep-link to the same route when a valid meeting exists.
 
 ```mermaid

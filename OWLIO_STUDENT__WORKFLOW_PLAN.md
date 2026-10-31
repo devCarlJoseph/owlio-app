@@ -471,7 +471,9 @@ flowchart LR
 
 ### Meeting Room: `/students/classrooms/meeting-room` (E)
 
-**Sections:** Full-screen `MeetingLobby`, `ParticipantGrid`, `RoomControls`, `MeetingChatPanel`, and `PeoplePanel`. The sidebar entry opens the separate lobby; an eligible classroom/session may link to the same route with a room code. The connected room is LiveKit-backed.
+The page preserves the dashboard header/sidebar and opens with Classroom, Tutor, and ESL choices. Each choice shows enrolled classes in that teaching category and an invite-entry action, retaining `/students` URLs. The lobby and active call remain within the shell. Preview classes have no live room; connected category discovery requires backend category and linked-meeting fields. Direct room-query links still open the invite lobby.
+
+**Sections:** Category entry, `MeetingLobby`, `ParticipantGrid`, `RoomControls`, `MeetingChatPanel`, and `PeoplePanel` inside the dashboard shell. An eligible classroom/session may link to the same route with a room code. The preserved connected room uses LiveKit; API integration is currently paused.
 
 ```mermaid
 flowchart LR

@@ -35,6 +35,7 @@ import {
 } from '@/services/api/meeting.service'
 import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview'
 import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
+import { MeetingRoomHub } from '@/components/features/meeting-room/meeting-room-hub'
 
 type RoomStatus = 'idle' | 'joining' | 'connected' | 'reconnecting' | 'ended'
 type MeetingPanel = 'chat' | 'people'
@@ -71,8 +72,18 @@ function decodeMeetingSignal(payload: Uint8Array): MeetingSignal | null {
 
 export default function MeetingRoomPage() {
   const { pathname } = useLocation()
+  const [params] = useSearchParams()
   const role = getDashboardRole(pathname) ?? 'students'
-  const classroomPath = `/${role}/classrooms`
+  const hasInvite = Boolean(getMeetingIdFromInvite(params.get('room') ?? ''))
+  return hasInvite || params.get('join') === '1' || shouldShowEslWhiteboardPreview(role, params.get('whiteboard-preview'))
+    ? <MeetingRoomSession />
+    : <MeetingRoomHub />
+}
+
+function MeetingRoomSession() {
+  const { pathname } = useLocation()
+  const role = getDashboardRole(pathname) ?? 'students'
+  const classroomPath = `/${role}/classrooms/meeting-room`
   const { user } = useAuthSession()
   const [searchParams, setSearchParams] = useSearchParams()
   const roomId = getMeetingIdFromInvite(searchParams.get('room') ?? '')
@@ -407,18 +418,18 @@ export default function MeetingRoomPage() {
   }
 
   return (
-    <main className="fixed inset-0 z-50 flex h-dvh min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-900">
+    <section aria-label="Meeting room" className="relative flex h-[calc(100dvh-12rem)] min-h-128 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-slate-50 text-slate-900">
       <header className="flex min-h-[4.5rem] shrink-0 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <Link
             to={classroomPath}
-            aria-label="Back to classrooms"
+            aria-label="Back to Meeting Room"
             className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <ArrowLeft aria-hidden="true" className="size-4" />
           </Link>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">Classroom meeting</p>
+            <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">Meeting room</p>
             <p className="mt-0.5 truncate text-[11px] text-slate-500">
               {roomId ? formatMeetingCode(roomId) : 'LiveKit group meeting'}
             </p>
@@ -676,7 +687,7 @@ export default function MeetingRoomPage() {
           </div>
         </section>
       )}
-    </main>
+    </section>
   )
 }
 

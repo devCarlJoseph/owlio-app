@@ -180,7 +180,7 @@ export default function EslWhiteboardPreview() {
   const counts = people.map((person) => ({ person, count: items.filter((item) => item.authorId === person.id).length }))
 
   return (
-    <main onKeyDown={handleKeyDown} className="fixed inset-0 z-50 flex h-dvh min-h-0 flex-col overflow-hidden bg-slate-100 text-slate-900">
+    <section aria-label="ESL whiteboard preview" onKeyDown={handleKeyDown} className="relative flex h-[calc(100dvh-12rem)] min-h-128 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-slate-100 text-slate-900">
       <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-2 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Link to="/esl/classrooms/meeting-room" aria-label="Back to Meeting Room" className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
@@ -403,7 +403,7 @@ export default function EslWhiteboardPreview() {
           </p>
         </aside>
       </div>
-    </main>
+    </section>
   )
 }
 
