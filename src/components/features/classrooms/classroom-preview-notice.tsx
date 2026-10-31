@@ -16,7 +16,7 @@ export function ClassroomPreviewNotice({ role, classroomId }: { role: WorkspaceR
     <p className="mt-1 text-xs leading-5 text-muted-foreground">Explore as Alex Rivera or a sample teacher. Changes stay in this tab while you switch workspaces and reset on refresh. Nothing is saved to an account.</p>
     <nav aria-label="Preview as a role" className="mt-3 flex flex-wrap gap-2">{workspaces.map(item => <Link key={item.role}
       to={`/${item.role}/classrooms${classroomId && getClassroomsForWorkspace(item.role).some(item => item.id === classroomId) ? `/${classroomId}` : ''}`} aria-current={role === item.role ? 'page' : undefined}
-      className={`rounded-lg border px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand ${role === item.role ? 'border-brand bg-brand text-white' : 'border-border bg-background hover:bg-muted'}`}>
+      className={`rounded-lg border px-3 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand ${role === item.role ? 'border-brand bg-brand text-brand-foreground' : 'border-border bg-background hover:bg-muted'}`}>
       {item.label} preview
     </Link>)}</nav>
   </aside>

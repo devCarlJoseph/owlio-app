@@ -9,7 +9,7 @@ import { createSlide, createWorkId, type LibraryWork, type WorkSlide } from "./w
 const themes = { paper: "bg-white text-slate-900", sage: "bg-emerald-50 text-emerald-950", midnight: "bg-slate-900 text-white" }
 
 export function SlidePreview({ slide }: { slide: WorkSlide }) {
-  return <div className={`flex aspect-video flex-col justify-center overflow-y-auto rounded-lg border border-black/10 p-5 sm:p-10 ${themes[slide.theme]}`}>
+  return <div data-theme-content className={`flex aspect-video flex-col justify-center overflow-y-auto rounded-lg border border-black/10 p-5 sm:p-10 ${themes[slide.theme]}`}>
     <h2 className="whitespace-pre-wrap break-words text-2xl font-semibold leading-tight sm:text-4xl">{slide.title || "Untitled slide"}</h2>
     <p className="mt-5 whitespace-pre-wrap break-words text-sm leading-relaxed opacity-80 sm:text-xl">{slide.body}</p>
   </div>
@@ -46,12 +46,12 @@ export function PresentationEditor({ work, onChange }: { work: LibraryWork; onCh
     <div className="grid gap-4 lg:grid-cols-[176px_minmax(0,1fr)]">
       <nav aria-label="Slides" className="flex gap-2 overflow-x-auto rounded-xl border border-border bg-card p-2 lg:flex-col lg:overflow-x-visible">
         {work.slides.map((slide, i) => <button key={slide.id} type="button" aria-label={`Slide ${i + 1}: ${slide.title || "Untitled"}`} aria-current={slide.id === active.id ? "step" : undefined} onClick={() => setActiveId(slide.id)} className={`w-36 shrink-0 rounded-lg border p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring lg:w-full ${slide.id === active.id ? "border-primary ring-1 ring-primary" : "border-border hover:bg-muted"}`}>
-          <span className={`flex aspect-video items-center justify-center overflow-hidden rounded p-2 text-center text-[10px] font-semibold ${themes[slide.theme]}`}><span className="line-clamp-3 break-words">{slide.title || "Untitled slide"}</span></span>
+          <span data-theme-content className={`flex aspect-video items-center justify-center overflow-hidden rounded p-2 text-center text-[10px] font-semibold ${themes[slide.theme]}`}><span className="line-clamp-3 break-words">{slide.title || "Untitled slide"}</span></span>
           <span className="mt-1.5 block truncate text-[11px] text-muted-foreground">{i + 1}. {slide.title || "Untitled slide"}</span>
         </button>)}
       </nav>
       <div className="min-w-0 space-y-4">
-        <section aria-label="Slide canvas" className={`flex min-h-72 flex-col justify-center gap-4 rounded-xl border border-border p-5 shadow-sm sm:aspect-video sm:p-10 ${themes[active.theme]}`}>
+        <section data-theme-content aria-label="Slide canvas" className={`flex min-h-72 flex-col justify-center gap-4 rounded-xl border border-border p-5 shadow-sm sm:aspect-video sm:p-10 ${themes[active.theme]}`}>
           <label htmlFor="slide-title" className="text-[10px] font-semibold tracking-wider uppercase opacity-60">Slide {index + 1} · Title</label>
           <Textarea id="slide-title" value={active.title} onChange={event => patch({ title: event.target.value })} placeholder="Give your idea a title" rows={2} className="resize-y border-current/15 bg-transparent text-2xl font-semibold text-inherit shadow-none placeholder:text-current/40 md:text-3xl" />
           <label htmlFor="slide-body" className="text-[10px] font-semibold tracking-wider uppercase opacity-60">Content</label>

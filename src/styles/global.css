@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource-variable/inter";
+@import "./dark-surfaces.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -128,18 +129,7 @@
     --brand-soft-foreground: #c7d2fe;
 }
 
-@layer utilities {
-  .dark :is(.bg-white, .bg-white\/80, .bg-white\/90) { background-color: var(--card); }
-  .dark :is(.bg-slate-50, .bg-slate-50\/50, .bg-gray-50) { background-color: var(--background); }
-  .dark :is(.bg-slate-100, .bg-slate-200, .bg-gray-100) { background-color: var(--muted); }
-  .dark :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700, .text-gray-900, .text-gray-800) { color: var(--foreground); }
-  .dark :is(.text-slate-600, .text-slate-500, .text-slate-400, .text-gray-600, .text-gray-500) { color: var(--muted-foreground); }
-  .dark :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-gray-200) { border-color: var(--border); }
-  .dark :is(.bg-blue-50, .bg-indigo-50, .bg-blue-100, .bg-indigo-100) { background-color: var(--brand-soft); }
-  .dark :is(.text-blue-600, .text-blue-700, .text-blue-800, .text-indigo-600, .text-indigo-700) { color: var(--brand-soft-foreground); }
-  .dark :is(.hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-slate-200):hover { background-color: var(--accent); }
-  .dark :is(.hover\:text-slate-900, .hover\:text-slate-700):hover { color: var(--foreground); }
-}
+
 
 #root:has([data-dashboard-shell]) {
   display: flex;

@@ -634,7 +634,7 @@ function MeetingRoomSession() {
         <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-8" aria-labelledby="meeting-heading">
           <div className="grid w-full max-w-4xl gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(19rem,0.9fr)]">
           <div className="relative flex min-h-[18rem] flex-col justify-end overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:min-h-[25rem] sm:p-8">
-            <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_85%_10%,rgba(59,130,246,0.12),transparent_42%),linear-gradient(145deg,#ffffff,#f8fafc)]" />
+            <div aria-hidden="true" className="absolute inset-0 dark:bg-none dark:bg-card bg-[radial-gradient(ellipse_at_85%_10%,rgba(59,130,246,0.12),transparent_42%),linear-gradient(145deg,#ffffff,#f8fafc)]" />
               <div className="relative max-w-lg">
                 <p className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs text-blue-700">
                   <span className={`size-1.5 rounded-full ${meetingEnded ? 'bg-slate-400' : 'bg-blue-600'}`} />
@@ -735,7 +735,7 @@ function ParticipantTile({
           className="absolute inset-0 size-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_50%_35%,rgba(59,130,246,0.12),transparent_50%),linear-gradient(145deg,#e2e8f0,#f8fafc)]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center dark:bg-none dark:bg-card bg-[radial-gradient(ellipse_at_50%_35%,rgba(59,130,246,0.12),transparent_50%),linear-gradient(145deg,#e2e8f0,#f8fafc)]">
           <span className="flex size-16 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xl font-semibold text-blue-700">
             {(participant.name || 'O').slice(0, 1).toUpperCase()}
           </span>

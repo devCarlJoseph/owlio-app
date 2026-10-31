@@ -300,7 +300,7 @@ export default function EslWhiteboardPreview() {
           </>
         )}
 
-        <section aria-label="Whiteboard" className="relative min-w-0 flex-1 bg-white [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px]">
+        <section data-theme-content aria-label="Whiteboard" className="relative min-w-0 flex-1 bg-white text-slate-900 [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px]">
           <div className="absolute inset-0 overflow-auto">
             <EslWhiteboardCanvas
               items={items}

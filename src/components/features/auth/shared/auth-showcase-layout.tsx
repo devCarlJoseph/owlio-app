@@ -17,7 +17,7 @@ export function AuthShowcaseLayout({ children, context }: AuthShowcaseLayoutProp
           <div className="flex min-h-svh flex-col px-6 py-6 sm:px-10 lg:min-h-full lg:px-8 lg:py-5">
             <Link to="/" aria-label="Owlio home" className="flex w-fit items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
               <img src="/mascot/owlio-mark.png" alt="" width={128} height={116} className="h-8 w-auto" />
-              <span className="text-xl font-bold tracking-tight text-[#1d4ed8]">Owlio</span>
+              <span className="text-xl font-bold tracking-tight text-[#1d4ed8] dark:text-brand">Owlio</span>
             </Link>
             <div className="flex flex-1 items-center justify-center py-10 lg:py-6">
               <section className="w-full max-w-[400px]">{children}</section>

@@ -40,6 +40,8 @@ The app is a client-rendered React/TypeScript SPA built with Vite. The package m
 
 The sidebar Theme selector offers Light, Dark, and System above the collapse control. `src/lib/theme.ts` stores this browser-local preference under `owlio.theme.v1`; `ThemeController` watches device appearance and cross-tab changes. The soft slate/navy dark palette lives in `global.css`. Theme selection does not update an account profile.
 
+Existing palette-based feature UI uses `src/styles/dark-surfaces.css` for dark backgrounds, gradients, status colors, borders, and interactive states. Regenerate it with `node scripts/sync-dark-utilities.mjs` after adding legacy palette utilities; prefer semantic tokens for new UI. Authored presentation surfaces and the ESL drawing canvas use `data-theme-content` to preserve content colors independently of app appearance.
+
 ## 3. Source architecture and ownership
 
 ```text

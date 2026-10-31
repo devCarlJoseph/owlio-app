@@ -18,6 +18,7 @@ import {
   type LibraryFilter,
 } from "./library-records"
 import type { LibraryResourceKind, LibrarySource } from "./library-types"
+import styles from './library-theme.module.css'
 
 const collections: Record<LibrarySource, { title: string; description: string }> = {
   personal: { title: "Made for your next study session", description: "Your personal notes, references, and a little head start." },
@@ -27,14 +28,14 @@ const collections: Record<LibrarySource, { title: string; description: string }>
 
 function LibraryBannerPaper({ side }: { side: "left" | "right" }) {
   return (
-    <div aria-hidden="true" className={`pointer-events-none absolute top-9 hidden h-56 w-40 rounded-lg border border-border/70 bg-white p-5 shadow-lg shadow-slate-900/5 xl:block ${side === "left" ? "-left-6 -rotate-12" : "-right-4 rotate-12"}`}>
-      <span className={`mb-4 flex size-8 items-center justify-center rounded-lg ${side === "left" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}><BookOpen className="size-4" /></span>
-      <div className="h-2 w-3/4 rounded bg-slate-200" />
-      <div className="mt-2 h-1 w-1/2 rounded bg-slate-100" />
+    <div aria-hidden="true" className={`pointer-events-none absolute top-9 hidden h-56 w-40 rounded-lg border border-border/70 bg-card p-5 shadow-lg shadow-slate-900/5 xl:block ${side === "left" ? "-left-6 -rotate-12" : "-right-4 rotate-12"}`}>
+      <span className="mb-4 flex size-8 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground"><BookOpen className="size-4" /></span>
+      <div className="h-2 w-3/4 rounded bg-muted" />
+      <div className="mt-2 h-1 w-1/2 rounded bg-muted" />
       <div className="mt-5 space-y-2">
-        {["w-full", "w-4/5", "w-full", "w-3/5", "w-4/5"].map((width, index) => <div key={index} className={`h-1 rounded bg-slate-100 ${width}`} />)}
+        {["w-full", "w-4/5", "w-full", "w-3/5", "w-4/5"].map((width, index) => <div key={index} className={`h-1 rounded bg-muted ${width}`} />)}
       </div>
-      <div className={`mt-4 h-8 rounded ${side === "left" ? "bg-amber-50" : "bg-emerald-50"}`} />
+      <div className="mt-4 h-8 rounded bg-brand-soft" />
     </div>
   )
 }
@@ -65,14 +66,14 @@ export function StudentLibraryView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 rounded-2xl border border-border/70 bg-card p-4 sm:p-6 lg:p-7">
-      <section aria-labelledby="study-library-heading" className="relative isolate overflow-hidden rounded-xl border border-border/40 bg-gradient-to-r from-orange-50 via-stone-50 to-emerald-50 px-5 py-6 sm:px-8 sm:py-7">
+      <section aria-labelledby="study-library-heading" className={`${styles.banner} relative isolate overflow-hidden rounded-xl border border-border/40 px-5 py-6 sm:px-8 sm:py-7`}>
         <LibraryBannerPaper side="left" />
         <LibraryBannerPaper side="right" />
         <div className="relative mx-auto max-w-xl text-center">
           <p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"><Sparkles aria-hidden="true" className="size-3" /> A little curiosity goes a long way</p>
           <h2 id="study-library-heading" className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Welcome to your Study Library</h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">A place for your notes, classroom discoveries, and ideas worth sharing. Find your next starting point.</p>
-          <div className="mx-auto mt-4 max-w-md [&>div]:w-full [&_input]:h-10 [&_input]:border-white [&_input]:bg-white [&_input]:shadow-sm">
+          <div className="mx-auto mt-4 max-w-md [&>div]:w-full [&_input]:h-10 [&_input]:border-border [&_input]:bg-background [&_input]:shadow-sm">
             <LibrarySearchField value={query} onValueChange={setQuery} label="Search study library resources" placeholder="Search by title, subject, or source…" />
           </div>
         </div>

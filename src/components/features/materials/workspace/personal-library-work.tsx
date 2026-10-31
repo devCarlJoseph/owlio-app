@@ -63,7 +63,7 @@ export function PersonalLibraryWork({ query = "", kinds = [] }: { query?: string
         {visible.map(item => {
           const Icon = item.kind === "document" ? FileText : Presentation
           return <li key={item.id}><Link to={workHref(item.id)} className="group flex items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <span className={`flex size-11 shrink-0 items-center justify-center rounded-lg ${item.kind === "document" ? "bg-blue-50 text-blue-700" : "bg-orange-50 text-orange-700"}`}><Icon aria-hidden="true" className="size-5" /></span>
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground"><Icon aria-hidden="true" className="size-5" /></span>
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title || "Untitled"}</p><p className="mt-1 text-xs text-muted-foreground">{item.kind === "document" ? "Document" : `${item.slides.length} ${item.slides.length === 1 ? "slide" : "slides"}`} · Personal · {new Date(item.updatedAt).toLocaleDateString()}</p></div>
             <ArrowUpRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
           </Link></li>

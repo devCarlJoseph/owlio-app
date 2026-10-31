@@ -31,7 +31,7 @@ export function SubjectListRow({ subject, href }: SubjectListRowProps) {
           <div className="min-w-0">
             <Link
               to={href}
-              className="block truncate rounded text-sm font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:content-[''] hover:text-[#6842c5] hover:underline focus-visible:ring-2 focus-visible:ring-[#8a60f1] focus-visible:ring-offset-2"
+              className="block truncate rounded text-sm font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:content-[''] hover:text-[#6842c5] dark:hover:text-brand hover:underline focus-visible:ring-2 focus-visible:ring-[#8a60f1] focus-visible:ring-offset-2"
             >
               {subject.name}
             </Link>

@@ -410,7 +410,7 @@ export function SubjectDetailView() {
               {subject.code ? <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.code}</span> : null}
               <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.milestones.length} study topics</span>
             </div>
-            <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1b1a21] sm:text-4xl">
+            <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1b1a21] dark:text-foreground sm:text-4xl">
               {subject.name}
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
@@ -425,7 +425,7 @@ export function SubjectDetailView() {
             {progress.total > 0 ? (
               <div className="mt-5 max-w-lg">
                 <div className="mb-2 flex items-center justify-between gap-3 text-xs">
-                  <span className="font-medium text-[#1b1a21]">{progress.active?.title ?? (progress.allDone ? "All topics complete" : "Ready for your next topic")}</span>
+                  <span className="font-medium text-[#1b1a21] dark:text-foreground">{progress.active?.title ?? (progress.allDone ? "All topics complete" : "Ready for your next topic")}</span>
                   <span className="shrink-0 text-slate-500">{progress.completed} of {progress.total} complete</span>
                 </div>
                 <div role="progressbar" aria-label={`${subject.name} topic progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.progress} className="h-2.5 overflow-hidden rounded-full bg-white/80 shadow-inner" style={{ boxShadow: `inset 0 0 0 1px ${appearance.border}` }}>

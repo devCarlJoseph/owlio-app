@@ -183,7 +183,7 @@ export function AuthSplitLayout({ context, title, description, headingRef, foote
   return (
     <div className="min-h-svh bg-white">
       <div className="grid min-h-svh grid-cols-1 md:grid-cols-[46%_54%]">
-        <main className="relative flex min-h-svh min-w-0 flex-col overflow-hidden bg-[linear-gradient(135deg,#ffffff_10%,#f9fbff_58%,#f7f5ff_100%)] px-5 pb-6 pt-6 sm:px-10 md:px-8 lg:px-[8%]">
+        <main className="relative flex min-h-svh min-w-0 flex-col overflow-hidden dark:bg-none dark:bg-background bg-[linear-gradient(135deg,#ffffff_10%,#f9fbff_58%,#f7f5ff_100%)] px-5 pb-6 pt-6 sm:px-10 md:px-8 lg:px-[8%]">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute -left-28 top-24 size-64 rounded-full bg-blue-100/50 blur-3xl" />
             <div className="absolute -bottom-20 right-[-4rem] size-64 rounded-full bg-violet-100/50 blur-3xl" />
@@ -212,7 +212,7 @@ export function AuthSplitLayout({ context, title, description, headingRef, foote
           </div>
           <footer className="relative z-10 mt-auto pt-5 text-center text-xs text-slate-500 sm:text-sm">{footer}</footer>
         </main>
-        <aside className="relative hidden min-h-svh flex-col overflow-hidden bg-[linear-gradient(145deg,#f1f5ff_0%,#f2f4fc_52%,#fff5ef_100%)] px-8 pb-6 pt-8 md:flex lg:px-[8.5%]" aria-label={`${scene.eyebrow.toLowerCase()} preview`}>
+        <aside className="relative hidden min-h-svh flex-col overflow-hidden dark:bg-none dark:bg-card bg-[linear-gradient(145deg,#f1f5ff_0%,#f2f4fc_52%,#fff5ef_100%)] px-8 pb-6 pt-8 md:flex lg:px-[8.5%]" aria-label={`${scene.eyebrow.toLowerCase()} preview`}>
           <div className="pointer-events-none absolute -right-24 top-10 size-80 rounded-full bg-blue-200/20 blur-3xl" />
           <figure className="relative z-10 mx-auto w-full max-w-[600px]">
             <div className="mb-3 flex items-center gap-2 text-[9px] font-bold tracking-[0.14em] text-blue-700"><span className="flex size-6 items-center justify-center rounded-full bg-white shadow-sm"><SceneIcon className="size-3.5" /></span>{scene.eyebrow}</div>
