@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,7 +9,7 @@ import {
   Plus,
   Trash,
 } from "lucide-react"
-import { Link, useNavigate, useParams } from "react-router"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { cn } from "cn"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -92,7 +92,9 @@ function activateNextMilestone(milestones: SubjectMilestone[]): SubjectMilestone
 
 export function SubjectDetailView() {
   const { subjectId } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const pageRef = useRef<HTMLDivElement>(null)
   const [subjects, setSubjects] = useState<SubjectRecord[]>(() => loadSubjects())
   const [notes, setNotes] = useState(() => loadNotes())
   const [tasks, setTasks] = useState(() => loadTasks())
@@ -120,6 +122,11 @@ export function SubjectDetailView() {
   }, [tasks])
 
   const subject = useMemo(() => findSubjectById(subjects, subjectId), [subjects, subjectId])
+  const reading = subject?.milestones.some((item) => item.id === searchParams.get("topic")) ?? false
+
+  useEffect(() => {
+    if (!reading) pageRef.current?.scrollIntoView?.({ block: "start" })
+  }, [reading, subjectId])
 
   const subjectNotes = useMemo(
     () => (subject ? notesForSubject(notes, subject) : []),
@@ -314,7 +321,7 @@ export function SubjectDetailView() {
     const allDone =
       milestones.length > 0 && milestones.every((item) => item.status === "completed")
 
-    updateSubject({ milestones })
+    updateSubject({ milestones, progressStarted: true })
 
     if (allDone) setCongratsOpen(true)
   }
@@ -332,7 +339,7 @@ export function SubjectDetailView() {
 
   if (!subject) {
     return (
-      <div className="mx-auto w-full max-w-3xl space-y-4">
+      <div ref={pageRef} className="mx-auto w-full max-w-3xl space-y-4">
         <Link
           to="/students/subjects"
           className="inline-flex items-center gap-1 rounded-md text-sm font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -366,9 +373,11 @@ export function SubjectDetailView() {
   const theme = getSubjectTheme(subject)
   const appearance = getSubjectAppearance(subject)
   const progress = getSubjectMilestoneState(subject)
+  const nextTopic = progress.active ?? subject.milestones.find((item) => item.status !== "completed") ?? subject.milestones[0]
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <div ref={pageRef} className="mx-auto w-full max-w-7xl space-y-6">
+      {!reading ? <>
       <nav aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
           <li>
@@ -378,7 +387,7 @@ export function SubjectDetailView() {
               style={{ color: appearance.accent }}
             >
               <ArrowLeft aria-hidden="true" className="size-4" />
-              My subjects
+              My Learning
             </Link>
           </li>
           <li aria-hidden="true" className="text-slate-300">
@@ -391,16 +400,13 @@ export function SubjectDetailView() {
       </nav>
 
       <section
-        className="relative isolate overflow-hidden rounded-[1.75rem] border px-5 py-7 shadow-xl ring-1 ring-white/80 sm:px-8 lg:px-10"
-        style={{ borderColor: appearance.border, background: `linear-gradient(120deg, ${appearance.background}, #ffffff 58%, ${appearance.background})`, boxShadow: `0 24px 60px -32px ${appearance.glow}99` }}
+        aria-label="Subject overview"
+        className="relative overflow-hidden rounded-xl border border-border bg-muted/40 px-5 py-8 sm:px-8 lg:px-10 lg:py-10"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-28 size-80 rounded-full bg-white/60 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-48 left-[28%] size-80 rounded-full blur-3xl" style={{ backgroundColor: `${appearance.glow}55` }} />
-        <div aria-hidden="true" className="absolute inset-y-8 left-0 w-1 rounded-r-full" style={{ background: `linear-gradient(to bottom, ${appearance.glow}, ${appearance.accent}, ${appearance.border})` }} />
         <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
           <div className="relative z-10 min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600">
-              <span className="rounded-full border bg-white/85 px-3 py-1 shadow-sm" style={{ borderColor: appearance.border, color: appearance.accent }}>Personal subject</span>
+              <span className="rounded-md bg-background px-2.5 py-1 font-medium text-brand">Personal subject</span>
               {subject.code ? <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.code}</span> : null}
               <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.milestones.length} study topics</span>
             </div>
@@ -428,18 +434,17 @@ export function SubjectDetailView() {
               </div>
             ) : null}
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <a
-                href="#study-outline"
-                className={cn(buttonVariants({ size: "default" }), "text-white shadow-sm transition hover:-translate-y-0.5 hover:brightness-95 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none")}
-                style={{ backgroundColor: appearance.accent, boxShadow: `0 4px 12px ${appearance.glow}88` }}
+              <Link
+                to={nextTopic ? `?topic=${encodeURIComponent(nextTopic.id)}` : "#study-outline"}
+                className={cn(buttonVariants(), "rounded-lg bg-brand px-4 text-brand-foreground hover:bg-brand/90")}
               >
-                Continue studying <ArrowRight aria-hidden="true" />
-              </a>
+                {progress.allDone ? "Review topics" : "Continue studying"} <ArrowRight aria-hidden="true" />
+              </Link>
               <span className="text-xs text-slate-500">Added {formatSubjectDate(subject.createdAt)}</span>
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto flex h-52 w-full max-w-lg items-center justify-center overflow-hidden rounded-2xl shadow-xl ring-4 ring-white/80 sm:h-64">
+          <div role="region" aria-label="Subject cover" className="relative z-10 mx-auto flex h-52 w-full max-w-lg items-center justify-center overflow-hidden rounded-xl sm:h-64">
             {subject.coverImage ? (
               <img src={subject.coverImage} alt="" aria-hidden="true" className="size-full object-cover" />
             ) : (
@@ -463,6 +468,7 @@ export function SubjectDetailView() {
           />
         </div>
       </section>
+      </> : null}
 
       <SubjectStudyContent
         subject={subject}
@@ -470,6 +476,8 @@ export function SubjectDetailView() {
         onCompleteMilestone={handleCompleteMilestone}
       />
 
+      {!reading ? <>
+      <section id="manage-milestones" aria-label="Milestone management" className="scroll-mt-6">
       <SubjectMilestonesCard
         subject={subject}
         theme={theme}
@@ -487,10 +495,11 @@ export function SubjectDetailView() {
         onRemoveAllMilestones={handleRemoveAllMilestones}
         onUndoRemoval={handleUndoRemoval}
         onStartProgress={handleStartProgress}
-        onCompleteMilestone={handleCompleteMilestone}
+        onCompleteMilestone={() => handleCompleteMilestone()}
         onStartNextMilestone={handleStartNextMilestone}
         onUndoMilestones={handleUndoMilestones}
       />
+      </section>
 
       <section
         aria-label="Subject guidance"
@@ -705,6 +714,8 @@ export function SubjectDetailView() {
           </Empty>
         </CardContent>
       </Card>
+
+      </> : null}
 
       <SubjectComposerDialog
         open={customizeOpen}

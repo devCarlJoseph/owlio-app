@@ -33,14 +33,14 @@ describe("SubjectsView", () => {
     cleanup()
   })
 
-  it("names the page My Subjects and puts the create action on the right", () => {
+  it("opens My Learning with a subject creation action", () => {
     renderSubjects()
 
-    expect(screen.getByRole("heading", { name: "My Subjects" })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "My Learning" })).toBeTruthy()
     expect(screen.getByRole("button", { name: "New subject" })).toBeTruthy()
   })
 
-  it("drops the At a glance card and folds the workspace into the hero", () => {
+  it("keeps personal notes, materials, and tasks reachable from the library", () => {
     renderSubjects()
 
     expect(screen.queryByRole("heading", { name: "At a glance" })).toBeNull()
@@ -50,15 +50,11 @@ describe("SubjectsView", () => {
     expect(screen.getByRole("link", { name: /Tasks and deadlines/ })).toBeTruthy()
   })
 
-  it("moves the My Subjects copy behind a hoverable info icon", () => {
+  it("explains independent learning and browser-local storage visibly", () => {
     renderSubjects()
 
-    const infoButton = screen.getByRole("button", { name: "About My Subjects" })
-    expect(infoButton).toBeTruthy()
-
-    const tooltip = screen.getByRole("tooltip")
-    expect(tooltip.textContent).toContain("Organize learning by subject whether or not")
-    expect(tooltip.className).toContain("opacity-0")
+    expect(screen.getByText(/Learn at your pace, with or without a class/)).toBeTruthy()
+    expect(screen.getByRole("region", { name: "Sample data notice" }).textContent).toContain("stay in this browser")
   })
 
   it("drops the stat tiles and keeps a single create action", () => {
@@ -69,12 +65,12 @@ describe("SubjectsView", () => {
     expect(screen.getAllByRole("button", { name: "New subject" })).toHaveLength(1)
   })
 
-  it("shows the cover illustration on a subject card and hides the progress", () => {
+  it("shows subject artwork and personal topic progress in the library", () => {
     renderSubjects()
 
     const card = screen.getByRole("link", { name: "Physics I" }).closest("li")
     expect(card?.querySelector("img")).toBeTruthy()
-    expect(card?.textContent).not.toContain("%")
+    expect(card?.textContent).toContain("40%")
   })
 
   it("keeps the subject name out of the card background", () => {
@@ -89,10 +85,10 @@ describe("SubjectsView", () => {
   it("puts a fully completed subject at the bottom of the list", () => {
     renderSubjects()
 
-    const names = screen
+    const names = within(screen.getByRole("list", { name: "Subject library" }))
       .getAllByRole("link")
       .map((link) => link.textContent)
-      .filter((name) => name && !name.includes(" "))
+      .filter(Boolean)
 
     expect(names.indexOf("Mathematics")).toBe(names.length - 1)
   })
@@ -106,17 +102,17 @@ describe("SubjectsView", () => {
     const row = screen.getByRole("link", { name: "Physics I" }).closest("li")
     expect(row?.textContent).toContain("Ramon Diaz")
     expect(row?.textContent).toContain("%")
-    expect(row?.querySelector("[data-slot=card-content]")?.className).toContain("bg-blue-100")
   })
 
-  it("drops the chapters, lessons, and status badge from a subject card", () => {
+  it("identifies example subjects and their own topic status", () => {
     renderSubjects()
 
     const card = screen.getByRole("link", { name: "Physics I" }).closest("li")
 
     expect(card?.textContent).not.toContain("chapters")
     expect(card?.textContent).not.toContain("lessons")
-    expect(card?.textContent).not.toMatch(/in progress|not started|completed/i)
+    expect(card?.textContent).toContain("Example")
+    expect(card?.textContent).toContain("In progress")
   })
 
   it("gives every subject its own page", () => {
@@ -180,6 +176,46 @@ describe("SubjectsView", () => {
     expect(await screen.findByText("Give your subject a name.")).toBeTruthy()
     expect(screen.getByRole("dialog")).toBeTruthy()
   })
+
+  it("continues the next unfinished topic and persists only that subject's completion", async () => {
+    const user = userEvent.setup()
+    renderSubjects()
+
+    await user.click(screen.getByRole("link", { name: "Continue studying Physics I" }))
+    const reader = screen.getByRole("region", { name: "Physics I study reader" })
+    expect(within(reader).getByRole("heading", { name: "Newton's laws of motion" })).toBeTruthy()
+    expect(screen.queryByRole("region", { name: "Subject overview" })).toBeNull()
+    await user.click(within(reader).getByRole("button", { name: "Mark complete" }))
+
+    const saved = JSON.parse(window.localStorage.getItem(subjectsStorageKey)!) as typeof sampleSubjects
+    expect(saved.find((subject) => subject.id === "physics-1")?.milestones.find((topic) => topic.id === "physics-m3")?.status).toBe("completed")
+    expect(saved.find((subject) => subject.id === "chemistry-1")?.milestones).toEqual(sampleSubjects.find((subject) => subject.id === "chemistry-1")?.milestones)
+    await user.click(within(reader).getByRole("button", { name: "Next topic" }))
+    expect(within(reader).getByRole("heading", { name: "Work and energy" })).toBeTruthy()
+    await user.click(within(reader).getByRole("button", { name: "Subject overview" }))
+    expect(screen.getByRole("region", { name: "Subject overview" })).toBeTruthy()
+  })
+
+  it("offers a useful first-use path with no subjects or classroom membership", () => {
+    window.localStorage.setItem(subjectsStorageKey, "[]")
+    renderSubjects()
+    expect(screen.getByRole("heading", { name: "Your learning starts here" })).toBeTruthy()
+    expect(screen.queryByRole("region", { name: "Continue learning" })).toBeNull()
+    expect(screen.getByRole("button", { name: "Create a subject" })).toBeTruthy()
+  })
+
+  it("keeps a started subject in progress before its first topic is completed", async () => {
+    const user = userEvent.setup()
+    const subject = { ...sampleSubjects[0], milestones: [{ id: "first", title: "First topic", status: "in-progress" }] }
+    window.localStorage.setItem(subjectsStorageKey, JSON.stringify([subject]))
+    renderSubjects()
+
+    await user.click(screen.getByRole("button", { name: "In progress" }))
+    expect(within(screen.getByRole("list", { name: "Subject library" })).getByRole("link", { name: "Physics I" })).toBeTruthy()
+    expect(screen.getByRole("link", { name: "Continue studying Physics I" })).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Not started" }))
+    expect(screen.getByRole("heading", { name: "No subjects match this view" })).toBeTruthy()
+  })
 })
 
 describe("SubjectDetailView", () => {
@@ -216,7 +252,7 @@ describe("SubjectDetailView", () => {
     expect(await screen.findByRole("heading", { name: "Subject not found" })).toBeTruthy()
   })
 
-  it("shows the cover, vertical icon actions, and no progress on the title card", async () => {
+  it("keeps subject artwork and customization actions available in the overview", async () => {
     renderDetail()
 
     expect(await screen.findByRole("heading", { name: "Physics I" })).toBeTruthy()
@@ -234,8 +270,9 @@ describe("SubjectDetailView", () => {
     renderDetail()
 
     expect(await screen.findByText("2 of 5 topics")).toBeTruthy()
-    expect(screen.getByText("40%")).toBeTruthy()
-    expect(screen.getByText("Motion and displacement")).toBeTruthy()
+    const management = screen.getByRole("region", { name: "Milestone management" })
+    expect(within(management).getByText("40%")).toBeTruthy()
+    expect(within(management).getByText("Motion and displacement")).toBeTruthy()
 
     const nextButton = screen.getByRole("button", { name: "Start next milestone" })
     await user.click(nextButton)
@@ -258,13 +295,15 @@ describe("SubjectDetailView", () => {
 
     await screen.findByText("2 of 5 topics")
 
-    for (let step = 0; step < 3; step += 1) {
+    for (let step = 0; step < 2; step += 1) {
       const startNext = screen.queryByRole("button", { name: "Start next milestone" })
       if (startNext) await user.click(startNext)
 
       const complete = screen.queryByRole("button", { name: "Milestone completed" })
       if (complete) await user.click(complete)
     }
+
+    await user.click(screen.getByRole("button", { name: "Start next milestone" }))
 
     const completeAll = screen.queryByRole("button", { name: "Complete milestones" })
     expect(completeAll).toBeTruthy()
@@ -287,7 +326,7 @@ describe("SubjectDetailView", () => {
     await user.type(within(dialog).getByLabelText("Milestone"), "Recursion")
     await user.click(within(dialog).getByRole("button", { name: "Add milestone" }))
 
-    expect(await screen.findByText("Recursion")).toBeTruthy()
+    expect(await within(screen.getByRole("region", { name: "Milestone management" })).findByText("Recursion")).toBeTruthy()
     expect(screen.getByText("0 of 1 topics")).toBeTruthy()
   })
 
@@ -313,7 +352,7 @@ describe("SubjectDetailView", () => {
 
     await user.click(undoRemoved)
 
-    expect(await screen.findByText("Motion and displacement")).toBeTruthy()
+    expect(await within(screen.getByRole("region", { name: "Milestone management" })).findByText("Motion and displacement")).toBeTruthy()
   })
 
   it("removes all milestones and can restore them", async () => {

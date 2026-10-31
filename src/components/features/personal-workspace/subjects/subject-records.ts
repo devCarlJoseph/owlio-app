@@ -535,9 +535,9 @@ export function getSubjectStatus(subject: SubjectRecord): SubjectStatus {
   const progress = getSubjectProgress(subject)
 
   if (progress >= 100) return "completed"
-  if (progress <= 0) return "not-started"
+  if (progress > 0 || subject.progressStarted || subject.milestones.some((item) => item.status === "in-progress")) return "in-progress"
 
-  return "in-progress"
+  return "not-started"
 }
 
 export function subjectMatchesQuery(subject: SubjectRecord, query: string): boolean {
