@@ -1,5 +1,6 @@
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
+import { ResourceCard } from "./resource-card"
 import { libraryKindIcons, librarySourceMeta } from "./library-records"
 import type { LibraryResource } from "./library-types"
 
@@ -10,6 +11,10 @@ type ResourceListRowProps = {
 export function ResourceListRow({ resource }: ResourceListRowProps) {
   const KindIcon = libraryKindIcons[resource.kind]
   const sourceMeta = librarySourceMeta[resource.source]
+
+  if (resource.availability !== "available") {
+    return <li><ResourceCard resource={resource} /></li>
+  }
 
   return (
     <li className="group/resource relative flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:border-slate-300 hover:shadow-sm">
@@ -30,7 +35,7 @@ export function ResourceListRow({ resource }: ResourceListRowProps) {
           </Link>
         </p>
         <p className="truncate text-xs text-slate-500">
-          {resource.context}
+          {sourceMeta.shortLabel} · {resource.context}
           {resource.owner ? ` · ${resource.owner}` : ""}
         </p>
       </div>

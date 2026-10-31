@@ -3,6 +3,7 @@ import { Link } from "react-router"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ResourceCard } from "./resource-card"
+import { LibraryGalleryCard } from "./library-gallery-card"
 import type { LibraryResource } from "./library-types"
 
 type ResourceListProps = {
@@ -13,6 +14,7 @@ type ResourceListProps = {
   emptyDescription: string
   emptyActionLabel: string
   emptyActionHref?: string
+  presentation?: "default" | "gallery"
 }
 
 export function ResourceList({
@@ -23,6 +25,7 @@ export function ResourceList({
   emptyDescription,
   emptyActionLabel,
   emptyActionHref,
+  presentation = "default",
 }: ResourceListProps) {
   if (resources.length === 0) {
     return (
@@ -64,10 +67,10 @@ export function ResourceList({
   }
 
   return (
-    <ul className="grid gap-4 lg:grid-cols-2">
+    <ul className={presentation === "gallery" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-4" : "grid gap-4 lg:grid-cols-2"}>
       {resources.map((resource) => (
         <li key={resource.id}>
-          <ResourceCard resource={resource} />
+          {presentation === "gallery" && resource.availability === "available" ? <LibraryGalleryCard resource={resource} /> : <ResourceCard resource={resource} />}
         </li>
       ))}
     </ul>

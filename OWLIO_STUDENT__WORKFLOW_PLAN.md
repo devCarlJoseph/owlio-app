@@ -79,7 +79,7 @@ The sidebar should remain concise. Context-specific tabs/actions belong inside a
 - Offer simple personal goals or study-plan blocks only when their persistence and progress semantics are defined.
 - Show personal progress separately from released grades or official attendance.
 - Proposed route for the hub: a new student learning/workspace route, while `/students` remains Overview and existing subject/note/task routes can remain as focused destinations or nested views.
-- Existing related routes/components: `/students/subjects`, `/students/notes`, `/students/tasks`; subjects are sample/read-only, while Notes and Tasks currently support browser-local CRUD and are not server-synced.
+- Existing related routes/components: `/students/subjects`, `/students/subjects/:subjectId`, `/students/notes`, `/students/tasks`. Subjects, personal milestones, Notes, and Tasks support browser-local changes and are not account-synced. Example subjects remain labeled as previews, not classroom courses.
 
 ### My Classes
 
@@ -100,7 +100,7 @@ The sidebar should remain concise. Context-specific tabs/actions belong inside a
 - Show title, resource kind, subject/class/space, author/source, and the supported open/download action.
 - Keep personal notes discoverable, but do not conflate notes with uploaded files or class-published materials.
 - Include empty, unavailable, permission, and loading states; do not claim uploads, file previews, external-drive sync, or sharing until supported.
-- Existing route: `/students/materials` currently explains these contexts and links out to them; it is a context selector, not a connected resource library.
+- Existing route: `/students/materials` is a sample library with a soft banner and search, source/kind filters, grid/list layouts, and four illustrative covers per source collection. Cards identify the resource kind, source, context, and owner; links open the owning context or existing source library. Example data and covers are labeled, unavailable resources hide details in both layouts, and no materials service, file preview, upload, download, or account sync is connected.
 
 ### Study Spaces
 
@@ -178,10 +178,10 @@ This section is a target UI architecture, not a claim that the pages or services
 | Student surface | Current sidebar / route | Target route or child | Route adapter and behavior |
 |---|---|---|---|
 | Overview | E: `/students` | Same | `pages/dashboard/students/index.tsx`; daily summary only, never a duplicate My Learning hub. |
-| My Learning | E: sidebar opens `/students/subjects` as the current personal entry | P: `/students/learning`; keep E: `/students/subjects`, `/students/notes`, `/students/tasks` as focused routes | New `pages/dashboard/students/learning/index.tsx` returns `MyLearningView`; update sidebar href only when registered. Subject cards are not currently linked to details. |
-| Subject detail | None | P: `/students/subjects/:subjectId` | `pages/dashboard/students/subjects/detail/index.tsx` returns `SubjectDetailView` after a subject ownership/data contract exists. |
+| My Learning | E: sidebar opens `/students/subjects` as the current personal entry | P: `/students/learning`; keep E: `/students/subjects`, `/students/notes`, `/students/tasks` as focused routes | Current entry has a Continue learning rail, subject library, and personal-tool shortcuts. A future `learning/index.tsx` hub is still a separate migration; preserve the current entry and deep links until registered. |
+| Subject detail | E: subject cards open `/students/subjects/:subjectId` | Same; `?topic=<milestoneId>` selects the personal study view without a new route | `pages/dashboard/students/subjects/detail/index.tsx` returns `SubjectDetailView`. Overview, milestones, topic completion, and related notes/tasks are browser-local; no subject or lesson API is implied. |
 | My Classes | E: `/students/classrooms` | E: `/students/classrooms/:classroomId`; E: `/students/classrooms/:classroomId/classwork/:activityId` | Shared classroom list/detail/activity adapters. Keep class/lesson tabs on the detail route unless a separate deep-link requirement is approved. |
-| Study Library | E: `/students/materials` | Same; open the resource's authorized owner context | Shared materials adapter; do not create a detached file detail route or cross-share personal files without a contract. |
+| Study Library | E: `/students/materials` | Same; source libraries at `/students/materials/{personal,classroom,study-spaces}` and their `/:subject` pages | Student adapter and sample library feature; open owning contexts, with no connected file operations or cross-context sharing. |
 | Study Spaces | E: `/students/study-spaces` | P: `/students/study-spaces/:spaceId` for a joined/created space | New `pages/dashboard/students/study-spaces/detail/index.tsx` returns `StudySpaceDetailView` when real membership is supported. Current create/join is browser-local only. |
 | Meeting Room | E: `/students/classrooms/meeting-room` | Same, optionally with an approved room invite query from an authorized class | Standalone screen; keep LiveKit chat/hand raises transient and never treat room presence as official attendance. |
 | Discussions | E: `/students/communication` | Same with classroom/study-space context selection; thread deep links P until a service contract exists | Shared communication adapter; current tabs are previews, not persisted threads. |
@@ -207,7 +207,7 @@ src/
         index.tsx                               # E: StudentOverviewView adapter
         learning/index.tsx                      # P: MyLearningView adapter
         subjects/index.tsx                      # E: SubjectsView adapter
-        subjects/detail/index.tsx               # P: SubjectDetailView adapter
+        subjects/detail/index.tsx               # E: browser-local SubjectDetailView adapter
         notes/index.tsx                         # E: NotesView adapter
         tasks/index.tsx                         # E: TasksView adapter
         classwork/index.tsx                     # E: ClassworkView adapter
@@ -258,14 +258,14 @@ src/
 |---|---|---|
 | `pages/dashboard/students/index.tsx` E | `components/features/personal-workspace/student-overview/student-overview-view.tsx` E | `upcoming-items.tsx`, `subjects-table.tsx`, `classwork-highlight.tsx`, `personal-metrics.tsx`, `progress-summary.tsx` E. |
 | `pages/dashboard/students/learning/index.tsx` P | `components/features/personal-workspace/learning/my-learning-view.tsx` P | `personal-subject-list.tsx`, `continue-learning.tsx`, `learning-shortcuts.tsx` P. |
-| `pages/dashboard/students/subjects/index.tsx` E; `subjects/detail/index.tsx` P | `components/features/personal-workspace/subjects/subjects-view.tsx` E; `subject-detail-view.tsx` P | `subject-card.tsx`, `subject-workspace.tsx` E; `subject-detail-sections.tsx`, `subject-form.schema.ts` P after contract. |
+| `pages/dashboard/students/subjects/index.tsx` E; `subjects/detail/index.tsx` E | `components/features/personal-workspace/subjects/subjects-view.tsx` E; `subject-detail-view.tsx` E | `continue-learning.tsx`, `subject-card.tsx`, `subject-study-content.tsx`, local composer/milestone dialogs E. Account-scoped subject/lesson services remain future. |
 | `pages/dashboard/students/notes/index.tsx` E | `components/features/personal-workspace/notes/notes-view.tsx` E | `note-list.tsx`, `note-groups.tsx`, `note-composer-dialog.tsx`, `note-detail-dialog.tsx`, `note-records.ts` E. |
 | `pages/dashboard/students/tasks/index.tsx` E | `components/features/personal-workspace/tasks/tasks-view.tsx` E | `task-list.tsx`, `task-subject-groups.tsx`, `task-composer-dialog.tsx`, `task-detail-dialog.tsx`, `task-records.ts` E; P scope switch when backed. |
 | `pages/dashboard/students/classwork/index.tsx` E | `components/features/personal-workspace/classwork/classwork-view.tsx` E | `classwork-card.tsx`, `sample-classwork.ts` E; P authorized assigned-work repository/hook after contract. |
 | `pages/dashboard/students/study-spaces/index.tsx` E; `study-spaces/detail/index.tsx` P | `components/features/personal-workspace/study-spaces/study-spaces-view.tsx` E; `study-space-detail-view.tsx` P | `create-space-dialog.tsx`, `join-space-dialog.tsx`, `space-circle-rail.tsx` E; `member-list.tsx`, `space-tabs.tsx` P. |
 | `pages/dashboard/classroom/index.tsx` E; `detail/index.tsx`, `activity/index.tsx` P adapter migrations | `components/features/classrooms/classrooms-view.tsx`, `classroom-detail-view.tsx`, `classroom-activity-view.tsx` E | `classroom-classwork-view.tsx`, `classroom-feed-view.tsx`, `classroom-records-view.tsx` E; preserve role-aware shared behavior. |
 | `pages/dashboard/classroom/meeting-room/index.tsx` P adapter migration | `components/features/meeting-room/meeting-room-view.tsx` P extraction of E `pages/dashboard/classroom/meeting-room.tsx` | `meeting-lobby.tsx`, `room-controls.tsx`, `meeting-chat-panel.tsx` P extraction; retain lazy loading at route registration. |
-| `pages/dashboard/materials/index.tsx` E | `components/features/materials/student-library-view.tsx` P extraction | `resource-source-filter.tsx`, `resource-list.tsx`, `resource-context-link.tsx` P. |
+| `pages/dashboard/students/materials/index.tsx` E | `components/features/materials/student-library-view.tsx` E | `resource-source-filter.tsx`, `resource-list.tsx`, `library-gallery-card.tsx`, `library-context-cards.tsx` E; sample discovery and context links only. |
 | `pages/dashboard/schedule/index.tsx` E | `components/features/schedule/student-schedule-view.tsx` P extraction | `calendar-grid.tsx`, `day-agenda.tsx`, `event-detail.tsx` P. |
 | `pages/dashboard/communication/index.tsx` E | `components/features/communication/student-discussions-view.tsx` P extraction | `discussion-context-filter.tsx`, `thread-list.tsx`, `reply-composer.tsx` P. |
 | `pages/dashboard/notifications/index.tsx` E | `components/features/notifications/student-notifications-view.tsx` P extraction | `notification-filters.tsx`, `notification-list.tsx` P. |
@@ -335,17 +335,19 @@ flowchart LR
 
 ### My Learning: `/students/subjects` (E entry), `/students/learning` (P hub)
 
-**Sections:** `MyLearningView` (P) with personal subject list, continue-study panel, notes preview, tasks preview, and personal-resource shortcuts; `SubjectsView` (E) remains the focused subject list. A subject is student-owned and is not an official educator class.
+**Sections:** `MyLearningView` (P) remains the future hub with notes/tasks previews. The current My Learning entry uses `SubjectsView` (E): a compact page header and personal-tool shortcuts, a browser-preview notice, up to two Continue learning cards, and the searchable subject library with status filters, name/recent sorting, and grid/list views. A subject is student-owned and is not an official educator class.
+
+**Reference-aligned local flow:** library → subject overview → topic study view → personal completion feedback. Continue learning opens the next unfinished milestone through the existing subject route's `topic` query. The study view has a searchable topic outline, Study tools shortcuts, keyboard focus on the selected topic, previous/next controls, and explicit local completion. Returning to overview keeps milestone management, customization, notes, tasks, and resource links available. Desktop reading keeps navigation visible while content scrolls; mobile reading stacks the content and outline. Certificates, version comparisons, report submission, persisted discussions, and instructor lesson files shown in design references are not part of this local flow.
 
 ```mermaid
 flowchart LR
   ML(["My Learning entry /students/subjects E"]) --> HUB{"Choose a personal-learning path"}
   subgraph SUBJECT["Subject organization"]
     FILTER["Search / status filter: same page E"]
-    CARD["Subject card: current data is sample E"]
-    DETAIL["Subject detail /students/subjects/:subjectId P"]
+    CARD["Subject card: examples and browser-local subjects E"]
+    DETAIL["Subject overview /students/subjects/:subjectId E browser-local"]
     FILTER --> CARD
-    CARD -->|"When subject service exists"| DETAIL
+    CARD -->|"Open personal subject"| DETAIL
   end
   subgraph PERSONAL_TOOLS["Personal tools"]
     NOTES["Notes /students/notes E"]
@@ -403,7 +405,7 @@ flowchart LR
 
 ### Study Library: `/students/materials` (E)
 
-**Sections:** `StudentLibraryView` (P) with source filter, search, resource list/cards, and a visible owner/context badge. Today's shared page only sends the user to the owning context.
+**Sections:** `StudentLibraryView` (E) is a UI-only sample library inspired by a document gallery: a pale peach-to-mint banner with centered search and decorative papers, compact source/kind filters and layout controls, labeled sample collections, and learning-context tiles. The default grid shows four illustrative covers for each personal, classroom, and peer collection; source/search/kind filters and list view show all matching examples. Each available resource displays kind, source, owner, and context and links to its owning context. “View all” and context tiles open the existing source libraries. Unavailable resources reveal no titles or owner details. The thin student route adapter leaves other workspaces' materials pages unchanged.
 
 ```mermaid
 flowchart LR
@@ -422,9 +424,9 @@ flowchart LR
   CLASS -->|"Open authorized class"| CLASS_MAT["Class detail materials tab E; preview only"]
   SRC -->|"Peer-shared resource"| SPACE
   SPACE -->|"Verified membership required"| SPACE_DETAIL["/students/study-spaces/:spaceId P"]
-  LIB -->|"Search/filter when library service exists"| RESULTS["Resource results on same route P"]
-  RESULTS -->|"Open item"| OWNER["Open owning authorized context P"]
-  LIB -->|"No resource service today"| EMPTY["Context chooser + unavailable state E"]
+  LIB -->|"Search/filter example collection"| RESULTS["Sample results on same route E"]
+  RESULTS -->|"Open context link"| OWNER["Owning context route E; resource access requires a service"]
+  LIB -->|"View all / explore collection"| SOURCE["Source library + subject pages E; sample data"]
 ```
 
 **Boundary:** A personal note, educator-published class file, peer-shared resource, and student submission have different owners. No upload/download, preview, or cross-context sharing should appear operational before the materials contract.
@@ -729,7 +731,7 @@ flowchart LR
 | Student nav and shared nav data | `src/components/common/dashboard-navigation.ts`; renderer `src/components/common/app-sidebar.tsx` | The grouped student sidebar now shows the proposed labels. My Learning temporarily links to `/students/subjects`; Tasks & Assessments links to `/students/tasks`. Student AI, Help, and Settings are disabled Planned items. Header search includes route-backed items only; Meeting Room has the most-specific active item/title. |
 | Routes and shared layout | `src/main.tsx`; `src/pages/dashboard/layout.tsx` | Role-prefixed nested routes remain unchanged; navigation is presentation context, not authorization. Student route adapters are thin; the shared classroom folder and dashboard layout still contain legacy non-index page files. |
 | Student Overview | `src/pages/dashboard/students/index.tsx`; `src/components/features/personal-workspace/student-overview/` | Scaffold links and explanatory states; no student dashboard query. |
-| Subjects | `src/pages/dashboard/students/subjects/`; `src/components/features/personal-workspace/subjects/` | Fixed sample dataset, read-only; no subject API. |
+| Subjects / My Learning | `src/pages/dashboard/students/subjects/`; `src/components/features/personal-workspace/subjects/` | Example subjects plus browser-local subject/milestone CRUD. Continue learning, library search/status/sort/grid/list, subject overview, and query-selected topic study view are local; no subject/lesson API, account sync, certificate, or report-delivery service. |
 | Tasks and Notes | `src/components/features/personal-workspace/tasks/`; `.../notes/` | CRUD is localStorage/browser-only, initialized with sample data; not account-synced. |
 | Study Spaces | `src/components/features/personal-workspace/study-spaces/` | localStorage/demo preview; membership and invite code are not server-verified. |
 | Classrooms | `src/services/api/classroom.service.ts`; `src/components/features/classrooms/`; `src/pages/dashboard/classroom/` | List/create/join API endpoints exist; prototype provider blends API classroom headers with mock classroom records and in-memory detail state. Verify backend payloads/authorization before expanding. |

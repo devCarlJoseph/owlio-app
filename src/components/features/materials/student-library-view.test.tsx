@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { afterEach, describe, expect, it } from "vitest"
@@ -45,44 +45,46 @@ describe("student Study Library", () => {
     expect(resourceCard?.textContent).not.toContain("Open in Notes")
   })
 
-  it("drops the three learning spaces card and hides the intro behind the info icon", () => {
+  it("labels the collection as examples without offering file operations", () => {
     const { text } = renderPage(<StudentMaterialsPage />)
 
     expect(text).not.toContain("Three learning spaces")
     expect(text).not.toContain("Peer-shared resources")
 
-    const tooltip = screen.getByRole("tooltip")
-    expect(tooltip.textContent).toContain("Every resource you can reach")
+    expect(text).toContain("Sample collection.")
+    expect(text).toContain("Illustrative covers and example resources")
+    expect(text).toContain("Files, uploads, and sync aren’t connected")
+    expect(screen.queryByRole("button", { name: /upload|download/i })).toBeNull()
   })
 
-  it("gives each source card a pastel theme with the icon beside the title", () => {
-    const { container } = renderPage(<StudentMaterialsPage />)
+  it("shows four resources per collection with links to every full source library", () => {
+    renderPage(<StudentMaterialsPage />)
 
-    const personal = container.querySelector(".bg-amber-50")
-    const classroom = container.querySelector(".bg-sky-50")
-    const studySpace = container.querySelector(".bg-emerald-50")
-
-    expect(personal).toBeTruthy()
-    expect(classroom).toBeTruthy()
-    expect(studySpace).toBeTruthy()
-
-    const heading = personal?.querySelector("h3")
-    const row = heading?.parentElement
-    expect(row?.className).toContain("flex")
-    expect(row?.querySelector("svg")).toBeTruthy()
-    expect(heading?.textContent).toBe("Personal resources")
-
-    const footer = personal?.querySelector(".border-t")
-    expect(footer?.querySelectorAll("a").length).toBe(1)
-    expect(footer?.textContent).not.toContain("resources listed")
+    for (const name of ["Made for your next study session", "From the classroom", "Better when shared"]) {
+      const collection = within(screen.getByRole("region", { name }))
+      expect(collection.getAllByRole("listitem")).toHaveLength(4)
+      expect(collection.getByRole("link", { name: /View all/ }).getAttribute("href")).toMatch(/^\/students\/materials\//)
+    }
+    expect(screen.getByRole("status").textContent).toContain("12 resources shown of 28")
   })
 
-  it("uses a dark teal hero instead of the dark slate gradient", () => {
-    const { container } = renderPage(<StudentMaterialsPage />)
+  it("combines search, source, and kind filters and recovers from an empty view", async () => {
+    const user = userEvent.setup()
+    renderPage(<StudentMaterialsPage />)
 
-    expect(container.querySelector(".from-cyan-700")).toBeTruthy()
-    expect(container.querySelector(".to-emerald-700")).toBeTruthy()
-    expect(container.querySelector(".from-slate-950")).toBeNull()
+    await user.click(screen.getByRole("tab", { name: /Personal/ }))
+    await user.click(screen.getByRole("button", { name: "Note" }))
+    await user.type(screen.getByRole("searchbox"), "wave")
+    expect(screen.getByRole("link", { name: "Wave equation checklist" })).toBeTruthy()
+    expect(screen.queryByRole("link", { name: "Chemical bonding recap" })).toBeNull()
+    expect(screen.getByRole("status").textContent).toContain("1 resource shown")
+
+    await user.click(screen.getByRole("tab", { name: /Classroom/ }))
+    expect(screen.getByText("No resources match this view")).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Clear filters" }))
+    expect((screen.getByRole("searchbox") as HTMLInputElement).value).toBe("")
+    expect(screen.getByRole("tab", { name: /All sources/ }).getAttribute("aria-selected")).toBe("true")
+    expect(screen.getByRole("button", { name: "All" }).getAttribute("aria-pressed")).toBe("true")
   })
 
   it("drops the intro guidance and learning context headings", () => {
@@ -105,6 +107,9 @@ describe("student Study Library", () => {
 
     expect(icon?.className).toContain("bg-amber-100")
     expect(icon?.className).toContain("text-amber-800")
+    expect(row?.textContent).toContain("Personal · Physics I")
+    expect(screen.getByText("Resource unavailable")).toBeTruthy()
+    expect(screen.queryByText("Restricted practice set")).toBeNull()
   })
 
   it("colours the active layout and source tab", async () => {
