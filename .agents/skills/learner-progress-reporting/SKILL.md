@@ -7,6 +7,8 @@ description: Guide student personal progress, educator learner insights, tutorin
 
 Use for progress summaries, learner insights, histories, and classroom report/export experiences. Separate personal student tracking from official educator-controlled records.
 
+Connect role-specific views through the product scopes for [Progress and reports](../../../OWLIO_PRODUCT_PLAN.md#progress-and-reports) and [private notes versus published feedback](../../../OWLIO_PRODUCT_PLAN.md#private-teaching-notes-and-published-feedback). Read the affected role plan's page flow/acceptance criteria and apply [owlio-core](../owlio-core/SKILL.md) for runtime/ownership rules. A chart, preview, or client function does not establish an enabled reporting service.
+
 ## Views and records
 
 Follow the [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), and [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md) workflow boundaries:
@@ -22,6 +24,6 @@ Do not combine student-entered personal goals or study activity with official gr
 
 Exports described in the product plan include student lists, grades, attendance, classwork results, and progress filtered by learner, classroom, activity, or date range. These are sensitive records: confirm authorization, scope, format, and export contract before implementation; do not expose bulk export to unauthorized users or log report contents.
 
-Use real API data only. Label incomplete/unavailable information clearly and never copy demo dashboard counts into production claims. Use accessible charts or summaries with textual equivalents, and include loading, empty, error, and permission-denied states.
+Source account/classroom reports from authorized service data. A student's browser-local personal progress or an explicit sample preview may use local data when clearly labeled and kept distinct from official, shared, or account-synced records. Label incomplete/unavailable information and never copy demo dashboard counts into production claims. Use accessible charts or summaries with textual equivalents, and include loading, empty, error, and permission-denied states.
 
 See [student workflows](../student-workflows/SKILL.md), [educator classroom](../educator-classroom/SKILL.md), [attendance](../attendance/SKILL.md), and [classwork/assessment](../classwork-assessment/SKILL.md).

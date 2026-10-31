@@ -9,16 +9,16 @@ Use this skill when implementing or modifying a page, route, sidebar item, or sh
 
 ## Purpose and authority
 
-Implement the product workflows defined by the four role plans while preserving each role's purpose, ownership boundaries, and current implementation status. This skill is a reusable guide; the role plan contains the detailed page requirements and click flows.
+Implement the product workflows defined by the four role plans while preserving each role's purpose, ownership boundaries, and current implementation status. The [product plan's shared-feature map](../../../OWLIO_PRODUCT_PLAN.md#shared-capabilities-and-role-specific-destinations) connects those workflows; the role plans contain detailed page requirements and click flows. Use the [role delivery tracks](../../../OWLIO_PRODUCT_PLAN.md#role-delivery-tracks) for dependencies without assuming stage numbers match across roles.
 
 Use this order when making decisions:
 
-1. Current source and confirmed backend/API/security contracts define what exists and what is allowed.
+1. Current source and runtime flags define implemented/enabled behavior; confirmed backend/API/security contracts govern server operations and access. Client code alone does not establish permission.
 2. `AGENTS.md` defines repository conventions and implementation guardrails.
 3. The relevant role workflow plan defines intended page behavior and role-specific product decisions.
-4. `OWLIO_PRODUCT_PLAN.md` provides the broader product vision.
+4. The linked product plan provides shared product intent, cross-role feature relationships, and delivery dependencies. Skills interpret these specifications rather than establish new requirements.
 
-An `E` route in a plan means the frontend route exists; it does not prove that its data or actions are backed by a service. A `P` route/action is proposed, not registered or implemented. A `D` item is intentionally disabled/planned. Never convert a proposal into a claim of current capability. If a plan, source, or contract conflicts, do not guess; explain the conflict and ask the product/backend owner when it affects the implementation.
+An `E` route in a plan means the frontend route existed at its snapshot; it does not prove that its data or actions are backed by an enabled service. A `P` route/action is proposed, and a `D` item is disabled/planned at that snapshot; recheck current routes before implementing either. Never convert a proposal into a claim of current capability. If approved product requirements conflict or a missing contract affects the implementation, explain the conflict and ask the product/backend owner; ordinary implementation gaps do not redefine the intended workflow.
 
 ## Workflow specifications
 
@@ -98,7 +98,7 @@ Support individual and group tutoring. Treat online, in-person, or hybrid delive
 - Keep Meetings standalone and link to them contextually. LiveKit presence, in-call chat, and hand raises are transient room interactions; they are not saved Discussions, official attendance, feedback, or progress.
 - Distinguish Discussions, Announcements, and Notifications. Direct Messages are future unless the relevant plan and an approved product/service contract bring them into scope.
 - Keep Teaching Materials as a resource workflow and Progress/Insights as evidence-based summaries. Resource ownership and sharing audience must be explicit.
-- AI output for educators, ESL teachers, and tutors remains a clearly labeled, editable draft until the human reviews and accepts it. Do not silently publish, assign work, contact learners, set mastery, finalize grades/evaluations, or mutate records. Do not call AI providers directly from the browser or send sensitive learner data without an approved service and privacy contract.
+- AI output for educators, ESL teachers, and tutors remains a clearly labeled, editable draft until the human reviews and accepts it. Do not silently publish, assign work, contact learners, set mastery, finalize grades/evaluations, or mutate records. Follow the [AI implementation plan](../../../OWLIO_AI_IMPLEMENTATION_PLAN.md) for the initial English-only, user-entered-context scope, excluding learner names, records, notes, and submissions; no browser-to-model calls.
 - Use the status and fields provided by the real service. Do not invent status transitions, grading policy, language-level frameworks, upload formats, session modes, notification delivery, permissions, or persistence.
 - Do not label mock, sample, in-memory, or browser-local data as server data or account-synced state.
 
@@ -109,7 +109,7 @@ Before editing:
 1. Identify the workspace, page, user goal, data owner, and audience.
 2. Read the matching workflow plan's page section, route inventory, component map, flowchart, and acceptance criteria.
 3. Inspect `src/main.tsx`, `src/components/common/dashboard-navigation.ts`, the relevant page/feature components, `src/components/ui/`, and the actual API service/contract.
-4. Confirm whether each route and operation is existing, proposed, disabled, UI-only, browser-local, or service-backed.
+4. Check `src/lib/api-mode.ts` and classify each route/operation as proposed, disabled, sample, in-memory, browser-local, preserved-but-disabled integration, or enabled service behavior. API integrations are currently paused for UI work; do not change that mode without task authorization.
 5. Keep the change within the requested feature and avoid unrelated role/page changes.
 
 Architecture rules:
@@ -135,7 +135,7 @@ Architecture rules:
 ## Data, security, and product constraints
 
 - The backend enforces role, membership, ownership, and record-level authorization. A route prefix, disabled button, form validation, or hidden control is not a security boundary.
-- Query actual services before representing an operation as available. Existing classroom list/create/join and meeting create/join/end integrations do not imply that roster, classwork, attendance, materials, messaging, scheduling, progress, AI, or settings APIs exist.
+- Inspect actual clients, runtime mode, and contracts before representing an operation as available. Classroom list/detail/create/join/student-list clients and meeting create/join/end clients do not establish a complete learner-record workflow or imply classwork, attendance, materials, messaging, scheduling, progress, AI, or settings services. Verify connected behavior rather than inferring it from client function names.
 - Do not expose secrets, `.env` values, auth/session tokens, meeting credentials, or private learner data. Do not store meeting credentials or transient room state in browser storage.
 - ESL whiteboard behavior remains temporary and room-scoped under the ESL plan. Do not persist or replay board actions or feed them into attendance, grades, submissions, feedback, progress, or AI.
 - Ask for clarification when a missing contract or ambiguous ownership/audience/status would change the data model, permissions, persistence, or user-visible behavior. Do not make a plausible guess.

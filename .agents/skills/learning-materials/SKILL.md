@@ -7,6 +7,8 @@ description: Guide organization and access to student, classroom, lesson, tutori
 
 Use for displaying, organizing, sharing, or uploading learning resources in the [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), and [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md) workflows. The product plan names possible resource categories; actual accepted formats, size limits, storage, and upload flows must come from the current backend contract.
 
+Connect these destinations through the product scopes for [Learning materials](../../../OWLIO_PRODUCT_PLAN.md#learning-materials) and the [shared-feature map](../../../OWLIO_PRODUCT_PLAN.md#shared-capabilities-and-role-specific-destinations). Read the affected role plan's material/library page flow and acceptance criteria; apply [owlio-core](../owlio-core/SKILL.md) for runtime rules. A resource card, local file selection, or existing context route does not prove upload, sharing, download, or account persistence is connected.
+
 ## Context and ownership
 
 Keep resource context explicit:

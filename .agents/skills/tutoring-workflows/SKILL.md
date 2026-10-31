@@ -9,6 +9,8 @@ Use for tutor dashboard pages under `/tutors`, not ESL-specific language instruc
 
 The plan describes target behavior, not proof of implementation. Current source and confirmed API/security contracts decide what exists. Follow [owlio-role-workflows](../owlio-role-workflows/SKILL.md), [educator-classroom](../educator-classroom/SKILL.md) for shared classroom behavior, and [owlio-core](../owlio-core/SKILL.md) for product-wide rules.
 
+Use the [product-level Tutor workspace](../../../OWLIO_PRODUCT_PLAN.md#44-tutor-workspace) for shared feature relationships, the tutor plan's [delivery roadmap](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md#delivery-roadmap) for staging, and its [acceptance criteria](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md#acceptance-criteria-for-this-plan-and-later-implementation) for each delivered slice. Shared educator safeguards do not impose school terms, Gradebook, or institutional grading on tutoring.
+
 ## Purpose and sidebar
 
 Support independent tutoring across subjects without requiring a formal institution, school roster, school gradebook, school term, or fixed timetable. Support one-to-one and group tutoring where the product and backend contracts permit it.
@@ -46,7 +48,7 @@ The target sidebar is:
 - Teaching Materials is one tutor resource library with owner/audience explicit; share private resources deliberately. Keep progress insights under Student Progress.
 - Student Progress cites sources, dates, and tutor-defined criteria. Keep group and individual progress distinct; never expose one learner's private notes/evaluation to group members or call tutoring evaluations institutional grades.
 - AI Tutor Assistant is tutor-facing, not autonomous learner AI. Drafts may support preparation/activity/feedback; the tutor reviews and edits before use. AI cannot contact learners, assign work, finalize evaluations, determine mastery, or alter records.
-- Do not send private learner/session information to an AI provider without approved privacy, retention, and backend contracts; never call an AI provider directly from the browser.
+- Follow [AI assistance](../ai-assistant/SKILL.md) for the initial English-only, user-entered-context scope; exclude learner names, records, private notes, and submissions. Never call a model runtime directly from the browser.
 - Profile & Settings exposes only supported authenticated profile/preferences fields and persistence. Keep sign-out in the shared shell.
 
 ## Tutoring-specific context
@@ -68,7 +70,7 @@ Use [educator classroom](../educator-classroom/SKILL.md) for shared classroom bo
 
 - Keep routes under `/tutors`; register routes in `src/main.tsx` and synchronize sidebar labels, page title, active state, and header search. `E` is an existing frontend route, `P` proposed, and `D` disabled/planned; none of these alone proves a backend operation exists.
 - New/refactored route directories contain only a thin `index.tsx` adapter. Put screen sections, state, forms, schemas, and data orchestration in the feature components mapped by the plan. Avoid unrelated shared-route migrations.
-- At the plan snapshot, classroom list/create/join and meeting create/join/end have API services; tutor learner, plan, session, activity, attendance, notes, materials, communication, notification, progress, AI, and settings services are not present. Re-check source before describing behavior as live or saved.
+- Recheck current source rather than copying route-status snapshots: tutor Learning Plans, Session Notes, Announcements, and Settings already have frontend routes, but a route is not persistence. `src/lib/api-mode.ts` currently pauses requests; preserved classroom/meeting clients and local previews do not establish connected tutor learner, plan, session, evaluation, notes, progress, AI, or settings workflows.
 - Backend authorization enforces tutor ownership, learner/group membership, and record visibility. `/tutors` paths and client controls are not authorization.
 - Do not add payments, invoicing, or advanced tutoring-business scheduling without separate approval. Do not invent endpoints, learner levels, grade scales, file policies, session modes, or retention rules.
 - Provide applicable loading, empty, filtered-empty, unavailable, error/retry, and permission-denied states. Show mutation success only after server confirmation; label demo/local data honestly.

@@ -9,6 +9,8 @@ Use for school educator dashboard pages under `/educators`. Read the [educator w
 
 `AGENTS.md`, current source, and confirmed backend contracts define what is implemented and authorized. The workflow plan describes target behavior, not proof of an API or permission. Follow [owlio-role-workflows](../owlio-role-workflows/SKILL.md) for shared route/component and cross-role rules, and [owlio-core](../owlio-core/SKILL.md) for product-wide safeguards.
 
+Use the [product-level School Educator workspace](../../../OWLIO_PRODUCT_PLAN.md#42-school-educator-workspace) for shared feature relationships, the educator plan's [delivery roadmap](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md#delivery-roadmap) for staging, and its [acceptance criteria](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md#acceptance-criteria-for-this-plan-and-eventual-implementation) for each delivered slice. School-specific rules do not override the ESL or tutor plans.
+
 ## Purpose and sidebar
 
 The school educator workflow supports a path from class setup and lesson planning through instruction, classwork review, attendance, official results, communication, and evidence-based insights. The target sidebar is:
@@ -53,7 +55,7 @@ Use [tutoring workflows](../tutoring-workflows/SKILL.md) and [ESL teaching](../e
 
 ## Implementation checks
 
-Confirm ownership, membership, class scope, and permitted actions before encoding assumptions. At the plan snapshot, classroom list/create/join and Meeting Room create/join/end have API services. Roster, classwork/submissions, attendance, Gradebook, lesson planning, schedule, materials, discussions, announcements, notifications, insights, AI, and profile settings are not established as working services by their UI previews; re-check current source and contracts.
+Confirm ownership, membership, class scope, and permitted actions before encoding assumptions. Classroom list/detail/create/join/student-list and Meeting Room create/join/end clients exist, but `src/lib/api-mode.ts` currently pauses requests for UI previews. A student-list client does not establish the full Students record workflow. Verify current clients, runtime mode, and approved contracts before describing roster, classwork, attendance, Gradebook, planning, communication, insights, AI, or settings as operational.
 
 Keep new/refactored route directories to a thin `index.tsx` adapter and put page components/state in the feature locations mapped by the plan. Keep routes, sidebar labels, page title, active matching, and header search aligned; a proposed route is not registered, and a missing destination must remain disabled/planned rather than becoming a dead link.
 

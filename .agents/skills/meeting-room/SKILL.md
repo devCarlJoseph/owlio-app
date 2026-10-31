@@ -7,10 +7,12 @@ description: Build the Owlio classroom meeting-room experience with LiveKit whil
 
 Use this skill for the shared, standalone Meeting Room used from the student, educator, ESL teacher, and tutor workflows. The room is a live learning session, not a source of official attendance or a substitute for classroom authorization. See the role plans for navigation and contextual entry: [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), and [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md).
 
+Follow the [product Meeting Room and whiteboard scope](../../../OWLIO_PRODUCT_PLAN.md#standalone-meeting-room-and-temporary-esl-whiteboard) and the affected role plan's meeting flow/acceptance criteria. Use [owlio-core](../owlio-core/SKILL.md) for shared runtime and record boundaries.
+
 ## Current implementation
 
 - The page lives at `src/pages/dashboard/classroom/meeting-room.tsx` and is mounted below each role-prefixed classroom route.
-- `src/services/api/meeting.service.ts` creates, joins, and ends meetings through the existing API. Joining returns short-lived LiveKit credentials; `livekit-client` handles media and current room presence.
+- `src/services/api/meeting.service.ts` preserves create/join/end clients. When enabled and successful, joining returns short-lived LiveKit credentials and `livekit-client` handles media/presence. Check `src/lib/api-mode.ts`: requests are currently paused globally for UI work, so the preserved implementation is not currently enabled connected behavior. Do not change this mode as a side effect of UI work.
 - The backend implementation is not in this frontend repository. Confirm its contracts and permissions before adding routes, roles, or server-side behavior.
 - Chat and raised hands use small, reliable LiveKit data packets in the connected room. They are transient UI state, not persisted chat or official participation records. Do not claim delivery or retention guarantees.
 - Publishing data requires the issued LiveKit token to permit it. Surface a recoverable message when the service rejects a packet; never work around server permissions in the client.
@@ -27,16 +29,16 @@ Use this skill for the shared, standalone Meeting Room used from the student, ed
 - Never infer classroom membership, host authority, or educator permissions from route prefixes or hidden controls. The backend remains the authorization boundary.
 - Do not record, persist, export, or notify about meeting activity unless an approved API and privacy contract supports it.
 
-## Proposed ESL whiteboard boundary
+## ESL whiteboard workflow boundary
 
-The ESL plan proposes a constrained shared whiteboard inside an authorized, connected ESL Meeting Room. It is not part of the current meeting implementation and is not a generic Meeting Room feature:
+The aligned product and ESL plans include a constrained temporary whiteboard inside an authorized, connected ESL Meeting Room. A local preview exists under `src/components/features/esl-teaching/meeting-room/` and is selected through the meeting page's preview query; it does not establish synchronized room behavior or expanded connected scope:
 
 - Limit the initial proposal to teacher-authored built-in prompts/simple objects and learner select/click/circle/mark responses.
 - Keep teacher prompts separate from participant responses. Attribute responses using authenticated room identity, not color alone.
 - Keep board state temporary and room-scoped. Do not persist, export, replay, grade, notify, or use it to mutate attendance, classwork, feedback, progress, or AI context.
 - Do not add uploads, screenshots, or unrestricted freehand drawing to the initial scope. Support keyboard and touch interactions.
-- Do not implement until the owner approves the changed product priority and the realtime contract defines authorization, ordering/deduplication, payload/rate limits, late-join/reconnect synchronization, concurrent actions, and failed-publish behavior. If the current LiveKit packet channel cannot support the contract, agree on a suitable transport first.
-- Do not show the whiteboard for students, school educators, or tutors unless a separate role-specific plan approves it.
+- The constrained feature is already included in the aligned workflow priority; connected implementation still requires a realtime contract defining authorization, ordering/deduplication, payload/rate limits, late-join/reconnect synchronization, concurrent actions, and failed-publish behavior. If the current LiveKit packet channel cannot support the contract, agree on a suitable transport first.
+- Scope the tool to an authorized ESL teaching session, not simply the viewer's workspace role. Authorized student learners may respond to that session's teacher prompts under room permissions. Do not enable the tool in non-ESL sessions or infer teacher controls from a route prefix or preview role selector.
 
 ## UI and accessibility
 

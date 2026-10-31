@@ -7,6 +7,8 @@ description: Guide role-scoped classwork, ESL activities, tutoring evaluations, 
 
 Use for the activity lifecycle in the [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md), and student [classroom participation](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md) workflows. Keep every activity scoped to its authorized class, lesson, learner/group, or other explicitly supported context.
 
+Use the [product classwork scope](../../../OWLIO_PRODUCT_PLAN.md#classwork-and-assessments) and [shared-feature map](../../../OWLIO_PRODUCT_PLAN.md#shared-capabilities-and-role-specific-destinations) to connect these destinations. Read the affected role plan's page flow and acceptance criteria; apply [owlio-core](../owlio-core/SKILL.md) for runtime/ownership rules. A prototype activity builder or API client does not establish an enabled submission, grading, or publication service.
+
 ## Role boundaries
 
 - Educators create and publish official classwork/assessments, review submissions, and provide grades/feedback under the class contract. The Gradebook is a separate view of official results sourced from activities; it must not establish a conflicting grading authority.

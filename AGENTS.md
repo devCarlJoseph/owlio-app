@@ -2,6 +2,8 @@
 
 This is the repository-specific guide for work in `owlio-app`. Keep it aligned with the current source tree. `OWLIO_PRODUCT_PLAN.md` documents the product vision; the four `OWLIO_*_WORKFLOW_PLAN.md` documents define role-specific target navigation and page workflows. Source code, confirmed backend contracts, and explicit product-owner decisions are authoritative for implementation status and permissions. Do not treat plans, marketing previews, placeholder pages, or TODO-shaped UI as proof of working backend features.
 
+Follow [AGENT_SOP.md](AGENT_SOP.md) for task execution, verification, documentation maintenance, and handoff. This guide supplies repository rules; the SOP connects those rules to the product plan, role workflow plans, and relevant skills.
+
 ## 1. Working rules
 
 - Inspect the relevant page, feature, shared component, route, and API contract before editing. Make focused changes and preserve unrelated user changes.

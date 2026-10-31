@@ -9,6 +9,8 @@ Use for any student dashboard page or interaction under `/students`. Read the [s
 
 `AGENTS.md`, current source, and confirmed API/security contracts determine implementation status. The plan is the target workflow, not proof that a route, service, permission, or action exists. For shared page architecture and cross-role guardrails, also follow [owlio-role-workflows](../owlio-role-workflows/SKILL.md) and [owlio-core](../owlio-core/SKILL.md).
 
+Use the [product-level Student workspace](../../../OWLIO_PRODUCT_PLAN.md#41-student-workspace) to connect this workflow to shared teaching capabilities, and the student plan's [delivery roadmap](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md#delivery-roadmap) for the independence-first sequence. Preserve its [acceptance criteria](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md#acceptance-criteria-for-the-proposal-and-later-implementation) for each delivered slice.
+
 ## Student purpose and sidebar
 
 Owlio must remain useful to a student who has not joined a class. The target sidebar makes personal learning, educator-led classes, and peer collaboration separate contexts:
@@ -40,7 +42,7 @@ Keep Overview focused on the next useful action across personal learning and joi
 - Student-owned notes, tasks, personal resources, and personal learning activity belong to the student.
 - Study-space content belongs to the peer space and follows its membership/visibility contract.
 - Educator-controlled classwork, submissions, attendance, grades/evaluations, feedback, announcements, and class progress remain official class records.
-- Do not merge these record types in a list, count, progress summary, notification, or mutation. Make owner and context visible.
+- Do not conflate these record types or mutate them as if they share an owner. Cross-context Overview, library, calendar, or progress views may surface them together only with distinct scopes, sources, and visibility rules.
 - Backend authorization enforces classroom, space, and resource access. A `/students` URL, hidden button, client validation, or local membership state is not authorization.
 - Never expose another learner's records or private educator feedback. On revoked or unavailable access, show a safe state without leaking record details.
 
@@ -50,14 +52,14 @@ Keep Overview focused on the next useful action across personal learning and joi
 - For new or refactored route folders, keep only a thin `index.tsx` adapter. Put screen sections, forms, state, schemas, and data orchestration in the student feature location specified by the plan under `src/components/features/`.
 - Keep same-page tabs, filters, dialogs, and drawers on the current URL unless the plan defines a route transition. A proposed/disabled destination must not become a dead link.
 - Reuse checked-in `src/components/ui/` wrappers and inspect their Base UI APIs. Do not assume a Radix-only prop or an unavailable primitive.
-- At the plan snapshot, personal notes/tasks and study spaces use browser-local state and are not account-synced; classroom list/create/join and meeting operations have API calls; class detail, classwork, and most shared pages include prototypes or UI-only scaffolds. Re-check source and service contracts before describing any action as live or saved.
+- Check runtime mode as well as source: `src/lib/api-mode.ts` currently pauses API requests and bypasses auth/role guards for UI previews. Personal/local state and preserved classroom/meeting clients do not establish account sync or shared collaboration. Re-check source, runtime mode, and service contracts before describing an action as live or saved.
 - Do not add file formats, sharing rules, course/grade concepts, routes, endpoints, or permissions that are not in the plan or approved contract.
 
 ## UX and validation
 
 - Preserve independent first-use flows with meaningful empty states; class membership is optional.
 - Show distinct loading, empty, filtered-empty, unavailable, error/retry, and permission-denied states where applicable.
-- Confirm a save, join, submit, or mark-read action only after the responsible service confirms it. Label browser-local and sample data honestly.
+- Confirm a server save, join, submit, or mark-read action only after the responsible service confirms it. A browser-local save may report local success after storage succeeds, but must remain clearly distinct from account sync or collaboration.
 - Keep controls semantic, labeled, keyboard-operable, visible-focus, responsive, and usable with touch. Preserve equivalent keyboard/pointer paths.
 - Check navigation against the plan's click-flow diagrams. Every route destination must be registered or clearly proposed/disabled, and same-page actions must remain same-page.
 - Verify that personal, peer-space, and official-class records remain separate through lists, detail views, notifications, and progress summaries.

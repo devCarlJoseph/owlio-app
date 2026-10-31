@@ -2,6 +2,8 @@
 
 Recommend a tutor-first information architecture and end-to-end workflow for one-to-one and group tutoring, including page responsibilities, ownership boundaries, current route/API status, and a backend-aware delivery roadmap.
 
+This is the detailed Tutor workspace specification linked from the [Owlio Product Plan](OWLIO_PRODUCT_PLAN.md#4-four-role-workspaces-and-their-connected-learning-contexts). Use the product plan for shared capabilities, cross-role ownership boundaries, and delivery dependencies; use this document for tutor navigation, page requirements, click flows, and acceptance criteria. Current source, runtime flags, and confirmed backend contracts determine implementation status; the current-state snapshots below must be rechecked before implementation.
+
 ## Objective and confirmed decisions
 
 - Deliver a product/UX proposal, current frontend/service map, and sequenced implementation roadmap for the tutor workspace.

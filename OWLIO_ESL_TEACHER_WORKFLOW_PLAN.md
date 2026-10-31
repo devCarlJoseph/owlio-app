@@ -2,6 +2,8 @@
 
 Recommend an ESL-teacher-first navigation and complete lesson workflow that supports one-to-one and group language learning, keeps learner records and feedback properly scoped, and makes the Meeting Room the sole home for a temporary, interactive live whiteboard.
 
+This is the detailed ESL Teacher workspace specification linked from the [Owlio Product Plan](OWLIO_PRODUCT_PLAN.md#4-four-role-workspaces-and-their-connected-learning-contexts). Use the product plan for shared capabilities, cross-role ownership boundaries, and delivery dependencies; use this document for ESL navigation, page requirements, click flows, and acceptance criteria. Current source, runtime flags, and confirmed backend contracts determine implementation status; the current-state snapshots below must be rechecked before implementation.
+
 ## Objective and confirmed decisions
 
 - Deliver a product/UX proposal, a map of current ESL routes and integration status, and a detailed, backend-aware implementation roadmap.
@@ -159,7 +161,7 @@ ACCOUNT
 - Before implementation, run a transport/design spike: confirm LiveKit packet size/rate/order/reliability limits for board operations, event identity/authorization, duplicate/out-of-order handling, state snapshot/re-sync for late join/reconnect, and what happens when a publish fails. Use compact semantic events; do not broadcast screenshots or unbounded drawing data. If the existing data-packet model is not suitable, agree on a backend/realtime service before building a board that appears collaborative but is not.
 - Whiteboard actions are not a formal assessment. If a teacher wants to assess or retain a response, that must be an explicit activity/submission workflow, not an automatic side effect of clicking a shape.
 
-**Product-plan alignment:** `OWLIO_PRODUCT_PLAN.md` currently lists real-time collaborative whiteboards as a future enhancement. This request reprioritizes a constrained, session-only ESL whiteboard for this proposed workflow; update the product roadmap and backend/realtime scope only after the owner approves this priority.
+**Product-plan alignment:** the [aligned product roadmap](OWLIO_PRODUCT_PLAN.md#8-delivery-roadmap-aligned-to-the-four-workflows) includes the constrained, session-only ESL whiteboard in this workflow's delivery track. A persistent/general-purpose collaborative whiteboard remains future. This planning alignment does not establish a realtime contract or prove that local preview interactions are synchronized between participants; confirm transport, authorization, and recovery behavior before connected implementation.
 
 ### Lesson Schedule
 

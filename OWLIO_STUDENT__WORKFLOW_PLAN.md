@@ -2,6 +2,8 @@
 
 Recommend a student-first navigation and page-content model that preserves Owlio's independent-learning promise, separates peer and official classroom records, maps the proposal to the current frontend, and sequences future work by backend readiness.
 
+This is the detailed Student workspace specification linked from the [Owlio Product Plan](OWLIO_PRODUCT_PLAN.md#4-four-role-workspaces-and-their-connected-learning-contexts). Use the product plan for shared capabilities, cross-role ownership boundaries, and delivery dependencies; use this document for student navigation, page requirements, click flows, and acceptance criteria. Current source, runtime flags, and confirmed backend contracts determine implementation status; the current-state snapshots below must be rechecked before implementation.
+
 ## Objective and agreed scope
 
 - Deliver a product/UX proposal plus a current-state map and staged roadmap for the student workspace and shared experiences students use.

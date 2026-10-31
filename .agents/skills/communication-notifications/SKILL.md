@@ -7,6 +7,8 @@ description: Implement contextual discussions, announcements, and notifications 
 
 Use for contextual communication in the [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md), [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), and [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md) workflows. Keep each item attached to a class, lesson/session, activity, learner/group, or student study space as permitted by the applicable role and service contract.
 
+Use the product scopes for [Discussions, Announcements, and polls](../../../OWLIO_PRODUCT_PLAN.md#discussions-announcements-and-polls) and [Notifications](../../../OWLIO_PRODUCT_PLAN.md#notifications), then read the affected role plan's page flows/acceptance criteria. Follow [owlio-core](../owlio-core/SKILL.md) for runtime/ownership rules: a local composer, notification list, or frontend route is not proof of enabled save, send, delivery, or read-state services.
+
 ## Product workflows
 
 The plan describes educator classroom announcements and discussions, student study-space discussions/announcements/polls, replies, and notifications for invitations, new work/materials, deadlines, submissions, grades, feedback, replies, polls, attendance, and schedule changes. Confirm the supported channel, delivery, and event contract before implementing any send or delivery behavior.

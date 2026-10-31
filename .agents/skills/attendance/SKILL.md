@@ -7,6 +7,8 @@ description: Implement school, ESL lesson, and tutoring-session attendance witho
 
 Use for educator-controlled attendance in the four role workflows. Read the relevant [educator](../../../OWLIO_EDUCATOR_WORKFLOW_PLAN.md), [ESL teacher](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md), [tutor](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md), or [student](../../../OWLIO_STUDENT__WORKFLOW_PLAN.md) plan. Attendance is not a student personal task, study-space metric, or meeting-presence summary.
 
+Follow the [product attendance scope](../../../OWLIO_PRODUCT_PLAN.md#attendance), the affected role plan's attendance page flow/acceptance criteria, and [owlio-core](../owlio-core/SKILL.md) for runtime/ownership rules. School Attendance, ESL Lesson Attendance, and tutor Session Attendance share safeguards without assuming identical record policies. An existing page, preview total, or meeting client does not establish an enabled attendance service.
+
 ## Product direction
 
 Role plans require an explicit educator workflow tied to the actual class/session: school Attendance, ESL Lesson Attendance, or tutor Session Attendance. A student may view only permitted records; self check-in is a separate optional action only when its product/API contract is confirmed. Use only service-defined statuses, confirmation, correction, history, and audit behavior. Example statuses are not a specification.

@@ -12,11 +12,13 @@ Use for AI assistance in student, school educator, ESL teacher, and tutor workfl
 - [ESL teacher workflow](../../../OWLIO_ESL_TEACHER_WORKFLOW_PLAN.md)
 - [Tutor workflow](../../../OWLIO_TUTOR_WORKFLOW_PLAN.md)
 
-The role plans describe target behavior, not current service support. Verify `AGENTS.md`, source, and approved provider/privacy/backend contracts. The current shared `/[role]/ai-assistant` page is educator-preparation copy, and no AI generation service is established in the current frontend; this is not proof that generation works for any role.
+Connect these role entry points through the [product AI scope](../../../OWLIO_PRODUCT_PLAN.md#ai-assistance) and [AI implementation plan](../../../OWLIO_AI_IMPLEMENTATION_PLAN.md). The role plans define page behavior; the AI plan defines the initial rollout and proposed inference architecture. Verify current views, runtime mode, and approved backend contracts rather than assuming that shared routes or role-specific previews provide generation.
 
 ## Supported product direction
 
 The plan describes assistance with question suggestions and refinement, grammar/clarity, variations, answer choices, difficulty, question-set organization, teacher-defined criteria, assignment instructions, discussion questions, activity ideas, lesson suggestions, suggested feedback, and written-response evaluation. ESL/tutoring examples include vocabulary, grammar, conversation, reading, writing, and speaking activities. Treat these as product direction, not existing capability.
+
+The initial implementation track is professional preparation/drafting for educator, ESL, and tutor workspaces, English-only, using only user-entered task context and settings. Exclude learner names, learner records, private notes, and submissions from initial prompts. Written-response evaluation using learner work is broader product direction, not permission to include submissions in this initial service scope. Student generation stays disabled pending its separate approval.
 
 ## Role-specific scope
 
@@ -36,6 +38,8 @@ The plan describes assistance with question suggestions and refinement, grammar/
 
 ## Privacy and integration
 
-Do not send sensitive learner data or credentials to an AI provider without an approved product, privacy, and backend contract. Do not call AI providers directly from the browser or invent endpoints/model behavior. Follow the approved service/API flow when one exists; otherwise keep the UI explicitly in a design/prototype state. Provide clear error, unavailable, and retry states without exposing raw provider payloads.
+Follow the AI plan's proposed local/self-hosted inference architecture: the frontend calls an approved authenticated Owlio backend, which reaches the private model runtime. Do not call hosted providers or exposed runtime ports directly from the browser, invent endpoint/schema contracts, or treat a candidate model/runtime as selected infrastructure.
+
+Check `src/lib/api-mode.ts`: API integrations are currently paused globally for UI work. AI enablement must be separate and must not activate unrelated integrations. When inference is unavailable, use a clear unavailable state or an explicitly labeled static preview; do not imply that fixed content was generated. Provide recoverable error/retry feedback without raw provider payloads. Verify against the AI plan's [acceptance criteria](../../../OWLIO_AI_IMPLEMENTATION_PLAN.md#acceptance-criteria) and the relevant role workflow.
 
 Use [classwork and assessment](../classwork-assessment/SKILL.md) for activity and grading workflows, [ESL teaching](../esl-teaching/SKILL.md) for language-specific examples, and [Owlio Core](../owlio-core/SKILL.md) for shared ownership and security boundaries.

@@ -2,6 +2,8 @@
 
 Recommend a school-educator-first navigation and end-to-end teaching workflow, with page-level requirements, current frontend/API status, ownership safeguards, and a backend-aware delivery roadmap.
 
+This is the detailed School Educator workspace specification linked from the [Owlio Product Plan](OWLIO_PRODUCT_PLAN.md#4-four-role-workspaces-and-their-connected-learning-contexts). Use the product plan for shared capabilities, cross-role ownership boundaries, and delivery dependencies; use this document for educator navigation, page requirements, click flows, and acceptance criteria. Current source, runtime flags, and confirmed backend contracts determine implementation status; the current-state snapshots below must be rechecked before implementation.
+
 ## Objective and confirmed decisions
 
 - Deliver a product/UX proposal, a codebase capability map, and a sequenced roadmap for the educator workspace.
