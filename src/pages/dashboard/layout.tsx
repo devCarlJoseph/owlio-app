@@ -107,8 +107,7 @@ export default function PlatformLayout() {
             <Menu aria-hidden="true" />
           </Button>
           <Link to={homeHref} aria-label="Owlio home" className="flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand">
-            <img src="/mascot/owlio-mark.png" alt="" className="size-8 object-contain" />
-            <span className="hidden text-lg font-semibold tracking-tight text-slate-950 sm:inline">owlio<span className="text-brand">.</span></span>
+            <img src="/logo.png" alt="" className="h-9 w-auto object-contain" />
           </Link>
           <form
             role="search"

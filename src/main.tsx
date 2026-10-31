@@ -70,9 +70,14 @@ import { RequireGuest } from "@/components/features/auth/require-guest";
 import { RequireRole } from "@/components/features/auth/require-role";
 import { NoWorkspaceView } from "@/components/features/auth/no-workspace-view";
 import { API_INTEGRATION_ENABLED } from "@/lib/api-mode";
+import { initializeTheme } from '@/lib/theme';
+import { ThemeController } from '@/components/common/theme-controller';
+
+initializeTheme();
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
+    <ThemeController />
     <AuthSessionProvider>
       {!API_INTEGRATION_ENABLED && (
         <div role="status" className="bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-950">

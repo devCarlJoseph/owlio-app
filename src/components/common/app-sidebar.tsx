@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router"
 import { Home, PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import { cn } from "cn"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ThemeSelector } from './theme-selector'
 import { getActiveDashboardHref, getDashboardSidebarNavigation, getDashboardWorkspace } from "./dashboard-navigation"
 
 type SidebarGroup = ReturnType<typeof getDashboardSidebarNavigation>[number]
@@ -73,7 +74,7 @@ function SidebarNavigationGroup({
           const active = href !== undefined && href === activeHref
           const className = cn(
             "relative flex items-center rounded-lg text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
-            showLabels ? "h-10 w-full gap-3 px-3" : "size-11 justify-center",
+            showLabels ? "min-h-10 w-full gap-3 px-3 py-2" : "size-11 justify-center",
             active
               ? "bg-brand-soft font-medium text-brand-soft-foreground"
               : href
@@ -83,10 +84,10 @@ function SidebarNavigationGroup({
           const content = (
             <>
               <Icon className="size-5 shrink-0" aria-hidden="true" />
-              {showLabels && <span className="truncate">{label}</span>}
+              {showLabels && <span className="min-w-0 flex-1 text-left break-words">{label}</span>}
               {href && <CountBadge count={badges?.[href]} showLabels={showLabels} />}
               {!href && showLabels && (
-                <span aria-hidden="true" className="ml-auto rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                <span aria-hidden="true" className="ml-auto shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
                   Planned
                 </span>
               )}
@@ -183,15 +184,15 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
       {mobileOpen && (
         <button type="button" aria-label="Close navigation" onClick={onMobileClose} className="fixed inset-0 z-30 bg-slate-950/25 md:hidden" />
       )}
-      <div className={cn("min-h-0 shrink-0 md:h-full md:w-20", expanded && "lg:w-64")}>
+      <div className={cn("min-h-0 shrink-0 md:h-full md:w-20", expanded && "lg:w-80")}>
         <aside
           ref={asideRef}
           aria-label="Workspace sidebar"
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white px-3 pt-3 transition-transform duration-200 motion-reduce:transition-none",
+            "fixed inset-y-0 left-0 z-40 flex w-80 max-w-[calc(100vw-1rem)] flex-col border-r border-slate-200 bg-white px-3 pt-3 transition-transform duration-200 motion-reduce:transition-none",
             mobileOpen ? "translate-x-0" : "-translate-x-full",
             "overflow-hidden md:relative md:h-full md:min-h-0 md:translate-x-0 md:transition-[width]",
-            showLabels ? "md:w-64" : "md:w-20",
+            showLabels ? "md:w-80" : "md:w-20",
             overlayActive && "md:shadow-xl"
           )}
         >
@@ -200,15 +201,16 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
               <Link
                 to={workspace.homeHref}
                 onClick={handleNavigate}
-                aria-label={showLabels ? undefined : "Home"}
+                aria-label="Home"
                 title={showLabels ? undefined : "Home"}
                 className={cn(
-                  "flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand",
+                  "flex h-12 items-center justify-center gap-2 rounded-xl border-0 md:border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand",
                   showLabels ? "flex-1" : "mx-auto w-12"
                 )}
               >
-                <Home className="size-5" aria-hidden="true" />
-                {showLabels && <span>Home</span>}
+                <img src="/logo.png" alt="" className="h-10 w-auto object-contain md:hidden" />
+                <Home className="hidden size-5 md:block" aria-hidden="true" />
+                {showLabels && <span className="hidden md:inline">Home</span>}
               </Link>
             )}
             <button
@@ -231,7 +233,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
           )}
 
           <ScrollArea className="mt-3 h-0 min-h-0 flex-1 overflow-hidden border-t border-slate-200">
-            <nav aria-label="Workspace navigation" className="overflow-x-hidden pt-2">
+            <nav aria-label="Workspace navigation" className={cn("overflow-x-hidden pt-2", showLabels && "pr-3")}>
               {mainGroups.map((group) => (
                 <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} badges={badges} onNavigate={handleNavigate} />
               ))}
@@ -246,6 +248,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
                 ))}
               </nav>
             )}
+            <ThemeSelector expanded={showLabels} />
             <button
               ref={toggleRef}
               type="button"

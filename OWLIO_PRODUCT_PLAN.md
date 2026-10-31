@@ -1,5 +1,7 @@
 # Owlio Product Plan
 
+The shared sidebar provides a browser-local Theme preference (Light, Dark, System) above its collapse control. System follows device appearance changes. Dark uses slate/navy surfaces and soft blue accents rather than pure black. This preference is not account-synced.
+
 ## Purpose and authority
 
 This document consolidates the owner-provided product vision so engineers and coding agents can keep features, workflows, and role boundaries aligned. It describes target product behavior, not a claim that every feature is already implemented.

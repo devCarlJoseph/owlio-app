@@ -91,37 +91,54 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: #1e293b;
+    --foreground: #e2e8f0;
+    --card: #273449;
+    --card-foreground: #e2e8f0;
+    --popover: #273449;
+    --popover-foreground: #e2e8f0;
+    --primary: #93b4ff;
+    --primary-foreground: #1e293b;
+    --secondary: #334155;
+    --secondary-foreground: #e2e8f0;
+    --muted: #334155;
+    --muted-foreground: #b0bed1;
+    --accent: #36465e;
+    --accent-foreground: #f1f5f9;
+    --destructive: #fda4af;
+    --border: #43516a;
+    --input: #43516a;
+    --ring: #93b4ff;
+    --chart-1: #93b4ff;
+    --chart-2: #67e8f9;
+    --chart-3: #c4b5fd;
+    --chart-4: #fcd34d;
+    --chart-5: #6ee7b7;
+    --sidebar: #273449;
+    --sidebar-foreground: #e2e8f0;
+    --sidebar-primary: #93b4ff;
+    --sidebar-primary-foreground: #1e293b;
+    --sidebar-accent: #36465e;
+    --sidebar-accent-foreground: #e2e8f0;
+    --sidebar-border: #43516a;
+    --sidebar-ring: #93b4ff;
+    --brand: #a5b4fc;
+    --brand-foreground: #1e293b;
+    --brand-soft: #354268;
+    --brand-soft-foreground: #c7d2fe;
+}
+
+@layer utilities {
+  .dark :is(.bg-white, .bg-white\/80, .bg-white\/90) { background-color: var(--card); }
+  .dark :is(.bg-slate-50, .bg-slate-50\/50, .bg-gray-50) { background-color: var(--background); }
+  .dark :is(.bg-slate-100, .bg-slate-200, .bg-gray-100) { background-color: var(--muted); }
+  .dark :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700, .text-gray-900, .text-gray-800) { color: var(--foreground); }
+  .dark :is(.text-slate-600, .text-slate-500, .text-slate-400, .text-gray-600, .text-gray-500) { color: var(--muted-foreground); }
+  .dark :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-gray-200) { border-color: var(--border); }
+  .dark :is(.bg-blue-50, .bg-indigo-50, .bg-blue-100, .bg-indigo-100) { background-color: var(--brand-soft); }
+  .dark :is(.text-blue-600, .text-blue-700, .text-blue-800, .text-indigo-600, .text-indigo-700) { color: var(--brand-soft-foreground); }
+  .dark :is(.hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-slate-200):hover { background-color: var(--accent); }
+  .dark :is(.hover\:text-slate-900, .hover\:text-slate-700):hover { color: var(--foreground); }
 }
 
 #root:has([data-dashboard-shell]) {

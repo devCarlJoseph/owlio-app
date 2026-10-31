@@ -38,6 +38,8 @@ The app is a client-rendered React/TypeScript SPA built with Vite. The package m
 
 `src/styles/global.css` is the Tailwind entry point and defines the semantic theme/radius/sidebar tokens and Inter font. Prefer existing tokens and local UI primitives over new one-off styling systems.
 
+The sidebar Theme selector offers Light, Dark, and System above the collapse control. `src/lib/theme.ts` stores this browser-local preference under `owlio.theme.v1`; `ThemeController` watches device appearance and cross-tab changes. The soft slate/navy dark palette lives in `global.css`. Theme selection does not update an account profile.
+
 ## 3. Source architecture and ownership
 
 ```text
