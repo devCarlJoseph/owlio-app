@@ -539,6 +539,8 @@ Preserve the dashboard header/sidebar throughout category entry, lobby, and call
 
 **Current visual workflow:** School educator rooms use the same Google Meet-inspired presentation as the student workspace: dark video stage, grid/spotlight layouts, local pinning, persistent bottom media/leave controls, and optional people/chat panels. `?join=1&layout-preview=1` previews this design without connecting, requesting media, or publishing chat. Host/create/end visibility still follows existing authenticated/service state, not the educator URL. LiveKit transport and current room contracts remain in place; recording, transcription, AI summaries, and Google Meet integration are not implemented. Shared implementation lives in `components/features/meeting-room/` behind the existing route adapter.
 
+The classroom presentation now uses dedicated `classroom-meeting-screen.tsx` and scoped `classroom-meeting.css`, preserving tutor/ESL coaching screens. It includes an adaptive gallery, presentation-prioritized spotlight, LiveKit-driven speaking outlines, accessible control tooltips, and a polished invite lobby. Media/leave controls and chat/people controls form separate groups; end-for-everyone remains a distinct existing host action. Panels resize the desktop stage and fill its area on narrow screens, with close/Escape returning focus to their trigger. Connection labels use actual status, and layout preview cannot publish media, chat, or hand raises. Live transport remains unverified while APIs are paused.
+
 ```mermaid
 flowchart LR
   ROOM(["Meeting Room /educators/classrooms/meeting-room E"]) --> ENTRY{"Arrival path"}

@@ -7,6 +7,7 @@ import { ChatPanel, PeoplePanel } from './meeting-room-panels'
 import { ParticipantTile } from './participant-tile'
 import type { MeetingRoomScreenProps } from './meeting-room-types'
 import './meeting-room.css'
+import { ClassroomMeetingScreen } from './classroom-meeting-screen'
 
 function EmptyStage({ small = false }: { small?: boolean }) {
   return <div className={`meeting-empty-stage ${small ? 'meeting-empty-small' : ''}`}>
@@ -16,7 +17,13 @@ function EmptyStage({ small = false }: { small?: boolean }) {
   </div>
 }
 
-export function MeetingRoomScreen({ roomInputRef, ...state }: MeetingRoomScreenProps) {
+export function MeetingRoomScreen(props: MeetingRoomScreenProps) {
+  return props.role === 'students' || props.role === 'educators'
+    ? <ClassroomMeetingScreen {...props} />
+    : <CoachingMeetingScreen {...props} />
+}
+
+function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScreenProps) {
   const coaching = state.role === 'esl' || state.role === 'tutors'
   const [layout, setLayout] = useState<'grid' | 'spotlight'>(coaching ? 'spotlight' : 'grid')
   const featured = state.participants.find(person => person.identity === state.pinnedIdentity) ??
