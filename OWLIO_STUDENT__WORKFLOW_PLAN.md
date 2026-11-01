@@ -148,7 +148,7 @@ The sidebar should remain concise. Context-specific tabs/actions belong inside a
 - Separate **Personal learning** (student tasks/goals/history) from **Classroom results** (released educator grades/evaluations, feedback, and permitted attendance).
 - Provide source, class, activity, and release context for official records; never infer grades from personal completion or peer-space activity.
 - Keep summaries understandable without charts; add trend visualizations only when real, correctly scoped records exist.
-- Existing route: `/students/progress` currently explains the distinction but loads no records.
+- Existing route: `/students/progress` separates Personal learning and Classroom results with same-page tabs. Personal learning reads saved browser-local tasks, excluding untouched examples, and shows a current completion snapshot, status filter, and read-only task details. It writes no records and does not establish study-history analytics or account sync. Classroom results remain unavailable without a service.
 
 ### AI Study Assistant
 
@@ -191,7 +191,7 @@ This section is a target UI architecture, not a claim that the pages or services
 | Notifications | E: `/students/notifications` | Same; future entries link to their authorized source | Shared notifications adapter; delivery/read state does not exist yet. |
 | Calendar & Schedule | E: `/students/schedule` | Same; event click opens the event's owning route | Shared schedule adapter; current month grid does not load/save events. |
 | Tasks & Assessments | E: sidebar opens `/students/tasks` | E: personal `/students/tasks`; E: assigned `/students/classwork`; E: classroom activity detail above | Keep a clearly labeled scope switch/link between personal and assigned work. Do not collapse personal task data into official classwork. |
-| Progress & Grades | E: `/students/progress` | Same; record click returns to its task, class, or activity | Shared progress adapter with separate personal and released-classroom views. |
+| Progress & Grades | E: `/students/progress` | Same-page scope tabs, task-status filter, and read-only task dialog; links to personal tasks, subjects, and classes | Student-specific adapter and feature views; browser-local personal task snapshot, unavailable classroom results. Released-record links remain future. |
 | AI Study Assistant | D: sidebar entry; E: `/students/ai-assistant` is an educator-oriented preview | Enable student-specific E route only after role/privacy/service approval | Do not route students into an educator tool or imply AI is operating now. |
 | Help & Support | D: no route | P: `/students/help` | New `pages/dashboard/students/help/index.tsx` only after help content/support path is approved. |
 | Profile & Settings | D: no route | P: `/students/settings` | New `pages/dashboard/students/settings/index.tsx` only after a profile/settings contract exists. Sign-out remains in the shared header. |
@@ -213,6 +213,7 @@ src/
         subjects/detail/index.tsx               # E: browser-local SubjectDetailView adapter
         notes/index.tsx                         # E: NotesView adapter
         tasks/index.tsx                         # E: TasksView adapter
+        progress/index.tsx                      # E: StudentProgressView adapter
         classwork/index.tsx                     # E: ClassworkView adapter
         study-spaces/index.tsx                  # E: StudySpacesView adapter
         study-spaces/detail/index.tsx           # P: StudySpaceDetailView adapter
@@ -227,7 +228,7 @@ src/
       schedule/index.tsx                        # E: extract current screen to feature view
       communication/index.tsx                   # E: extract current screen to feature view
       notifications/index.tsx                   # E: extract current screen to feature view
-      progress/index.tsx                        # E: extract current screen to feature view
+      progress/index.tsx                        # E: educator/ESL scaffold; student uses own adapter
       ai-assistant/index.tsx                    # E: keep role-aware adapter only
   components/
     layouts/platform-layout.tsx                 # P: move layout.tsx in cross-app cleanup
@@ -247,7 +248,7 @@ src/
       schedule/                                 # P: calendar, day agenda, event details
       communication/                            # P: source-scoped discussion sections
       notifications/                            # P: event list and source actions
-      progress/                                 # P: personal/class results sections
+      progress/                                 # E: local personal snapshot/classroom unavailable sections
       student-ai/                               # P: student-specific assistant only if approved
       student-help/                             # P: help categories and support context
       student-settings/                         # P: profile/privacy/preferences sections
@@ -272,7 +273,7 @@ src/
 | `pages/dashboard/schedule/index.tsx` E | `components/features/schedule/student-schedule-view.tsx` P extraction | `calendar-grid.tsx`, `day-agenda.tsx`, `event-detail.tsx` P. |
 | `pages/dashboard/communication/index.tsx` E | `components/features/communication/student-discussions-view.tsx` P extraction | `discussion-context-filter.tsx`, `thread-list.tsx`, `reply-composer.tsx` P. |
 | `pages/dashboard/notifications/index.tsx` E | `components/features/notifications/student-notifications-view.tsx` P extraction | `notification-filters.tsx`, `notification-list.tsx` P. |
-| `pages/dashboard/progress/index.tsx` E | `components/features/progress/student-progress-view.tsx` P extraction | `personal-progress-section.tsx`, `classroom-results-section.tsx`, `feedback-list.tsx` P. |
+| `pages/dashboard/students/progress/index.tsx` E | `components/features/progress/student-progress-view.tsx` E | `personal-progress-section.tsx`, `classroom-results-section.tsx` E. Read-only local task snapshot, no official records service; `feedback-list.tsx` remains P. Shared educator/ESL scaffold preserved. |
 | `pages/dashboard/ai-assistant/index.tsx` E; `students/help/index.tsx`, `students/settings/index.tsx` P | `components/features/student-ai/student-ai-view.tsx`, `student-help/student-help-view.tsx`, `student-settings/student-settings-view.tsx` P | Keep student AI, help, and account forms role-specific; no working student AI/help/settings route today. |
 
 ### Section components and checked-in UI primitives
@@ -624,18 +625,18 @@ flowchart LR
 
 **Boundary:** Personal task completion is not an educator submission; a localStorage task is not account-synced. Keep the existing classwork link discoverable until a service-backed combined hub can show both scopes honestly.
 
-### Progress & Grades: `/students/progress` (E scaffold)
+### Progress & Grades: `/students/progress` (E browser-local snapshot)
 
-**Sections:** Separate `PersonalProgressSection` for student-owned task/study history and `ClassroomResultsSection` for the student's released educator results, feedback, and permitted attendance. The current page explains the distinction but loads no records.
+**Sections:** `StudentProgressView` provides same-page Personal learning and Classroom results tabs. `PersonalProgressSection` reads the existing saved personal task collection, excluding untouched examples while retaining edited legacy examples. A current completion bar and status counts use the full personal collection; the task-list status filter does not change those totals. Task dialogs show read-only saved details and link to My tasks; My Learning and My Classes links preserve student context. Storage errors show retry without writes or sample fallback; window focus and relevant storage changes refresh the snapshot. Empty storage offers a useful first-use state. This is browser-local task evidence, not historical study analytics, grades, or account sync. `ClassroomResultsSection` shows an unavailable state; released results, published feedback, and permitted attendance still require authorized services. Educator/ESL progress views are unchanged.
 
 ```mermaid
 flowchart LR
   P(["Progress & Grades /students/progress E"]) --> SCOPE{"Choose record owner"}
   subgraph PERSONAL["Personal learning history"]
-    OWN["Student-owned task/study evidence P"]
+    OWN["Saved personal task snapshot E; study history P"]
     TASK["Personal task /students/tasks E"]
     SUB["Personal subjects /students/subjects E"]
-    OWN -->|"Open task"| TASK
+    OWN -->|"Read-only task dialog E; Manage in My tasks"| TASK
     OWN -->|"Open subject"| SUB
   end
   subgraph OFFICIAL["Educator-controlled records"]
@@ -648,7 +649,7 @@ flowchart LR
   SCOPE -->|"Personal"| OWN
   SCOPE -->|"Classroom"| OFF
   OFF -->|"No release / no permission"| EMPTY["Safe unavailable or empty state P"]
-  P -->|"No service today"| PREVIEW["Explanatory preview E"]
+  OFF -->|"No classroom results service today"| PREVIEW["Unavailable classroom results E"]
 ```
 
 **Boundary:** No aggregate "grade" should be computed from personal tasks or peer collaboration. Official evaluation and attendance remain educator-controlled and are visible only to the authorized learner after release.
@@ -749,7 +750,8 @@ flowchart LR
 | Classrooms | `src/services/api/classroom.service.ts`; `src/components/features/classrooms/`; `src/pages/dashboard/classroom/` | List/create/join API endpoints exist; prototype provider blends API classroom headers with mock classroom records and in-memory detail state. Verify backend payloads/authorization before expanding. |
 | Meeting Room | `src/services/api/meeting.service.ts`; `src/pages/dashboard/classroom/meeting-room.tsx` | Create/join/end API calls and LiveKit media/presence are connected. The sidebar links to this separate full page at a nested route. Chat/raised hands are transient packets, not persistent communication or attendance. Room route accepts a room query/invite or explicit room-code interaction. |
 | Classwork/submissions | `src/components/features/classrooms/classroom-classwork-view.tsx`, `classroom-activity-view.tsx`; `src/components/features/personal-workspace/classwork/` | Mock or in-memory preview only; no classwork/submission service. |
-| Schedule, materials, communication, notifications, progress, AI | `src/pages/dashboard/{schedule,materials,communication,notifications,progress,ai-assistant}/` | UI scaffolds/context previews; no event, material, discussion, notification, progress, or AI data service. |
+| Progress & Grades | `src/pages/dashboard/students/progress/`; `src/components/features/progress/` | Read-only browser-local task snapshot with status filtering and task details; classroom results unavailable. No progress service, study-history tracking, writes, or account sync. |
+| Schedule, materials, communication, notifications, AI | `src/pages/dashboard/{schedule,materials,communication,notifications,ai-assistant}/` | UI scaffolds/context previews; no event, material, discussion, notification, progress, or AI data service. |
 | Profile/settings/help | Dashboard layout/auth session | Authenticated user name/role and sign-out exist; profile editing, support, and preferences do not have routes/services. |
 
 Before implementation, re-check the route tree and service contracts because this snapshot may change. Preserve current user work and avoid reading `.env` files.

@@ -54,6 +54,7 @@ src/
       layout.tsx
       students/
         index.tsx
+        progress/index.tsx
         subjects/index.tsx
         tasks/index.tsx
         notes/index.tsx
@@ -239,6 +240,8 @@ At context capture on 2026-10-14, `npm run lint` reported 13 `react-refresh/only
 Handoff summary should include: behavior changed, key files/routes, verification run and results, unimplemented/backend dependencies, and any product decisions that need owner input. Mention if a request was intentionally kept UI-only.
 
 Student Study Library (`src/components/features/materials/workspace/`) has Owlio-owned document and presentation editors at `/students/materials/workspace/:resourceId`. Personal files are stored separately under `owlio.study-library-work.v1.<id>` in browser local storage, with revision checks, save-error recovery, and Owlio JSON backup export/import. They appear in the all/personal library views and may link real browser-local personal tasks without modifying them. These are not Google integrations, account-synced files, shared resources, or classroom submissions; the existing example collections remain sample data.
+
+Student Progress & Grades uses a thin adapter at `src/pages/dashboard/students/progress/index.tsx` and feature sections under `src/components/features/progress/`. Personal learning reads the existing browser-local personal task collection without writes, excludes untouched examples, and shows current completion counts, status filtering, and read-only task details. It refreshes on window focus and relevant storage events, with retry for unreadable storage. It has no study-history analytics or account sync. Classroom results remain unavailable without a progress/results service; no grades, feedback, or attendance are loaded. Educator/ESL progress still uses the existing shared scaffold.
 
 Meeting Room keeps `src/pages/dashboard/classroom/meeting-room.tsx` as a thin adapter to `src/components/features/meeting-room/meeting-room-view.tsx`. ESL/tutors use the coaching card layout; students/educators use a Meet-inspired dark stage. Shared controls, tiles, panels, and scoped CSS preserve the existing LiveKit transport. `layout-preview=1` is layout-only and cannot connect/publish/request media; API integration remains paused. Recording, transcription, and AI summary cards are unavailable, and the separate ESL whiteboard preview is unchanged.
 

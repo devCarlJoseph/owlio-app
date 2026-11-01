@@ -74,7 +74,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       items: [
         { label: "Calendar and Schedule", href: "/students/schedule", icon: CalendarDays },
         { label: "Task and Assessments", href: "/students/tasks", icon: ClipboardList },
-        { label: "Progress and Grade", href: "/students/progress", icon: ChartNoAxesCombined },
+        { label: "Progress & Grades", href: "/students/progress", icon: ChartNoAxesCombined },
       ],
     },
     {

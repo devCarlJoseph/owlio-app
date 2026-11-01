@@ -19,6 +19,7 @@ import EslPage from "@/pages/dashboard/esl";
 import StudentSubjectsPage from "@/pages/dashboard/students/subjects";
 import StudentSubjectDetailPage from "@/pages/dashboard/students/subjects/detail";
 import StudentTasksPage from "@/pages/dashboard/students/tasks";
+import StudentProgressPage from "@/pages/dashboard/students/progress";
 import StudentNotesPage from "@/pages/dashboard/students/notes";
 import StudentStudySpacesPage from "@/pages/dashboard/students/study-spaces";
 import StudentStudySpaceDetailPage from "@/pages/dashboard/students/study-spaces/detail/lazy";
@@ -162,7 +163,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="materials/study-spaces" element={<StudentStudySpaceMaterialsPage />} />
             <Route path="communication" element={<CommunicationPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="progress" element={<ProgressPage />} />
+            <Route path="progress" element={<StudentProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
