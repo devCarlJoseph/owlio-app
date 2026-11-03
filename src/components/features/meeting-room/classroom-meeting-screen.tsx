@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { ParticipantTile } from './participant-tile'
 import { ChatPanel, PeoplePanel } from './meeting-room-panels'
 import type { MeetingPanel, MeetingRoomScreenProps, RoomStatus } from './meeting-room-types'
+import './meeting-room.css'
 import './classroom-meeting.css'
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }

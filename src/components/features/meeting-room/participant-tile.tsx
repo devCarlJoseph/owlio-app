@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Hand, Mic, MicOff, Pin } from 'lucide-react'
-import { Participant, ParticipantEvent, Track, type Track as LiveKitTrack } from 'livekit-client'
+import { Participant, ParticipantEvent, type Track as LiveKitTrack } from 'livekit-client'
+import { useParticipantVideo } from './use-participant-video'
 
 export function ParticipantTile({ participant, local, raised, pinned, onPinToggle, updateKey, classroom = false }: {
   participant: Participant
@@ -18,17 +19,7 @@ export function ParticipantTile({ participant, local, raised, pinned, onPinToggl
     participant.on(ParticipantEvent.IsSpeakingChanged, update)
     return () => { participant.off(ParticipantEvent.IsSpeakingChanged, update) }
   }, [participant, classroom])
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const camera = participant.getTrackPublication(Track.Source.Camera)
-  const screen = participant.getTrackPublication(Track.Source.ScreenShare)
-  const screenTrack = screen?.isMuted ? undefined : screen?.track
-  const videoTrack = screenTrack ?? (camera?.isMuted ? undefined : camera?.track)
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video || !videoTrack) return
-    videoTrack.attach(video)
-    return () => { videoTrack.detach(video) }
-  }, [videoTrack, updateKey])
+  const { videoRef, videoTrack, screenTrack } = useParticipantVideo(participant, updateKey)
   return <article className={`meeting-tile ${pinned ? 'meeting-tile-pinned' : ''}`} data-speaking={classroom && speaking || undefined} aria-label={`${participant.name || 'Participant'}${local ? ', you' : ''}${classroom && speaking ? ', speaking' : ''}`}>
     {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={local} aria-label={`${participant.name || 'Participant'} video`} className={`absolute inset-0 size-full ${screenTrack ? 'object-contain' : 'object-cover'}`} />
       : <div className="absolute inset-0 flex flex-col items-center justify-center gap-3"><span className="meeting-avatar text-2xl">{(participant.name || 'O').slice(0, 1).toUpperCase()}</span><span className="text-xs opacity-65">{participant.isCameraEnabled ? 'Camera starting…' : 'Camera off'}</span></div>}
@@ -39,7 +30,7 @@ export function ParticipantTile({ participant, local, raised, pinned, onPinToggl
   </article>
 }
 
-function AudioTrack({ track }: { track: LiveKitTrack }) {
+export function AudioTrack({ track }: { track: LiveKitTrack }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   useEffect(() => {
     const audio = audioRef.current
