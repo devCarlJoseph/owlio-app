@@ -2,6 +2,29 @@
 
 Owlio supports independent learning, peer study, and educator-led learning across student, school educator, ESL teacher, and tutor workspaces. This repository contains the React/TypeScript frontend and API clients; backend services and infrastructure live elsewhere.
 
+## Existing tech stack and installation policy
+
+Use the existing stack below. [package.json](package.json) declares available dependencies and scripts; [package-lock.json](package-lock.json) records resolved versions. Check the relevant source and local installation before using a package; a declared dependency does not prove it is wired into a feature or present on disk.
+
+| Area | Existing packages/tools |
+| --- | --- |
+| Language and frontend | TypeScript, React, React DOM |
+| Build and package management | Node.js, npm, Vite, `@vitejs/plugin-react`; use the committed npm lockfile |
+| Routing | `react-router` |
+| Styling and font | Tailwind CSS, `@tailwindcss/vite`, `tw-animate-css`, locally bundled Inter via `@fontsource-variable/inter` |
+| UI components | Project-owned `src/components/ui` wrappers, `@base-ui/react`, existing shadcn tooling, `cmdk`, `input-otp` |
+| Forms and validation | `react-hook-form`, `@hookform/resolvers`, `zod` |
+| HTTP and query utilities | `axios`, `@tanstack/react-query`; inspect current feature usage before introducing a new data pattern |
+| Class composition | Existing `cn` helpers, `clsx`, `tailwind-merge`, `class-variance-authority` |
+| Dates and icons | `date-fns`, `lucide-react`, `tech-stack-icons` |
+| Meetings and 3D | `livekit-client`, `three`, `@react-three/fiber`, `@react-three/drei` |
+| Testing and quality | Vitest, jsdom, Testing Library React/user-event, ESLint, TypeScript checks |
+
+- Do not install, upgrade, replace, or remove dependencies, or download tools, browser binaries, templates, fonts, icons, or other assets into the repository unless the user explicitly requests or approves that action. A general feature or UI request is not installation approval.
+- This includes `npm install`, `npm ci`, alternative package-manager installs, remote bootstrap scripts, and component/scaffold generators that fetch files. Do not change `package.json`, `package-lock.json`, or package-manager configuration as an installation workaround.
+- Prefer existing npm scripts and executables in `node_modules/.bin`. `npx`/`npm exec` can fetch missing packages; never let them download a missing tool without explicit authorization. Use session-provided browser tools when available rather than installing browser automation for a UI check.
+- If a dependency/tool is missing, continue work that can use the existing stack and report the missing capability. Before requesting installation approval, explain why the existing tools are insufficient, what would be downloaded, and which repository files would change. Do not silently install it elsewhere to bypass this policy.
+
 ## Task routing
 
 Read only the context needed for the request. For substantive work, use the relevant parts of the [agent workflow](docs/sops/README.md); small edits need focused inspection and validation.
@@ -23,7 +46,7 @@ Read only the context needed for the request. For substantive work, use the rele
 - Continue authorized work through implementation, inspection, and correction. A short plan is not a mandatory approval gate.
 - Make reasonable reversible layout and implementation decisions. Ask when missing information materially affects ownership, access, persistence, external contracts, or scope.
 - Product/role plans describe intended behavior. Source describes implementation; runtime flags describe enablement; confirmed backend contracts describe external capabilities. Surface material disagreements.
-- Keep changes focused. Use installed tools and existing patterns; introduce dependencies or broad configuration changes only when necessary and within the authorized task.
+- Keep changes focused. Use installed tools and existing patterns, follow the installation policy above, and keep necessary configuration changes within the authorized task.
 - Start subagents only when the user or higher-priority session instructions permit them. Coordinate shared-file ownership and verify integrated results.
 - Commit, push, publish, deploy, or send messages only when authorized for that action.
 
@@ -63,4 +86,3 @@ Read only the context needed for the request. For substantive work, use the rele
 - Report resulting behavior, key files, checks actually performed, and material limitations. Separate mocked tests, browser previews, and live integration evidence.
 - Update the owning product/architecture/integration document when its facts change. Keep feature inventories and historical check results out of this file.
 - Select repository skills only when their descriptions match the task or the user requests them; see the [skill catalog and policy](.agents/README.md). Load the relevant skill rather than the entire catalog, and keep general task steps in SOPs.
- 
