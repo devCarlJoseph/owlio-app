@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { Bell, CircleHelp, LogOut, Menu, Search, Settings, ShieldCheck, UserRound, type LucideIcon } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router"
+import { cn } from "cn"
 import { AppSidebar } from "@/components/common/app-sidebar"
+import { DashboardChromeContext } from "@/components/common/dashboard-chrome"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +29,7 @@ type MenuEntry = { label: string; href?: string; icon: LucideIcon }
 
 export default function PlatformLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [immersive, setImmersive] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { pathname } = useLocation()
@@ -93,8 +96,8 @@ export default function PlatformLayout() {
   }
 
   return (
-    <div data-dashboard-shell className="flex min-h-0 flex-1 flex-col overflow-clip bg-slate-50">
-      <header className="z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
+    <div data-dashboard-shell data-immersive={immersive || undefined} className="flex min-h-0 flex-1 flex-col overflow-clip bg-slate-50">
+      {!immersive && <header className="z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
           <Button
             type="button"
             variant="ghost"
@@ -213,16 +216,18 @@ export default function PlatformLayout() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-      </header>
+      </header>}
       <div className="flex min-h-0 flex-1">
-        <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
-        <ScrollArea className="h-full min-h-0 min-w-0 flex-1">
-          <main id="main-content" className="p-4 sm:p-6 lg:p-8">
+        {!immersive && <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />}
+        <ScrollArea className={cn("h-full min-h-0 min-w-0 flex-1", immersive && "[&_[data-slot=scroll-area-content]]:flex [&_[data-slot=scroll-area-content]]:min-h-full [&_[data-slot=scroll-area-content]]:flex-col xl:[&_[data-slot=scroll-area-content]]:h-full")}>
+          <main id="main-content" className={immersive ? "flex min-h-0 flex-1 flex-col p-3 sm:p-4" : "p-4 sm:p-6 lg:p-8"}>
             <h1 className="sr-only">{pageTitle}</h1>
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
-            <ClassroomPrototypeProvider>
-              <Outlet />
-            </ClassroomPrototypeProvider>
+            <DashboardChromeContext.Provider value={setImmersive}>
+              <ClassroomPrototypeProvider>
+                <Outlet />
+              </ClassroomPrototypeProvider>
+            </DashboardChromeContext.Provider>
           </main>
         </ScrollArea>
       </div>

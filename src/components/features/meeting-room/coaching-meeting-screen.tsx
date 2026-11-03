@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import type { Participant } from 'livekit-client'
 import { ArrowLeft, Copy, Download, FileText, Hand, LockKeyhole, MessageCircle, Mic, MicOff, MonitorUp, PhoneOff, Pin, Send, Sparkles, Square, Users, Video, VideoOff } from 'lucide-react'
 import { cn } from 'cn'
+import { useImmersiveDashboard } from '@/components/common/dashboard-chrome'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AudioTrack } from './participant-tile'
@@ -107,10 +108,12 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
   const togglePin = (identity: string) => state.onPin(state.pinnedIdentity === identity ? null : identity)
   const viewAll = (panel: MeetingPanel) => <Button variant="link" size="xs" className="h-auto px-0 text-xs font-medium text-brand" aria-expanded={expanded === panel} onClick={() => state.onPanel(panel)}>{expanded === panel ? 'Close' : 'View all'}</Button>
 
-  return <section aria-label="Meeting room" data-meeting-design="coaching" className={cn('flex min-w-0 flex-col gap-4 text-foreground', inCall && 'xl:h-[calc(100dvh-9.5rem)] xl:min-h-[38rem]')} onKeyDown={event => {
+  useImmersiveDashboard(inCall)
+
+  return <section aria-label="Meeting room" data-meeting-design="coaching" className={cn('flex min-w-0 flex-col text-foreground', inCall ? 'flex-1 gap-3 xl:min-h-[36rem]' : 'gap-4')} onKeyDown={event => {
     if (event.key === 'Escape' && expanded) { event.preventDefault(); state.onPanel(expanded) }
   }}>
-    <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+    <header className={cn('flex shrink-0 flex-wrap items-center justify-between gap-3', inCall && 'rounded-2xl border border-border/70 bg-card px-3 py-2.5 shadow-xs sm:px-4')}>
       <div className="flex min-w-0 items-center gap-3">
         <Link to={state.backHref} aria-label="Back to Meeting Room" className="grid size-9 shrink-0 place-items-center rounded-full border border-border/70 bg-card text-foreground shadow-xs hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"><ArrowLeft aria-hidden="true" className="size-4" /></Link>
         <div className="min-w-0">
@@ -124,6 +127,11 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
       <div className="flex flex-wrap items-center justify-end gap-2">
         {inCall && <span role="status" className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-medium whitespace-nowrap text-brand-soft-foreground"><span aria-hidden="true" className={cn('size-1.5 rounded-full', enabled ? 'bg-emerald-500' : 'bg-brand')} />{state.preview ? 'Layout preview' : statusLabels[state.status]}</span>}
         {state.isHost && !state.preview && <Button variant="outline" size="sm" className="rounded-full border-rose-300 text-rose-700 hover:text-rose-700" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
+        {inCall && <MeetingClock />}
+        {inCall && state.userName && <div className="hidden items-center gap-2.5 border-l border-border/70 pl-3 sm:flex">
+          <Avatar person={{ identity: state.userEmail ?? state.userName, name: state.userName }} className="size-9 text-xs" />
+          <div className="max-w-44 min-w-0 leading-tight"><p className="truncate text-[13px] font-medium">{state.userName}</p>{state.userEmail && <p className="truncate text-[11px] text-muted-foreground">{state.userEmail}</p>}</div>
+        </div>}
       </div>
     </header>
 
@@ -256,6 +264,15 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
       </div>
     </>}
   </section>
+}
+
+function MeetingClock() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 15_000)
+    return () => window.clearInterval(timer)
+  }, [])
+  return <time dateTime={now.toISOString()} className="hidden px-1 text-xs font-medium text-muted-foreground tabular-nums md:inline">{now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time>
 }
 
 function UnavailableBadge() {

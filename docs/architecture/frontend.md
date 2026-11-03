@@ -9,7 +9,7 @@ Owlio is a client-rendered React/TypeScript SPA with Vite, npm, React Router, Ta
 | Location | Responsibility |
 | --- | --- |
 | [src/main.tsx](../../src/main.tsx) | DOM entry, providers, registered routes, auth/role boundaries |
-| [src/pages/dashboard/layout.tsx](../../src/pages/dashboard/layout.tsx) | Shared workspace shell |
+| [src/pages/dashboard/layout.tsx](../../src/pages/dashboard/layout.tsx) | Shared workspace shell; a route can hide its header/sidebar with `useImmersiveDashboard` (ESL/tutor calls) |
 | [dashboard-navigation.ts](../../src/components/common/dashboard-navigation.ts) | Role menu definitions, active context, navigation search |
 | `src/pages/` | Route adapters; keep new/refactored adapters thin |
 | `src/components/features/<domain>/` | Feature views, forms, schemas, state, and orchestration |

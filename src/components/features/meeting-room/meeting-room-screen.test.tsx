@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { MemoryRouter } from 'react-router'
 import { Participant, ParticipantEvent, Track } from 'livekit-client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { DashboardChromeContext } from '@/components/common/dashboard-chrome'
 import { MeetingRoomScreen } from './meeting-room-screen'
 import type { MeetingRoomScreenProps } from './meeting-room-types'
 
@@ -98,6 +99,17 @@ describe('role-specific meeting layouts', () => {
     expect(props.onPin).toHaveBeenCalledOnce()
     fireEvent.click(people.getByRole('button', { name: 'View all' }))
     expect(props.onPanel).toHaveBeenCalledWith('people')
+  })
+  it('hides the dashboard chrome only while an ESL or tutor call is open', () => {
+    const setImmersive = vi.fn()
+    const view = (props: MeetingRoomScreenProps) => <MemoryRouter><DashboardChromeContext.Provider value={setImmersive}><MeetingRoomScreen {...props} /></DashboardChromeContext.Provider></MemoryRouter>
+    const { rerender, unmount } = render(view(state({ role: 'students' })))
+    rerender(view(state({ role: 'tutors', preview: false })))
+    expect(setImmersive).not.toHaveBeenCalled()
+    rerender(view(state({ role: 'tutors' })))
+    expect(setImmersive).toHaveBeenLastCalledWith(true)
+    unmount()
+    expect(setImmersive).toHaveBeenLastCalledWith(false)
   })
   it.each(['esl', 'tutors'] as const)('keeps %s AI cards truthfully unavailable in a live room', role => {
     show(state({ role, preview: false, hasRoom: true, status: 'connected', localIdentity: 'local', participants: [participant('local', 'Teacher')] }))
