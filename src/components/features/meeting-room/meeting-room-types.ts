@@ -23,8 +23,6 @@ export type MeetingRoomScreenProps = {
   error: string
   participants: Participant[]
   localIdentity?: string
-  userName?: string
-  userEmail?: string
   pinnedIdentity: string | null
   onPin: (identity: string | null) => void
   raisedHands: Record<string, boolean>

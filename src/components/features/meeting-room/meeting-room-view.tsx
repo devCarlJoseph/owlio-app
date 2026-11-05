@@ -403,7 +403,6 @@ function MeetingRoomSession() {
     roomInputRef={roomInputRef} status={status} preview={preview} hasRoom={Boolean(room)}
     apiEnabled={API_INTEGRATION_ENABLED} canCreate={isEducator} isHost={isHost} busy={busy}
     message={message} error={error} participants={participants} localIdentity={room?.localParticipant.identity}
-    userName={user?.name} userEmail={user?.email}
     pinnedIdentity={pinnedParticipantIdentity} onPin={setPinnedParticipantIdentity} raisedHands={raisedHands}
     revision={revision} micOn={micOn} cameraOn={cameraOn} screenOn={screenOn} handUpdating={handUpdating}
     activePanel={activePanel} onPanel={openPanel} unreadMessages={unreadMessages} messages={messages}
