@@ -33,17 +33,18 @@ type BoardPerson = { id: string; name: string }
 const TEACHER_INK = '#e11d48'
 const STUDENT_INK = '#2563eb'
 
-export function MeetingWhiteboard({ board, onChange, host, hostLabel, learner, names, onClose }: {
+export function MeetingWhiteboard({ board, onChange, host, hostLabel, learner, names, learnerOnly = false, onClose }: {
   board: BoardState
   onChange: (next: BoardState) => void
   host: BoardPerson
   hostLabel: string
   learner: BoardPerson
   names: Record<string, string>
+  learnerOnly?: boolean
   onClose: () => void
 }) {
-  const [viewAs, setViewAs] = useState<ViewAs>('teacher')
-  const [tool, setTool] = useState<Tool>('select')
+  const [viewAs, setViewAs] = useState<ViewAs>(learnerOnly ? 'student' : 'teacher')
+  const [tool, setTool] = useState<Tool>(learnerOnly ? 'pen' : 'select')
   const [library, setLibrary] = useState<Library | null>(null)
   const [color, setColor] = useState(boardColors[1])
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -202,9 +203,10 @@ export function MeetingWhiteboard({ board, onChange, host, hostLabel, learner, n
     <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border/70 px-3 py-2.5 sm:px-4">
       <span aria-hidden="true" className="grid size-8 place-items-center rounded-lg bg-brand-soft text-brand-soft-foreground"><Shapes className="size-4" /></span>
       <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-semibold">Whiteboard · Find the shape</h3><p className="truncate text-[11px] text-muted-foreground">Preview only · practice, not a grade · not shared or saved</p></div>
-      <div role="group" aria-label="View board as" className="inline-flex rounded-full bg-muted p-0.5">
-        {(['teacher', 'student'] as const).map(option => <button key={option} type="button" aria-pressed={viewAs === option} onClick={() => switchView(option)} className={cn('min-h-8 rounded-full px-3 text-xs font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none', viewAs === option ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{option === 'teacher' ? hostLabel : 'Student'}</button>)}
-      </div>
+      {learnerOnly ? <span className="rounded-full bg-brand-soft px-3 py-1.5 text-xs font-medium text-brand-soft-foreground">Student view</span>
+        : <div role="group" aria-label="View board as" className="inline-flex rounded-full bg-muted p-0.5">
+          {(['teacher', 'student'] as const).map(option => <button key={option} type="button" aria-pressed={viewAs === option} onClick={() => switchView(option)} className={cn('min-h-8 rounded-full px-3 text-xs font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none', viewAs === option ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>{option === 'teacher' ? hostLabel : 'Student'}</button>)}
+        </div>}
       <Button variant="ghost" size="icon-sm" aria-label="Close whiteboard" title="Close whiteboard" onClick={onClose}><X aria-hidden="true" /></Button>
     </header>
 

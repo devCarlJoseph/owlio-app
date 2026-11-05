@@ -28,7 +28,7 @@ export function MeetingRoomHub() {
       <h2 className="text-2xl font-semibold tracking-tight">Meeting Room</h2>
       <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{coaching ? 'A focused space for individual and group learning, with your people and conversation close by.' : 'Bring your learning group together. Join with an invite, then choose a grid or spotlight view.'}</p>
       </div>
-      <Link to={`${base}?join=1&layout-preview=1`} className={buttonVariants({ variant: 'outline' })}><Video aria-hidden="true" />Preview room layout</Link>
+      <Link to={`${base}?${selected && role === 'students' ? `category=${selected.value}&` : ''}join=1&layout-preview=1`} className={buttonVariants({ variant: 'outline' })}><Video aria-hidden="true" />Preview room layout</Link>
     </div>
     <div role="group" aria-label="Meeting categories" className="grid gap-4 lg:grid-cols-3">
       {categories.map(({ value, label, description, icon: Icon }) => <Button

@@ -19,7 +19,9 @@ import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-roo
 import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
 import { MeetingRoomHub } from '@/components/features/meeting-room/meeting-room-hub'
 
-import type { RoomStatus, MeetingPanel, MeetingMessage } from './meeting-room-types'
+import type { RoomStatus, MeetingPanel, MeetingMessage, MeetingCategory } from './meeting-room-types'
+
+const meetingCategories: MeetingCategory[] = ['educators', 'tutors', 'esl']
 import { MeetingRoomScreen } from './meeting-room-screen'
 import { API_INTEGRATION_ENABLED } from '@/lib/api-mode'
 
@@ -71,6 +73,8 @@ function MeetingRoomSession() {
   const [searchParams, setSearchParams] = useSearchParams()
   const roomId = getMeetingIdFromInvite(searchParams.get('room') ?? '')
   const meetingCode = roomId ? formatMeetingCode(roomId) : ''
+  const meetingCategory = meetingCategories.find(category => category === searchParams.get('category')) ?? null
+  const roomParams = (code: string) => ({ ...(meetingCategory ? { category: meetingCategory } : {}), room: code })
   const roomInputRef = useRef<HTMLInputElement>(null)
   const [room, setRoom] = useState<Room | null>(null)
   const [joinInfo, setJoinInfo] = useState<MeetingJoin | null>(null)
@@ -193,7 +197,7 @@ function MeetingRoomSession() {
     setMessage('')
     try {
       const result = await createMeeting()
-      setSearchParams({ room: formatMeetingCode(result.meetingId) })
+      setSearchParams(roomParams(formatMeetingCode(result.meetingId)))
       setMessage('Meeting created. Copy the invite and share it with your class.')
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, 'Could not create the meeting.'))
@@ -222,7 +226,7 @@ function MeetingRoomSession() {
     setUnreadMessages(0)
     setActivePanel(null)
     seenMessageIdsRef.current.clear()
-    setSearchParams({ room: formatMeetingCode(normalizedRoomId) })
+    setSearchParams(roomParams(formatMeetingCode(normalizedRoomId)))
 
     const nextRoom = new Room({ adaptiveStream: true, dynacast: true })
     roomRef.current = nextRoom
@@ -398,8 +402,8 @@ function MeetingRoomSession() {
   }
 
   return <MeetingRoomScreen
-    key={role}
-    role={role} backHref={classroomPath} roomId={roomId} meetingCode={meetingCode}
+    key={`${role}-${meetingCategory ?? 'none'}`}
+    role={role} meetingCategory={meetingCategory} backHref={classroomPath} roomId={roomId} meetingCode={meetingCode}
     roomInputRef={roomInputRef} status={status} preview={preview} hasRoom={Boolean(room)}
     apiEnabled={API_INTEGRATION_ENABLED} canCreate={isEducator} isHost={isHost} busy={busy}
     message={message} error={error} participants={participants} localIdentity={room?.localParticipant.identity}

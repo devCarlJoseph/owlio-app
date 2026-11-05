@@ -9,24 +9,16 @@ import { coachingSessionPreview } from './coaching-meeting-preview'
 import { CallButton, CallTile, ChatPanel, PeoplePanel, type CallPerson } from './coaching-meeting-parts'
 import { MeetingWhiteboard } from './meeting-whiteboard'
 import { createBoardSeed, type BoardState } from './meeting-whiteboard-model'
+import { meetGrid } from './meeting-grid'
 import type { MeetingRoomScreenProps, RoomStatus } from './meeting-room-types'
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }
 const card = 'rounded-2xl border border-border/70 bg-card text-card-foreground shadow-xs'
 const stageSurface = 'bg-linear-to-br from-brand-soft via-muted/80 to-brand-soft/70'
-const MAX_GRID_TILES = 16
-const gridBasis = ['', 'sm:basis-full', 'sm:basis-[calc((100%-0.75rem)/2)]', 'sm:basis-[calc((100%-1.5rem)/3)]', 'sm:basis-[calc((100%-2.25rem)/4)]']
-const gridHeight = ['', 'sm:h-full', 'sm:h-[calc((100%-0.75rem)/2)]', 'sm:h-[calc((100%-1.5rem)/3)]', 'sm:h-[calc((100%-2.25rem)/4)]']
-
-function gridColumns(count: number) {
-  if (count <= 1) return 1
-  if (count <= 4) return 2
-  if (count <= 9) return 3
-  return 4
-}
 
 export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScreenProps) {
-  const kind = state.role === 'esl' ? 'esl' : 'tutors'
+  const learnerView = state.role === 'students'
+  const kind = (learnerView ? state.meetingCategory : state.role) === 'esl' ? 'esl' : 'tutors'
   const sample = coachingSessionPreview[kind]
   const inCall = state.hasRoom || state.preview
   const enabled = state.hasRoom && state.status === 'connected' && !state.preview
@@ -51,13 +43,12 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
   const pinned = people.find(person => person.identity === state.pinnedIdentity)
   const strip = showBoard ? people : pinned ? people.filter(person => person !== pinned) : []
   const raised = Boolean(state.raisedHands[state.localIdentity ?? ''])
-  const title = state.preview ? sample.title : state.role === 'esl' ? 'Language learning session' : 'Tutoring session'
+  const title = state.preview ? sample.title : kind === 'esl' ? 'Language learning session' : 'Tutoring session'
   const panel = state.activePanel
-  const gridPeople = people.length > MAX_GRID_TILES ? people.slice(0, MAX_GRID_TILES - 1) : people
-  const hiddenCount = people.length - gridPeople.length
-  const columns = gridColumns(gridPeople.length + (hiddenCount ? 1 : 0))
-  const rows = Math.ceil((gridPeople.length + (hiddenCount ? 1 : 0)) / columns)
-  const gridTile = cn('h-40 sm:h-auto sm:shrink-0 sm:grow-0', gridBasis[columns], gridHeight[Math.min(rows, 4)], gridPeople.length === 1 && 'col-span-2 h-72')
+  const grid = meetGrid(people)
+  const gridPeople = grid.visible
+  const hiddenCount = grid.hidden
+  const gridTile = cn(grid.tile)
   const names = Object.fromEntries(sample.people.map(person => [person.identity, person.name]))
 
   if (!inCall) return <section aria-label="Meeting room" data-meeting-design="coaching" className="flex min-w-0 flex-col gap-4 text-foreground">
@@ -93,7 +84,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     </div>
   </section>
 
-  return <section aria-label="Meeting room" data-meeting-design="coaching" className="flex min-w-0 flex-1 flex-col gap-3 text-foreground md:min-h-[30rem]" onKeyDown={event => {
+  return <section aria-label="Meeting room" data-meeting-design="coaching" className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 text-foreground md:min-h-[30rem]" onKeyDown={event => {
     if (event.key === 'Escape' && panel) { event.preventDefault(); state.onPanel(panel) }
   }}>
     <header className="flex shrink-0 items-center gap-3">
@@ -111,12 +102,12 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
 
     {(state.message || state.error) && <div className="shrink-0 space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
 
-    <div className="relative flex min-h-[60dvh] flex-1 gap-3 md:min-h-0">
+    <div className="relative flex min-h-0 flex-1 gap-3">
       <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3', strip.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
-        {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0].identity, name: sample.people[0].name }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1].identity, name: sample.people[1].name }} names={names} onClose={() => setBoardOpen(false)} />
+        {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0].identity, name: sample.people[0].name }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1].identity, name: sample.people[1].name }} names={names} learnerOnly={learnerView} onClose={() => setBoardOpen(false)} />
           : pinned ? <CallTile person={pinned} featured updateKey={state.revision} className="min-h-64 flex-1" />
             : people.length === 0 ? <div className={cn('flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl text-center', stageSurface)}><span className="grid size-16 place-items-center rounded-full bg-card text-brand shadow-sm"><VideoOff aria-hidden="true" className="size-7" /></span><p className="text-sm font-medium">Waiting for participants</p></div>
-              : <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto sm:flex sm:flex-wrap sm:content-center sm:justify-center sm:overflow-hidden">
+              : <div className={grid.container}>
                 {gridPeople.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className={gridTile} />)}
                 {hiddenCount > 0 && <button type="button" onClick={() => state.onPanel('people')} className={cn(gridTile, 'grid place-items-center rounded-2xl bg-muted text-sm font-medium text-muted-foreground hover:bg-accent')}>+{hiddenCount} others</button>}
               </div>}

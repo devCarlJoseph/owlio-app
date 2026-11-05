@@ -60,6 +60,13 @@ describe('meeting room entry', () => {
     expect(screen.queryByRole('group', { name: 'Meeting categories' })).toBeNull()
   })
 
+  it.each([['esl', 'coaching'], ['tutors', 'coaching'], ['educators', 'classroom']] as const)('previews a student %s meeting in the %s design', (category, design) => {
+    open(`/students/classrooms/meeting-room?category=${category}`)
+    expect(screen.getByRole('link', { name: 'Preview room layout' }).getAttribute('href')).toBe(`/students/classrooms/meeting-room?category=${category}&join=1&layout-preview=1`)
+    fireEvent.click(screen.getByRole('link', { name: 'Preview room layout' }))
+    expect(screen.getByRole('region', { name: 'Meeting room' }).getAttribute('data-meeting-design')).toBe(design)
+  })
+
   it.each(['students', 'educators', 'esl', 'tutors'])('previews the %s layout without enabling live media and returns to the lobby', role => {
     open(`/${role}/classrooms/meeting-room`)
     fireEvent.click(screen.getByRole('link', { name: 'Preview room layout' }))

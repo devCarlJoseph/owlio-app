@@ -4,7 +4,7 @@ import { Hand, Info, Mic, MicOff, Pin, Send, Video, VideoOff, X } from 'lucide-r
 import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AudioTrack } from './participant-tile'
+import { AudioTrack } from './audio-track'
 import { useParticipantVideo } from './use-participant-video'
 import type { MeetingMessage } from './meeting-room-types'
 

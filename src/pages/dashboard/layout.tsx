@@ -219,7 +219,7 @@ export default function PlatformLayout() {
       </header>}
       <div className="flex min-h-0 flex-1">
         {!immersive && <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />}
-        <ScrollArea className={cn("h-full min-h-0 min-w-0 flex-1", immersive && "[&_[data-slot=scroll-area-content]]:flex [&_[data-slot=scroll-area-content]]:min-w-full! [&_[data-slot=scroll-area-content]]:min-h-full [&_[data-slot=scroll-area-content]]:flex-col md:[&_[data-slot=scroll-area-content]]:h-full")}>
+        <ScrollArea className={cn("h-full min-h-0 min-w-0 flex-1", immersive && "[&_[data-slot=scroll-area-content]]:flex [&_[data-slot=scroll-area-content]]:min-w-full! [&_[data-slot=scroll-area-content]]:min-h-full [&_[data-slot=scroll-area-content]]:flex-col [&_[data-slot=scroll-area-content]]:h-full")}>
           <main id="main-content" className={immersive ? "flex min-h-0 flex-1 flex-col p-3 sm:p-4" : "p-4 sm:p-6 lg:p-8"}>
             <h1 className="sr-only">{pageTitle}</h1>
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
