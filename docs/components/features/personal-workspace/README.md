@@ -19,6 +19,120 @@ Keep browser-local personal records distinct from classroom assignments, officia
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/students/classwork/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { ClassworkView } from "@/components/features/personal-workspace/classwork/classwork-view"
+
+export default function StudentClassworkPage() {
+  return <ClassworkView />
+}
+```
+
+### `src/pages/dashboard/students/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentOverviewView } from "@/components/features/personal-workspace/student-overview/student-overview-view"
+
+export default function StudentsPage() {
+  return <StudentOverviewView />
+}
+```
+
+### `src/pages/dashboard/students/notes/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { NotesView } from "@/components/features/personal-workspace/notes/view/notes-view"
+
+export default function StudentNotesPage() {
+  return <NotesView />
+}
+```
+
+### `src/pages/dashboard/students/study-spaces/detail/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudySpaceDetailView } from "@/components/features/personal-workspace/study-spaces/detail/study-space-detail-view"
+
+export default function StudentStudySpaceDetailPage() {
+  return <StudySpaceDetailView />
+}
+```
+
+### `src/pages/dashboard/students/study-spaces/detail/lazy.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { lazy } from 'react'
+
+export default lazy(() => import('./index'))
+```
+
+### `src/pages/dashboard/students/study-spaces/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudySpacesView } from "@/components/features/personal-workspace/study-spaces/study-spaces-view"
+
+export default function StudentStudySpacesPage() {
+  return <StudySpacesView />
+}
+```
+
+### `src/pages/dashboard/students/subjects/detail/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { SubjectDetailView } from "@/components/features/personal-workspace/subjects/subject-detail-view"
+
+export default function StudentSubjectDetailPage() {
+  return <SubjectDetailView />
+}
+```
+
+### `src/pages/dashboard/students/subjects/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { SubjectsView } from "@/components/features/personal-workspace/subjects/subjects-view"
+
+export default function StudentSubjectsPage() {
+  return <SubjectsView />
+}
+```
+
+### `src/pages/dashboard/students/tasks/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { TasksView } from "@/components/features/personal-workspace/tasks/tasks-view"
+
+export default function StudentTasksPage() {
+  return <TasksView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/personal-workspace/`

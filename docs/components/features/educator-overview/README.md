@@ -15,6 +15,26 @@ Keep the educator-specific text in this domain and use shared presentation only 
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/educators/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { EducatorOverviewView } from "@/components/features/educator-overview/educator-overview-view"
+
+export default function EducatorsPage() {
+  return <EducatorOverviewView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/educator-overview/`

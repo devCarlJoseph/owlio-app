@@ -21,6 +21,32 @@ When changing imports, update the lazy route adapter in `src/pages/dashboard/cla
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/classroom/meeting-room.lazy.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { lazy } from 'react'
+
+export default lazy(() => import('./meeting-room'))
+```
+
+### `src/pages/dashboard/classroom/meeting-room.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+export { default } from '@/components/features/meeting-room/meeting-room-view'
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/meeting-room/`

@@ -17,6 +17,26 @@ Keep preview authoring/review behavior separate from connected classroom records
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/educators/classwork/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { TeachingActivitiesView } from '@/components/features/teaching-activities/teaching-activities-view'
+
+export default function EducatorClassworkPage() {
+  return <TeachingActivitiesView role="educators" />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/teaching-activities/`

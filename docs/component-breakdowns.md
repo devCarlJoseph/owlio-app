@@ -48,6 +48,6 @@ These Conventional Commit subjects describe the **documentation copies** created
 
 Top-level feature directories `attendance/`, `classwork/`, `communication/`, `grades/`, `study-spaces/`, and `submissions/` have no TypeScript source in them yet; their matching guide folders explain the placeholder state. Existing UI for those subjects is nested in the domains listed above. `src/components/common/` and `src/components/ui/` are shared application and generic primitive layers; they are not feature domains and should not be copied into feature folders.
 
-Work one feature at a time: confirm the owner, split by responsibility, move a small group, update imports/tests/docs, then verify that feature's behavior. Preserve session/provider mounts, local records, live-room media, and preview/connected distinctions. Do not treat a proposed path as already implemented.
+Work one feature at a time: confirm the owner, split by responsibility, move a small group, update imports/tests/docs, then verify that feature's behavior. Each feature README lists its [page adapters](components/page-adapters.md): keep `src/pages/` as route-facing views only, without moving feature behavior into an `index.tsx`. Preserve session/provider mounts, local records, live-room media, and preview/connected distinctions. Do not treat a proposed path as already implemented.
 
 [Documentation index](index.md) | [Verification](sops/verification.md)

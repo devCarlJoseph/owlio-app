@@ -26,6 +26,98 @@ Migrate leaf forms and schemas before session context. Preserve the provider mou
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/auth/email-verification/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { EmailVerificationView } from "@/components/features/auth/email-verification/email-verification-view"
+
+export default function EmailVerificationPage() {
+  return <EmailVerificationView />
+}
+```
+
+### `src/pages/auth/forgot-password/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { ForgotPasswordView } from "@/components/features/auth/forgot-password/forgot-password-view"
+
+export default function ForgotPasswordPage() {
+  return <ForgotPasswordView />
+}
+```
+
+### `src/pages/auth/google-oauth-callback/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { GoogleOAuthCallbackView } from '@/components/features/auth/google/google-oauth-callback-view'
+
+export default function GoogleOAuthCallbackPage() {
+  return <GoogleOAuthCallbackView />
+}
+```
+
+### `src/pages/auth/login/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { LoginView } from "@/components/features/auth/login/login-view"
+
+export default function LoginPage() {
+  return <LoginView />
+}
+```
+
+### `src/pages/auth/password-reset/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { PasswordResetView } from "@/components/features/auth/password-reset/password-reset-view"
+
+export default function PasswordResetPage() {
+  return <PasswordResetView />
+}
+```
+
+### `src/pages/auth/register/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { RegisterView } from "@/components/features/auth/register/register-view"
+
+export default function RegisterPage() {
+  return <RegisterView />
+}
+```
+
+### `src/pages/dashboard/account-security/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { AccountSecurityView } from '@/components/features/auth/account-security/account-security-view'
+
+export default function AccountSecurityPage() {
+  return <AccountSecurityView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/auth/`

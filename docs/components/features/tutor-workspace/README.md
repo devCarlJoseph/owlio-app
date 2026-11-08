@@ -28,6 +28,194 @@ Small one-file subfeatures may stay flat until they genuinely need a folder. Kee
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/tutors/ai-assistant/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorAiAssistantView from "@/components/features/tutor-workspace/ai/tutor-ai-assistant-view"
+
+export default function TutorAiAssistantPage() {
+  return <TutorAiAssistantView />
+}
+```
+
+### `src/pages/dashboard/tutors/announcements/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorAnnouncementsView from "@/components/features/tutor-workspace/communication/tutor-announcements-view"
+
+export default function TutorAnnouncementsPage() {
+  return <TutorAnnouncementsView />
+}
+```
+
+### `src/pages/dashboard/tutors/attendance/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorAttendanceView from "@/components/features/tutor-workspace/attendance/tutor-attendance-view"
+
+export default function TutorAttendancePage() {
+  return <TutorAttendanceView />
+}
+```
+
+### `src/pages/dashboard/tutors/classwork/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorActivitiesView from "@/components/features/tutor-workspace/activities/tutor-activities-view"
+
+export default function TutorClassworkPage() {
+  return <TutorActivitiesView />
+}
+```
+
+### `src/pages/dashboard/tutors/communication/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorDiscussionsView from "@/components/features/tutor-workspace/communication/tutor-discussions-view"
+
+export default function TutorCommunicationPage() {
+  return <TutorDiscussionsView />
+}
+```
+
+### `src/pages/dashboard/tutors/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorOverviewView from "@/components/features/tutor-workspace/overview/tutor-overview-view"
+
+export default function TutorsPage() {
+  return <TutorOverviewView />
+}
+```
+
+### `src/pages/dashboard/tutors/learners/detail/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorLearnerDetailView from "@/components/features/tutor-workspace/learners/tutor-learner-detail-view"
+
+export default function TutorLearnerDetailPage() {
+  return <TutorLearnerDetailView />
+}
+```
+
+### `src/pages/dashboard/tutors/learners/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorLearnersView from "@/components/features/tutor-workspace/learners/tutor-learners-view"
+
+export default function TutorLearnersPage() {
+  return <TutorLearnersView />
+}
+```
+
+### `src/pages/dashboard/tutors/learning-plans/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import LearningPlansView from "@/components/features/tutor-workspace/learning-plans/learning-plans-view"
+
+export default function TutorLearningPlansPage() {
+  return <LearningPlansView />
+}
+```
+
+### `src/pages/dashboard/tutors/materials/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorMaterialsView from "@/components/features/tutor-workspace/materials/tutor-materials-view"
+
+export default function TutorMaterialsPage() {
+  return <TutorMaterialsView />
+}
+```
+
+### `src/pages/dashboard/tutors/notifications/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorNotificationsView from "@/components/features/tutor-workspace/notifications/tutor-notifications-view"
+
+export default function TutorNotificationsPage() {
+  return <TutorNotificationsView />
+}
+```
+
+### `src/pages/dashboard/tutors/progress/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorStudentProgressView from "@/components/features/tutor-workspace/progress/tutor-student-progress-view"
+
+export default function TutorProgressPage() {
+  return <TutorStudentProgressView />
+}
+```
+
+### `src/pages/dashboard/tutors/session-notes/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorSessionNotesView from "@/components/features/tutor-workspace/notes/tutor-session-notes-view"
+
+export default function TutorSessionNotesPage() {
+  return <TutorSessionNotesView />
+}
+```
+
+### `src/pages/dashboard/tutors/sessions/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorSessionsView from "@/components/features/tutor-workspace/sessions/tutor-sessions-view"
+
+export default function TutorSessionsPage() {
+  return <TutorSessionsView />
+}
+```
+
+### `src/pages/dashboard/tutors/settings/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import TutorSettingsView from "@/components/features/tutor-workspace/settings/tutor-settings-view"
+
+export default function TutorSettingsPage() {
+  return <TutorSettingsView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/tutor-workspace/`

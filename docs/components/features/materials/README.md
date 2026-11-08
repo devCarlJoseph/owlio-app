@@ -20,6 +20,124 @@ Prefer splitting the mixed `library-records.ts` by responsibility over moving th
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/materials/index.tsx`
+
+**Future-only adapter:** `src/components/features/materials/materials-overview-view.tsx` does not exist yet. Move the existing role-aware landing content into a materials view first. Preserve educator/ESL role context and preview labels.
+
+```tsx
+import { MaterialsOverviewView } from "@/components/features/materials/materials-overview-view"
+
+export default function MaterialsPage() {
+  return <MaterialsOverviewView />
+}
+```
+
+### `src/pages/dashboard/students/materials/classroom/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibrarySourceView } from "@/components/features/materials/student-library-source-view"
+
+export default function StudentClassroomMaterialsPage() {
+  return <StudentLibrarySourceView source="classroom" />
+}
+```
+
+### `src/pages/dashboard/students/materials/classroom/subject/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibrarySubjectView } from "@/components/features/materials/student-library-subject-view"
+
+export default function StudentClassroomMaterialSubjectPage() {
+  return <StudentLibrarySubjectView source="classroom" />
+}
+```
+
+### `src/pages/dashboard/students/materials/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibraryView } from "@/components/features/materials/student-library-view"
+
+export default function StudentMaterialsPage() {
+  return <StudentLibraryView />
+}
+```
+
+### `src/pages/dashboard/students/materials/personal/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibrarySourceView } from "@/components/features/materials/student-library-source-view"
+
+export default function StudentPersonalMaterialsPage() {
+  return <StudentLibrarySourceView source="personal" />
+}
+```
+
+### `src/pages/dashboard/students/materials/personal/subject/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibrarySubjectView } from "@/components/features/materials/student-library-subject-view"
+
+export default function StudentPersonalMaterialSubjectPage() {
+  return <StudentLibrarySubjectView source="personal" />
+}
+```
+
+### `src/pages/dashboard/students/materials/study-spaces/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibrarySourceView } from "@/components/features/materials/student-library-source-view"
+
+export default function StudentStudySpaceMaterialsPage() {
+  return <StudentLibrarySourceView source="study-space" />
+}
+```
+
+### `src/pages/dashboard/students/materials/study-spaces/subject/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentLibrarySubjectView } from "@/components/features/materials/student-library-subject-view"
+
+export default function StudentStudySpaceMaterialSubjectPage() {
+  return <StudentLibrarySubjectView source="study-space" />
+}
+```
+
+### `src/pages/dashboard/students/materials/workspace/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { useParams } from "react-router"
+import { LibraryWorkspaceView } from "@/components/features/materials/workspace/library-workspace-view"
+
+export default function StudentLibraryWorkspacePage() {
+  const { resourceId = "" } = useParams()
+  return <LibraryWorkspaceView key={resourceId} resourceId={resourceId} />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/materials/`

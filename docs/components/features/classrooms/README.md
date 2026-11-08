@@ -72,6 +72,50 @@ Debugging path: page adapter -> `view/` -> `context/` -> preview store or API se
 
 [All feature plans](../../../component-breakdowns.md) | [Verification](../../../sops/verification.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/classroom/activity.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { ClassroomActivityView } from "@/components/features/classrooms/classroom-activity-view"
+
+export default function ClassroomActivityPage() {
+  return <ClassroomActivityView />
+}
+```
+
+### `src/pages/dashboard/classroom/detail.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { ClassroomDetailView } from "@/components/features/classrooms/classroom-detail-view"
+
+export default function ClassroomDetailPage() {
+  return <ClassroomDetailView />
+}
+```
+
+### `src/pages/dashboard/classroom/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { ClassroomsView } from "@/components/features/classrooms/classrooms-view"
+
+export default function ClassroomsPage() {
+  return <ClassroomsView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/classrooms/`

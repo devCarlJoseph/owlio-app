@@ -15,6 +15,38 @@ Keep browser-local personal progress distinct from official classroom results. N
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/progress/index.tsx`
+
+**Future-only adapter:** `src/components/features/progress/role-progress-view.tsx` does not exist yet. Move the shared progress placeholder into a feature view first; do not mislabel personal work as official grades.
+
+```tsx
+import { RoleProgressView } from "@/components/features/progress/role-progress-view"
+
+export default function ProgressPage() {
+  return <RoleProgressView />
+}
+```
+
+### `src/pages/dashboard/students/progress/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { StudentProgressView } from "@/components/features/progress/student-progress-view"
+
+export default function StudentProgressPage() {
+  return <StudentProgressView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/progress/`

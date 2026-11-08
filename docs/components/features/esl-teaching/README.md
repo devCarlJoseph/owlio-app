@@ -23,6 +23,86 @@ The whiteboard canvas and model have separate responsibilities: keep drawing/key
 
 [All feature plans](../../../component-breakdowns.md)
 
+<!-- BEGIN GENERATED PAGE ADAPTERS -->
+
+## Page adapters (`src/pages/`)
+
+Pages only select a view, pass route parameters when needed, or preserve an existing route guard/lazy boundary. Keep component composition, forms, state, and services in the owning feature. These paths are current paths; do not create another `index.tsx` for a shared route.
+
+### `src/pages/dashboard/esl/attendance/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import EslAttendanceView from "@/components/features/esl-teaching/attendance/esl-attendance-view"
+
+export default function EslAttendancePage() {
+  return <EslAttendanceView />
+}
+```
+
+### `src/pages/dashboard/esl/classwork/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import EslActivitiesView from "@/components/features/esl-teaching/activities/esl-activities-view"
+
+export default function EslClassworkPage() {
+  return <EslActivitiesView />
+}
+```
+
+### `src/pages/dashboard/esl/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import EslOverviewView from "@/components/features/esl-teaching/overview/esl-overview-view"
+
+export default function EslPage() {
+  return <EslOverviewView />
+}
+```
+
+### `src/pages/dashboard/esl/learners/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import EslLearnersView from "@/components/features/esl-teaching/learners/esl-learners-view"
+
+export default function EslLearnersPage() {
+  return <EslLearnersView />
+}
+```
+
+### `src/pages/dashboard/esl/lessons/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import { EslLessonPlansView } from "@/components/features/esl-teaching/lesson-plans/esl-lesson-plans-view"
+
+export default function EslLessonsPage() {
+  return <EslLessonPlansView />
+}
+```
+
+### `src/pages/dashboard/esl/materials/index.tsx`
+
+Existing thin adapter (keep its guard, props, or lazy loading when migrating):
+
+```tsx
+import EslMaterialContextView from "@/components/features/esl-teaching/materials/esl-material-context-view"
+
+export default function EslMaterialContextPage() {
+  return <EslMaterialContextView />
+}
+```
+
+<!-- END GENERATED PAGE ADAPTERS -->
+
 <!-- BEGIN GENERATED CURRENT SOURCE -->
 
 ## Current source in `src/components/features/esl-teaching/`
