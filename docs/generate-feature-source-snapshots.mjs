@@ -167,6 +167,7 @@ const allocations = {
 }
 
 const docsRoot = dirname(fileURLToPath(import.meta.url))
+const featureDocsRoot = join(docsRoot, 'components/features')
 const sourceRoot = resolve(docsRoot, '../src/components/features')
 const mode = process.argv[2]
 
@@ -188,6 +189,16 @@ async function walk(dir) {
   return result
 }
 
+async function walkDirectories(dir) {
+  const result = []
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const path = join(dir, entry.name)
+    result.push(path, ...await walkDirectories(path))
+  }
+  return result
+}
+
 async function readIfPresent(path) {
   try {
     return await readFile(path)
@@ -199,7 +210,7 @@ async function readIfPresent(path) {
 
 async function prepare(feature, groups) {
   const srcDir = join(sourceRoot, feature)
-  const docDir = join(docsRoot, feature === 'classrooms' ? 'classroom-features' : `${feature}-features`)
+  const docDir = join(featureDocsRoot, feature)
   const files = (await walk(srcDir))
     .filter(isFeatureCode)
     .map(path => posix(relative(srcDir, path)))
@@ -243,6 +254,26 @@ async function main() {
   // Validate the whole mapping and any existing snapshots before writing a new file.
   const plans = await Promise.all(Object.entries(allocations).map(([feature, groups]) => prepare(feature, groups)))
   const pending = []
+  let mirrored = 0
+  for (const sourceDir of await walkDirectories(sourceRoot)) {
+    const path = posix(relative(sourceRoot, sourceDir))
+    const [feature, ...subfolders] = path.split('/')
+    const docDir = join(featureDocsRoot, path)
+    const readme = join(docDir, 'README.md')
+    const existing = await readIfPresent(readme)
+    if (existing !== null) {
+      mirrored++
+      continue
+    }
+    if (mode === '--check') throw new Error(`Missing mirrored guide: ${path}`)
+    if (!subfolders.length) throw new Error(`Missing feature guide: ${path}`)
+    const owner = join(featureDocsRoot, feature)
+    const guideLink = posix(relative(docDir, join(owner, 'README.md')))
+    const sourceLink = posix(relative(docDir, join(owner, 'SOURCE_INDEX.md')))
+    const text = `# ${subfolders.at(-1)}\n\nThis directory mirrors \`src/components/features/${path}/\`. For the current files, proposed component folders, and manual migration checks, use the [${feature} guide](${guideLink}) and its [source index](${sourceLink}). These copies are documentation only; application code has not moved.\n`
+    pending.push([readme, Buffer.from(text)])
+    mirrored++
+  }
   for (const { feature, docDir, snapshots, index } of plans) {
     if (!(await readIfPresent(join(docDir, 'README.md')))) throw new Error(`Missing guide for ${feature}`)
     const paths = [...snapshots.keys()]
@@ -270,7 +301,7 @@ async function main() {
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, bytes, { flag: 'wx' })
   }
-  console.log(`${mode === '--check' ? 'Verified' : 'Created'} ${plans.reduce((sum, plan) => sum + plan.snapshots.size, 0)} source snapshots across ${plans.length} features.`)
+  console.log(`${mode === '--check' ? 'Verified' : 'Created'} ${plans.reduce((sum, plan) => sum + plan.snapshots.size, 0)} source snapshots across ${plans.length} features and ${mirrored} matching guide folders.`)
 }
 
 main().catch(error => {
