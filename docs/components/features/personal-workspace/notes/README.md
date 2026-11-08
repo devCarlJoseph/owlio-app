@@ -13,3 +13,21 @@ Target: `src/components/features/personal-workspace/notes/`. This already follow
 `contents/note-card-actions.ts` holds callback types; consider placing that contract next to its UI consumer in a future cleanup. `contents/note-records.ts` and `utils/note-records.ts` are **different modules** despite the same basename. Preserve local storage keys, migration/normalization behavior, and existing notes during any extraction.
 
 [Personal workspace plans](../README.md)
+
+<!-- BEGIN GENERATED CURRENT SOURCE -->
+
+## Current source in `src/components/features/personal-workspace/notes/`
+
+Complete current code for files directly in this folder. These are documentation copies, not proposed replacements; imports still refer to the working source tree.
+
+### Nested feature guides
+
+- [`contents/`](contents/README.md)
+- [`forms/`](forms/README.md)
+- [`ui/`](ui/README.md)
+- [`utils/`](utils/README.md)
+- [`view/`](view/README.md)
+
+No TypeScript, JavaScript, or CSS source files are directly in this folder.
+
+<!-- END GENERATED CURRENT SOURCE -->

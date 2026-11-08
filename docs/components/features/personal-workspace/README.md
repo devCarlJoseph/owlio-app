@@ -18,3 +18,22 @@ Target: `src/components/features/personal-workspace/`. Each tool owns its own re
 Keep browser-local personal records distinct from classroom assignments, official results, and account sync. Do not rename storage keys or convert a preview sample into a stored record while reorganizing source. Apply the [shared folder contract](../../../sops/component-decomposition.md) inside each subfeature.
 
 [All feature plans](../../../component-breakdowns.md)
+
+<!-- BEGIN GENERATED CURRENT SOURCE -->
+
+## Current source in `src/components/features/personal-workspace/`
+
+Complete current code for files directly in this folder. These are documentation copies, not proposed replacements; imports still refer to the working source tree.
+
+### Nested feature guides
+
+- [`classwork/`](classwork/README.md)
+- [`notes/`](notes/README.md)
+- [`student-overview/`](student-overview/README.md)
+- [`study-spaces/`](study-spaces/README.md)
+- [`subjects/`](subjects/README.md)
+- [`tasks/`](tasks/README.md)
+
+No TypeScript, JavaScript, or CSS source files are directly in this folder.
+
+<!-- END GENERATED CURRENT SOURCE -->

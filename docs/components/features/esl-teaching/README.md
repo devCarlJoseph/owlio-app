@@ -22,3 +22,23 @@ Target: `src/components/features/esl-teaching/`. Keep the existing `activities/`
 The whiteboard canvas and model have separate responsibilities: keep drawing/keyboard handling in UI and pure board operations in utilities. Moving the preview route must not imply shared whiteboard transport, saved activity results, or gradebook data; verify route imports and tests before changing paths. Avoid remounting an active meeting just to reorganize views.
 
 [All feature plans](../../../component-breakdowns.md)
+
+<!-- BEGIN GENERATED CURRENT SOURCE -->
+
+## Current source in `src/components/features/esl-teaching/`
+
+Complete current code for files directly in this folder. These are documentation copies, not proposed replacements; imports still refer to the working source tree.
+
+### Nested feature guides
+
+- [`activities/`](activities/README.md)
+- [`attendance/`](attendance/README.md)
+- [`learners/`](learners/README.md)
+- [`lesson-plans/`](lesson-plans/README.md)
+- [`materials/`](materials/README.md)
+- [`meeting-room/`](meeting-room/README.md)
+- [`overview/`](overview/README.md)
+
+No TypeScript, JavaScript, or CSS source files are directly in this folder.
+
+<!-- END GENERATED CURRENT SOURCE -->
