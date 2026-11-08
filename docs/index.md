@@ -7,6 +7,8 @@ Start with the document that answers the task's question. Read only the relevant
 | Repository rules and task routing | [AGENTS.md](../AGENTS.md) |
 | Product purpose, roles, ownership, and planned boundaries | [Product overview](product/overview.md) |
 | Source organization, UI implementation, and security conventions | [Frontend architecture](architecture/frontend.md) |
+| Breaking down components and choosing context ownership | [Component decomposition guide](sops/component-decomposition.md) |
+| File-by-file migration plans for each feature | [Per-feature component breakdowns](component-breakdowns.md) |
 | What is implemented, paused, local, or illustrative | [Capability status](architecture/capability-status.md) |
 | Task execution and completion | [Agent workflow](sops/README.md) |
 | Screenshot or image implementation | [Reference UI SOP](sops/reference-ui.md) |

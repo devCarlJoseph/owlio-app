@@ -1,0 +1,21 @@
+.banner {
+  background: linear-gradient(to right, #fff7ed, #fafaf9, #ecfdf5);
+}
+
+.cover {
+  --library-cover: #fffbeb;
+  background-color: var(--library-cover);
+}
+
+.cover[data-source="classroom"] { --library-cover: #f0f9ff; }
+.cover[data-source="study-space"] { --library-cover: #ecfdf5; }
+.accent { background-color: var(--library-cover); }
+.icon { background-color: var(--library-cover); color: var(--foreground); }
+
+:global(.dark) .banner {
+  background: linear-gradient(to right, #30374a, #273449, #263f43);
+}
+
+:global(.dark) .cover { --library-cover: #3b3b49; }
+:global(.dark) .cover[data-source="classroom"] { --library-cover: #2d4058; }
+:global(.dark) .cover[data-source="study-space"] { --library-cover: #2b4546; }
