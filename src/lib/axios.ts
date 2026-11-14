@@ -1,32 +1,23 @@
 import axios from "axios";
-import { API_INTEGRATION_ENABLED } from "./api-mode";
 
 function getApiBaseUrl() {
   const configuredUrl = import.meta.env.VITE_API_URL || "http://localhost:7000";
-  const testHost = /^127\.0\.0\.[1-5]$/.test(window.location.hostname);
-  if (!testHost) return configuredUrl.replace(/\/$/, "");
-
   const apiUrl = new URL(configuredUrl);
-  if (apiUrl.hostname === "localhost" || apiUrl.hostname === "127.0.0.1") {
-    apiUrl.hostname = window.location.hostname;
+  if (!["http:", "https:"].includes(apiUrl.protocol) || apiUrl.username || apiUrl.password
+    || apiUrl.pathname !== "/" || apiUrl.search || apiUrl.hash) {
+    throw new Error("VITE_API_URL must be the public HTTP(S) API origin, without /api/v1 or credentials.");
   }
-  return apiUrl.toString().replace(/\/$/, "");
+  return apiUrl.origin;
 }
 
 const api = axios.create({
   baseURL: getApiBaseUrl(),
   withCredentials: true,
+  timeout: 15000,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
   },
-});
-
-api.interceptors.request.use((config) => {
-  if (!API_INTEGRATION_ENABLED) {
-    return Promise.reject(new Error("API integrations are paused while the UI is being built."));
-  }
-  return config;
 });
 
 export default api;

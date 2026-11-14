@@ -5,8 +5,6 @@ import type { AuthUser } from '@/services/api/api.types'
 import { createClassroom, getClassrooms, joinClassroomByCode, type ApiClassroom } from '@/services/api/classroom.service'
 import { ClassroomPrototypeContext, type ClassroomPrototypeContextValue } from './classroom-prototype-context'
 import type { Classroom } from './classroom-types'
-import { API_INTEGRATION_ENABLED } from '@/lib/api-mode'
-import { ClassroomPreviewProvider } from './classroom-preview-provider'
 
 function unsupported(): never { throw new Error('This classroom feature is not available yet.') }
 
@@ -21,7 +19,6 @@ function fromApi(record: ApiClassroom, user: AuthUser, joinCode: string | null =
 
 export function ClassroomPrototypeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuthSession()
-  if (!API_INTEGRATION_ENABLED) return <ClassroomPreviewProvider>{children}</ClassroomPreviewProvider>
   // Remount on account/role changes so data and one-time invite codes cannot cross sessions.
   return <ClassroomSessionProvider key={user ? user.id + ':' + user.roles.join(',') : 'anonymous'} user={user}>{children}</ClassroomSessionProvider>
 }

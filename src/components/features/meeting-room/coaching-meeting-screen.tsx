@@ -77,9 +77,8 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
           <Input ref={roomInputRef} id="meeting-invite" defaultValue={state.meetingCode} placeholder="Paste an invite or room code" autoComplete="off" className="h-10" />
           <Button type="submit" disabled={state.busy || !state.apiEnabled} className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
         </form>
-        {state.canCreate && <Button variant="outline" className="h-10 w-full" disabled={state.busy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Creating…' : 'Create a meeting'}</Button>}
+        {state.canCreate && <Button variant="outline" className="h-10 w-full" disabled={state.busy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
         {!state.apiEnabled && <p role="status" className="rounded-xl bg-muted p-3 text-xs leading-5 text-muted-foreground">Live meetings are unavailable while API integrations are paused. You can explore the layout without connecting or enabling devices.</p>}
-        <Button variant="outline" className="h-10 w-full" onClick={state.onPreview}>Preview room layout</Button>
       </div>
     </div>
   </section>
@@ -149,3 +148,4 @@ function MeetingClock() {
   }, [])
   return <time dateTime={now.toISOString()} className="shrink-0 tabular-nums">{now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time>
 }
+

@@ -1,424 +1,172 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import {
-  Participant as LiveKitParticipant,
-  Room,
-  RoomEvent,
-} from 'livekit-client'
-import { useLocation, useSearchParams } from 'react-router'
+import { Room, RoomEvent } from 'livekit-client'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { useAuthSession } from '@/components/features/auth/auth-session-context'
-import { formatMeetingCode, getMeetingIdFromInvite } from '@/lib/meeting-code'
+import { Button } from '@/components/ui/button'
+import { formatSessionCode, getSessionIdFromInvite } from '@/lib/session-code'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import {
-  createMeeting,
-  endMeeting as endMeetingRequest,
-  joinMeeting as joinMeetingRequest,
-  type MeetingJoin,
-} from '@/services/api/meeting.service'
-import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview'
-import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
-import { MeetingRoomHub } from '@/components/features/meeting-room/meeting-room-hub'
-
-import type { RoomStatus, MeetingPanel, MeetingMessage, MeetingCategory } from './meeting-room-types'
-
-const meetingCategories: MeetingCategory[] = ['educators', 'tutors', 'esl']
+import { createMeeting, endMeeting, joinMeeting, sendMeetingMessage, setMeetingHand } from '@/services/api/meeting.service'
+import { ClassroomSessions } from '@/components/features/connected-workspace/classroom-sessions'
 import { MeetingRoomScreen } from './meeting-room-screen'
-import { API_INTEGRATION_ENABLED } from '@/lib/api-mode'
-
-type MeetingSignal =
-  | { type: 'chat'; id: string; text: string }
-  | { type: 'hand'; raised: boolean }
-
-function decodeMeetingSignal(payload: Uint8Array): MeetingSignal | null {
-  if (payload.byteLength > 2048) return null
-
-  try {
-    const value: unknown = JSON.parse(new TextDecoder().decode(payload))
-    if (!value || typeof value !== 'object') return null
-
-    const signal = value as Record<string, unknown>
-    if (signal.type === 'chat'
-      && typeof signal.id === 'string'
-      && signal.id.length <= 100
-      && typeof signal.text === 'string'
-      && signal.text.trim().length > 0
-      && signal.text.length <= 500) {
-      return { type: 'chat', id: signal.id, text: signal.text.trim() }
-    }
-    if (signal.type === 'hand' && typeof signal.raised === 'boolean') {
-      return { type: 'hand', raised: signal.raised }
-    }
-  } catch {
-    return null
-  }
-
-  return null
-}
+import { useNativeMeetingData } from './use-native-meeting-data'
+import type { MeetingCategory, MeetingPanel, RoomStatus } from './meeting-room-types'
 
 export default function MeetingRoomPage() {
-  const { pathname } = useLocation()
   const [params] = useSearchParams()
-  const role = getDashboardRole(pathname) ?? 'students'
-  const hasInvite = Boolean(getMeetingIdFromInvite(params.get('room') ?? ''))
-  return hasInvite || params.get('join') === '1' || params.get('layout-preview') === '1' || shouldShowEslWhiteboardPreview(role, params.get('whiteboard-preview'))
-    ? <MeetingRoomSession />
-    : <MeetingRoomHub />
+  return params.has('session') || params.has('join') || params.has('room') ? <MeetingRoomSession key={params.get('session') ?? 'join'} /> : <MeetingDirectory />
 }
-
+function MeetingDirectory() {
+  const { pathname } = useLocation()
+  const role = getDashboardRole(pathname) ?? 'students'
+  return <div className="space-y-6"><header className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold">Meeting Room</h2><Link className="text-sm underline" to={'/' + role + '/classrooms/meeting-room?join=1'}>Use a session invite</Link></header><ClassroomSessions /></div>
+}
 function MeetingRoomSession() {
   const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? 'students'
-  const classroomPath = `/${role}/classrooms/meeting-room`
   const { user } = useAuthSession()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const roomId = getMeetingIdFromInvite(searchParams.get('room') ?? '')
-  const meetingCode = roomId ? formatMeetingCode(roomId) : ''
-  const meetingCategory = meetingCategories.find(category => category === searchParams.get('category')) ?? null
-  const roomParams = (code: string) => ({ ...(meetingCategory ? { category: meetingCategory } : {}), room: code })
+  const [params, setParams] = useSearchParams()
+  const sessionId = getSessionIdFromInvite(params.get('session') ?? '')
+  const [activeSessionId, setActiveSessionId] = useState(sessionId)
+  const code = activeSessionId ? formatSessionCode(activeSessionId) : ''
+  const category = ['educators', 'esl', 'tutors'].includes(params.get('category') ?? '') ? params.get('category') as MeetingCategory : null
   const roomInputRef = useRef<HTMLInputElement>(null)
   const [room, setRoom] = useState<Room | null>(null)
-  const [joinInfo, setJoinInfo] = useState<MeetingJoin | null>(null)
+  const roomRef = useRef<Room | null>(null)
+  const operation = useRef(0)
+  const pending = useRef(false)
   const [status, setStatus] = useState<RoomStatus>('idle')
-  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [screenOn, setScreenOn] = useState(false)
-  const [raisedHands, setRaisedHands] = useState<Record<string, boolean>>({})
-  const [pinnedParticipantIdentity, setPinnedParticipantIdentity] = useState<string | null>(null)
-  const [messages, setMessages] = useState<MeetingMessage[]>([])
+  const [revision, setRevision] = useState(0)
+  const [pinned, setPinned] = useState<string | null>(null)
+  const [panel, setPanel] = useState<MeetingPanel | null>(null)
   const [chatDraft, setChatDraft] = useState('')
   const [chatSending, setChatSending] = useState(false)
   const [handUpdating, setHandUpdating] = useState(false)
-  const [activePanel, setActivePanel] = useState<MeetingPanel | null>(null)
-  const [unreadMessages, setUnreadMessages] = useState(0)
-  const [revision, setRevision] = useState(0)
-  const [busy, setBusy] = useState(false)
-  const roomRef = useRef<Room | null>(null)
-  const activePanelRef = useRef<MeetingPanel | null>(null)
-  const seenMessageIdsRef = useRef(new Set<string>())
-  const isEducator = user?.roles.includes('EDUCATOR') ?? false
-
-  useEffect(() => {
-    activePanelRef.current = activePanel
-  }, [activePanel])
-
+  const retryMessage = useRef<{ body: string; requestId: string } | null>(null)
+  const data = useNativeMeetingData(room, activeSessionId)
+  const canManage = Boolean(user?.roles.some(item => ['EDUCATOR', 'ESL', 'TUTOR'].includes(item)))
+  useEffect(() => () => { ++operation.current; void roomRef.current?.disconnect(true); roomRef.current = null }, [])
   useEffect(() => {
     if (!room) return
-
-    const refresh = () => setRevision((current) => current + 1)
-    const participantLeft = (participant: LiveKitParticipant) => {
-      refresh()
-      setPinnedParticipantIdentity((current) => current === participant.identity ? null : current)
-      setRaisedHands((current) => {
-        if (!current[participant.identity]) return current
-        const next = { ...current }
-        delete next[participant.identity]
-        return next
-      })
-    }
-    const receiveData = (payload: Uint8Array, participant?: LiveKitParticipant) => {
-      if (!participant) return
-      const signal = decodeMeetingSignal(payload)
-      if (!signal) return
-
-      if (signal.type === 'hand') {
-        setRaisedHands((current) => ({ ...current, [participant.identity]: signal.raised }))
-        return
-      }
-
-      if (seenMessageIdsRef.current.has(signal.id)) return
-      seenMessageIdsRef.current.add(signal.id)
-      setMessages((current) => [...current, {
-        id: signal.id,
-        identity: participant.identity,
-        text: signal.text,
-        sentAt: Date.now(),
-      }].slice(-100))
-      if (activePanelRef.current !== 'chat') {
-        setUnreadMessages((current) => current + 1)
-      }
+    const update = () => {
+      setRevision(value => value + 1)
+      setMicOn(room.localParticipant.isMicrophoneEnabled)
+      setCameraOn(room.localParticipant.isCameraEnabled)
+      setScreenOn(room.localParticipant.isScreenShareEnabled)
     }
     const reconnecting = () => setStatus('reconnecting')
     const reconnected = () => setStatus('connected')
-    const disconnected = () => {
-      setStatus('ended')
-      setRoom(null)
-      setJoinInfo(null)
-      setMicOn(false)
-      setCameraOn(false)
-      setScreenOn(false)
-      setRaisedHands({})
-      setPinnedParticipantIdentity(null)
-      setMessages([])
-      setChatDraft('')
-      setUnreadMessages(0)
-      seenMessageIdsRef.current.clear()
-    }
-
-    room
-      .on(RoomEvent.ParticipantConnected, refresh)
-      .on(RoomEvent.ParticipantDisconnected, participantLeft)
-      .on(RoomEvent.TrackSubscribed, refresh)
-      .on(RoomEvent.TrackUnsubscribed, refresh)
-      .on(RoomEvent.TrackMuted, refresh)
-      .on(RoomEvent.TrackUnmuted, refresh)
-      .on(RoomEvent.DataReceived, receiveData)
-      .on(RoomEvent.Reconnecting, reconnecting)
-      .on(RoomEvent.Reconnected, reconnected)
-      .on(RoomEvent.Disconnected, disconnected)
-
+    const disconnected = () => { setRoom(null); roomRef.current = null; setStatus('ended'); setMicOn(false); setCameraOn(false); setScreenOn(false); setChatDraft(''); retryMessage.current = null }
+    const events = [RoomEvent.ParticipantConnected, RoomEvent.ParticipantDisconnected, RoomEvent.TrackSubscribed, RoomEvent.TrackUnsubscribed, RoomEvent.TrackMuted, RoomEvent.TrackUnmuted, RoomEvent.LocalTrackPublished, RoomEvent.LocalTrackUnpublished] as const
+    events.forEach(event => room.on(event, update))
+    room.on(RoomEvent.Reconnecting, reconnecting).on(RoomEvent.Reconnected, reconnected).on(RoomEvent.Disconnected, disconnected)
     return () => {
-      room
-        .off(RoomEvent.ParticipantConnected, refresh)
-        .off(RoomEvent.ParticipantDisconnected, participantLeft)
-        .off(RoomEvent.TrackSubscribed, refresh)
-        .off(RoomEvent.TrackUnsubscribed, refresh)
-        .off(RoomEvent.TrackMuted, refresh)
-        .off(RoomEvent.TrackUnmuted, refresh)
-        .off(RoomEvent.DataReceived, receiveData)
-        .off(RoomEvent.Reconnecting, reconnecting)
-        .off(RoomEvent.Reconnected, reconnected)
-        .off(RoomEvent.Disconnected, disconnected)
+      events.forEach(event => room.off(event, update))
+      room.off(RoomEvent.Reconnecting, reconnecting).off(RoomEvent.Reconnected, reconnected).off(RoomEvent.Disconnected, disconnected)
     }
   }, [room])
-
-  useEffect(() => () => {
-    void roomRef.current?.disconnect(true)
-  }, [])
-
-  const participants = room
-    ? [room.localParticipant, ...room.remoteParticipants.values()]
-    : []
-  const createRoom = async () => {
-    if (!API_INTEGRATION_ENABLED) return
-    setBusy(true)
-    setError('')
-    setMessage('')
-    try {
-      const result = await createMeeting()
-      setSearchParams(roomParams(formatMeetingCode(result.meetingId)))
-      setMessage('Meeting created. Copy the invite and share it with your class.')
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Could not create the meeting.'))
-    } finally {
-      setBusy(false)
-    }
+  const readInvite = () => {
+    const value = getSessionIdFromInvite(roomInputRef.current?.value ?? code)
+    if (!value) throw new Error('Enter a scheduled-session invite or an OWLIO-SESSION code. Older room codes are not supported.')
+    return value
   }
-
-  const joinRoom = async (event?: FormEvent<HTMLFormElement>) => {
+  const open = async () => {
+    if (pending.current) return
+    pending.current = true; setBusy(true); setError(''); setMessage('')
+    try {
+      const selected = readInvite()
+      await createMeeting(selected)
+      setActiveSessionId(selected)
+      setMessage('Session room opened. You can now join and share the session invite.')
+    } catch (cause) { setError(getApiErrorMessage(cause, 'Could not open this session room.')) }
+    finally { pending.current = false; setBusy(false) }
+  }
+  const join = async (event?: FormEvent) => {
     event?.preventDefault()
-    if (!API_INTEGRATION_ENABLED) return
-    const normalizedRoomId = getMeetingIdFromInvite(roomInputRef.current?.value ?? '')
-    if (!normalizedRoomId) {
-      setError('Enter a meeting invite link or room code first.')
-      return
-    }
-
-    setBusy(true)
-    setError('')
-    setMessage('')
-    setStatus('joining')
-    setMessages([])
-    setChatDraft('')
-    setRaisedHands({})
-    setPinnedParticipantIdentity(null)
-    setUnreadMessages(0)
-    setActivePanel(null)
-    seenMessageIdsRef.current.clear()
-    setSearchParams(roomParams(formatMeetingCode(normalizedRoomId)))
-
-    const nextRoom = new Room({ adaptiveStream: true, dynacast: true })
-    roomRef.current = nextRoom
+    if (pending.current) return
+    let selected: string
+    try { selected = readInvite() } catch (cause) { setError((cause as Error).message); return }
+    pending.current = true; setBusy(true); setError(''); setMessage(''); setStatus('joining')
+    const request = ++operation.current
+    const next = new Room({ adaptiveStream: true, dynacast: true })
+    roomRef.current = next
     try {
-      const credentials = await joinMeetingRequest(normalizedRoomId)
-      await nextRoom.connect(credentials.serverUrl, credentials.token, { autoSubscribe: true })
-      setJoinInfo(credentials)
-      setRoom(nextRoom)
-      setStatus('connected')
-    } catch (requestError) {
-      await nextRoom.disconnect(true).catch(() => undefined)
-      roomRef.current = null
-      setStatus('idle')
-      const detail = requestError instanceof Error ? requestError.message.toLowerCase() : ''
-      setError(
-        detail.includes('signal connection') || detail.includes('failed to fetch')
-          ? 'Could not reach the meeting service. Check your connection and try again.'
-          : getApiErrorMessage(requestError, 'Could not join this meeting. Check the invite and try again.'),
-      )
-    } finally {
-      setBusy(false)
-    }
+      const credentials = await joinMeeting(selected)
+      if (request !== operation.current) return
+      await next.connect(credentials.url, credentials.token, { autoSubscribe: true })
+      if (request !== operation.current) { await next.disconnect(true); return }
+      setActiveSessionId(selected); setRoom(next); setStatus('connected')
+    } catch (cause) {
+      await next.disconnect(true).catch(() => undefined)
+      if (request !== operation.current) return
+      roomRef.current = null; setStatus('idle'); setError(getApiErrorMessage(cause, 'Could not join this session room.'))
+    } finally { if (request === operation.current) { pending.current = false; setBusy(false) } }
   }
-
-  const leaveRoom = async () => {
-    const currentRoom = roomRef.current
-    roomRef.current = null
-    setRoom(null)
-    setJoinInfo(null)
-    setStatus('idle')
-    setMicOn(false)
-    setCameraOn(false)
-    setScreenOn(false)
-    setRaisedHands({})
-    setPinnedParticipantIdentity(null)
-    setMessages([])
-    setChatDraft('')
-    setUnreadMessages(0)
-    seenMessageIdsRef.current.clear()
-    if (currentRoom) await currentRoom.disconnect(true)
+  const leave = async () => {
+    ++operation.current
+    const current = roomRef.current; roomRef.current = null
+    setRoom(null); setStatus('idle'); setMicOn(false); setCameraOn(false); setScreenOn(false); setChatDraft(''); setPanel(null); retryMessage.current = null
+    await current?.disconnect(true)
   }
-
-  const endRoom = async () => {
-    if (!roomId) return
-    setBusy(true)
-    setError('')
-    try {
-      await endMeetingRequest(roomId)
-      await leaveRoom()
-      setStatus('ended')
-      setMessage('The meeting has ended.')
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Could not end the meeting.'))
-    } finally {
-      setBusy(false)
-    }
+  const end = async () => {
+    if (!activeSessionId || pending.current) return
+    pending.current = true; setBusy(true); setError('')
+    try { await endMeeting(activeSessionId); await leave(); setStatus('ended'); setMessage('Meeting closure requested. Participants will be disconnected as the service completes cleanup.') }
+    catch (cause) { setError(getApiErrorMessage(cause, 'Could not end this meeting.')) }
+    finally { pending.current = false; setBusy(false) }
   }
-
-  const toggleMicrophone = async () => {
+  const device = async (kind: 'microphone' | 'camera' | 'screen') => {
     if (!room) return
     setError('')
     try {
-      await room.localParticipant.setMicrophoneEnabled(!micOn)
-      setMicOn(!micOn)
-    } catch {
-      setError('Microphone access was unavailable. Check your browser permission and try again.')
-    }
+      if (kind === 'microphone') { await room.localParticipant.setMicrophoneEnabled(!micOn); setMicOn(!micOn) }
+      if (kind === 'camera') { await room.localParticipant.setCameraEnabled(!cameraOn); setCameraOn(!cameraOn) }
+      if (kind === 'screen') { await room.localParticipant.setScreenShareEnabled(!screenOn); setScreenOn(!screenOn) }
+    } catch { setError('Could not change your ' + kind + '. Check device permissions and room settings.') }
   }
-
-  const toggleCamera = async () => {
-    if (!room) return
-    setError('')
-    try {
-      await room.localParticipant.setCameraEnabled(!cameraOn)
-      setCameraOn(!cameraOn)
-    } catch {
-      setError('Camera access was unavailable. Check your browser permission and try again.')
-    }
+  const hand = async () => {
+    const own = data.state?.ownParticipant
+    if (!room || !own || handUpdating) return
+    setHandUpdating(true); setError('')
+    try { await setMeetingHand(activeSessionId, !own.handRaisedAt, own.version); data.refresh() }
+    catch (cause) { setError(getApiErrorMessage(cause, 'Could not change your raised hand.')); data.refresh() }
+    finally { setHandUpdating(false) }
   }
-
-  const toggleScreenShare = async () => {
-    if (!room) return
-    setError('')
-    try {
-      await room.localParticipant.setScreenShareEnabled(!screenOn)
-      setScreenOn(!screenOn)
-    } catch {
-      setError('Screen sharing was unavailable or cancelled.')
-    }
-  }
-
-  const publishSignal = async (signal: MeetingSignal) => {
-    if (!room) return
-    await room.localParticipant.publishData(
-      new TextEncoder().encode(JSON.stringify(signal)),
-      { reliable: true, topic: 'owlio-meeting' },
-    )
-  }
-
-  const toggleRaisedHand = async () => {
-    if (!room || handUpdating) return
-    const raised = !raisedHands[room.localParticipant.identity]
-    setError('')
-    setHandUpdating(true)
-    try {
-      await publishSignal({ type: 'hand', raised })
-      setRaisedHands((current) => ({ ...current, [room.localParticipant.identity]: raised }))
-    } catch {
-      setError('Could not update your raised hand. The meeting service may not allow room messages.')
-    } finally {
-      setHandUpdating(false)
-    }
-  }
-
-  const sendChatMessage = async (event: FormEvent<HTMLFormElement>) => {
+  const send = async (event: FormEvent) => {
     event.preventDefault()
-    if (!room || chatSending) return
-    const text = chatDraft.trim()
-    if (!text) return
-    if (text.length > 500) {
-      setError('Messages must be 500 characters or fewer.')
-      return
-    }
-
-    const messageId = crypto.randomUUID()
-    setError('')
-    setChatSending(true)
-    try {
-      await publishSignal({ type: 'chat', id: messageId, text })
-      seenMessageIdsRef.current.add(messageId)
-      setMessages((current) => [...current, {
-        id: messageId,
-        identity: room.localParticipant.identity,
-        text,
-        sentAt: Date.now(),
-      }].slice(-100))
-      setChatDraft('')
-    } catch {
-      setError('Could not send your message. The meeting service may not allow room messages.')
-    } finally {
-      setChatSending(false)
-    }
+    const body = chatDraft.trim()
+    if (!room || !body || chatSending) return
+    if (body.length > 2000) { setError('Messages must be 2000 characters or fewer.'); return }
+    if (retryMessage.current?.body !== body) retryMessage.current = { body, requestId: crypto.randomUUID() }
+    const requestId = retryMessage.current.requestId
+    setChatSending(true); setError('')
+    try { await sendMeetingMessage(activeSessionId, requestId, body); setChatDraft(''); retryMessage.current = null; data.refresh() }
+    catch (cause) { setError(getApiErrorMessage(cause, 'Could not send your message. Your draft is still here.')) }
+    finally { setChatSending(false) }
   }
-
-  const openPanel = (panel: MeetingPanel) => {
-    setActivePanel((current) => {
-      const next = current === panel ? null : panel
-      activePanelRef.current = next
-      if (next === 'chat') setUnreadMessages(0)
-      return next
-    })
+  const identity = (userId: string) => userId === user?.id ? room?.localParticipant.identity ?? userId : data.directory.find(item => item.userId === userId)?.mediaIdentity ?? userId
+  const copy = async () => {
+    const invite = new URL(window.location.href); invite.search = ''; invite.searchParams.set('session', activeSessionId)
+    try { await navigator.clipboard.writeText(invite.toString()); setMessage('Session invite copied.') }
+    catch { setMessage('Share this session code: ' + formatSessionCode(activeSessionId)) }
   }
-
-  const copyInvite = async () => {
-    if (!roomId) return
-    const invite = new URL(window.location.href)
-    invite.searchParams.set('room', formatMeetingCode(roomId))
-    invite.searchParams.delete('layout-preview')
-    invite.searchParams.delete('whiteboard-preview')
-    try {
-      await navigator.clipboard.writeText(invite.toString())
-      setMessage('Meeting invite copied.')
-    } catch {
-      setMessage(`Share this Owlio meeting code: ${formatMeetingCode(roomId)}`)
-    }
-  }
-
-  const preview = !room && searchParams.get('layout-preview') === '1'
-  const isHost = Boolean(user && joinInfo?.hostId === user.id)
-
-  if (shouldShowEslWhiteboardPreview(role, searchParams.get('whiteboard-preview'))) {
-    return <EslWhiteboardPreview />
-  }
-
-  return <MeetingRoomScreen
-    key={`${role}-${meetingCategory ?? 'none'}`}
-    role={role} meetingCategory={meetingCategory} backHref={classroomPath} roomId={roomId} meetingCode={meetingCode}
-    roomInputRef={roomInputRef} status={status} preview={preview} hasRoom={Boolean(room)}
-    apiEnabled={API_INTEGRATION_ENABLED} canCreate={isEducator} isHost={isHost} busy={busy}
-    message={message} error={error} participants={participants} localIdentity={room?.localParticipant.identity}
-    pinnedIdentity={pinnedParticipantIdentity} onPin={setPinnedParticipantIdentity} raisedHands={raisedHands}
-    revision={revision} micOn={micOn} cameraOn={cameraOn} screenOn={screenOn} handUpdating={handUpdating}
-    activePanel={activePanel} onPanel={openPanel} unreadMessages={unreadMessages} messages={messages}
-    chatDraft={chatDraft} onChatDraft={setChatDraft} chatSending={chatSending}
-    onSendChat={event => void sendChatMessage(event)} onJoin={event => void joinRoom(event)}
-    onCreate={() => void createRoom()} onCopy={() => void copyInvite()}
-    onPreview={() => { const next = new URLSearchParams(searchParams); next.set('layout-preview', '1'); setSearchParams(next) }}
-    onLeave={() => {
-      if (preview) { const next = new URLSearchParams(searchParams); next.delete('layout-preview'); setSearchParams(next) }
-      else void leaveRoom()
-    }}
-    onEnd={() => void endRoom()} onMicrophone={() => void toggleMicrophone()}
-    onCamera={() => void toggleCamera()} onScreen={() => void toggleScreenShare()} onHand={() => void toggleRaisedHand()}
-  />
+  return <div className="space-y-4">
+    {!room && <p className="text-sm text-muted-foreground">Use a scheduled-session invite. Teachers can open their own session room before joining. <Link className="underline" to={'/' + role + '/schedule'}>View sessions</Link></p>}
+    {room && <p className="text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
+    <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
+      status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}
+      message={message} error={error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}
+      pinnedIdentity={pinned} onPin={setPinned} raisedHands={Object.fromEntries((data.state?.raisedHands ?? []).map(item => [identity(item.userId), true]))} revision={revision}
+      micOn={micOn} cameraOn={cameraOn} screenOn={screenOn} handUpdating={handUpdating} activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0}
+      messages={data.messages.map(item => ({ id: item.id, identity: identity(item.authorId), authorName: item.authorName, text: item.body, sentAt: Date.parse(item.createdAt) }))}
+      chatDraft={chatDraft} onChatDraft={setChatDraft} chatSending={chatSending} onSendChat={event => void send(event)} onJoin={event => void join(event)} onCreate={() => void open()}
+      onPreview={() => {}} onCopy={() => void copy()} onLeave={() => void leave()} onEnd={() => void end()} onMicrophone={() => void device('microphone')} onCamera={() => void device('camera')} onScreen={() => void device('screen')} onHand={() => void hand()} />
+    {!room && <Button variant="outline" onClick={() => { setError(''); setParams({ join: '1' }) }}>Use another invite</Button>}
+  </div>
 }

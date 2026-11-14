@@ -20,7 +20,7 @@ import {
   getDashboardWorkspace,
 } from "@/components/common/dashboard-navigation"
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
-import { NotificationsTrigger } from "@/components/features/notifications/notifications-trigger"
+import { ApiWorkspaceContent } from "@/components/features/connected-workspace/api-workspace-content"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { getAccountLabel } from "@/lib/workspace-path"
 import { getApiErrorMessage } from "@/services/api/api-error"
@@ -168,7 +168,7 @@ export default function PlatformLayout() {
             )}
           </form>
           <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
-            {dashboardRole && <NotificationsTrigger key={pathname} role={dashboardRole} />}
+            {dashboardRole && notificationHref && <Link to={notificationHref} aria-label="Notifications" title="Notifications" className="grid size-10 place-items-center rounded-full text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-brand"><Bell aria-hidden="true" className="size-5" /></Link>}
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label="Account menu"
@@ -225,7 +225,7 @@ export default function PlatformLayout() {
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
             <DashboardChromeContext.Provider value={setImmersive}>
               <ClassroomPrototypeProvider>
-                <Outlet />
+                <ApiWorkspaceContent key={`${user?.id}:${user?.roles.join(',')}:${pathname}`}><Outlet /></ApiWorkspaceContent>
               </ClassroomPrototypeProvider>
             </DashboardChromeContext.Provider>
           </main>

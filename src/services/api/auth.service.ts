@@ -35,6 +35,9 @@ export async function getCsrfToken(forceRefresh = false): Promise<string> {
   if (!csrfRequest) {
     csrfRequest = api.get<ApiSuccess<CsrfResponse>>(`${authPath}/csrf`)
       .then(({ data }) => {
+        if (typeof data?.data?.csrfToken !== 'string' || !data.data.csrfToken) {
+          throw new Error('The API did not return a CSRF token.')
+        }
         csrfToken = data.data.csrfToken
         return csrfToken
       })
@@ -46,15 +49,22 @@ export async function getCsrfToken(forceRefresh = false): Promise<string> {
 }
 
 export async function postApiWithCsrf<T>(path: string, body?: unknown): Promise<T> {
-  const send = (token: string) => api.post<ApiSuccess<T>>(path, body, {
-    headers: { 'x-csrf-token': token },
-  })
+  return mutateApiWithCsrf<T>('POST', path, body)
+}
+
+export async function mutateApiWithCsrf<T>(method: 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+  const send = (token: string) => {
+    const config = { headers: { 'x-csrf-token': token } }
+    if (method === 'POST') return api.post<ApiSuccess<T>>(path, body, config)
+    if (method === 'PATCH') return api.patch<ApiSuccess<T>>(path, body, config)
+    return api.delete<ApiSuccess<T>>(path, { ...config, data: body })
+  }
 
   let response
   try {
     response = await send(await getCsrfToken())
   } catch (error) {
-    if (!axios.isAxiosError<CsrfErrorResponse>(error) || error.response?.status !== 403 || error.response.data.code !== 'INVALID_CSRF') {
+    if (!axios.isAxiosError<CsrfErrorResponse>(error) || error.response?.status !== 403 || error.response.data?.code !== 'INVALID_CSRF') {
       throw error
     }
     response = await send(await getCsrfToken(true))

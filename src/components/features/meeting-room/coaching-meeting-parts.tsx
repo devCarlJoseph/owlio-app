@@ -105,7 +105,7 @@ export function ChatPanel({ people, messages, localIdentity, enabled, draft, sen
         const own = message.identity === localIdentity
         const sender = people.find(person => person.identity === message.identity)
         return <article key={message.id}>
-          <div className="mb-0.5 flex flex-wrap items-baseline gap-2 text-[11px]"><span className="font-semibold">{own ? 'You' : sender?.name || 'Participant'}</span><time className="text-muted-foreground" dateTime={new Date(message.sentAt).toISOString()}>{new Date(message.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time></div>
+          <div className="mb-0.5 flex flex-wrap items-baseline gap-2 text-[11px]"><span className="font-semibold">{own ? 'You' : message.authorName || sender?.name || 'Participant'}</span><time className="text-muted-foreground" dateTime={new Date(message.sentAt).toISOString()}>{new Date(message.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time></div>
           <p className="text-[13px] leading-5 break-words whitespace-pre-wrap">{message.text}</p>
         </article>
       })}

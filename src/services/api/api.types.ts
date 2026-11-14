@@ -5,7 +5,6 @@ export type ApiSuccess<T> = {
 
 export type ApiHealth = {
   status: "success"
-  message: string
   timestamp: string
 }
 

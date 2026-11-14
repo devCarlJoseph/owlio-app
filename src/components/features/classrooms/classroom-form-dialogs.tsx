@@ -12,16 +12,15 @@ type CreateDialogProps = {
   pending: boolean
   error: string
   finalFocus?: () => HTMLElement | boolean
-  preview?: boolean
 }
 
-export function ClassroomCreateDialog({ open, onOpenChange, onSubmit, pending, error, finalFocus, preview }: CreateDialogProps) {
+export function ClassroomCreateDialog({ open, onOpenChange, onSubmit, pending, error, finalFocus }: CreateDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent finalFocus={finalFocus} className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Create a classroom</DialogTitle>
-          <DialogDescription>{preview ? 'Create a demo class and a preview invite code. Changes reset on refresh.' : 'Create a connected class record and generate a student invite code.'}</DialogDescription>
+          <DialogDescription>Create a classroom and generate a student invite code.</DialogDescription>
         </DialogHeader>
         <form id="create-class-form" onSubmit={onSubmit} aria-busy={pending} className="grid gap-4">
           <div className="grid gap-2">

@@ -5,7 +5,7 @@ import type { getDashboardRole } from '@/components/common/dashboard-navigation'
 export type RoomStatus = 'idle' | 'joining' | 'connected' | 'reconnecting' | 'ended'
 export type MeetingPanel = 'chat' | 'people' | 'info'
 export type MeetingCategory = 'educators' | 'tutors' | 'esl'
-export type MeetingMessage = { id: string; identity: string; text: string; sentAt: number }
+export type MeetingMessage = { id: string; identity: string; authorName?: string; text: string; sentAt: number }
 
 export type MeetingRoomScreenProps = {
   role: NonNullable<ReturnType<typeof getDashboardRole>>
