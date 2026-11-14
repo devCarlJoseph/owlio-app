@@ -162,6 +162,7 @@ function MeetingRoomSession() {
     <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
       status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}
       message={message} error={error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}
+      participantNames={Object.fromEntries(data.directory.map(item => [item.mediaIdentity, item.name]))}
       pinnedIdentity={pinned} onPin={setPinned} raisedHands={Object.fromEntries((data.state?.raisedHands ?? []).map(item => [identity(item.userId), true]))} revision={revision}
       micOn={micOn} cameraOn={cameraOn} screenOn={screenOn} handUpdating={handUpdating} activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0}
       messages={data.messages.map(item => ({ id: item.id, identity: identity(item.authorId), authorName: item.authorName, text: item.body, sentAt: Date.parse(item.createdAt) }))}

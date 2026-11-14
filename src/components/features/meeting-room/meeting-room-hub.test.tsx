@@ -1,79 +1,45 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter, Outlet, Route, Routes } from 'react-router'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthSessionContext } from '@/components/features/auth/auth-session-context'
-import { ClassroomPreviewProvider } from '@/components/features/classrooms/classroom-preview-provider'
-import { classroomPreviewStore } from '@/components/features/classrooms/classroom-preview-store'
-import MeetingRoomPage from '@/pages/dashboard/classroom/meeting-room'
-
-beforeEach(() => classroomPreviewStore.reset())
+import { ClassroomPrototypeProvider } from '@/components/features/classrooms/classroom-prototype-provider'
+import { getClassrooms } from '@/services/api/classroom.service'
+import { createMeeting, getClassroomSessions } from '@/services/api/meeting.service'
+import MeetingRoomPage from './meeting-room-view'
+vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
+vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), endMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
+const id = '11111111-1111-4111-8111-111111111111'
+beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]); vi.mocked(getClassroomSessions).mockResolvedValue([]) })
 afterEach(cleanup)
-
-function open(path = '/students/classrooms/meeting-room') {
-  render(<MemoryRouter initialEntries={[path]}><AuthSessionContext.Provider value={{ user: null, status: 'anonymous', error: null,
-    signIn: async () => { throw new Error('Preview only') }, signOut: async () => {}, refreshCurrentUser: async () => {} }}>
-    <ClassroomPreviewProvider><Routes>
-      <Route element={<><nav aria-label="Workspace navigation">Sidebar</nav><Outlet /></>}>
-        <Route path="/:role/classrooms/meeting-room" element={<MeetingRoomPage />} />
-      </Route>
-    </Routes></ClassroomPreviewProvider>
-  </AuthSessionContext.Provider></MemoryRouter>)
+function open(path = '/students/classrooms/meeting-room', teacher = false) {
+  return render(<MemoryRouter initialEntries={[path]}><AuthSessionContext.Provider value={{ user: { id: 'user', name: 'Test', email: 'test@example.test', roles: teacher ? ['EDUCATOR'] : ['STUDENT'], status: 'ACTIVE', emailVerifiedAt: '2026-11-14T00:00:00Z', createdAt: '2026-11-14T00:00:00Z' }, status: 'authenticated', error: null, signIn: vi.fn(), signOut: vi.fn(), refreshCurrentUser: vi.fn() }}><ClassroomPrototypeProvider><MeetingRoomPage /></ClassroomPrototypeProvider></AuthSessionContext.Provider></MemoryRouter>)
 }
-
-describe('meeting room entry', () => {
-  it('shows three categories and filters enrolled classes while keeping the student workspace', () => {
-    open()
-    expect(screen.getByRole('navigation', { name: 'Workspace navigation' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Classroom/ })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Classroom/ }))
-    expect(screen.getByRole('heading', { name: 'Human Computer Interaction · BSIT 3A' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Algebra coaching circle' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: /Tutor/ }))
-    expect(screen.getByRole('heading', { name: 'Tutor meetings' })).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: 'Open class' })).toHaveLength(2)
-    expect(screen.getAllByRole('link', { name: 'Open class' }).every(link => link.getAttribute('href')?.startsWith('/students/classrooms/'))).toBe(true)
-    expect(screen.queryByRole('heading', { name: 'Human Computer Interaction · BSIT 3A' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: /ESL/ }))
-    expect(screen.getByRole('heading', { name: 'ESL meetings' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Everyday English' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'English conversation club' })).toBeNull()
-    expect(screen.getByRole('link', { name: 'Use a meeting invite' }).getAttribute('href')).toBe('/students/classrooms/meeting-room?category=esl&join=1')
-    expect(screen.queryByRole('link', { name: 'Join meeting' })).toBeNull()
+describe('connected meeting entry', () => {
+  it.each(['students', 'educators', 'tutors', 'esl'])('does not render layout or sample previews in %s', async role => {
+    open('/' + role + '/classrooms/meeting-room?layout-preview=1&whiteboard-preview=1')
+    expect(await screen.findByText('Join or create a class to see its sessions.')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Preview room layout' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Meeting stage' })).toBeNull()
   })
-
-  it('opens invite entry inside the dashboard and returns to the category page', () => {
-    open('/students/classrooms/meeting-room?category=tutors')
-    fireEvent.click(screen.getByRole('link', { name: 'Use a meeting invite' }))
-    expect(screen.getByLabelText('Invite link or room code')).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Meeting room' }).className).not.toContain('fixed')
-    expect(screen.getByRole('navigation', { name: 'Workspace navigation' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('link', { name: 'Back to Meeting Room' }))
-    expect(screen.getByRole('group', { name: 'Meeting categories' })).toBeTruthy()
+  it('rejects legacy room invites without opening a fabricated live room', () => {
+    open('/students/classrooms/meeting-room?room=' + id)
+    fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
+    expect(screen.getByRole('alert').textContent).toContain('scheduled-session invite')
   })
-
-  it('preserves a teacher workspace and keeps direct invites supported', () => {
-    open('/tutors/classrooms/meeting-room?category=tutors')
-    expect(screen.getAllByRole('link', { name: 'Open class' }).every(link => link.getAttribute('href')?.startsWith('/tutors/classrooms/'))).toBe(true)
-    cleanup()
-    open('/students/classrooms/meeting-room?room=12345678-1234-1234-1234-123456789abc')
-    expect(screen.getByLabelText('Invite link or room code')).toBeTruthy()
-    expect(screen.queryByRole('group', { name: 'Meeting categories' })).toBeNull()
+  it('opens an owned scheduled-session room and reports backend confirmation', async () => {
+    vi.mocked(createMeeting).mockResolvedValue({ id, status: 'OPEN' })
+    open('/educators/classrooms/meeting-room?session=' + id, true)
+    expect((screen.getByLabelText('Invite link or room code') as HTMLInputElement).value).toBe('OWLIO-SESSION-' + id)
+    fireEvent.click(screen.getByRole('button', { name: 'Open session room' }))
+    await waitFor(() => expect(createMeeting).toHaveBeenCalledWith(id))
+    expect(await screen.findByText(/Session room opened/)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'End meeting for everyone' })).toBeNull()
   })
-
-  it.each([['esl', 'coaching'], ['tutors', 'coaching'], ['educators', 'classroom']] as const)('previews a student %s meeting in the %s design', (category, design) => {
-    open(`/students/classrooms/meeting-room?category=${category}`)
-    expect(screen.getByRole('link', { name: 'Preview room layout' }).getAttribute('href')).toBe(`/students/classrooms/meeting-room?category=${category}&join=1&layout-preview=1`)
-    fireEvent.click(screen.getByRole('link', { name: 'Preview room layout' }))
-    expect(screen.getByRole('region', { name: 'Meeting room' }).getAttribute('data-meeting-design')).toBe(design)
-  })
-
-  it.each(['students', 'educators', 'esl', 'tutors'])('previews the %s layout without enabling live media and returns to the lobby', role => {
-    open(`/${role}/classrooms/meeting-room`)
-    fireEvent.click(screen.getByRole('link', { name: 'Preview room layout' }))
-    expect(screen.getByRole('region', { name: 'Meeting room' }).getAttribute('data-meeting-design')).toBe(role === 'esl' || role === 'tutors' ? 'coaching' : 'classroom')
-    expect(screen.getByRole('button', { name: 'Turn camera on' }).hasAttribute('disabled')).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Exit preview' }))
-    expect(screen.getByLabelText('Invite link or room code')).toBeTruthy()
-    expect(screen.getByRole('navigation', { name: 'Workspace navigation' })).toBeTruthy()
+  it('reports a disabled provider without previewing a successful room', async () => {
+    vi.mocked(createMeeting).mockRejectedValue(new Error('Native meetings unavailable.'))
+    open('/educators/classrooms/meeting-room?session=' + id, true)
+    fireEvent.click(screen.getByRole('button', { name: 'Open session room' }))
+    expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Native meetings unavailable.')
+    expect(screen.queryByText(/Session room opened/)).toBeNull()
   })
 })

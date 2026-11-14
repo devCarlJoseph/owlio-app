@@ -84,7 +84,7 @@ function InfoPanel({ meetingCode, preview, onCopy, onClose }: { meetingCode: str
       <ul className="space-y-3 text-xs leading-5 text-muted-foreground">
         <li className="flex gap-2"><LockKeyhole aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />Camera and microphone stay off until you turn them on.</li>
         <li className="flex gap-2"><Users aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />Being in the call is presence only. It isn’t official attendance.</li>
-        <li className="flex gap-2"><MessageSquareText aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />In-call messages and raised hands are cleared when you leave.</li>
+        <li className="flex gap-2"><MessageSquareText aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />In-call messages belong to this session and remain available until the meeting ends.</li>
       </ul>
     </div>
   </section>
@@ -109,7 +109,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     ? classroomSessionPreview.people.map(person => ({ ...person, raised: Boolean(person.raised), local: false }))
     : state.participants.map(participant => ({
       identity: participant.identity,
-      name: participant.name || 'Participant',
+      name: state.participantNames?.[participant.identity] || participant.name || 'Participant',
       detail: participant.identity === state.localIdentity ? 'You' : 'Participant',
       micOn: participant.isMicrophoneEnabled,
       cameraOn: participant.isCameraEnabled,

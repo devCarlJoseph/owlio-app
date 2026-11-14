@@ -30,7 +30,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     ? sample.people.map(person => ({ ...person, raised: Boolean(person.raised), local: false }))
     : state.participants.map(participant => ({
       identity: participant.identity,
-      name: participant.name || 'Participant',
+      name: state.participantNames?.[participant.identity] || participant.name || 'Participant',
       detail: participant.identity === state.localIdentity ? 'You' : 'Participant',
       micOn: participant.isMicrophoneEnabled,
       cameraOn: participant.isCameraEnabled,

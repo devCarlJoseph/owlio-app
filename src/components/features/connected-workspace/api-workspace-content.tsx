@@ -20,7 +20,7 @@ export function ApiWorkspaceContent({ children }: { children: ReactNode }) {
     if (path === 'tasks') return <PersonalTasks />
     if (path === 'notes') return <PersonalNotes />
   }
-  if (/^classrooms(?:\/|$)/.test(path) || path === 'account/security') return children
+  if (/^classrooms(?:\/[^/]+(?:\/classwork\/[^/]+)?)?$/.test(path) || path === 'account/security') return children
   // Unconnected pages must not mount sample providers, local records, or design-only actions.
   return <section className="mx-auto max-w-3xl space-y-3 rounded-2xl border bg-card p-6"><h2 className="text-xl font-semibold">{getDashboardPageTitle(pathname)}</h2><p className="text-sm text-muted-foreground">This workspace is not available yet.</p><Link to={'/' + role + '/classrooms'} className="inline-block text-sm underline">Open my classes</Link></section>
 }

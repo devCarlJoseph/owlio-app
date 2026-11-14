@@ -1,14 +1,14 @@
 # Frontend authentication and role access
 
-Updated: 29 October 2026.
+Updated: 14 November 2026.
 
 This integration uses the existing Owlio API. It does not change backend routes, security settings, environment values, database schema, or role assignments.
 
-## Development preview mode
+## API-only access
 
-Set `API_INTEGRATION_ENABLED = false` in `src/lib/api-mode.ts` to browse every registered student, educator, tutor, ESL, and authentication/onboarding page without signing in or holding a matching role. This bypasses frontend session and role redirects only; it does not create an authenticated user, assign roles, or enable API calls. Pages that require server records may show empty/unavailable states. Dynamic detail URLs still need suitable records to display their content.
+Authentication and role guards always run. There is no preview bypass or configuration that opens protected pages anonymously. The compatibility constant in `src/lib/api-mode.ts` is true; guards and session restoration no longer depend on it.
 
-The preview banner remains visible. API requests, real sign-in, and server writes stay paused. Set the flag back to `true` to restore API-backed sessions and all access rules below. The selected flag value applies to the built frontend bundle as well as local development.
+The local onboarding wizard is no longer routed. `/onboarding` redirects to `/register`, whose account type is validated by the backend. Unconnected feature pages show an unavailable state through the API workspace boundary, without mounting local/sample-data views. See [API connection](API_CONNECTION.md).
 
 ## Route access (API integration enabled)
 
@@ -22,7 +22,7 @@ The preview banner remains visible. API requests, real sign-in, and server write
 
 Permissions accumulate when the API assigns multiple roles. An account with STUDENT and TUTOR can use both workspaces. Frontend onboarding selections and URLs never grant a role.
 
-The login, registration, verification, password recovery/reset, legacy auth, and local onboarding pages are guest-only. A signed-in user is redirected to an allowed workspace. The Google callback remains reachable because it must complete sign-in and explicit account linking.
+The login, registration, verification, password recovery/reset, legacy auth, and onboarding redirect are guest-only. A signed-in user is redirected to an allowed workspace. The Google callback remains reachable because it must complete sign-in and explicit account linking.
 
 Anonymous users are redirected to login before feature components render. The login return target is restricted to a workspace assigned by the API; authorized deep links retain their search/fragment. Redirects replace browser history entries so Back cannot bypass the guards.
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
-import { getCsrfToken, registerAccount, loginAccount, logoutAccount } from './auth.service'
-vi.mock('@/lib/axios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+import { getCsrfToken, registerAccount, loginAccount, logoutAccount, mutateApiWithCsrf } from './auth.service'
+vi.mock('@/lib/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() } }))
 
 function rejected(status: number, code: string) {
   return { isAxiosError: true, response: { status, data: { code } } }
@@ -9,6 +9,32 @@ function rejected(status: number, code: string) {
 beforeEach(() => { vi.resetAllMocks() })
 
 describe('current auth API contract', () => {
+  it('does not overwrite a refreshed CSRF token with an older in-flight read', async () => {
+    let oldResponse!: (value: { data: { data: { csrfToken: string } } }) => void
+    vi.mocked(api.get).mockReturnValueOnce(new Promise(resolve => { oldResponse = resolve }))
+      .mockResolvedValueOnce({ data: { data: { csrfToken: 'fresh' } } })
+    const older = getCsrfToken(true)
+    expect(await getCsrfToken(true)).toBe('fresh')
+    oldResponse({ data: { data: { csrfToken: 'old' } } })
+    await older
+    expect(await getCsrfToken()).toBe('fresh')
+    expect(api.get).toHaveBeenCalledTimes(2)
+  })
+  it('protects PATCH and DELETE bodies with the current CSRF token', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { data: { csrfToken: 'csrf' } } })
+    vi.mocked(api.patch).mockResolvedValue({ data: { data: { version: 2 } } })
+    vi.mocked(api.delete).mockResolvedValue({ data: { data: { id: 'note' } } })
+    await getCsrfToken(true)
+    await mutateApiWithCsrf('PATCH', '/api/v1/users/me/tasks/task', { expectedVersion: 1 })
+    await mutateApiWithCsrf('DELETE', '/api/v1/users/me/personal-notes/note', { expectedVersion: 2 })
+    expect(api.patch).toHaveBeenCalledWith('/api/v1/users/me/tasks/task', { expectedVersion: 1 }, { headers: { 'x-csrf-token': 'csrf' } })
+    expect(api.delete).toHaveBeenCalledWith('/api/v1/users/me/personal-notes/note', { headers: { 'x-csrf-token': 'csrf' }, data: { expectedVersion: 2 } })
+  })
+  it('rejects a missing CSRF token before sending a mutation', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { data: {} } })
+    await expect(getCsrfToken(true)).rejects.toThrow('CSRF token')
+    expect(api.post).not.toHaveBeenCalled()
+  })
   it('gets CSRF and sends cookies through the shared client without assuming registration returns a user', async () => {
     vi.mocked(api.get).mockResolvedValue({ data: { data: { csrfToken: 'csrf' } } })
     vi.mocked(api.post).mockResolvedValue({ data: { data: { message: 'Verification requested.' } } })

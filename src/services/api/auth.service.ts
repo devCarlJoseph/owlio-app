@@ -33,17 +33,18 @@ export async function getCsrfToken(forceRefresh = false): Promise<string> {
   }
   if (csrfToken) return csrfToken
   if (!csrfRequest) {
-    csrfRequest = api.get<ApiSuccess<CsrfResponse>>(`${authPath}/csrf`)
+    const request: Promise<string> = api.get<ApiSuccess<CsrfResponse>>(`${authPath}/csrf`)
       .then(({ data }) => {
         if (typeof data?.data?.csrfToken !== 'string' || !data.data.csrfToken) {
           throw new Error('The API did not return a CSRF token.')
         }
-        csrfToken = data.data.csrfToken
-        return csrfToken
+        if (csrfRequest === request) csrfToken = data.data.csrfToken
+        return data.data.csrfToken
       })
       .finally(() => {
-        csrfRequest = undefined
+        if (csrfRequest === request) csrfRequest = undefined
       })
+    csrfRequest = request
   }
   return csrfRequest
 }

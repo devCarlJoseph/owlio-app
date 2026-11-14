@@ -1,35 +1,29 @@
 # Capability status
 
-Source review: 3 November 2026. This is a navigation aid, not a live-environment certification. Recheck the affected source and runtime flag before implementation. Historical plans and integration reports can describe an earlier snapshot.
+Source review: 14 November 2026. Source and configuration establish implementation; browser reads and mocked tests establish different verification scopes.
 
-## Current operating mode
+## Operating mode
 
-[api-mode.ts](../../src/lib/api-mode.ts) currently sets `API_INTEGRATION_ENABLED = false`. Auth guards allow registered-page previews and API-backed actions are paused. This setting also affects built bundles. Preserve it unless changing integration mode is part of the request.
+The routed application is API-only. Auth/session and role guards always run. The compatibility export in `src/lib/api-mode.ts` is true; it no longer controls the guards or providers. There is no preview bypass, sample-data fallback, or local onboarding route.
 
-Connected clients remain implemented, but their existence does not prove a deployed backend is available. Browser-local tools and tab-memory previews have their own behavior while API integration is paused.
+`ApiWorkspaceContent` renders connected features and blocks older local/sample screens from mounting. Existing browser-local work remains in storage without automatic import or deletion. Unconnected destinations show an unavailable state.
 
 ## Capability map
 
-| Area | Implemented path and current limits | Evidence to inspect |
+| Area | Current routed behavior | Evidence |
 | --- | --- | --- |
-| Authentication and account security | API-backed forms, cookie/CSRF session flow, Google callback/linking, and role guards; paused by global mode. Onboarding is local, not a saved profile. | [Auth access](../AUTH_ROUTE_ACCESS.md), [auth service](../../src/services/api/auth.service.ts), `src/components/features/auth/` |
-| Classroom list/create/join/detail/owner roster | API clients and connected provider exist. Global preview mode selects a separate in-memory example provider. One-time connected join codes stay in memory. | [Connected provider](../../src/components/features/classrooms/classroom-prototype-provider.tsx), [preview provider](../../src/components/features/classrooms/classroom-preview-provider.tsx), [integration details](../CLASSROOM_API_INTEGRATION.md) |
-| Classroom activities, discussions, attendance, and results | Preview provider supports selected illustrative interactions that reset on reload. Connected mode leaves unsupported operations unavailable. | `src/components/features/classrooms/` |
-| Educator/ESL/tutor activities | Shared preview authoring/review reads the classroom preview store. No activity/submission API or account save; connected mode shows unavailable services. | [Teaching activities](../../src/components/features/teaching-activities/teaching-activities-view.tsx) |
-| Standalone Meeting Room | API create/join/end clients and LiveKit media/presence exist; API mode pauses connection actions. Layout preview does not establish a connected call. All in-call views hide the dashboard chrome. Design follows the workspace; students follow the `category` URL parameter (esl/tutors → coaching design, otherwise the Meet-style classroom design). Layout previews show labeled sample participants. The ESL/tutor "find the shape" whiteboard (teacher/student switch; student-only for students) lives in tab memory only, is not synced or saved, and is disabled in live rooms. Chat/hand raises are transient. | [Meeting view](../../src/components/features/meeting-room/meeting-room-view.tsx), [meeting service](../../src/services/api/meeting.service.ts) |
-| ESL whiteboard | Existing preview is not evidence of synchronized multi-user transport or persistence. | `src/components/features/esl-teaching/meeting-room/` |
-| Student subjects, tasks, and notes | Browser-local editing and example content; not account-synced, classroom assignments, or official records. | `src/components/features/personal-workspace/{subjects,tasks,notes}/` |
-| Personal document/presentation editors | Browser-local files with revision/save recovery and Owlio JSON backup; no Google sync or DOCX/PPTX integration. | [Work records](../../src/components/features/materials/workspace/work-records.ts), `src/components/features/materials/workspace/` |
-| Study Spaces | Browser-local records, discovery examples, and 3D hall/room interactions; not a confirmed multi-user collaboration service. | [Space records](../../src/components/features/personal-workspace/study-spaces/study-spaces-records.ts), `src/components/features/personal-workspace/study-spaces/` |
-| Student personal progress | Read-only summaries of existing local personal tasks. Official classroom results require a service; no implied grade/attendance sync. | [Student progress](../../src/components/features/progress/student-progress-view.tsx) |
-| Calendar/schedule | Date navigation, filters, and optional fictional examples. Saved scheduling is unavailable. | [Schedule view](../../src/components/features/schedule/schedule-workspace-view.tsx) |
-| AI assistance | Informational/unavailable UI; no model generation service. Student generation remains gated. | [Shared AI page](../../src/pages/dashboard/ai-assistant/index.tsx), [AI plan](../../OWLIO_AI_IMPLEMENTATION_PLAN.md) |
-| Other role tools, notifications, announcements, materials, and insights | Mixed scaffolds/previews; inspect each view. A menu entry or rendered card does not establish delivery, uploads, saved notes, analytics, or account persistence. | Corresponding `src/components/features/` view and `src/services/api/` |
+| Authentication and account security | Cookie/CSRF-backed forms, session refresh, Google callback/linking and API-derived role guards. `/onboarding` redirects to registration. | [Auth access](../AUTH_ROUTE_ACCESS.md), `src/components/features/auth/`, `src/services/api/auth.service.ts` |
+| Overview | Server identity and classroom list/count; no sample metrics. | `connected-workspace/api-workspace-content.tsx` |
+| Classrooms | API list/create/join/detail and owner roster; account cleanup and one-time invite codes in memory. | [Classroom integration](../CLASSROOM_API_INTEGRATION.md) |
+| Student subjects/tasks/notes | Account collections and confirmed mutations, including versioned edits and task transitions. Existing local records are retained but not read or imported. | `connected-workspace/personal-workspace.tsx`, `personal-workspace.service.ts` |
+| Notifications | API list and mark-one-read across roles; header links to the same connected inbox. | `connected-workspace/account-notifications.tsx` |
+| Schedule and tutor sessions | Classroom-scoped calendar window with pagination; owner scheduling and meeting links. | `connected-workspace/classroom-sessions.tsx`, `meeting.service.ts` |
+| Meeting Room | Scheduled-session open/join/end with LiveKit media; HTTP room state, names, latest chat and own-hand changes. Requires backend flag/provider/session eligibility. No layout or whiteboard previews. Host admission/moderation and whiteboard UI are not connected. | `meeting-room/meeting-room-view.tsx`, `meeting.service.ts`, [API connection](../API_CONNECTION.md) |
+| Other learning/teaching tools | Unavailable in the routed app until their frontend integration is implemented. This includes study spaces, materials/editors, classwork, discussions, academic records, teaching plans and profile/settings. Backend source may already contain corresponding routes. | `connected-workspace/api-workspace-content.tsx` |
+| AI | Unavailable. No inference provider or credentials in the browser. | [AI plan](../../OWLIO_AI_IMPLEMENTATION_PLAN.md) |
 
-## How to update status
+## Verification
 
-Record the affected capability's data source, persistence scope, operating mode, and unavailable actions. Link to source or a confirmed contract. Keep implementation, configuration, and live verification separate: a mocked test establishes client behavior, not deployment readiness.
-
-The classroom integration report describes connected-mode behavior. The current source also contains a separate preview provider; it must not be mistaken for either live classroom records or an API-error fallback.
+See [API connection](../API_CONNECTION.md) for contract evidence, feature limits, and the distinction between mocked tests, browser reads, and live persistence/media checks. Older component guides and dated reports may describe retired previews or local tools; they do not override the current route boundary.
 
 [Frontend architecture](frontend.md) | [Product overview](../product/overview.md)

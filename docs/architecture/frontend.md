@@ -16,6 +16,7 @@ Owlio is a client-rendered React/TypeScript SPA with Vite, npm, React Router, Ta
 | `src/components/common/` | Shared application components |
 | `src/components/ui/` | Domain-neutral UI primitives and variants |
 | `src/services/api/` | Typed HTTP contracts, adapters, and error handling |
+| `src/components/features/connected-workspace/` | Routed API-only overview, subjects, tasks, notes, notifications, scheduling, and unavailable-feature boundary |
 | `src/lib/` | Shared utilities and configuration |
 | [global.css](../../src/styles/global.css) | Tailwind entry point, font, semantic theme tokens |
 | [dark-surfaces.css](../../src/styles/dark-surfaces.css) | Compatibility styles for existing palette-based surfaces |
@@ -28,19 +29,23 @@ Workspace roots are `/students`, `/educators`, `/tutors`, and `/esl`. Shared pag
 
 `getDashboardRole` derives presentation context from a URL. Backend-assigned roles and resource authorization govern access. See [auth access](../AUTH_ROUTE_ACCESS.md) for session restoration, safe return paths, multi-role behavior, and guest-only routes. The actual root route redirects to login; `src/pages/App.tsx` is an unused placeholder, not the routed homepage.
 
+`ApiWorkspaceContent` renders the connected feature inventory. Other workspace destinations remain navigable but render an unavailable state; their older page adapters and sample/local implementations are not mounted. The entry point imports only active route adapters. Account/role/path changes remount connected content, and account reads are aborted on unmount. See [API connection](../API_CONNECTION.md).
+
 ## UI and reference images
 
 Read the local component API before using it; Base UI wrappers do not imply Radix `asChild` support. Reuse behavior and accessibility while adapting variants, dimensions, and composition to the requested design.
 
 Inter, the owl/wordmark, semantic tokens, and Auth Showcase are existing defaults. Unchanged areas retain their design. An explicit reference implementation/redesign may change the requested area's appearance without separate permission for each styling choice. Scope new styles so shared screens do not drift accidentally.
 
-For auth copy-only changes, use the existing showcase context and content configuration. For a requested auth redesign, preserve the real forms, validation, and session flow while changing layout.
+The auth showcase is static brand artwork and guidance. Its interactive example quiz and fictional live-session badges have been removed. Preserve the real forms, validation, and session flow when changing its layout.
 
 Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile update. When adding palette utilities covered by the existing dark compatibility mechanism, inspect/run `node scripts/sync-dark-utilities.mjs` and review the generated CSS. New UI can use semantic tokens or scoped reference-specific styles. Authored presentation surfaces and the ESL drawing canvas use `data-theme-content` to preserve content colors.
 
 ## Data and persistence
 
 Read [capability status](capability-status.md) before changing data behavior. Distinguish account-backed API records, browser-local records, tab-memory previews, and transient live-room events. A component/provider name containing `prototype` does not establish its current data mode.
+
+Current routes use the API only. Existing browser-local records are retained without automatic import, deletion, or account assignment. Their previous editors are not mounted by the routed app; a future migration must explicitly address ownership and format compatibility.
 
 Preserve existing storage keys and data shapes when redesigning local tools. Changes to stored formats need an explicit compatibility/recovery approach; local data must not disappear because a screen was restyled. Inspect the editor's revision checks, save-error recovery, and backup flow before changing it.
 
@@ -52,7 +57,7 @@ The [Axios client](../../src/lib/axios.ts) uses a client-visible API base URL an
 - Preserve verification/reset token handling: remove sensitive tokens from visible URLs after capture, send only through the matching API request, and keep them out of logs and persistent storage.
 - Preserve safe login return paths, account-switch cleanup, stale-request handling, and existing retry limits. Do not blindly replay feature mutations after session errors.
 - Registration password validation currently requires 8 characters minimum and 72 UTF-8 bytes maximum; inspect `auth/shared/password-rules.ts` and the confirmed contract before changing it.
-- Onboarding is a local wizard; its `others`/subtype choices do not assign authenticated tutor/ESL roles.
+- `/onboarding` redirects to API registration. Retained local-wizard source does not assign authenticated roles and is not mounted.
 
 Classroom contract details live in [classroom integration](../CLASSROOM_API_INTEGRATION.md). Meeting calls live in [meeting.service.ts](../../src/services/api/meeting.service.ts); media/presence uses LiveKit. Backend source and deployment readiness are outside this repository.
 

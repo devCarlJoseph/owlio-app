@@ -51,7 +51,7 @@ export function PersonalSubjects({ subjectId }: { subjectId?: string }) {
         <h3 className="font-semibold">{editing ? 'Edit subject' : 'Add a subject'}</h3>
         <label className="block space-y-2"><span className="text-sm">Subject name</span><Input required maxLength={120} value={name} onChange={event => setName(event.target.value)} disabled={busy} /></label>
         <label className="block space-y-2"><span className="text-sm">Description</span><Textarea maxLength={2000} value={description} onChange={event => setDescription(event.target.value)} disabled={busy} /></label>
-        <div className="flex gap-2"><Button disabled={busy || !name.trim()}>{busy ? 'Saving…' : 'Save subject'}</Button>{editing && <Button type="button" variant="outline" disabled={busy} onClick={() => { setEditing(null); setName(''); setDescription('') }}>Cancel edit</Button>}</div>
+        <div className="flex gap-2"><Button type="submit" disabled={busy || !name.trim()}>{busy ? 'Saving…' : 'Save subject'}</Button>{editing && <Button type="button" variant="outline" disabled={busy} onClick={() => { setEditing(null); setName(''); setDescription('') }}>Cancel edit</Button>}</div>
       </form>
       <div className="flex justify-end"><Button variant="outline" disabled={busy} onClick={state.reload}>Reload subjects</Button></div>
       {selected.length === 0 && <p className={card}>{subjectId ? 'This subject is not in your active subjects.' : 'No subjects yet. Add your first subject above.'}</p>}
@@ -101,7 +101,7 @@ export function PersonalTasks() {
         <h3 className="font-semibold">{editing ? 'Edit task' : 'Add a task'}</h3>
         <label className="block space-y-2"><span className="text-sm">Title</span><Input required maxLength={120} value={title} onChange={event => setTitle(event.target.value)} disabled={busy} /></label>
         <label className="block space-y-2"><span className="text-sm">Due date and time (optional)</span><Input type="datetime-local" value={due} onChange={event => setDue(event.target.value)} disabled={busy} /></label>
-        <div className="flex gap-2"><Button disabled={busy || !title.trim()}>{busy ? 'Saving…' : 'Save task'}</Button>{editing && <Button type="button" variant="outline" disabled={busy} onClick={() => { setEditing(null); setTitle(''); setDue('') }}>Cancel edit</Button>}</div>
+        <div className="flex gap-2"><Button type="submit" disabled={busy || !title.trim()}>{busy ? 'Saving…' : 'Save task'}</Button>{editing && <Button type="button" variant="outline" disabled={busy} onClick={() => { setEditing(null); setTitle(''); setDue('') }}>Cancel edit</Button>}</div>
       </form>
       <Button variant="outline" disabled={busy} onClick={state.reload}>Reload tasks</Button>
       {state.records.length === 0 && <p className={card}>No tasks yet.</p>}
@@ -152,7 +152,7 @@ export function PersonalNotes() {
         <label className="block space-y-2"><span className="text-sm">Subject (optional)</span><select value={subjectId} onChange={event => setSubjectId(event.target.value)} disabled={busy || subjects.loading || Boolean(subjects.error)} className="h-10 w-full rounded-md border bg-background px-3 text-sm"><option value="">No subject</option>{editing?.subjectId && !subjects.records.some(item => item.id === editing.subjectId) && <option value={editing.subjectId}>Current subject</option>}{subjects.records.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         {subjects.error && <RecordStatus {...subjects} />}
         <label className="block space-y-2"><span className="text-sm">Content</span><Textarea rows={8} maxLength={12000} value={content} onChange={event => setContent(event.target.value)} disabled={busy} /></label>
-        <div className="flex gap-2"><Button disabled={busy || !title.trim()}>{busy ? 'Saving…' : 'Save note'}</Button>{editing && <Button type="button" variant="outline" disabled={busy} onClick={clear}>Cancel edit</Button>}</div>
+        <div className="flex gap-2"><Button type="submit" disabled={busy || !title.trim()}>{busy ? 'Saving…' : 'Save note'}</Button>{editing && <Button type="button" variant="outline" disabled={busy} onClick={clear}>Cancel edit</Button>}</div>
       </form>
       <Button variant="outline" disabled={busy} onClick={state.reload}>Reload notes</Button>
       {deleteTarget && <section role="alertdialog" aria-label="Delete note" aria-describedby="delete-note-description" className={card}><p id="delete-note-description">Delete “{deleteTarget.title}” from your account?</p><div className="flex gap-2"><Button disabled={busy} onClick={() => void remove()}>Delete note</Button><Button variant="outline" disabled={busy} onClick={() => setDeleteTarget(null)}>Keep note</Button></div></section>}

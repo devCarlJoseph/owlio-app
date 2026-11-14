@@ -63,7 +63,7 @@ function SessionWindow({ classroomId, role, canSchedule, load }: { classroomId: 
       <label className="block space-y-2"><span className="text-sm">Title</span><Input required maxLength={120} value={title} onChange={event => setTitle(event.target.value)} disabled={busy} /></label>
       <div className="grid gap-4 sm:grid-cols-2"><label className="block space-y-2"><span className="text-sm">Starts (local time)</span><Input required type="datetime-local" value={start} onChange={event => setStart(event.target.value)} disabled={busy} /></label><label className="block space-y-2"><span className="text-sm">Ends (local time)</span><Input required type="datetime-local" value={end} onChange={event => setEnd(event.target.value)} disabled={busy} /></label></div>
       <label className="block space-y-2"><span className="text-sm">Session mode</span><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={mode} onChange={event => setMode(event.target.value as typeof mode)} disabled={busy}><option value="ONLINE">Online</option><option value="IN_PERSON">In person</option><option value="HYBRID">Hybrid</option></select></label>
-      <Button disabled={busy}>{busy ? 'Saving…' : 'Schedule session'}</Button>
+      <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Schedule session'}</Button>
     </form>}
     {!state.loading && !state.error && <><Button variant="outline" disabled={busy} onClick={state.reload}>Refresh sessions</Button>
       {state.records.length === 0 && <p className="rounded-xl border p-6">No sessions scheduled in this month.</p>}
