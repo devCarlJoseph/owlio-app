@@ -31,3 +31,9 @@ describe("workspace notification destinations", () => {
     expect(getDashboardNotificationHref("/students-other")).toBeUndefined()
   })
 })
+
+it.each(classroomRoles)('makes Account security reachable for %s', (role) => {
+  const href = '/' + role + '/account/security'
+  expect(getDashboardNavigation('/' + role).flatMap(group => group.items).find(item => item.label === 'Account security')?.href).toBe(href)
+  expect(getDashboardPageTitle(href)).toBe('Account security')
+})

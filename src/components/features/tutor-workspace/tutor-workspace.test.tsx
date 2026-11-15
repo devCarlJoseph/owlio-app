@@ -140,9 +140,11 @@ describe("tutor workspace pages", () => {
       expect(hrefs.has(href)).toBe(true)
     }
 
-    for (const path of ["attendance", "communication", "notifications", "settings", "account/security"]) {
+    for (const path of ["attendance", "communication", "notifications", "settings"]) {
       expect(hrefs.has(`/tutors/${path}`)).toBe(false)
     }
+
+    expect(hrefs.has("/tutors/account/security")).toBe(true)
 
     expect(links.every(({ href }) => href.startsWith("/tutors"))).toBe(true)
   })

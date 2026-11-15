@@ -26,7 +26,10 @@ export function getAccountLabel(roles: AuthRole[]) {
   return role ? accountLabels[role] : roles.includes("ADMIN") ? accountLabels.ADMIN : "Owlio account"
 }
 
-export function getLoginDestination(roles: AuthRole[], from: unknown) {
+export function getLoginDestination(roles: AuthRole[], from: unknown, connectGoogle = false) {
+  const defaultWorkspace = getWorkspacePath(roles)
+  if (connectGoogle && defaultWorkspace !== '/access-denied') return `${defaultWorkspace}/account/security`
+
   if (typeof from !== "object" || from === null || !("pathname" in from)) return getWorkspacePath(roles)
   const { pathname } = from
   if (typeof pathname !== "string" || pathname.includes("\\")) return getWorkspacePath(roles)

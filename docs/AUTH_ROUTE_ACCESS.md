@@ -1,6 +1,6 @@
 # Frontend authentication and role access
 
-Updated: 14 November 2026.
+Updated: 16 November 2026.
 
 This integration uses the existing Owlio API. It does not change backend routes, security settings, environment values, database schema, or role assignments.
 
@@ -31,13 +31,13 @@ Anonymous users are redirected to login before feature components render. The lo
 - Restore the session from GET /api/v1/auth/me.
 - On 401, try the existing cookie-based refresh endpoint; a refresh 401 means anonymous.
 - Keep forms/features closed while the initial session check is loading or unavailable.
-- Recheck on protected route navigation, window focus, page restoration, and tab visibility.
+- Recheck on protected route navigation. Brief focus/visibility changes and page restoration keep the current screen. After 15 minutes without interaction, returning to the tab or interacting again triggers a background check without the loading screen.
 - Recheck after protected API requests return 401; do not automatically replay feature mutations.
 - Clear frontend authentication only after logout succeeds on the API.
 - Ignore outdated session checks after login/logout.
 - Keep credentials in HttpOnly cookies and CSRF only in memory.
 
-API failures show a retry state instead of being interpreted as a successful login or a confirmed logout. Other-tab changes are observed when the tab becomes visible/focused or performs a protected navigation/request.
+API failures show a retry state instead of being interpreted as a successful login or a confirmed logout. Other-tab changes are observed on an idle return, protected navigation, or a protected request that returns 401. Initial load and explicit retry still show the session loading screen.
 
 ## Production cookie routing
 
@@ -46,6 +46,12 @@ Production API requests use the frontend origin and the `/api` Render proxy in `
 ## Contract alignment
 
 The frontend uses the API's INVALID_CSRF response for a single retry after obtaining fresh CSRF. Registration returns a generic message, not an authenticated user. Account statuses include DISABLED. Google link status returns linked without an email. Google callback outcomes use the API's underscore names, including verification_required, registration_required, and link_required.
+
+## Google setup and linking
+
+A successful Google login callback with `registration_required` opens a dedicated signup step: choose an account role, accept the terms, and select **Sign up with Google**. Google supplies the name and email, and this flow does not require an Owlio password. Email signup remains available.
+
+An existing password account must explicitly connect Google. The setup screen offers **Log in to connect Google**, and `link_required` directs the user to password login. After login, both paths open the assigned workspace's **Account security** screen. Its **Connect Google** action starts the existing authenticated, CSRF-protected link flow. Account security is reachable from the sidebar and account menu for all four workspaces. Accounts are never silently merged by matching email.
 
 ## Main files
 

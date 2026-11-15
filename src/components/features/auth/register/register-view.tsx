@@ -15,7 +15,9 @@ export function RegisterView() {
   const location = useLocation()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [googlePending, setGooglePending] = useState(false)
-  const locationState = location.state as { oauthNotice?: string } | null
+  const locationState = location.state as { oauthNotice?: string; googleSetup?: boolean } | null
+  const [useEmail, setUseEmail] = useState(false)
+  const googleOnly = locationState?.googleSetup === true && !useEmail
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { fullName: '', email: '', accountType: undefined, password: '', passwordConfirmation: '', acceptTerms: false },
@@ -64,11 +66,11 @@ export function RegisterView() {
   return (
     <FormProvider {...form}>
       <AuthShowcaseLayout context="register">
-        <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">Create your account</h1>
+        <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">{googleOnly ? 'Finish Google signup' : 'Create your account'}</h1>
         <div className="mt-7 space-y-4">
-          {locationState?.oauthNotice && <AuthFeedback title="Continue account setup" tone="info">{locationState.oauthNotice}</AuthFeedback>}
+          {locationState?.oauthNotice && !useEmail && <AuthFeedback title="Continue account setup" tone="info">{locationState.oauthNotice}</AuthFeedback>}
           {submitError && <AuthFeedback title="Account creation failed" tone="error">{submitError}</AuthFeedback>}
-          <RegisterForm onSubmit={onSubmit} onGoogle={onGoogle} googlePending={googlePending} />
+          <RegisterForm onSubmit={onSubmit} onGoogle={onGoogle} googlePending={googlePending} googleOnly={googleOnly} onUseEmail={() => setUseEmail(true)} />
         </div>
       </AuthShowcaseLayout>
     </FormProvider>

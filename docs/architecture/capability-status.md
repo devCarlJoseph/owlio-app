@@ -1,6 +1,6 @@
 # Capability status
 
-Source review: 15 November 2026. Source and configuration establish implementation; browser reads and mocked tests establish different verification scopes.
+Source review: 16 November 2026. Source and configuration establish implementation; browser reads and mocked tests establish different verification scopes.
 
 ## Operating mode
 
@@ -12,7 +12,7 @@ Auth/session and role guards always run. The compatibility export in `src/lib/ap
 
 | Area | Current routed behavior | Evidence |
 | --- | --- | --- |
-| Authentication and account security | Cookie/CSRF-backed forms, session refresh, Google callback/linking and API-derived role guards. Production API calls use a same-origin Render proxy; rollout settings and real-device verification are documented in API connection. `/onboarding` redirects to registration. | [Auth access](../AUTH_ROUTE_ACCESS.md), `src/components/features/auth/`, `src/services/api/auth.service.ts` |
+| Authentication and account security | Cookie/CSRF-backed forms, session refresh, Google callback/linking and API-derived role guards. Brief tab switches preserve the current screen; returning after 15 idle minutes rechecks in the background. First-time Google setup needs role/terms only, and existing users can reach explicit linking through Account security. Production API calls use a same-origin Render proxy; rollout settings and real-device verification are documented in API connection. `/onboarding` redirects to registration. | [Auth access](../AUTH_ROUTE_ACCESS.md), `src/components/features/auth/`, `src/services/api/auth.service.ts` |
 | Overview | Original role overview; separate Account records view retains server identity and classroom count. | `dashboard-overview/`, `connected-workspace/api-workspace-content.tsx` |
 | Classrooms | API list/create/join/detail and owner roster; persisted enrollment and reusable meeting codes; classroom-only chat/history/replies with five-second refresh and account cleanup. | [Classroom integration](../CLASSROOM_API_INTEGRATION.md) |
 | Student subjects/tasks/notes | Original device editors plus separate account collections and confirmed mutations. No automatic migration between them. | `personal-workspace/`, `connected-workspace/personal-workspace.tsx` |
