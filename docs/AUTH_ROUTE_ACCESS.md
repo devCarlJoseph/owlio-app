@@ -39,6 +39,10 @@ Anonymous users are redirected to login before feature components render. The lo
 
 API failures show a retry state instead of being interpreted as a successful login or a confirmed logout. Other-tab changes are observed when the tab becomes visible/focused or performs a protected navigation/request.
 
+## Production cookie routing
+
+Production API requests use the frontend origin and the `/api` Render proxy in `vercel.json`, so session and CSRF cookies do not depend on third-party cookie access in iOS browsers. Development retains `VITE_API_URL`. Existing Secure, HttpOnly, CSRF, session rotation, and route guards remain in place. Google OAuth must return through the frontend `/api/v1/auth/google/callback` path; see [API connection](API_CONNECTION.md#configuration-and-authentication) for release settings and device acceptance checks. This source change requires a frontend deployment and does not establish live iOS verification.
+
 ## Contract alignment
 
 The frontend uses the API's INVALID_CSRF response for a single retry after obtaining fresh CSRF. Registration returns a generic message, not an authenticated user. Account statuses include DISABLED. Google link status returns linked without an email. Google callback outcomes use the API's underscore names, including verification_required, registration_required, and link_required.
