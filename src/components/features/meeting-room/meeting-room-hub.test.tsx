@@ -38,10 +38,10 @@ describe('connected meeting entry', () => {
     expect(await screen.findByRole('group', { name: 'Meeting categories' })).toBeTruthy()
     expect(createMeeting).not.toHaveBeenCalled()
   })
-  it('rejects legacy room invites without opening a fabricated live room', () => {
+  it('rejects legacy room invites without opening a fabricated live room', async () => {
     open('/students/classrooms/meeting-room?room=' + id)
     fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
-    expect(screen.getByRole('alert').textContent).toContain('scheduled-session invite')
+    expect((await screen.findByRole('alert')).textContent).toContain('scheduled-session invite')
   })
   it('opens an owned scheduled-session room and reports backend confirmation', async () => {
     vi.mocked(createMeeting).mockResolvedValue({ id, status: 'OPEN' })

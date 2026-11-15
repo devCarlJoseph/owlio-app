@@ -10,9 +10,11 @@ function unsupported(): never { throw new Error('This classroom feature is not a
 
 function fromApi(record: ApiClassroom, user: AuthUser, joinCode: string | null = null): Classroom {
   const owned = record.ownerId === user.id
+  const teachingRoles = user.roles.filter(role => ['EDUCATOR', 'ESL', 'TUTOR'].includes(role))
+  const ownWorkspace = owned && teachingRoles.length === 1 ? teachingRoles[0] === 'EDUCATOR' ? 'educators' : teachingRoles[0] === 'ESL' ? 'esl' : 'tutors' : null
   return { id: record.id, ownerId: record.ownerId, name: record.name, description: record.description,
-    subject: '', instructorName: owned ? user.name : '', ownerWorkspace: null,
-    joinCode: owned ? joinCode : null, meetingId: null, access: owned ? 'owner' : 'student',
+    subject: '', instructorName: owned ? user.name : '', ownerWorkspace: record.ownerWorkspace ?? ownWorkspace,
+    joinCode: record.joinCode ?? joinCode, meetingId: record.meetingId ?? null, meetingCode: record.meetingCode ?? null, access: owned ? 'owner' : 'student',
     members: [], memberRequests: [], enrolledLearnerIds: [], posts: [], chatMessages: [],
     materials: [], sessions: [], attendance: [], activities: [], progress: [], isMock: false }
 }

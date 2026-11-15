@@ -3,7 +3,7 @@ import { Search, Video, X } from "lucide-react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { formatMeetingCode } from "@/lib/meeting-code"
+
 import type { Classroom, WorkspaceRole } from "./classroom-types"
 import { getInitials } from "./classroom-utils"
 
@@ -27,7 +27,7 @@ export function ChatHeader({
 }) {
   const searchId = useId()
   const meetingHref = classroom.meetingId
-    ? `/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`
+    ? `/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}`
     : null
 
   return (

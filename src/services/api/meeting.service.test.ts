@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
 import { postApiWithCsrf } from './auth.service'
-import { createMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, setMeetingHand } from './meeting.service'
+import { createMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from './meeting.service'
 vi.mock('@/lib/axios', () => ({ default: { get: vi.fn() } }))
 vi.mock('./auth.service', () => ({ postApiWithCsrf: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
@@ -53,5 +53,19 @@ describe('scheduled-session meeting contracts', () => {
     const input = { title: session.title, startsAt: session.startsAt, endsAt: session.endsAt, mode: 'ONLINE' as const, timeZone: 'Asia/Manila' }
     await scheduleClassroomSession(id, input)
     expect(postApiWithCsrf).toHaveBeenCalledWith('/api/v1/classrooms/' + id + '/sessions', { ...input, lessonId: null })
+  })
+})
+
+describe('short meeting invitations', () => {
+  it('resolves through the membership-scoped API before joining', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { sessionId: id, classroomId: other, meetingCode: 'OWLIOA7K2' } } })
+    expect(await resolveMeetingInvite(' owlioa7k2 ')).toEqual({ sessionId: id, classroomId: other, meetingCode: 'OWLIOA7K2' })
+    expect(api.get).toHaveBeenCalledWith('/api/v1/meeting-invitations/OWLIOA7K2', { signal: undefined })
+    expect(postApiWithCsrf).not.toHaveBeenCalled()
+  })
+  it('propagates denied membership instead of opening a local room', async () => {
+    vi.mocked(api.get).mockRejectedValue(new Error('NOT_FOUND'))
+    await expect(resolveMeetingInvite('OWLIOA7K2')).rejects.toThrow('NOT_FOUND')
+    expect(postApiWithCsrf).not.toHaveBeenCalled()
   })
 })

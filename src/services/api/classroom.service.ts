@@ -3,7 +3,7 @@ import type { AxiosResponse } from 'axios'
 import { postApiWithCsrf } from './auth.service'
 import type { ApiSuccess } from './api.types'
 
-export type ApiClassroom = { id: string; ownerId: string; name: string; description: string; createdAt: string }
+export type ApiClassroom = { id: string; ownerId: string; name: string; description: string; createdAt: string; ownerWorkspace?: 'educators' | 'esl' | 'tutors' | null; joinCode?: string | null; meetingId?: string | null; meetingCode?: string | null }
 export type ApiPage<T> = { items: T[]; nextCursor: string | null }
 export type ApiStudent = { studentId: string; name: string; joinedAt: string }
 export type CreateClassroomRequest = { name: string; description: string }
@@ -48,4 +48,9 @@ export async function getClassroomStudents(id: string, cursor?: string, signal?:
     params: { limit: 50, ...(cursor ? { cursor } : {}) }, signal,
   })
   return response.data.data
+}
+
+export function rotateClassroomInvite(classroomId: string) {
+  return postApiWithCsrf<{ classroomId: string; joinCode: string; message: string }>(
+    '/api/v1/classrooms/' + encodeURIComponent(classroomId) + '/join-code/rotate', {})
 }

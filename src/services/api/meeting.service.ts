@@ -9,6 +9,7 @@ const path = (sessionId: string) =>
 const roomResult = z.object({
   id: z.uuid(),
   status: z.enum(["OPEN", "ENDING", "ENDED"]),
+  meetingCode: z.string().nullable().optional(),
 });
 const joinResult = z.object({
   meetingId: z.uuid(),
@@ -25,6 +26,7 @@ const ownParticipant = z.object({
   version: z.number().int(),
 });
 const roomState = z.object({
+  meetingCode: z.string().nullable().optional(),
   id: z.uuid(),
   title: z.string(),
   isHost: z.boolean(),
@@ -197,4 +199,10 @@ export async function scheduleClassroomSession(
       { ...input, lessonId: null },
     ),
   );
+}
+
+export async function resolveMeetingInvite(value: string, signal?: AbortSignal) {
+  const code = z.string().regex(/^OWLIO[A-Z0-9]{4}$/).parse(value.trim().toUpperCase())
+  return envelope(z.object({ sessionId: z.uuid(), classroomId: z.uuid(), meetingCode: z.string() }),
+    (await api.get<unknown>('/api/v1/meeting-invitations/' + code, { signal })).data)
 }

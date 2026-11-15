@@ -6,7 +6,7 @@ import { useAuthSession } from '@/components/features/auth/auth-session-context'
 import { Button } from '@/components/ui/button'
 import { formatSessionCode, getSessionIdFromInvite } from '@/lib/session-code'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import { createMeeting, endMeeting, joinMeeting, sendMeetingMessage, setMeetingHand } from '@/services/api/meeting.service'
+import { createMeeting, endMeeting, joinMeeting, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from '@/services/api/meeting.service'
 import { ClassroomSessions } from '@/components/features/connected-workspace/classroom-sessions'
 import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview'
 import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
@@ -21,7 +21,7 @@ export default function MeetingRoomPage() {
   const role = getDashboardRole(pathname) ?? 'students'
   if (shouldShowEslWhiteboardPreview(role, params.get('whiteboard-preview'))) return <EslWhiteboardPreview />
   if (params.get('layout-preview') === '1') return <MeetingLayoutPreview />
-  return params.has('session') || params.has('join') || params.has('room') ? <MeetingRoomSession key={params.get('session') ?? 'join'} /> : <MeetingDirectory />
+  return params.has('session') || params.has('join') || params.has('room') ? <MeetingRoomSession key={params.get('session') ?? params.get('room') ?? 'join'} /> : <MeetingDirectory />
 }
 function MeetingDirectory() {
   const { pathname } = useLocation()
@@ -57,7 +57,7 @@ function MeetingRoomSession() {
   const [params, setParams] = useSearchParams()
   const sessionId = getSessionIdFromInvite(params.get('session') ?? '')
   const [activeSessionId, setActiveSessionId] = useState(sessionId)
-  const code = activeSessionId ? formatSessionCode(activeSessionId) : ''
+  const [shortCode, setShortCode] = useState(params.get('code') ?? params.get('room') ?? '')
   const category = ['educators', 'esl', 'tutors'].includes(params.get('category') ?? '') ? params.get('category') as MeetingCategory : null
   const roomInputRef = useRef<HTMLInputElement>(null)
   const [room, setRoom] = useState<Room | null>(null)
@@ -79,6 +79,7 @@ function MeetingRoomSession() {
   const [handUpdating, setHandUpdating] = useState(false)
   const retryMessage = useRef<{ body: string; requestId: string } | null>(null)
   const data = useNativeMeetingData(room, activeSessionId)
+  const code = data.state?.meetingCode || (/^OWLIO[A-Z0-9]{4}$/.test(shortCode) ? shortCode : activeSessionId ? formatSessionCode(activeSessionId) : '')
   const canManage = Boolean(user?.roles.some(item => ['EDUCATOR', 'ESL', 'TUTOR'].includes(item)))
   useEffect(() => () => { ++operation.current; void roomRef.current?.disconnect(true); roomRef.current = null }, [])
   useEffect(() => {
@@ -100,8 +101,14 @@ function MeetingRoomSession() {
       room.off(RoomEvent.Reconnecting, reconnecting).off(RoomEvent.Reconnected, reconnected).off(RoomEvent.Disconnected, disconnected)
     }
   }, [room])
-  const readInvite = () => {
-    const value = getSessionIdFromInvite(roomInputRef.current?.value ?? code)
+  const readInvite = async () => {
+    const input = (roomInputRef.current?.value || code || activeSessionId).trim()
+    if (/^OWLIO[A-Z0-9]{4}$/i.test(input)) {
+      const resolved = await resolveMeetingInvite(input)
+      setShortCode(resolved.meetingCode)
+      return resolved.sessionId
+    }
+    const value = getSessionIdFromInvite(input)
     if (!value) throw new Error('Enter a scheduled-session invite or an OWLIO-SESSION code. Older room codes are not supported.')
     return value
   }
@@ -109,8 +116,9 @@ function MeetingRoomSession() {
     if (pending.current) return
     pending.current = true; setBusy(true); setError(''); setMessage('')
     try {
-      const selected = readInvite()
-      await createMeeting(selected)
+      const selected = await readInvite()
+      const opened = await createMeeting(selected)
+      if (opened.meetingCode) setShortCode(opened.meetingCode)
       setActiveSessionId(selected)
       setMessage('Session room opened. You can now join and share the session invite.')
     } catch (cause) { setError(getApiErrorMessage(cause, 'Could not open this session room.')) }
@@ -119,10 +127,12 @@ function MeetingRoomSession() {
   const join = async (event?: FormEvent) => {
     event?.preventDefault()
     if (pending.current) return
-    let selected: string
-    try { selected = readInvite() } catch (cause) { setError((cause as Error).message); return }
-    pending.current = true; setBusy(true); setError(''); setMessage(''); setStatus('joining')
+    pending.current = true; setBusy(true); setError('')
     const request = ++operation.current
+    let selected: string
+    try { selected = await readInvite() } catch (cause) { if (request !== operation.current) return; pending.current = false; setBusy(false); setError((cause as Error).message); return }
+    if (request !== operation.current) return
+    pending.current = true; setBusy(true); setError(''); setMessage(''); setStatus('joining')
     const next = new Room({ adaptiveStream: true, dynacast: true })
     roomRef.current = next
     try {
@@ -181,9 +191,9 @@ function MeetingRoomSession() {
   }
   const identity = (userId: string) => userId === user?.id ? room?.localParticipant.identity ?? userId : data.directory.find(item => item.userId === userId)?.mediaIdentity ?? userId
   const copy = async () => {
-    const invite = new URL(window.location.href); invite.search = ''; invite.searchParams.set('session', activeSessionId)
+    const invite = new URL(window.location.href); invite.search = ''; invite.searchParams.set('session', activeSessionId); if (/^OWLIO[A-Z0-9]{4}$/.test(code)) invite.searchParams.set('code', code)
     try { await navigator.clipboard.writeText(invite.toString()); setMessage('Session invite copied.') }
-    catch { setMessage('Share this session code: ' + formatSessionCode(activeSessionId)) }
+    catch { setMessage('Share this session code: ' + code) }
   }
   return <div className="space-y-4">
     {!room && <p className="text-sm text-muted-foreground">Use a scheduled-session invite. Teachers can open their own session room before joining. <Link className="underline" to={'/' + role + '/schedule?source=account'}>View sessions</Link></p>}

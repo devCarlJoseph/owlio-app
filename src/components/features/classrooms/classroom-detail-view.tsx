@@ -47,14 +47,14 @@ export function ClassroomDetailView() {
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5"><BookOpen aria-hidden="true" className="size-4" />{classroom.instructorName || 'Instructor details unavailable'}</span><span>{owned ? 'Teaching workspace' : 'Enrolled member'}</span></p>
         </div>
         <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => selectTab('classwork')}>View classwork</Button>
-          {classroom.meetingId && <Link className={buttonVariants()} to={`/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingId)}`}><Video aria-hidden="true" />Meeting room</Link>}
+          {classroom.meetingId && <Link className={buttonVariants()} to={`/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}`}><Video aria-hidden="true" />Meeting room</Link>}
         </div>
       </header>
     </section>
-    {owned && <details className="rounded-xl border border-border bg-card p-4"><summary className="cursor-pointer rounded text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Teacher tools · classroom invite</summary><section aria-label="Classroom invite" className="mt-4 space-y-3"><h3 className="text-sm font-semibold">Student invite code</h3>
+    {<details className="rounded-xl border border-border bg-card p-4"><summary className="cursor-pointer rounded text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom invite</summary><section aria-label="Classroom invite" className="mt-4 space-y-3"><h3 className="text-sm font-semibold">Student invite code</h3>
       {classroom.joinCode ? <><code className="block break-all select-all rounded-lg bg-muted p-3 text-sm">{classroom.joinCode}</code><Button variant="outline" onClick={() => void copyCode()}>Copy invite code</Button>
-        <p className="text-xs text-muted-foreground">Keep this code private. Save it now; it cannot be retrieved after reloading or signing out.</p></>
-        : <p className="text-sm text-muted-foreground">The code was shown when this classroom was created. Retrieving or replacing a lost code is not available yet.</p>}
+        <p className="text-xs text-muted-foreground">Share this code only with students invited to this classroom.</p></>
+        : <p className="text-sm text-muted-foreground">This classroom has a legacy invite. Its owner must rotate the code before it can be displayed here.</p>}
       {notice && <p role="status" className="text-sm">{notice}</p>}</section></details>}
     <Tabs value={tab} onValueChange={selectTab}>
       <div className="max-w-full overflow-x-auto rounded-xl border border-border bg-card p-1"><TabsList variant="line" className="h-12 min-w-max">{tabs.map(item => <TabsTrigger key={item.value} value={item.value} className="px-4 py-3">{item.value === 'progress' && classroom.ownerWorkspace !== 'educators' ? 'Progress & Feedback' : item.label}</TabsTrigger>)}</TabsList></div>
