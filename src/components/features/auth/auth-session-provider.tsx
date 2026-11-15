@@ -2,7 +2,6 @@ import axios from 'axios'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router'
 import api from '@/lib/axios'
-import { API_INTEGRATION_ENABLED } from '@/lib/api-mode'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import type { AuthUser, LoginRequest } from '@/services/api/api.types'
 import { getCurrentUser, loginAccount, logoutAccount, refreshSession } from '@/services/api/auth.service'
@@ -10,7 +9,7 @@ import { AuthSessionContext, type AuthSessionContextValue, type SessionStatus } 
 
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [status, setStatus] = useState<SessionStatus>(API_INTEGRATION_ENABLED ? 'loading' : 'anonymous')
+  const [status, setStatus] = useState<SessionStatus>('loading')
   const [error, setError] = useState<string | null>(null)
   const operationVersion = useRef(0)
   const changingSession = useRef(false)
@@ -41,7 +40,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const checkCurrentUser = useCallback(async (background = false) => {
-    if (!API_INTEGRATION_ENABLED || changingSession.current) return
+    if (changingSession.current) return
     const operation = ++operationVersion.current
     setStatus((current) => background && current === 'authenticated' ? current : 'loading')
     setError(null)
@@ -68,7 +67,6 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [refreshCurrentUser, invalidatePendingChecks])
 
   useEffect(() => {
-    if (!API_INTEGRATION_ENABLED) return
     const recheck = () => { void checkCurrentUser(true) }
     const onVisible = () => { if (document.visibilityState === 'visible') recheck() }
     const onPageShow = (event: PageTransitionEvent) => { if (event.persisted) void refreshCurrentUser() }
@@ -95,7 +93,6 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [pathname, checkCurrentUser])
 
   const signIn = useCallback(async (credentials: LoginRequest) => {
-    if (!API_INTEGRATION_ENABLED) throw new Error('Sign-in is unavailable while the UI is in preview mode.')
     const operation = ++operationVersion.current
     changingSession.current = true
     pendingSession.current = null
@@ -117,7 +114,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     changingSession.current = true
     pendingSession.current = null
     try {
-      if (API_INTEGRATION_ENABLED) await logoutAccount()
+      await logoutAccount()
       if (operation === operationVersion.current) {
         setUser(null)
         setStatus('anonymous')

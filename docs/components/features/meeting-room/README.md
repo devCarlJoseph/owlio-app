@@ -1,5 +1,7 @@
 # Meeting room component breakdown
 
+Snapshot notice: the source copies below precede the 15 November 2026 pre-join device and realtime chat repair. Use the runtime source and [current API connection contract](../../../API_CONNECTION.md) for that behavior.
+
 [Browse the organized source copies](SOURCE_INDEX.md). These `.ts.txt`/`.tsx.txt` files are byte-for-byte reference copies, not runnable modules.
 
 Suggested commit: `docs(meeting-room): add organized meeting source copies`

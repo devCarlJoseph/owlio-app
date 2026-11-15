@@ -169,6 +169,7 @@ export type Classroom = {
   previewStatus?: "active" | "inactive"
   joinCode: string | null
   meetingId: string | null
+  meetingCode?: string | null
   access: "owner" | "student"
   members: ClassroomMember[]
   memberRequests: MemberRequest[]

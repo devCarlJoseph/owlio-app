@@ -3,7 +3,6 @@ import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
 import { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
-import OnboardingPage from "@/pages/onboarding";
 import RegisterPage from "@/pages/auth/register";
 import LoginPage from "@/pages/auth/login";
 import EmailVerificationPage from "@/pages/auth/email-verification";
@@ -70,7 +69,6 @@ import { RequireAuth } from "@/components/features/auth/require-auth";
 import { RequireGuest } from "@/components/features/auth/require-guest";
 import { RequireRole } from "@/components/features/auth/require-role";
 import { NoWorkspaceView } from "@/components/features/auth/no-workspace-view";
-import { API_INTEGRATION_ENABLED } from "@/lib/api-mode";
 import { initializeTheme } from '@/lib/theme';
 import { ThemeController } from '@/components/common/theme-controller';
 
@@ -80,14 +78,9 @@ createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <ThemeController />
     <AuthSessionProvider>
-      {!API_INTEGRATION_ENABLED && (
-        <div role="status" className="bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-950">
-          UI preview mode: API integrations are paused. API-backed actions are unavailable; API-backed changes are not saved.
-        </div>
-      )}
       <Routes>
         <Route element={<RequireGuest />}>
-          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/onboarding" element={<Navigate to="/register" replace />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/email-verification" element={<EmailVerificationPage />} />

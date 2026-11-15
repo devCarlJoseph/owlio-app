@@ -17,7 +17,7 @@ Start with the document that answers the task's question. Read only the relevant
 | Defect investigation | [Bug fix SOP](sops/bug-fix.md) |
 | Backend integration | [API integration SOP](sops/api-integration.md) |
 | Choosing checks and reporting evidence | [Verification](sops/verification.md) |
-| Optional repository skills | [Skills policy](../.agents/README.md) |
+| API integration skill | [Contract integration guidance](../.agents/skills/owlio-api-contract-integration/SKILL.md) |
 
 ## Detailed product plans
 
@@ -34,6 +34,7 @@ These existing documents retain detailed target navigation, page flows, acceptan
 
 - [Authentication and role access](AUTH_ROUTE_ACCESS.md)
 - [Classroom API integration](CLASSROOM_API_INTEGRATION.md)
+- [Current API connection and remaining frontend integrations](API_CONNECTION.md)
 
 ## Maintaining this documentation
 

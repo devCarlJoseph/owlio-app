@@ -33,28 +33,40 @@ export async function getCsrfToken(forceRefresh = false): Promise<string> {
   }
   if (csrfToken) return csrfToken
   if (!csrfRequest) {
-    csrfRequest = api.get<ApiSuccess<CsrfResponse>>(`${authPath}/csrf`)
+    const request: Promise<string> = api.get<ApiSuccess<CsrfResponse>>(`${authPath}/csrf`)
       .then(({ data }) => {
-        csrfToken = data.data.csrfToken
-        return csrfToken
+        if (typeof data?.data?.csrfToken !== 'string' || !data.data.csrfToken) {
+          throw new Error('The API did not return a CSRF token.')
+        }
+        if (csrfRequest === request) csrfToken = data.data.csrfToken
+        return data.data.csrfToken
       })
       .finally(() => {
-        csrfRequest = undefined
+        if (csrfRequest === request) csrfRequest = undefined
       })
+    csrfRequest = request
   }
   return csrfRequest
 }
 
 export async function postApiWithCsrf<T>(path: string, body?: unknown): Promise<T> {
-  const send = (token: string) => api.post<ApiSuccess<T>>(path, body, {
-    headers: { 'x-csrf-token': token },
-  })
+  return mutateApiWithCsrf<T>('POST', path, body)
+}
+
+export async function mutateApiWithCsrf<T>(method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+  const send = (token: string) => {
+    const config = { headers: { 'x-csrf-token': token } }
+    if (method === 'POST') return api.post<ApiSuccess<T>>(path, body, config)
+    if (method === 'PUT') return api.put<ApiSuccess<T>>(path, body, config)
+    if (method === 'PATCH') return api.patch<ApiSuccess<T>>(path, body, config)
+    return api.delete<ApiSuccess<T>>(path, { ...config, data: body })
+  }
 
   let response
   try {
     response = await send(await getCsrfToken())
   } catch (error) {
-    if (!axios.isAxiosError<CsrfErrorResponse>(error) || error.response?.status !== 403 || error.response.data.code !== 'INVALID_CSRF') {
+    if (!axios.isAxiosError<CsrfErrorResponse>(error) || error.response?.status !== 403 || error.response.data?.code !== 'INVALID_CSRF') {
       throw error
     }
     response = await send(await getCsrfToken(true))

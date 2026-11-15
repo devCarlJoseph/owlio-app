@@ -3,7 +3,7 @@ import { Search, Video, X } from "lucide-react"
 import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { formatMeetingCode } from "@/lib/meeting-code"
+
 import type { Classroom, WorkspaceRole } from "./classroom-types"
 import { getInitials } from "./classroom-utils"
 
@@ -26,8 +26,10 @@ export function ChatHeader({
   onQueryChange: (value: string) => void
 }) {
   const searchId = useId()
-  const meetingHref = classroom.meetingId
-    ? `/${role}/classrooms/meeting-room?room=${encodeURIComponent(formatMeetingCode(classroom.meetingId))}`
+  const meetingHref = classroom.meetingCode && !classroom.meetingId
+    ? `/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingCode)}`
+    : classroom.meetingId
+    ? `/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}`
     : null
 
   return (
@@ -42,7 +44,7 @@ export function ChatHeader({
             {classroom.members.length} {classroom.members.length === 1 ? "member" : "members"} · class only
           </p>
         </div>
-        <Badge variant="outline" className="hidden border-amber-200 bg-amber-50 text-amber-800 sm:inline-flex">Preview · not synced</Badge>
+        <Badge variant="outline" className="hidden border-amber-200 bg-amber-50 text-amber-800 sm:inline-flex">Class only</Badge>
         <button
           type="button"
           className={iconButton}

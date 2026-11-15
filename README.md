@@ -17,9 +17,9 @@ Vite prints the local development URL. Public configuration names are documented
 
 ## Operating mode
 
-[API integration mode](src/lib/api-mode.ts) currently defaults to paused UI preview. Registered pages are browsable without an API session; API-backed writes and real sign-in are paused. Some tools save in browser storage; others are tab-memory examples or unavailable. Preview mode also applies to production builds made with this flag.
+The routed app requires a real Owlio API session and API-assigned workspace roles. Preview bypasses, sample dashboards, room-layout previews, and local onboarding are no longer reachable. `/onboarding` redirects to API-backed registration.
 
-See [capability status](docs/architecture/capability-status.md) before treating a visible feature as account-backed. Change integration mode only as part of an intentional integration task.
+Set the public API origin using `VITE_API_URL` (default `http://localhost:7000`). The backend's `FRONTEND_URL` must exactly match the frontend origin. Authentication uses HttpOnly cookies and CSRF, with no API key in the browser. See [API connection](docs/API_CONNECTION.md) for connected features, remaining integrations, and verification boundaries.
 
 ## Checks
 
@@ -38,4 +38,4 @@ Use [verification guidance](docs/sops/verification.md) to choose focused checks 
 - [Product overview](docs/product/overview.md): roles, ownership, and shared product direction.
 - [Agent workflow](docs/sops/README.md): inspect, implement, validate, and hand off.
 - [Reference UI workflow](docs/sops/reference-ui.md): implement images with rendered comparison.
-- [Skills policy](.agents/README.md): optional specialized procedures; no repository skills are required.
+- [API integration skill](.agents/skills/owlio-api-contract-integration/SKILL.md): contract and cookie/CSRF integration guidance.

@@ -10,6 +10,7 @@ import { AudioTrack } from './audio-track'
 import { classroomSessionPreview } from './classroom-meeting-preview'
 import { ChatPanel, PeoplePanel, type CallPerson } from './coaching-meeting-parts'
 import { meetGrid } from './meeting-grid'
+import { PrejoinDevicePreview } from './prejoin-device-preview'
 import { useParticipantVideo } from './use-participant-video'
 import type { MeetingPanel, MeetingRoomScreenProps, RoomStatus } from './meeting-room-types'
 
@@ -84,7 +85,7 @@ function InfoPanel({ meetingCode, preview, onCopy, onClose }: { meetingCode: str
       <ul className="space-y-3 text-xs leading-5 text-muted-foreground">
         <li className="flex gap-2"><LockKeyhole aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />Camera and microphone stay off until you turn them on.</li>
         <li className="flex gap-2"><Users aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />Being in the call is presence only. It isn’t official attendance.</li>
-        <li className="flex gap-2"><MessageSquareText aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />In-call messages and raised hands are cleared when you leave.</li>
+        <li className="flex gap-2"><MessageSquareText aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />In-call messages belong to this session and remain available until the meeting ends.</li>
       </ul>
     </div>
   </section>
@@ -109,7 +110,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     ? classroomSessionPreview.people.map(person => ({ ...person, raised: Boolean(person.raised), local: false }))
     : state.participants.map(participant => ({
       identity: participant.identity,
-      name: participant.name || 'Participant',
+      name: state.participantNames?.[participant.identity] || participant.name || 'Participant',
       detail: participant.identity === state.localIdentity ? 'You' : 'Participant',
       micOn: participant.isMicrophoneEnabled,
       cameraOn: participant.isCameraEnabled,
@@ -143,16 +144,8 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     </header>
     {(state.message || state.error) && <div className="space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
     <div className="grid items-center gap-8 py-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)] lg:gap-12 lg:py-10">
-      <div>
-        <div className={cn('relative grid aspect-video place-items-center overflow-hidden rounded-2xl', tileSurface)}>
-          <div className="flex flex-col items-center gap-3 text-center"><span className="grid size-20 place-items-center rounded-full bg-slate-500 text-white"><VideoOff aria-hidden="true" className="size-8" /></span><p className="text-sm font-medium">{state.status === 'ended' ? 'This meeting has ended' : 'Camera is off'}</p></div>
-          <div className="absolute inset-x-0 bottom-4 flex justify-center gap-3" aria-hidden="true">
-            <span className="grid size-12 place-items-center rounded-full bg-rose-600 text-white"><MicOff className="size-5" /></span>
-            <span className="grid size-12 place-items-center rounded-full bg-rose-600 text-white"><VideoOff className="size-5" /></span>
-          </div>
-        </div>
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground"><LockKeyhole aria-hidden="true" className="size-3.5" />Your devices stay off until you choose otherwise</p>
-      </div>
+      <PrejoinDevicePreview cameraTrack={state.previewCameraTrack} micOn={state.micOn} cameraOn={state.cameraOn}
+        disabled={state.busy || Boolean(state.deviceBusy)} onMicrophone={state.onMicrophone} onCamera={state.onCamera} />
       <div className="mx-auto flex w-full max-w-sm flex-col gap-4 text-center lg:text-left">
         <span className="text-[11px] font-semibold tracking-widest text-brand">OWLIO CLASSROOM</span>
         <h3 className="text-3xl font-normal tracking-tight">{state.status === 'ended' ? 'This meeting has ended' : state.roomId ? 'Ready to join?' : 'Join your learning group'}</h3>
@@ -160,11 +153,10 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
         <form key={state.roomId} onSubmit={state.onJoin} className="grid gap-3 text-left">
           <label htmlFor="meeting-invite" className="text-xs font-medium">Invite link or room code</label>
           <Input ref={roomInputRef} id="meeting-invite" defaultValue={state.meetingCode} placeholder="Paste an invite or room code" autoComplete="off" className="h-11" />
-          <Button type="submit" disabled={state.busy || !state.apiEnabled} className="h-11 rounded-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
+          <Button type="submit" disabled={state.busy || state.deviceBusy || !state.apiEnabled} className="h-11 rounded-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
         </form>
-        {state.canCreate && <Button variant="outline" className="h-11 rounded-full" disabled={state.busy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Creating…' : 'Create a meeting'}</Button>}
+        {state.canCreate && <Button variant="outline" className="h-11 rounded-full" disabled={state.busy || state.deviceBusy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
         {!state.apiEnabled && <p role="status" className="rounded-xl bg-slate-200 p-3 text-left text-xs leading-5 text-muted-foreground">Live meetings are currently unavailable. You can preview the layout without connecting or enabling devices.</p>}
-        <Button variant="outline" className="h-11 rounded-full" onClick={state.onPreview}>Preview room layout</Button>
       </div>
     </div>
   </section>
@@ -213,8 +205,8 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     <footer className="flex h-auto shrink-0 flex-wrap items-center justify-center gap-2 py-1 md:grid md:h-16 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
       <div className="hidden min-w-0 items-center gap-3 text-sm font-medium md:flex"><MeetingClock /><span aria-hidden="true" className="h-4 w-px bg-border" /><span className="truncate">{state.meetingCode || (state.preview ? 'Room preview' : 'Learning together')}</span></div>
       <div role="group" aria-label="Meeting controls" className="flex items-center justify-center gap-2 sm:gap-3">
-        <MeetButton label={state.micOn ? 'Turn microphone off' : 'Turn microphone on'} pressed={state.micOn} tone={state.micOn ? undefined : 'off'} disabled={!enabled} onClick={state.onMicrophone}>{state.micOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}</MeetButton>
-        <MeetButton label={state.cameraOn ? 'Turn camera off' : 'Turn camera on'} pressed={state.cameraOn} tone={state.cameraOn ? undefined : 'off'} disabled={!enabled} onClick={state.onCamera}>{state.cameraOn ? <Video aria-hidden="true" /> : <VideoOff aria-hidden="true" />}</MeetButton>
+        <MeetButton label={state.micOn ? 'Turn microphone off' : 'Turn microphone on'} pressed={state.micOn} tone={state.micOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onMicrophone}>{state.micOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}</MeetButton>
+        <MeetButton label={state.cameraOn ? 'Turn camera off' : 'Turn camera on'} pressed={state.cameraOn} tone={state.cameraOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onCamera}>{state.cameraOn ? <Video aria-hidden="true" /> : <VideoOff aria-hidden="true" />}</MeetButton>
         <MeetButton label={raised ? 'Lower hand' : 'Raise hand'} pressed={raised} disabled={!enabled || state.handUpdating} onClick={state.onHand}><Hand aria-hidden="true" /></MeetButton>
         <MeetButton label={state.screenOn ? 'Stop presenting' : 'Share screen'} pressed={state.screenOn} disabled={!enabled} onClick={state.onScreen} className="max-sm:hidden"><MonitorUp aria-hidden="true" /></MeetButton>
         <MeetButton label={state.preview ? 'Exit preview' : 'Leave meeting'} tone="leave" onClick={state.onLeave}><PhoneOff aria-hidden="true" /></MeetButton>
@@ -236,3 +228,4 @@ function MeetingClock() {
   }, [])
   return <time dateTime={now.toISOString()} className="shrink-0 tabular-nums">{now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time>
 }
+

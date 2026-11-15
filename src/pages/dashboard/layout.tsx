@@ -20,6 +20,7 @@ import {
   getDashboardWorkspace,
 } from "@/components/common/dashboard-navigation"
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
+import { ApiWorkspaceContent } from "@/components/features/connected-workspace/api-workspace-content"
 import { NotificationsTrigger } from "@/components/features/notifications/notifications-trigger"
 import { useAuthSession } from "@/components/features/auth/auth-session-context"
 import { getAccountLabel } from "@/lib/workspace-path"
@@ -225,7 +226,7 @@ export default function PlatformLayout() {
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
             <DashboardChromeContext.Provider value={setImmersive}>
               <ClassroomPrototypeProvider>
-                <Outlet />
+                <ApiWorkspaceContent key={`${user?.id}:${user?.roles.join(',')}:${pathname}`}><Outlet /></ApiWorkspaceContent>
               </ClassroomPrototypeProvider>
             </DashboardChromeContext.Provider>
           </main>

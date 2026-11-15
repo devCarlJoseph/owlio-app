@@ -1,11 +1,11 @@
-import type { Participant } from 'livekit-client'
+import type { LocalVideoTrack, Participant } from 'livekit-client'
 import type { FormEvent, RefObject } from 'react'
 import type { getDashboardRole } from '@/components/common/dashboard-navigation'
 
 export type RoomStatus = 'idle' | 'joining' | 'connected' | 'reconnecting' | 'ended'
 export type MeetingPanel = 'chat' | 'people' | 'info'
 export type MeetingCategory = 'educators' | 'tutors' | 'esl'
-export type MeetingMessage = { id: string; identity: string; text: string; sentAt: number }
+export type MeetingMessage = { id: string; identity: string; authorName?: string; text: string; sentAt: number; delivery?: 'sending' | 'failed'; onRetry?: () => void }
 
 export type MeetingRoomScreenProps = {
   role: NonNullable<ReturnType<typeof getDashboardRole>>
@@ -24,11 +24,14 @@ export type MeetingRoomScreenProps = {
   message: string
   error: string
   participants: Participant[]
+  participantNames?: Record<string, string>
   localIdentity?: string
   pinnedIdentity: string | null
   onPin: (identity: string | null) => void
   raisedHands: Record<string, boolean>
   revision: number
+  previewCameraTrack?: LocalVideoTrack
+  deviceBusy?: boolean
   micOn: boolean
   cameraOn: boolean
   screenOn: boolean

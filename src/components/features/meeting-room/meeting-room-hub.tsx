@@ -28,7 +28,10 @@ export function MeetingRoomHub() {
       <h2 className="text-2xl font-semibold tracking-tight">Meeting Room</h2>
       <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{coaching ? 'A focused space for individual and group learning, with your people and conversation close by.' : 'Bring your learning group together. Join with an invite, then choose a grid or spotlight view.'}</p>
       </div>
-      <Link to={`${base}?${selected && role === 'students' ? `category=${selected.value}&` : ''}join=1&layout-preview=1`} className={buttonVariants({ variant: 'outline' })}><Video aria-hidden="true" />Preview room layout</Link>
+      <div className="flex flex-wrap gap-2">
+        <Link to={`${base}?source=account`} className={buttonVariants({ variant: 'outline' })}>Scheduled sessions</Link>
+        <Link to={`${base}?${selected && role === 'students' ? `category=${selected.value}&` : ''}join=1&layout-preview=1`} className={buttonVariants({ variant: 'outline' })}><Video aria-hidden="true" />Preview room layout</Link>
+      </div>
     </div>
     <div role="group" aria-label="Meeting categories" className="grid gap-4 lg:grid-cols-3">
       {categories.map(({ value, label, description, icon: Icon }) => <Button
@@ -51,7 +54,7 @@ export function MeetingRoomHub() {
         {matches.map(classroom => <Card key={classroom.id}>
           <CardHeader><h4 className="font-semibold">{classroom.name}</h4><p className="text-sm text-muted-foreground">{classroom.instructorName || 'Your teacher'}{classroom.isMock ? ' · Preview' : ''}</p></CardHeader>
           <CardContent>
-            {classroom.meetingId && !classroom.isMock ? <Link className={buttonVariants()} to={`${base}?category=${selected.value}&room=${encodeURIComponent(classroom.meetingId)}`}>Join meeting</Link> : <p className="text-sm text-muted-foreground">No meeting linked. Ask your teacher for an invite.</p>}
+            {(classroom.meetingId || classroom.meetingCode) && !classroom.isMock ? <Link className={buttonVariants()} to={classroom.meetingId ? `${base}?category=${selected.value}&session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}` : `${base}?category=${selected.value}&room=${encodeURIComponent(classroom.meetingCode!)}`}>Join meeting</Link> : <p className="text-sm text-muted-foreground">No meeting linked. Ask your teacher for an invite.</p>}
             <Link className="rounded text-sm text-brand underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring" to={`/${role}/classrooms/${classroom.id}`}>Open class</Link>
           </CardContent>
         </Card>)}
