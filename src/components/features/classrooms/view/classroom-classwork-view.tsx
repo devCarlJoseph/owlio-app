@@ -9,11 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useClassroomPrototype } from "./classroom-prototype-context"
-import type { ActivityTiming, ActivityType, Classroom, QuestionType, WorkspaceRole } from "./classroom-types"
-import { QuizTimerSettings } from "./quiz-timer-settings"
-import { QuizTimingBadges } from "./quiz-timing-badges"
-import { parseTimingFields, type TimingFormResult } from "./quiz-timing"
+import { useClassroomPrototype } from "../classroom-prototype-context"
+import type { ActivityTiming, ActivityType, Classroom, QuestionType, WorkspaceRole } from "../classroom-types"
+import { QuizTimerSettings } from "../quiz-timer-settings"
+import { QuizTimingBadges } from "../quiz-timing-badges"
+import { parseTimingFields, type TimingFormResult } from "../quiz-timing"
 
 const activityTypes: ActivityType[] = [
   "Quiz",

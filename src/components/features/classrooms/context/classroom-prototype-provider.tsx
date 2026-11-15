@@ -4,9 +4,9 @@ import { getApiErrorMessage } from '@/services/api/api-error'
 import type { AuthUser } from '@/services/api/api.types'
 import { createClassroom, getClassrooms, joinClassroomByCode, type ApiClassroom } from '@/services/api/classroom.service'
 import { ClassroomPrototypeContext, type ClassroomPrototypeContextValue } from './classroom-prototype-context'
-import type { Classroom } from './classroom-types'
+import type { Classroom } from '../classroom-types'
 import { API_INTEGRATION_ENABLED } from '@/lib/api-mode'
-import { ClassroomPreviewProvider } from './classroom-preview-provider'
+import { ClassroomPreviewProvider } from '../classroom-preview-provider'
 
 function unsupported(): never { throw new Error('This classroom feature is not available yet.') }
 

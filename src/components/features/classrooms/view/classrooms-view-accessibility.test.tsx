@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getClassrooms, joinClassroomByCode } from '@/services/api/classroom.service'
 import { ClassroomsView } from './classrooms-view'
-import { TestSession } from './classroom-test-fixtures'
+import { TestSession } from '../classroom-test-fixtures'
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 afterEach(cleanup)
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]) })

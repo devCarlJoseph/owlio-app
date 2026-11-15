@@ -1,7 +1,7 @@
 import { AlarmClock, CalendarClock, Trophy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type { ClassroomActivity } from "./classroom-types"
-import { formatDateTime, formatDuration } from "./quiz-timing"
+import type { ClassroomActivity } from "../classroom-types"
+import { formatDateTime, formatDuration } from "../quiz-timing"
 
 export function QuizTimingBadges({ activity }: { activity: ClassroomActivity }) {
   const { timing } = activity

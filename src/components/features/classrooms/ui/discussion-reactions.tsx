@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
 
-import { REACTION_CHOICES, type ReactionState } from "./discussion-reaction-data"
+import { REACTION_CHOICES, type ReactionState } from "../discussion-reaction-data"
 
 const chipClass =
   "inline-flex h-7 items-center gap-1.5 rounded-full border border-transparent bg-muted px-2.5 text-xs font-medium text-foreground outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
@@ -70,4 +70,3 @@ export function DiscussionReactions({
     </div>
   )
 }
-s

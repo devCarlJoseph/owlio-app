@@ -1,4 +1,4 @@
-import type { Classroom, WorkspaceRole } from './classroom-types'
+import type { Classroom, WorkspaceRole } from '../classroom-types'
 
 export const PREVIEW_LEARNER_ID = 'preview-learner'
 export const PREVIEW_LEARNER_NAME = 'Alex Rivera'

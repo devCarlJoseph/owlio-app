@@ -1,4 +1,4 @@
-import type { Classroom, WorkspaceRole } from "./classroom-types"
+import type { Classroom, WorkspaceRole } from "../classroom-types"
 
 export type ClassroomMetaCell = { label: string; value: string }
 export type ClassroomStatus = { label: string; tone: "connected" | "demo" }

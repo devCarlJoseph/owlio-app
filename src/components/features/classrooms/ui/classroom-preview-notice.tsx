@@ -1,7 +1,7 @@
 import { FlaskConical } from 'lucide-react'
 import { Link } from 'react-router'
-import { useClassroomPrototype } from './classroom-prototype-context'
-import type { WorkspaceRole } from './classroom-types'
+import { useClassroomPrototype } from '../classroom-prototype-context'
+import type { WorkspaceRole } from '../classroom-types'
 
 const workspaces: { role: WorkspaceRole; label: string }[] = [
   { role: 'students', label: 'Student' }, { role: 'educators', label: 'Educator' },

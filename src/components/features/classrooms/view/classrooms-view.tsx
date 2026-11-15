@@ -5,12 +5,12 @@ import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import { ClassroomListHeader, ClassroomListRow, ClassroomCard } from './classroom-card'
-import { FilterPills, GridListToggle, type ClassroomView } from './classroom-list-ui'
-import { ClassroomCreateDialog, ClassroomJoinDialog } from './classroom-form-dialogs'
-import { useClassroomPrototype } from './classroom-prototype-context'
-import { ClassroomPreviewNotice } from './classroom-preview-notice'
-import { getClassroomCategory } from './classroom-list-meta'
+import { ClassroomListHeader, ClassroomListRow, ClassroomCard } from '../classroom-card'
+import { FilterPills, GridListToggle, type ClassroomView } from '../classroom-list-ui'
+import { ClassroomCreateDialog, ClassroomJoinDialog } from '../classroom-form-dialogs'
+import { useClassroomPrototype } from '../classroom-prototype-context'
+import { ClassroomPreviewNotice } from '../classroom-preview-notice'
+import { getClassroomCategory } from '../classroom-list-meta'
 
 export function ClassroomsView() {
   const { pathname } = useLocation()

@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { AuthSessionContext } from '@/components/features/auth/auth-session-context'
 import type { AuthUser } from '@/services/api/api.types'
 import { student } from './classroom-test-data'
-import { ClassroomPrototypeProvider } from './classroom-prototype-provider'
+import { ClassroomPrototypeProvider } from '../classroom-prototype-provider'
 
 vi.mock('@/lib/api-mode', () => ({ API_INTEGRATION_ENABLED: true }))
 

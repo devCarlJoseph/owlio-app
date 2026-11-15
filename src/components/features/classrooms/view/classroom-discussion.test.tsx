@@ -2,9 +2,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { Route, Routes } from 'react-router'
 import { afterEach, expect, it, vi } from 'vitest'
 import { getClassrooms } from '@/services/api/classroom.service'
-import { ClassroomDetailView } from './classroom-detail-view'
-import { TestSession } from './classroom-test-fixtures'
-import { classroom } from './classroom-test-data'
+import { ClassroomDetailView } from '../classroom-detail-view'
+import { TestSession } from '../classroom-test-fixtures'
+import { classroom } from '../classroom-test-data'
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 afterEach(cleanup)
 it('Discussion does not offer local-only writes or sample messages', async () => {

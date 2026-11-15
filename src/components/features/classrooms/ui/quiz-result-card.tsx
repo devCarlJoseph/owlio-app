@@ -1,8 +1,8 @@
 import { Award, Clock, Hash, ListChecks } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import type { ClassroomActivity, ClassroomSubmission } from "./classroom-types"
+import type { ClassroomActivity, ClassroomSubmission } from "../classroom-types"
 import { PersonAvatar } from "./classroom-ui"
-import { formatDuration, type LeaderboardEntry } from "./quiz-timing"
+import { formatDuration, type LeaderboardEntry } from "../quiz-timing"
 
 function Tile({ icon: Icon, label, value }: { icon: typeof Award; label: string; value: string }) {
   return (

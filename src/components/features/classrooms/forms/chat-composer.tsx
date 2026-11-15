@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { Paperclip, Send, Smile, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import type { ClassroomChatReplyRef } from "./classroom-types"
-import { REACTION_CHOICES } from "./discussion-reaction-data"
+import type { ClassroomChatReplyRef } from "../classroom-types"
+import { REACTION_CHOICES } from "../discussion-reaction-data"
 
 const MAX_LENGTH = 500
 

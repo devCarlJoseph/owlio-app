@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useClassroomPrototype } from "./classroom-prototype-context"
-import type { AttendanceStatus, Classroom, WorkspaceRole } from "./classroom-types"
+import { useClassroomPrototype } from "../classroom-prototype-context"
+import type { AttendanceStatus, Classroom, WorkspaceRole } from "../classroom-types"
 
 export function ClassroomMaterialsView({
   classroom,

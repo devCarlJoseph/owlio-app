@@ -1,7 +1,7 @@
 import { Construction } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { getInitials } from "./classroom-utils"
+import { getInitials } from "../classroom-utils"
 
 const avatarTones = [
   "bg-blue-100 text-blue-800",

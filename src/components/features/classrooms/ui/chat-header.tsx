@@ -4,8 +4,8 @@ import { Link } from "react-router"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { formatMeetingCode } from "@/lib/meeting-code"
-import type { Classroom, WorkspaceRole } from "./classroom-types"
-import { getInitials } from "./classroom-utils"
+import type { Classroom, WorkspaceRole } from "../classroom-types"
+import { getInitials } from "../classroom-utils"
 
 const iconButton =
   "inline-flex size-9 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"

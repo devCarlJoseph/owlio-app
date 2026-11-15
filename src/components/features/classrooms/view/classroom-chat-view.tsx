@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FileText } from "lucide-react"
-import { useClassroomPrototype } from "./classroom-prototype-context"
-import type { Classroom, ClassroomChatMessage, ClassroomChatReplyRef, WorkspaceRole } from "./classroom-types"
-import { PersonAvatar } from "./classroom-ui"
-import { isYou } from "./classroom-utils"
-import { ChatComposer } from "./chat-composer"
-import { ChatHeader } from "./chat-header"
-import { ChatMessageBubble } from "./chat-message-bubble"
-import type { ReactionState } from "./discussion-reaction-data"
+import { useClassroomPrototype } from "../classroom-prototype-context"
+import type { Classroom, ClassroomChatMessage, ClassroomChatReplyRef, WorkspaceRole } from "../classroom-types"
+import { PersonAvatar } from "../classroom-ui"
+import { isYou } from "../classroom-utils"
+import { ChatComposer } from "../chat-composer"
+import { ChatHeader } from "../chat-header"
+import { ChatMessageBubble } from "../chat-message-bubble"
+import type { ReactionState } from "../discussion-reaction-data"
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { sendChatMessage } = useClassroomPrototype()

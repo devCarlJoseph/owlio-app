@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createClassroom, getClassrooms, joinClassroomByCode } from '@/services/api/classroom.service'
 import { ClassroomsView } from './classrooms-view'
-import { TestSession } from './classroom-test-fixtures'
-import { classroom, student, teacher } from './classroom-test-data'
+import { TestSession } from '../classroom-test-fixtures'
+import { classroom, student, teacher } from '../classroom-test-data'
 
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 afterEach(cleanup)

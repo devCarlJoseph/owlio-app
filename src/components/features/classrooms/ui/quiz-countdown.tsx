@@ -1,6 +1,6 @@
 import { AlarmClock, Clock, Lock, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { ActivityTiming } from "./classroom-types"
+import type { ActivityTiming } from "../classroom-types"
 import {
   formatDateTime,
   formatDuration,
@@ -9,7 +9,7 @@ import {
   getTimerUrgency,
   type QuizTimingState,
   type TimerUrgency,
-} from "./quiz-timing"
+} from "../quiz-timing"
 
 const urgencyStyles: Record<TimerUrgency, string> = {
   normal: "border-border bg-card",

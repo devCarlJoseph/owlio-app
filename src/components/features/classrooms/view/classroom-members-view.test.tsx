@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getClassroomStudents } from '@/services/api/classroom.service'
 import { ClassroomMembersView } from './classroom-members-view'
-import type { Classroom } from './classroom-types'
+import type { Classroom } from '../classroom-types'
 vi.mock('@/services/api/classroom.service', () => ({ getClassroomStudents: vi.fn() }))
 afterEach(() => { cleanup(); vi.resetAllMocks() })
 const classroom = { id: 'class-id', access: 'owner' } as Classroom

@@ -1,6 +1,6 @@
 import { Textarea } from "@/components/ui/textarea"
-import type { ActivityQuestion } from "./classroom-types"
-import { isAnswered } from "./quiz-answers"
+import type { ActivityQuestion } from "../classroom-types"
+import { isAnswered } from "../quiz-answers"
 
 export function QuizQuestions({
   questions,

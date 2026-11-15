@@ -1,4 +1,4 @@
-import type { ActivityTiming, ClassroomActivity, ClassroomSubmission } from "./classroom-types"
+import type { ActivityTiming, ClassroomActivity, ClassroomSubmission } from "../classroom-types"
 
 export type QuizPhase = "not-open" | "closed" | "ready" | "running" | "expired" | "submitted"
 

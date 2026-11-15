@@ -1,9 +1,9 @@
 import { Reply } from "lucide-react"
-import type { ReactionState } from "./discussion-reaction-data"
+import type { ReactionState } from "../discussion-reaction-data"
 import { DiscussionReactions } from "./discussion-reactions"
-import { DiscussionText } from "./discussion-text"
+import { DiscussionText } from "../discussion-text"
 import { PersonAvatar } from "./classroom-ui"
-import type { ClassroomChatMessage } from "./classroom-types"
+import type { ClassroomChatMessage } from "../classroom-types"
 
 export function ChatMessageBubble({
   message,

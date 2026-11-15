@@ -3,8 +3,8 @@ import { useLocation } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { ClassroomPrototypeContext, type ClassroomPrototypeContextValue } from './classroom-prototype-context'
 import { classroomForPreviewRole, classroomPreviewStore, previewAuthor } from './classroom-preview-store'
-import { makePreviewClass, PREVIEW_LEARNER_ID } from './classroom-preview-data'
-import type { Classroom } from './classroom-types'
+import { makePreviewClass, PREVIEW_LEARNER_ID } from '../classroom-preview-data'
+import type { Classroom } from '../classroom-types'
 
 function unavailable(): never { throw new Error('This action is not included in the classroom preview.') }
 

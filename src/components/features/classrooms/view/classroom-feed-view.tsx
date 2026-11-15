@@ -4,12 +4,12 @@ import { ArrowDownUp, CalendarDays, ClipboardList, Pin, Search, Send } from 'luc
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useClassroomPrototype } from './classroom-prototype-context'
-import { previewAuthor } from './classroom-preview-store'
-import type { Classroom, ClassroomPost, WorkspaceRole } from './classroom-types'
-import { PersonAvatar } from './classroom-ui'
-import { DiscussionPost } from './discussion-post'
-import { useNow } from './use-now'
+import { useClassroomPrototype } from '../classroom-prototype-context'
+import { previewAuthor } from '../classroom-preview-store'
+import type { Classroom, ClassroomPost, WorkspaceRole } from '../classroom-types'
+import { PersonAvatar } from '../classroom-ui'
+import { DiscussionPost } from '../discussion-post'
+import { useNow } from '../use-now'
 
 export function ClassroomFeedView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { createPost, addComment, togglePostReaction } = useClassroomPrototype()

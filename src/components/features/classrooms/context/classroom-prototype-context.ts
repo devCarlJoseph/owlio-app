@@ -7,7 +7,7 @@ import type {
   CreateActivityInput,
   CreateClassroomInput,
   WorkspaceRole,
-} from "./classroom-types"
+} from "../classroom-types"
 
 export type JoinClassroomResult =
   | { status: "joined"; classroomId: string; classroomName: string; source: "connected" | "demo" }

@@ -1,5 +1,5 @@
-import { PREVIEW_LEARNER_ID, PREVIEW_LEARNER_NAME, previewTeachers, seedPreviewClassrooms } from './classroom-preview-data'
-import type { Classroom, WorkspaceRole } from './classroom-types'
+import { PREVIEW_LEARNER_ID, PREVIEW_LEARNER_NAME, previewTeachers, seedPreviewClassrooms } from '../classroom-preview-data'
+import type { Classroom, WorkspaceRole } from '../classroom-types'
 
 export function classroomForPreviewRole(classroom: Classroom, role: WorkspaceRole): Classroom | undefined {
   if (role !== 'students') return classroom.ownerWorkspace === role ? { ...classroom, access: 'owner' } : undefined

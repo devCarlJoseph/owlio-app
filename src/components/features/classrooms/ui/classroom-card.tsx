@@ -9,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getClassroomCoverUrl } from "./classroom-covers"
-import { getClassroomCategory, getClassroomMeta } from "./classroom-list-meta"
+import { getClassroomCoverUrl } from "../classroom-covers"
+import { getClassroomCategory, getClassroomMeta } from "../classroom-list-meta"
 import { StatusChip } from "./classroom-list-ui"
-import type { Classroom, WorkspaceRole } from "./classroom-types"
+import type { Classroom, WorkspaceRole } from "../classroom-types"
 
 type ClassroomCardProps = {
   classroom: Classroom

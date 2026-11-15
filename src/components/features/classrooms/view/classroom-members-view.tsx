@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import { getClassroomStudents, type ApiPage, type ApiStudent } from '@/services/api/classroom.service'
-import type { Classroom, WorkspaceRole } from './classroom-types'
+import type { Classroom, WorkspaceRole } from '../classroom-types'
 
 export function ClassroomMembersView({ classroom }: { classroom: Classroom; role: WorkspaceRole }) {
   return classroom.access !== 'owner' ? <p>Only the classroom owner can view the student roster.</p> : <Roster key={classroom.id} classroomId={classroom.id} />

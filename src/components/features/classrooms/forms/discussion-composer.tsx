@@ -2,8 +2,8 @@ import { useRef, useState, type FormEvent } from "react"
 import { Link2, Paperclip, Smile } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { REACTION_CHOICES } from "./discussion-reaction-data"
-import { PersonAvatar } from "./classroom-ui"
+import { REACTION_CHOICES } from "../discussion-reaction-data"
+import { PersonAvatar } from "../classroom-ui"
 
 export function DiscussionComposer({
   id,

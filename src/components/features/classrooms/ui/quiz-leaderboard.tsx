@@ -1,6 +1,6 @@
 import { Medal, Trophy } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import type { LeaderboardEntry } from "./quiz-timing"
+import type { LeaderboardEntry } from "../quiz-timing"
 import { PersonAvatar } from "./classroom-ui"
 
 const podium = [

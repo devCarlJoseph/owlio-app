@@ -1,11 +1,11 @@
 import { MessageCircle } from "lucide-react"
 import { AvatarGroup } from "@/components/ui/avatar"
-import { DiscussionComposer } from "./discussion-composer"
-import type { ReactionState } from "./discussion-reaction-data"
-import { DiscussionReactions } from "./discussion-reactions"
-import { DiscussionText } from "./discussion-text"
+import { DiscussionComposer } from "../discussion-composer"
+import type { ReactionState } from "../discussion-reaction-data"
+import { DiscussionReactions } from "../discussion-reactions"
+import { DiscussionText } from "../discussion-text"
 import { PersonAvatar } from "./classroom-ui"
-import type { ClassroomPost } from "./classroom-types"
+import type { ClassroomPost } from "../classroom-types"
 
 function displayDate(value: string) {
   const date = new Date(value)

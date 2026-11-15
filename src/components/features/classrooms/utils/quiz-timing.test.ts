@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { ClassroomActivity } from "./classroom-types"
+import type { ClassroomActivity } from "../classroom-types"
 import {
   buildLeaderboard,
   formatRemaining,

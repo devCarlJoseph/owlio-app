@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { CircleCheck, FlaskConical, LayoutGrid, List } from "lucide-react"
 import { cn } from "cn"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import type { ClassroomStatus } from "./classroom-list-meta"
+import type { ClassroomStatus } from "../classroom-list-meta"
 
 export function StatusChip({ status, className }: { status: ClassroomStatus; className?: string }) {
   const Icon = status.tone === "demo" ? FlaskConical : CircleCheck
