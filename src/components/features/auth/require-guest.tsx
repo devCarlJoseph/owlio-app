@@ -6,12 +6,12 @@ import { SessionBoundary } from './session-boundary'
 export function RequireGuest() {
   const { status, user } = useAuthSession()
   const location = useLocation()
-  const from = (location.state as { from?: unknown } | null)?.from
+  const state = location.state as { from?: unknown; connectGoogle?: boolean } | null
 
   return (
     <SessionBoundary>
       {status === 'authenticated' && user
-        ? <Navigate to={getLoginDestination(user.roles, from)} replace />
+        ? <Navigate to={getLoginDestination(user.roles, state?.from, state?.connectGoogle === true)} replace />
         : <Outlet />}
     </SessionBoundary>
   )

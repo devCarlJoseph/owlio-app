@@ -1,6 +1,6 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import type { AuthUser } from '@/services/api/api.types'
 import { getCsrfToken, getCurrentUser } from '@/services/api/auth.service'
 import { AuthSessionContext } from '../auth-session-context'
@@ -14,6 +14,10 @@ const user: AuthUser = { id: 'user', name: 'Test', email: 'test@example.test', r
   status: 'ACTIVE', emailVerifiedAt: '2026-10-29T00:00:00Z', createdAt: '2026-10-29T00:00:00Z' }
 beforeEach(() => vi.resetAllMocks())
 afterEach(cleanup)
+function Destination({ label }: { label: string }) {
+  const { state } = useLocation()
+  return <><p>{label}</p><pre>{JSON.stringify(state)}</pre></>
+}
 function callback(result: string) {
   const refreshCurrentUser = vi.fn().mockResolvedValue(undefined)
   render(<MemoryRouter initialEntries={['/oauth/google/callback?result=' + result]}>
@@ -22,8 +26,8 @@ function callback(result: string) {
       <Routes>
         <Route path="/oauth/google/callback" element={<GoogleOAuthCallbackView />} />
         <Route path="/email-verification" element={<p>Verify email</p>} />
-        <Route path="/register" element={<p>Register account</p>} />
-        <Route path="/login" element={<p>Sign in</p>} />
+        <Route path="/register" element={<Destination label="Register account" />} />
+        <Route path="/login" element={<Destination label="Sign in" />} />
         <Route path="/esl" element={<p>ESL workspace</p>} />
         <Route path="/esl/account/security" element={<p>Account security</p>} />
       </Routes>
@@ -42,6 +46,18 @@ describe('Google callback matches API outcome codes', () => {
     callback(result)
     await screen.findByText(destination)
     expect(getCurrentUser).not.toHaveBeenCalled()
+  })
+
+  it('opens the dedicated Google setup without asking for an Owlio password', async () => {
+    callback('registration_required')
+    await screen.findByText('Register account')
+    expect(screen.getByText(/"googleSetup":true/)).toBeTruthy()
+  })
+
+  it('requests explicit password sign-in before linking an existing account', async () => {
+    callback('link_required')
+    await screen.findByText('Sign in')
+    expect(screen.getByText(/"connectGoogle":true/)).toBeTruthy()
   })
 
   it.each([['authenticated', 'ESL workspace'], ['linked', 'Account security']])(

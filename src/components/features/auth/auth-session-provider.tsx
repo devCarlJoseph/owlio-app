@@ -7,10 +7,13 @@ import type { AuthUser, LoginRequest } from '@/services/api/api.types'
 import { getCurrentUser, loginAccount, logoutAccount, refreshSession } from '@/services/api/auth.service'
 import { AuthSessionContext, type AuthSessionContextValue, type SessionStatus } from './auth-session-context'
 
+const SESSION_IDLE_MS = 15 * 60 * 1000
+
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [status, setStatus] = useState<SessionStatus>('loading')
   const [error, setError] = useState<string | null>(null)
+  const lastActivityAt = useRef(0)
   const operationVersion = useRef(0)
   const changingSession = useRef(false)
   const pendingSession = useRef<Promise<AuthUser | null> | null>(null)
@@ -41,8 +44,9 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
 
   const checkCurrentUser = useCallback(async (background = false) => {
     if (changingSession.current) return
+    lastActivityAt.current = Date.now()
     const operation = ++operationVersion.current
-    setStatus((current) => background && current === 'authenticated' ? current : 'loading')
+    setStatus((current) => background ? current : 'loading')
     setError(null)
     try {
       const currentUser = await loadCurrentUser()
@@ -67,10 +71,18 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [refreshCurrentUser, invalidatePendingChecks])
 
   useEffect(() => {
-    const recheck = () => { void checkCurrentUser(true) }
-    const onVisible = () => { if (document.visibilityState === 'visible') recheck() }
-    const onPageShow = (event: PageTransitionEvent) => { if (event.persisted) void refreshCurrentUser() }
-    window.addEventListener('focus', recheck)
+    const resumeIfIdle = () => {
+      if (document.visibilityState === 'hidden') return
+      const now = Date.now()
+      const idle = now - lastActivityAt.current >= SESSION_IDLE_MS
+      lastActivityAt.current = now
+      if (idle) void checkCurrentUser(true)
+    }
+    const onVisible = () => { if (document.visibilityState === 'visible') resumeIfIdle() }
+    const onPageShow = (event: PageTransitionEvent) => { if (event.persisted) resumeIfIdle() }
+    const activityEvents = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const
+    for (const event of activityEvents) document.addEventListener(event, resumeIfIdle, { passive: true })
+    window.addEventListener('focus', resumeIfIdle)
     window.addEventListener('pageshow', onPageShow)
     document.addEventListener('visibilitychange', onVisible)
     const interceptor = api.interceptors.response.use(undefined, (requestError: unknown) => {
@@ -79,7 +91,8 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       return Promise.reject(requestError)
     })
     return () => {
-      window.removeEventListener('focus', recheck)
+      window.removeEventListener('focus', resumeIfIdle)
+      for (const event of activityEvents) document.removeEventListener(event, resumeIfIdle)
       window.removeEventListener('pageshow', onPageShow)
       document.removeEventListener('visibilitychange', onVisible)
       api.interceptors.response.eject(interceptor)
@@ -94,6 +107,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(async (credentials: LoginRequest) => {
     const operation = ++operationVersion.current
+    lastActivityAt.current = Date.now()
     changingSession.current = true
     pendingSession.current = null
     try {
@@ -110,6 +124,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signOut = useCallback(async () => {
+    lastActivityAt.current = Date.now()
     const operation = ++operationVersion.current
     changingSession.current = true
     pendingSession.current = null

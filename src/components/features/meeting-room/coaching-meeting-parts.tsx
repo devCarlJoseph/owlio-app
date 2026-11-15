@@ -63,8 +63,8 @@ export function CallButton({ label, pressed, disabled, onClick, tone, badge, wid
 }
 
 function Panel({ label, title, onClose, children }: { label: string; title: string; onClose: () => void; children: ReactNode }) {
-  return <section aria-label={label} className="flex min-h-0 flex-1 flex-col">
-    <div className="flex shrink-0 items-center justify-between gap-2 py-3 pr-2 pl-5"><h3 className="text-base font-semibold">{title}</h3><Button variant="ghost" size="icon" className="rounded-full" aria-label={`Close ${title.toLowerCase()}`} onClick={onClose}><X aria-hidden="true" /></Button></div>
+  return <section aria-label={label} className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+    <div className="flex min-w-0 shrink-0 items-center justify-between gap-2 py-3 pr-2 pl-5"><h3 className="min-w-0 truncate text-base font-semibold">{title}</h3><Button variant="ghost" size="icon" className="shrink-0 rounded-full" aria-label={`Close ${title.toLowerCase()}`} onClick={onClose}><X aria-hidden="true" /></Button></div>
     {children}
   </section>
 }
@@ -101,8 +101,8 @@ export function ChatPanel({ people, messages, localIdentity, enabled, draft, sen
     if (log) log.scrollTop = log.scrollHeight
   }, [lastMessageId])
   return <Panel label="Meeting chat" title="In-call messages" onClose={onClose}>
-    <p className="mx-4 flex gap-2 rounded-xl bg-muted px-3 py-2.5 text-[11px] leading-4 text-muted-foreground"><Info aria-hidden="true" className="mt-px size-3.5 shrink-0" />Messages can only be seen by people in the call and are deleted when the call ends.</p>
-    <div ref={logRef} role="log" aria-label="Meeting messages" aria-live="polite" aria-relevant="additions" className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+    <p className="mx-4 flex shrink-0 gap-2 rounded-xl bg-muted px-3 py-2.5 text-[11px] leading-4 text-muted-foreground"><Info aria-hidden="true" className="mt-px size-3.5 shrink-0" />Messages can only be seen by people in the call and are deleted when the call ends.</p>
+    <div ref={logRef} role="log" aria-label="Meeting messages" aria-live="polite" aria-relevant="additions" className="min-h-0 min-w-0 flex-1 basis-0 space-y-4 overflow-x-hidden overflow-y-auto overscroll-contain px-5 py-4 [overflow-wrap:anywhere]">
       {messages.length === 0 ? <div className="flex h-full min-h-40 flex-col items-center justify-center gap-1 text-center">
         <span className="mb-2 grid size-20 place-items-center rounded-full bg-brand-soft"><img src="/mascot/owlio-owl.png" alt="" className="h-16 w-auto" /></span>
         <p className="text-xs font-semibold">No chat yet</p>
@@ -110,7 +110,7 @@ export function ChatPanel({ people, messages, localIdentity, enabled, draft, sen
       </div> : messages.map(message => {
         const own = message.identity === localIdentity
         const sender = people.find(person => person.identity === message.identity)
-        return <article key={message.id}>
+        return <article key={message.id} className="min-w-0">
           <div className="mb-0.5 flex flex-wrap items-baseline gap-2 text-[11px]"><span className="font-semibold">{own ? 'You' : message.authorName || sender?.name || 'Participant'}</span><time className="text-muted-foreground" dateTime={new Date(message.sentAt).toISOString()}>{new Date(message.sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time></div>
           <p className="text-[13px] leading-5 break-words whitespace-pre-wrap">{message.text}</p>
           {message.delivery === 'sending' && <p role="status" className="mt-1 text-[10px] text-muted-foreground">Sending…</p>}
@@ -118,7 +118,7 @@ export function ChatPanel({ people, messages, localIdentity, enabled, draft, sen
         </article>
       })}
     </div>
-    <form onSubmit={onSend} className="relative mx-4 mb-4 shrink-0">
+    <form onSubmit={onSend} className="relative mx-4 mb-4 min-w-0 shrink-0">
       <label htmlFor="meeting-chat-message" className="sr-only">Write a meeting message</label>
       <Input id="meeting-chat-message" disabled={!enabled} value={draft} maxLength={2000} onChange={event => onDraft(event.target.value)} placeholder={enabled ? 'Send a message' : 'Join to send a message'} className="h-11 rounded-full border-transparent bg-muted pr-12 pl-4 text-sm dark:bg-muted" />
       <Button type="submit" size="icon-sm" variant="ghost" aria-label="Send message" disabled={!enabled || !draft.trim() || sending} className="absolute top-1.5 right-1.5 rounded-full text-brand hover:text-brand"><Send aria-hidden="true" className="size-4" /></Button>

@@ -12,6 +12,7 @@ import {
   Megaphone,
   NotebookPen,
   School,
+  ShieldCheck,
   Sparkles,
   UserRound,
   Users,
@@ -242,7 +243,10 @@ export function getActiveDashboardHref(pathname: string): string | undefined {
 export function getDashboardSidebarNavigation(pathname: string): DashboardNavigationGroup[] {
   const role = getDashboardRole(pathname)
 
-  return role ? roleNavigation[role] : []
+  return role ? [...roleNavigation[role], {
+    label: "Account",
+    items: [{ label: "Account security", href: "/" + role + "/account/security", icon: ShieldCheck }],
+  }] : []
 }
 
 export function getDashboardNavigation(pathname: string): NavigableDashboardNavigationGroup[] {

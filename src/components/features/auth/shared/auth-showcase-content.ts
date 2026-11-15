@@ -66,9 +66,9 @@ export const authShowcaseContent: Record<AuthShowcaseContext, AuthShowcaseConten
       icon: Sparkles,
       title: "Create your Owlio account",
       steps: [
-        { title: "Add your details", description: "Enter your name and email address." },
+        { title: "Add your details", description: "Use Google or enter your name and email." },
         { title: "Choose your role", description: "Tell Owlio how you learn or teach." },
-        { title: "Set your password", description: "Create a secure password to finish." },
+        { title: "Finish signup", description: "Accept the terms and continue with Google or an Owlio password." },
       ],
     },
   },

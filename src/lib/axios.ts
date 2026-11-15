@@ -1,7 +1,11 @@
 import axios from "axios";
 
 function getApiBaseUrl() {
-  const configuredUrl = import.meta.env.VITE_API_URL || "http://localhost:7000";
+  // Production cookies stay on the website's origin, including on iOS.
+  // vercel.json forwards /api to Render before the SPA fallback.
+  const configuredUrl = import.meta.env.PROD
+    ? window.location.origin
+    : import.meta.env.VITE_API_URL || "http://localhost:7000";
   const apiUrl = new URL(configuredUrl);
   if (!["http:", "https:"].includes(apiUrl.protocol) || apiUrl.username || apiUrl.password
     || apiUrl.pathname !== "/" || apiUrl.search || apiUrl.hash) {

@@ -27,8 +27,8 @@ export function LoginView() {
     setSubmitError(null)
     try {
       const session = await signIn(values)
-      const from = (location.state as { from?: unknown } | null)?.from
-      navigate(getLoginDestination(session.user.roles, from), { replace: true })
+      const state = location.state as { from?: unknown; connectGoogle?: boolean } | null
+      navigate(getLoginDestination(session.user.roles, state?.from, state?.connectGoogle === true), { replace: true })
     } catch (error) {
       setSubmitError(getApiErrorMessage(error, 'Could not sign in. Check your credentials and try again.'))
     }

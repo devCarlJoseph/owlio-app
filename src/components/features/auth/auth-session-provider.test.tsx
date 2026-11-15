@@ -39,8 +39,13 @@ function app() {
     <Route path="/login" element={<p>Login page</p>} />
   </Routes></AuthSessionProvider></MemoryRouter>
 }
-beforeEach(() => { vi.resetAllMocks() })
-afterEach(cleanup)
+let now: number
+beforeEach(() => {
+  vi.resetAllMocks()
+  now = 1_800_000_000_000
+  vi.spyOn(Date, 'now').mockImplementation(() => now)
+})
+afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('API-backed session lifecycle', () => {
   it('restores current roles from /me', async () => {
@@ -93,13 +98,64 @@ describe('API-backed session lifecycle', () => {
     expect(screen.getByText('Session authenticated')).toBeTruthy()
   })
 
-  it('rechecks on focus and removes a session revoked in another tab', async () => {
+  it('rechecks after 15 idle minutes and removes a session revoked in another tab', async () => {
     vi.mocked(getCurrentUser).mockResolvedValueOnce(user).mockRejectedValue(unauthorized)
     vi.mocked(refreshSession).mockRejectedValue(unauthorized)
     render(app())
     await screen.findByText('Session authenticated')
+    now += 16 * 60 * 1000
     fireEvent(window, new Event('focus'))
     await screen.findByText('Session anonymous')
+  })
+
+  it.each(['authenticated', 'anonymous'] as const)('skips brief focus/visibility changes while %s', async (status) => {
+    if (status === 'authenticated') vi.mocked(getCurrentUser).mockResolvedValue(user)
+    else {
+      vi.mocked(getCurrentUser).mockRejectedValue(unauthorized)
+      vi.mocked(refreshSession).mockRejectedValue(unauthorized)
+    }
+    render(app())
+    await screen.findByText('Session ' + status)
+    now += 60_000
+    fireEvent(window, new Event('focus'))
+    fireEvent(document, new Event('visibilitychange'))
+    fireEvent(window, new PageTransitionEvent('pageshow', { persisted: true }))
+    expect(getCurrentUser).toHaveBeenCalledOnce()
+    expect(screen.getByText('Session ' + status)).toBeTruthy()
+  })
+
+  it.each(['authenticated', 'anonymous'] as const)('keeps the %s screen mounted during an idle background check', async (status) => {
+    const check = deferred<AuthUser>()
+    if (status === 'authenticated') vi.mocked(getCurrentUser).mockResolvedValueOnce(user)
+    else {
+      vi.mocked(getCurrentUser).mockRejectedValueOnce(unauthorized)
+      vi.mocked(refreshSession).mockRejectedValue(unauthorized)
+    }
+    vi.mocked(getCurrentUser).mockReturnValueOnce(check.promise)
+    render(app())
+    await screen.findByText('Session ' + status)
+    now += 16 * 60 * 1000
+    fireEvent(window, new Event('focus'))
+    fireEvent(document, new Event('visibilitychange'))
+    fireEvent(window, new PageTransitionEvent('pageshow', { persisted: true }))
+    expect(getCurrentUser).toHaveBeenCalledTimes(2)
+    expect(screen.getByText('Session ' + status)).toBeTruthy()
+    await act(async () => { check.resolve(user); await check.promise })
+    await screen.findByText('Session authenticated')
+  })
+
+  it('checks when interaction resumes after inactivity in a visible tab', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(user)
+    render(app())
+    await screen.findByText('Session authenticated')
+    now += 14 * 60 * 1000
+    fireEvent.keyDown(document, { key: 'a' })
+    now += 2 * 60 * 1000
+    fireEvent(window, new Event('focus'))
+    expect(getCurrentUser).toHaveBeenCalledOnce()
+    now += 16 * 60 * 1000
+    fireEvent.pointerDown(document)
+    await waitFor(() => expect(getCurrentUser).toHaveBeenCalledTimes(2))
   })
 
   it('reloads current API roles when navigating to feature pages', async () => {
@@ -116,6 +172,7 @@ describe('API-backed session lifecycle', () => {
     vi.mocked(logoutAccount).mockResolvedValue({ message: 'Signed out.' })
     render(app())
     await screen.findByText('Session authenticated')
+    now += 16 * 60 * 1000
     fireEvent(window, new Event('focus'))
     await waitFor(() => expect(getCurrentUser).toHaveBeenCalledTimes(2))
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
@@ -131,6 +188,7 @@ describe('API-backed session lifecycle', () => {
     render(app())
     await screen.findByText('Session authenticated')
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    now += 16 * 60 * 1000
     fireEvent(window, new Event('focus'))
     await act(async () => { logout.resolve({ message: 'Signed out.' }); await logout.promise })
     await screen.findByText('Session anonymous')

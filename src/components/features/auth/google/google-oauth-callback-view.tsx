@@ -32,14 +32,14 @@ export function GoogleOAuthCallbackView() {
     if (result === 'registration_required') {
       navigate('/register', {
         replace: true,
-        state: { oauthNotice: 'No Google-linked Owlio account was found. Choose a role and sign up with Google.' },
+        state: { googleSetup: true, oauthNotice: 'Finish setting up Google sign-in: choose your role and accept the terms. Your name and email will come from Google; no Owlio password is needed.' },
       })
       return
     }
     if (result === 'link_required') {
       navigate('/login', {
         replace: true,
-        state: { oauthNotice: 'Sign in to your existing account, then link Google from Account Security.' },
+        state: { connectGoogle: true, oauthNotice: 'An Owlio account already uses this email. Log in with your Owlio password, then select Connect Google on the next screen.' },
       })
       return
     }

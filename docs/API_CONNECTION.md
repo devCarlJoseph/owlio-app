@@ -4,7 +4,18 @@ Updated 15 November 2026. Backend contract evidence is the adjacent `owlio-api` 
 
 ## Configuration and authentication
 
-`VITE_API_URL` is the public API **origin**, defaulting to `http://localhost:7000`. Do not include `/api/v1`, credentials, query parameters, or fragments. The Axios client adds full route paths, sends credentials, and has a 15-second timeout. It does not rewrite localhost to a different host.
+In development, `VITE_API_URL` is the public API **origin**, defaulting to `http://localhost:7000`. Do not include `/api/v1`, credentials, query parameters, or fragments. Production builds use `window.location.origin` for API calls, even when an older Vercel setting still points `VITE_API_URL` at Render. The Axios client adds full route paths, sends credentials, and has a 15-second timeout.
+
+`vercel.json` forwards `/api/:path*` to `https://owlio-api.onrender.com/api/:path*` before the existing SPA fallback. API responses explicitly disable browser and CDN caching. Access, refresh, and CSRF cookies remain host-only and HttpOnly, with their existing `/api` paths; the browser receives them from the frontend origin. This removes the cross-site cookie dependency that can prevent iOS session restoration. Local development still calls its configured API directly. Other production hosts must provide the same proxy; Vite preview alone does not implement Vercel routing.
+
+Before releasing this configuration:
+
+- Keep Render `NODE_ENV=production` and `FRONTEND_URL=https://owliohub.vercel.app` for the current public app. Preserve authentication secrets. Reconfirm the exact trusted proxy topology before changing `TRUST_PROXY_HOPS`; adding Vercel changes that topology.
+- Set Render `BACKEND_URL=https://owliohub.vercel.app` (the public proxied API origin) and `GOOGLE_REDIRECT_URI=https://owliohub.vercel.app/api/v1/auth/google/callback`, then register that exact URI on the existing Google OAuth web client. Both the API adapter and release preflight require the callback origin to match `BACKEND_URL`; changing only the callback fails validation. The rewrite destination stays `https://owlio-api.onrender.com`. Google start/link cookies and the callback must use the frontend origin. A callback on `onrender.com` cannot receive the new host-only transaction cookie. These are release requirements, not settings changed by this patch.
+- Users must sign in again after release: old Render-host cookies are not frontend-host cookies. Verify email/password and Google login, reload, refresh, logout, and protected requests on iOS Safari, iOS Chrome, and Android. Inspect status codes and cookie attributes without recording token values.
+- Verify `/api/socket.io` through the deployed proxy for meeting chat. The existing read-only WebSocket client follows the shared API origin and retains its five-second HTTP fallback when unavailable. LiveKit media continues to use its provider URL. No backend transport change is included.
+
+No live provider, database, Render, or Vercel settings were changed while preparing this fix.
 
 The backend must allow the exact frontend origin through `FRONTEND_URL`, normally `http://localhost:5173`. Use one host consistently; `localhost` and `127.0.0.1` are different origins. Restart Vite after configuration changes. Keep production cookie/HTTPS and provider settings in the backend.
 
@@ -44,6 +55,21 @@ Meeting messages and hand state use the backend's room lifecycle. Local panels c
 Service/component tests use mocked HTTP or service responses. They cover exact paths/payloads, CSRF limits, version conflicts, cursor termination, cancellation, draft retention, original page rendering, separate account-record access, and isolated meeting previews. They do not prove deployed authorization, real write persistence, LiveKit connectivity, admission policy, worker cleanup, or provider revocation.
 
 Browser reads can establish session restoration, classroom data, schedule/inbox rendering, and responsive layout against an available backend. Do not infer tested writes or connected media from these reads. The 15 November meeting repair adds the explicitly approved `socket.io-client@4.8.4` frontend dependency. It does not change the backend contract, schema, provider/security settings, or deployment.
+
+### Google proxy configuration follow-up
+
+For the coordinated rollout, add both exact authorized redirect URIs to the existing Google OAuth Web client used by Render, preserving its development URI: `https://owlio-api.onrender.com/api/v1/auth/google/callback` for the current direct deployment and `https://owliohub.vercel.app/api/v1/auth/google/callback` for the proxy deployment. Register the proxy callback before switching Render's public API origin/callback or deploying the frontend. An OAuth client secret change is not required for a redirect URI mismatch. The final browser address `/oauth/google/callback` is a separate frontend outcome route and must not replace the API callback URI.
+
+The API's unchanged Google adapter and release preflight require the callback origin to equal the public `BACKEND_URL`. The proxy rollout therefore also sets `BACKEND_URL=https://owliohub.vercel.app`; changing only `GOOGLE_REDIRECT_URI` is insufficient. Offline coverage in the API checkout exercises the frontend-domain proxy, the existing direct callback, state/nonce/PKCE generation, and rejection of foreign origins or wrong callback paths: 33 Google/service/preflight tests passed. The user reported Google error `redirect_uri_mismatch`, confirming an exact callback registration mismatch; the live OAuth client settings have not been inspected. No Google Cloud or Render settings were changed.
+
+### iOS cookie routing checks recorded 15 November 2026
+
+- Runtime changes: production origin selection in `src/lib/axios.ts` and ordered API proxy/cache rules in `vercel.json`. Updated `.env.example`, auth access, capability status, and this integration guide; added origin and routing regression tests. No dependencies, backend source, real environment files, database, or live provider settings changed.
+- Focused `npm test -- src/lib/axios.test.ts src/lib/api-routing.test.ts src/services/api/auth.service.test.ts src/components/features/auth/auth-session-provider.test.tsx src/services/api/meeting-realtime.test.ts --pool=threads --maxWorkers=2`: 36 passed.
+- `npm run build`: TypeScript and production bundle passed; existing large-chunk warnings remain. Changed-file ESLint and `git diff --check` passed.
+- Full `npm test -- --pool=threads --maxWorkers=2`: 561 passed, three failed. Two tutor provider-context tests and one meeting-history recovery assertion fail identically in an untouched HEAD snapshot. Full `npm run lint` reports 13 shared UI export errors, also reproduced on untouched HEAD. No failures were suppressed or unrelated components modified.
+- Isolated browser fixture using the production build and synthetic local API responses: login sent CSRF, reached the student workspace, retained its HttpOnly/Secure cookie across a full reload, and logout removed protected access. Sanitized fixture evidence showed the session cookie present on `/auth/me` after reload and absent after logout. This did not contact Render, Neon, Google, or LiveKit and does not prove deployed proxy behavior or iOS WebKit compatibility.
+- No deployment was performed. The Google callback release settings above, deployed proxy verification (including meeting chat), and actual iOS/Android checks remain required.
 
 ### Meeting repair checks recorded 15 November 2026
 

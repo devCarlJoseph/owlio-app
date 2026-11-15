@@ -13,6 +13,7 @@ import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-roo
 import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
 import { MeetingRoomHub } from './meeting-room-hub'
 import { MeetingRoomScreen } from './meeting-room-screen'
+import { MeetingRoomShell } from './meeting-room-shell'
 import { useNativeMeetingData } from './use-native-meeting-data'
 import { usePrejoinDevices } from './use-prejoin-devices'
 import type { MeetingCategory, MeetingPanel, RoomStatus } from './meeting-room-types'
@@ -251,9 +252,9 @@ function MeetingRoomSession() {
     try { await navigator.clipboard.writeText(invite.toString()); setMessage('Session invite copied.') }
     catch { setMessage('Share this session code: ' + code) }
   }
-  return <div className="space-y-4">
+  return <MeetingRoomShell connected={Boolean(room)}>
     {!room && <p className="text-sm text-muted-foreground">Use your classroom meeting code or a scheduled-session invite. Teachers can open their classroom room before joining. <Link className="underline" to={'/' + role + '/schedule?source=account'}>View sessions</Link></p>}
-    {room && <p className="text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
+    {room && <p className="shrink-0 text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
     <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
       status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}
       message={message} error={error || devices.error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}
@@ -264,5 +265,5 @@ function MeetingRoomSession() {
       chatDraft={chatDraft} onChatDraft={setChatDraft} chatSending={chatSending} onSendChat={event => void send(event)} onJoin={event => void join(event)} onCreate={() => void open()}
       onPreview={() => {}} onCopy={() => void copy()} onLeave={() => void leave()} onEnd={() => void end()} onMicrophone={() => void device('microphone')} onCamera={() => void device('camera')} onScreen={() => void device('screen')} onHand={() => void hand()} />
     {!room && <Button variant="outline" disabled={busy} onClick={() => { void leave(); setError(''); setShortCode(''); setActiveSessionId(''); setParams({ join: '1' }) }}>Use another invite</Button>}
-  </div>
+  </MeetingRoomShell>
 }

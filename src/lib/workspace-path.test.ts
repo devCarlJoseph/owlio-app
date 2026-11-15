@@ -32,3 +32,12 @@ describe('API role navigation', () => {
     expect(getLoginDestination(['STUDENT'], from)).toBe('/students')
   })
 })
+
+it.each([['STUDENT', '/students'], ['EDUCATOR', '/educators'], ['TUTOR', '/tutors'], ['ESL', '/esl']] as const)(
+  'continues explicit Google linking in the assigned %s workspace', (role, root) => {
+    expect(getLoginDestination([role], { pathname: '/other' }, true)).toBe(root + '/account/security')
+  },
+)
+it('does not grant a workspace for Google linking without an assigned role', () => {
+  expect(getLoginDestination(['ADMIN'], null, true)).toBe('/access-denied')
+})
