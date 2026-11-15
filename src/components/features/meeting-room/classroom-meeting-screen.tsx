@@ -161,11 +161,11 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     </div>
   </section>
 
-  return <section aria-label="Meeting room" data-meeting-design="classroom" className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 text-foreground md:min-h-[30rem]" onKeyDown={event => {
+  return <section aria-label="Meeting room" data-meeting-design="classroom" className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden text-foreground" onKeyDown={event => {
     if (event.key === 'Escape' && panel) { event.preventDefault(); togglePanel(panel) }
   }}>
-    <header className="flex shrink-0 items-center gap-2">
-      <div className="flex w-0 min-w-0 flex-1 items-center gap-2">
+    <header className="flex min-w-0 shrink-0 flex-wrap items-center gap-2">
+      <div className="flex min-w-0 flex-1 basis-32 items-center gap-2 sm:basis-0">
         <h2 className="truncate text-sm font-medium">{title}</h2>
         <span role="status" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-medium whitespace-nowrap"><span aria-hidden="true" className={cn('size-1.5 rounded-full', enabled ? 'bg-emerald-500' : 'bg-slate-500')} />{state.preview ? 'Layout preview' : statusLabels[state.status]}</span>
       </div>
@@ -176,17 +176,17 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
       {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 text-rose-700 hover:text-rose-700" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
     </header>
     {state.preview && <p className="shrink-0 text-[11px] text-muted-foreground">Sample classmates · no live people, media, or recording</p>}
-    {(state.message || state.error) && <div className="shrink-0 space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
+    {(state.message || state.error) && <div className="max-h-[20dvh] shrink-0 space-y-1 overflow-y-auto text-xs leading-5 [overflow-wrap:anywhere]">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
 
-    <div className="relative flex min-h-0 flex-1 gap-3">
-      <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3', featured && others.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
+    <div className="relative flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden">
+      <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden', featured && others.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
         {people.length === 0 ? <div className={cn('flex flex-1 flex-col items-center justify-center gap-3 rounded-xl px-4 text-center', tileSurface)}>
           <span className="grid size-16 place-items-center rounded-full bg-slate-500 text-white"><VideoOff aria-hidden="true" className="size-7" /></span>
           <h3 className="text-lg font-medium">{state.hasRoom ? 'Your room is ready' : 'Waiting for the meeting'}</h3>
           <p className="max-w-sm text-xs leading-5 text-muted-foreground">Connected participants will appear here.</p>
         </div>
           : featured ? <>
-            {tile(featured, 'min-h-64 flex-1', true)}
+            {tile(featured, 'min-h-0 flex-1', true)}
             {others.length > 0 && <div role="group" aria-label="Other participants" className="flex h-28 shrink-0 gap-3 overflow-x-auto lg:h-auto lg:w-56 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">{others.map(person => tile(person, 'w-40 shrink-0 lg:h-32 lg:w-auto'))}</div>}
           </>
             : <div className={grid.container}>
@@ -195,7 +195,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
             </div>}
       </section>
       {panel && <aside ref={panelRef} tabIndex={-1} aria-label={panel === 'chat' ? 'In-call messages panel' : panel === 'people' ? 'Participants panel' : 'Meeting details panel'}
-        className="absolute inset-0 z-20 flex flex-col overflow-hidden rounded-2xl bg-card text-card-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:static lg:w-[22rem] lg:shrink-0">
+        className="absolute inset-0 z-20 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl bg-card text-card-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 lg:static lg:w-[22rem] lg:shrink-0">
         {panel === 'people' ? <PeoplePanel people={people} preview={state.preview} pinnedIdentity={state.pinnedIdentity} onPin={state.onPin} onClose={() => togglePanel('people')} />
           : panel === 'chat' ? <ChatPanel people={people} messages={state.preview ? [] : state.messages} localIdentity={state.localIdentity} enabled={enabled} draft={state.chatDraft} sending={state.chatSending} onDraft={state.onChatDraft} onSend={state.onSendChat} onClose={() => togglePanel('chat')} />
             : <InfoPanel meetingCode={state.meetingCode} preview={state.preview} onCopy={state.onCopy} onClose={() => togglePanel('info')} />}

@@ -31,6 +31,8 @@ Workspace roots are `/students`, `/educators`, `/tutors`, and `/esl`. Shared pag
 
 The entry point registers the original role-specific page adapters, including Overview, Calendar, study tools, teaching tools, and Meeting Room. `ApiWorkspaceContent` preserves those layouts by default and offers a separate **Account records** view (`?source=account`) for overview, student subjects/tasks/notes, notifications, schedule, and tutor sessions. My Classes continues to use its connected implementation. Account/role/path changes remount content, and account reads are aborted on unmount. See [API connection](../API_CONNECTION.md).
 
+Connected meetings use `MeetingRoomShell` to maintain a bounded, shrinkable flex chain inside the immersive dashboard. The stage, participant list, and chat contain their own overflow; adding messages must not resize the call or move its footer off-screen. Chat headers and the composer remain outside the scrolling message log, and unbroken message text wraps within the panel. Small screens use an overlay panel and flexible grid rows; large displays retain the stage with a side panel. Pre-join pages keep ordinary page scrolling.
+
 ## UI and reference images
 
 Read the local component API before using it; Base UI wrappers do not imply Radix `asChild` support. Reuse behavior and accessibility while adapting variants, dimensions, and composition to the requested design.

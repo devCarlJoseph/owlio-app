@@ -78,7 +78,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     </div>
   </section>
 
-  return <section aria-label="Meeting room" data-meeting-design="coaching" className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 text-foreground md:min-h-[30rem]" onKeyDown={event => {
+  return <section aria-label="Meeting room" data-meeting-design="coaching" className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden text-foreground" onKeyDown={event => {
     if (event.key === 'Escape' && panel) { event.preventDefault(); state.onPanel(panel) }
   }}>
     <header className="flex shrink-0 items-center gap-3">
@@ -96,7 +96,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
 
     {(state.message || state.error) && <div className="shrink-0 space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
 
-    <div className="relative flex min-h-0 flex-1 gap-3">
+    <div className="relative flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden">
       <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3', strip.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
         {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0].identity, name: sample.people[0].name }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1].identity, name: sample.people[1].name }} names={names} learnerOnly={learnerView} onClose={() => setBoardOpen(false)} />
           : pinned ? <CallTile person={pinned} featured updateKey={state.revision} className="min-h-64 flex-1" />
