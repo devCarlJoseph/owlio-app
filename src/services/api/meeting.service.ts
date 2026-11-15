@@ -63,6 +63,10 @@ const envelope = <T>(schema: z.ZodType<T>, payload: unknown) =>
 export async function createMeeting(sessionId: string) {
   return roomResult.parse(await postApiWithCsrf(path(sessionId), {}));
 }
+export async function openClassroomMeeting(classroomId: string) {
+  return roomResult.extend({ sessionId: z.uuid() }).parse(
+    await postApiWithCsrf('/api/v1/classrooms/' + id(classroomId) + '/native-meeting', {}))
+}
 export async function joinMeeting(sessionId: string) {
   return joinResult.parse(await postApiWithCsrf(path(sessionId) + "/join", {}));
 }
@@ -202,7 +206,7 @@ export async function scheduleClassroomSession(
 }
 
 export async function resolveMeetingInvite(value: string, signal?: AbortSignal) {
-  const code = z.string().regex(/^OWLIO[A-Z0-9]{4}$/).parse(value.trim().toUpperCase())
-  return envelope(z.object({ sessionId: z.uuid(), classroomId: z.uuid(), meetingCode: z.string() }),
+  const code = z.string().regex(/^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/).parse(value.trim().toUpperCase())
+  return envelope(z.object({ sessionId: z.uuid().nullable(), classroomId: z.uuid(), meetingCode: z.string() }),
     (await api.get<unknown>('/api/v1/meeting-invitations/' + code, { signal })).data)
 }

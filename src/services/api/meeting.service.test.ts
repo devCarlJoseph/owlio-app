@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
 import { postApiWithCsrf } from './auth.service'
-import { createMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from './meeting.service'
+import { createMeeting, openClassroomMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from './meeting.service'
 vi.mock('@/lib/axios', () => ({ default: { get: vi.fn() } }))
 vi.mock('./auth.service', () => ({ postApiWithCsrf: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
@@ -57,6 +57,13 @@ describe('scheduled-session meeting contracts', () => {
 })
 
 describe('short meeting invitations', () => {
+  it('resolves a reusable classroom code before its host opens and opens using only the classroom selector', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { sessionId: null, classroomId: other, meetingCode: 'OWLIO-ABCDEFGH' } } })
+    expect(await resolveMeetingInvite(' owlio-abcdefgh ')).toEqual({ sessionId: null, classroomId: other, meetingCode: 'OWLIO-ABCDEFGH' })
+    vi.mocked(postApiWithCsrf).mockResolvedValue({ id, status: 'OPEN', sessionId: other, meetingCode: 'OWLIO-ABCDEFGH' })
+    expect((await openClassroomMeeting(id)).sessionId).toBe(other)
+    expect(postApiWithCsrf).toHaveBeenLastCalledWith('/api/v1/classrooms/' + id + '/native-meeting', {})
+  })
   it('resolves through the membership-scoped API before joining', async () => {
     vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { sessionId: id, classroomId: other, meetingCode: 'OWLIOA7K2' } } })
     expect(await resolveMeetingInvite(' owlioa7k2 ')).toEqual({ sessionId: id, classroomId: other, meetingCode: 'OWLIOA7K2' })

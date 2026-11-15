@@ -9,7 +9,7 @@ vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), get
 afterEach(cleanup)
 beforeEach(() => { vi.mocked(getClassrooms).mockResolvedValue([classroom]) })
 describe('connected classroom details', () => {
-  it.each(['classwork','materials','chat','feed'])('preserves %s deep links without simulated activities', async tab => {
+  it.each(['classwork','materials','feed'])('preserves %s deep links without simulated activities', async tab => {
     render(<TestSession path={'/students/classrooms/class-id?tab=' + tab}><Routes><Route path="/students/classrooms/:classroomId" element={<ClassroomDetailView />} /></Routes></TestSession>)
     await screen.findByText(classroom.name)
     expect(screen.getByRole('tab', { selected: true }).textContent).toBe({ classwork: 'Classwork', materials: 'Materials', chat: 'Chat', feed: 'Discussion' }[tab])

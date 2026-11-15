@@ -14,26 +14,31 @@ export function ChatComposer({
   onSend,
   replyingTo,
   onCancelReply,
+  disabled = false,
 }: {
-  onSend: (body: string) => void
+  onSend: (body: string) => void | Promise<boolean>
   replyingTo: ClassroomChatReplyRef | null
   onCancelReply: () => void
+  disabled?: boolean
 }) {
   const [draft, setDraft] = useState("")
   const [emojiOpen, setEmojiOpen] = useState(false)
+  const pending = useRef(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const canSend = draft.trim().length > 0
+  const canSend = !disabled && draft.trim().length > 0
 
   useEffect(() => {
     if (replyingTo) textareaRef.current?.focus()
   }, [replyingTo])
 
-  const submit = (event?: FormEvent<HTMLFormElement>) => {
+  const submit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
-    if (!canSend) return
-    onSend(draft.trim())
-    setDraft("")
-    setEmojiOpen(false)
+    if (!canSend || pending.current) return
+    pending.current = true
+    try {
+      const sent = await onSend(draft.trim())
+      if (sent !== false) { setDraft(""); setEmojiOpen(false) }
+    } finally { pending.current = false }
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -94,6 +99,7 @@ export function ChatComposer({
           ref={textareaRef}
           id="class-chat-message"
           rows={1}
+          disabled={disabled}
           value={draft}
           maxLength={MAX_LENGTH}
           onChange={(event) => setDraft(event.currentTarget.value)}
@@ -101,7 +107,7 @@ export function ChatComposer({
           placeholder="Type message…"
           className="max-h-32 min-h-9 min-w-0 flex-1 resize-none border-0 bg-transparent px-1 py-2 shadow-none focus-visible:ring-0"
         />
-        <button type="button" className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
+        <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
           <Smile aria-hidden="true" className="size-4" />
         </button>
         <Button type="submit" size="icon" disabled={!canSend} aria-label="Send class chat message" className="shrink-0 rounded-full">

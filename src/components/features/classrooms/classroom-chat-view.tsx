@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FileText } from "lucide-react"
-import { useClassroomPrototype } from "./classroom-prototype-context"
+import { useAuthSession } from '@/components/features/auth/auth-session-context'
+import { useClassroomChat } from './use-classroom-chat'
+import { Button } from '@/components/ui/button'
 import type { Classroom, ClassroomChatMessage, ClassroomChatReplyRef, WorkspaceRole } from "./classroom-types"
 import { PersonAvatar } from "./classroom-ui"
-import { isYou } from "./classroom-utils"
 import { ChatComposer } from "./chat-composer"
 import { ChatHeader } from "./chat-header"
 import { ChatMessageBubble } from "./chat-message-bubble"
 import type { ReactionState } from "./discussion-reaction-data"
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
-  const { sendChatMessage } = useClassroomPrototype()
+  const { user } = useAuthSession()
+  const chat = useClassroomChat(classroom.id)
   const [status, setStatus] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -18,24 +20,24 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
   const [replyingTo, setReplyingTo] = useState<ClassroomChatReplyRef | null>(null)
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const authorRole = role === "students" ? "student" : "educator"
   const educators = classroom.members.filter((member) => member.role === "educator")
   const students = classroom.members.filter((member) => member.role === "student")
   const normalizedQuery = query.trim().toLowerCase()
+  const newestMessageId = chat.messages.at(-1)?.id
 
   const messages = useMemo(
     () => normalizedQuery
-      ? classroom.chatMessages.filter((message) =>
+      ? chat.messages.filter((message) =>
         `${message.body} ${message.authorName}`.toLowerCase().includes(normalizedQuery))
-      : classroom.chatMessages,
-    [classroom.chatMessages, normalizedQuery],
+      : chat.messages,
+    [chat.messages, normalizedQuery],
   )
 
   useEffect(() => {
     if (normalizedQuery) return
     const list = listRef.current
-    list?.scrollTo({ top: list.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
-  }, [classroom.chatMessages.length, normalizedQuery])
+    list?.scrollTo?.({ top: list.scrollHeight, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
+  }, [newestMessageId, normalizedQuery])
 
   const toggleReaction = (messageId: string, emoji: string) => {
     setReactions((current) => {
@@ -48,7 +50,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     })
   }
 
-  const startReply = (message: ClassroomChatMessage) => {
+  const startReply = (message: Pick<ClassroomChatMessage, 'id' | 'authorName' | 'body'>) => {
     setReplyingTo({
       messageId: message.id,
       authorName: message.authorName,
@@ -71,11 +73,11 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     window.setTimeout(() => setHighlightedId((current) => (current === messageId ? null : current)), 1600)
   }
 
-  const handleSend = (body: string) => {
+  const handleSend = async (body: string) => {
     setQuery("")
-    sendChatMessage(classroom.id, body, authorRole, replyingTo ?? undefined)
-    setReplyingTo(null)
-    setStatus("Message added for this preview session only. It was not delivered or saved.")
+    const sent = await chat.send(body, replyingTo?.messageId ?? null)
+    if (sent) { setReplyingTo(null); setStatus('Message sent to this classroom.') }
+    return sent
   }
 
   return (
@@ -99,7 +101,8 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
           aria-label={`${classroom.name} group chat messages`}
           className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-muted/30 px-4 py-5"
         >
-          {messages.length === 0 ? (
+          {chat.next && <Button variant="outline" disabled={chat.loadingOlder} onClick={() => void chat.loadOlder()}>Load older messages</Button>}
+          {chat.loading ? <p role="status">Loading classroom messages…</p> : messages.length === 0 ? (
             <p className="m-auto max-w-sm text-center text-sm text-muted-foreground">
               {normalizedQuery ? "No messages match your search." : "No messages yet. Start the class-only conversation."}
             </p>
@@ -108,8 +111,8 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
               {messages.map((message, index) => (
                 <ChatMessageBubble
                   key={message.id}
-                  message={message}
-                  mine={isYou(message.authorName)}
+                  message={{ ...message, replyTo: message.replyTo ?? undefined }}
+                  mine={message.authorId === user?.id}
                   showHeader={index === 0 || messages[index - 1].authorId !== message.authorId}
                   highlighted={highlightedId === message.id}
                   reactions={reactions[message.id] ?? {}}
@@ -122,7 +125,8 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
           )}
         </div>
         <p role="status" className="px-4 py-1 text-xs text-amber-800 empty:hidden">{status}</p>
-        <ChatComposer onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
+        {chat.error && <p role="alert" className="px-4 py-1 text-xs text-destructive">{chat.error}</p>}
+        <ChatComposer disabled={chat.busy || chat.loading || chat.denied} onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
       </section>
 
       <aside aria-label="Class info" className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-l border-border p-4 lg:flex">

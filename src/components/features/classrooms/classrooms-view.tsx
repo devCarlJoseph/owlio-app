@@ -42,7 +42,7 @@ export function ClassroomsView() {
     const form = new FormData(event.currentTarget)
     try {
       const result = await createClassroom({ name: String(form.get('class-name') ?? ''), description: String(form.get('class-description') ?? '') }, role)
-      setNotice(result.name + ' was created. Open it now to copy its one-time invite code.')
+      setNotice(result.name + ' was created. Open it to copy its classroom invite and meeting codes.')
       setCreatedId(result.id); setShowCreate(false)
     } catch (failure) { setError(getApiErrorMessage(failure, 'Classroom creation failed.')) }
     finally { pending.current = false; setCreating(false) }

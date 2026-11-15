@@ -4,10 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthSessionContext } from '@/components/features/auth/auth-session-context'
 import { ClassroomPrototypeProvider } from '@/components/features/classrooms/classroom-prototype-provider'
 import { getClassrooms } from '@/services/api/classroom.service'
-import { createMeeting, getClassroomSessions } from '@/services/api/meeting.service'
+import { createMeeting, openClassroomMeeting, resolveMeetingInvite, joinMeeting, getClassroomSessions } from '@/services/api/meeting.service'
 import MeetingRoomPage from './meeting-room-view'
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
-vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), endMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
+vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), resolveMeetingInvite: vi.fn(), endMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]); vi.mocked(getClassroomSessions).mockResolvedValue([]) })
 afterEach(cleanup)
@@ -15,6 +15,23 @@ function open(path = '/students/classrooms/meeting-room', teacher = false) {
   return render(<MemoryRouter initialEntries={[path]}><AuthSessionContext.Provider value={{ user: { id: 'user', name: 'Test', email: 'test@example.test', roles: teacher ? ['EDUCATOR'] : ['STUDENT'], status: 'ACTIVE', emailVerifiedAt: '2026-11-14T00:00:00Z', createdAt: '2026-11-14T00:00:00Z' }, status: 'authenticated', error: null, signIn: vi.fn(), signOut: vi.fn(), refreshCurrentUser: vi.fn() }}><ClassroomPrototypeProvider><MeetingRoomPage /></ClassroomPrototypeProvider></AuthSessionContext.Provider></MemoryRouter>)
 }
 describe('connected meeting entry', () => {
+  it('opens a reusable classroom meeting through the host operation without creating a second scheduled room', async () => {
+    vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: null, classroomId: id, meetingCode: 'OWLIO-ABCDEFGH' })
+    vi.mocked(openClassroomMeeting).mockResolvedValue({ id, status: 'OPEN', sessionId: id, meetingCode: 'OWLIO-ABCDEFGH' })
+    open('/educators/classrooms/meeting-room?room=OWLIO-ABCDEFGH', true)
+    fireEvent.click(screen.getByRole('button', { name: 'Open session room' }))
+    expect(await screen.findByText(/Session room opened/)).toBeTruthy()
+    expect(openClassroomMeeting).toHaveBeenCalledExactlyOnceWith(id)
+    expect(createMeeting).not.toHaveBeenCalled()
+  })
+  it('tells a current learner to wait when the host has not opened the classroom meeting', async () => {
+    vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: null, classroomId: id, meetingCode: 'OWLIO-ABCDEFGH' })
+    open('/students/classrooms/meeting-room?room=OWLIO-ABCDEFGH')
+    fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
+    expect((await screen.findByRole('alert')).textContent).toContain('teacher has not opened')
+    expect(joinMeeting).not.toHaveBeenCalled()
+    expect(openClassroomMeeting).not.toHaveBeenCalled()
+  })
   it.each(['students', 'educators', 'tutors', 'esl'])('restores the %s meeting hub without opening a live room', async role => {
     open('/' + role + '/classrooms/meeting-room')
     expect(await screen.findByRole('group', { name: 'Meeting categories' })).toBeTruthy()

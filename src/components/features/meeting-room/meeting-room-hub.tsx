@@ -54,7 +54,7 @@ export function MeetingRoomHub() {
         {matches.map(classroom => <Card key={classroom.id}>
           <CardHeader><h4 className="font-semibold">{classroom.name}</h4><p className="text-sm text-muted-foreground">{classroom.instructorName || 'Your teacher'}{classroom.isMock ? ' · Preview' : ''}</p></CardHeader>
           <CardContent>
-            {classroom.meetingId && !classroom.isMock ? <Link className={buttonVariants()} to={`${base}?category=${selected.value}&session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}`}>Join meeting</Link> : <p className="text-sm text-muted-foreground">No meeting linked. Ask your teacher for an invite.</p>}
+            {(classroom.meetingId || classroom.meetingCode) && !classroom.isMock ? <Link className={buttonVariants()} to={classroom.meetingId ? `${base}?category=${selected.value}&session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}` : `${base}?category=${selected.value}&room=${encodeURIComponent(classroom.meetingCode!)}`}>Join meeting</Link> : <p className="text-sm text-muted-foreground">No meeting linked. Ask your teacher for an invite.</p>}
             <Link className="rounded text-sm text-brand underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring" to={`/${role}/classrooms/${classroom.id}`}>Open class</Link>
           </CardContent>
         </Card>)}

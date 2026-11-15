@@ -9,21 +9,24 @@ import { ClassroomMembersView } from './classroom-members-view'
 import { UnderDevelopment } from './classroom-ui'
 import { getClassroomCoverUrl } from './classroom-covers'
 import { getClassroomCategory } from './classroom-list-meta'
+import { ClassroomChatView } from './classroom-chat-view'
+import { useAuthSession } from '@/components/features/auth/auth-session-context'
 
 const sections = [{ value: 'feed', label: 'Discussion' }, { value: 'classwork', label: 'Classwork' },
   { value: 'materials', label: 'Materials' }, { value: 'schedule', label: 'Schedule' },
   { value: 'people', label: 'Members' }, { value: 'about', label: 'About' },
-  { value: 'attendance', label: 'Attendance' }, { value: 'progress', label: 'Grades & Feedback' }]
+  { value: 'attendance', label: 'Attendance' }, { value: 'progress', label: 'Grades & Feedback' }, { value: 'chat', label: 'Chat' }]
 
 export function ClassroomDetailView() {
   const { pathname } = useLocation()
+  const { user } = useAuthSession()
   const role = getDashboardRole(pathname) ?? 'students'
   const { classroomId } = useParams()
   const [params, setParams] = useSearchParams()
   const { getClassroom, classroomsLoading, classroomsError, reloadClassrooms } = useClassroomPrototype()
   const [notice, setNotice] = useState('')
   const classroom = classroomId ? getClassroom(classroomId) : undefined
-  const tabs = [...sections, ...(params.get('tab') === 'chat' ? [{ value: 'chat', label: 'Chat' }] : [])]
+  const tabs = sections
   const defaultTab = 'about'
   const tab = tabs.find(item => item.value === params.get('tab'))?.value ?? defaultTab
   const owned = classroom?.access === 'owner'
@@ -47,7 +50,7 @@ export function ClassroomDetailView() {
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground"><span className="inline-flex items-center gap-1.5"><BookOpen aria-hidden="true" className="size-4" />{classroom.instructorName || 'Instructor details unavailable'}</span><span>{owned ? 'Teaching workspace' : 'Enrolled member'}</span></p>
         </div>
         <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => selectTab('classwork')}>View classwork</Button>
-          {classroom.meetingId && <Link className={buttonVariants()} to={`/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}`}><Video aria-hidden="true" />Meeting room</Link>}
+          {(classroom.meetingId || classroom.meetingCode) && <Link className={buttonVariants()} to={classroom.meetingId ? `/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}` : `/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingCode!)}`}><Video aria-hidden="true" />Meeting room</Link>}
         </div>
       </header>
     </section>
@@ -56,6 +59,7 @@ export function ClassroomDetailView() {
         <p className="text-xs text-muted-foreground">Share this code only with students invited to this classroom.</p></>
         : <p className="text-sm text-muted-foreground">This classroom has a legacy invite. Its owner must rotate the code before it can be displayed here.</p>}
       {notice && <p role="status" className="text-sm">{notice}</p>}</section></details>}
+    {classroom.meetingCode && <details className="rounded-xl border border-border bg-card p-4"><summary className="cursor-pointer text-sm font-semibold">Classroom meeting code</summary><code className="mt-3 block select-all break-all rounded-lg bg-muted p-3 text-sm">{classroom.meetingCode}</code></details>}
     <Tabs value={tab} onValueChange={selectTab}>
       <div className="max-w-full overflow-x-auto rounded-xl border border-border bg-card p-1"><TabsList variant="line" className="h-12 min-w-max">{tabs.map(item => <TabsTrigger key={item.value} value={item.value} className="px-4 py-3">{item.value === 'progress' && classroom.ownerWorkspace !== 'educators' ? 'Progress & Feedback' : item.label}</TabsTrigger>)}</TabsList></div>
       <TabsContent value="about" className="space-y-3 rounded-2xl border border-border bg-card p-6"><h3 className="font-semibold">About this classroom</h3><p className="text-sm leading-6 text-muted-foreground">{classroom.description || 'No description provided.'}</p><p className="text-xs text-muted-foreground">Classroom creation and enrollment are connected. Use Sessions to schedule or join a meeting.</p></TabsContent>
@@ -66,7 +70,7 @@ export function ClassroomDetailView() {
       <TabsContent value="schedule"><UnderDevelopment title="Schedule" /></TabsContent>
       <TabsContent value="attendance"><UnderDevelopment title="Attendance" /></TabsContent>
       <TabsContent value="progress"><UnderDevelopment title="Progress" /></TabsContent>
-      {tab === 'chat' && <TabsContent value="chat"><UnderDevelopment title="Chat" /></TabsContent>}
+      {tab === 'chat' && <TabsContent value="chat"><ClassroomChatView key={user?.id + ':' + classroom.id} classroom={classroom} role={role} /></TabsContent>}
     </Tabs>
   </div>
 }

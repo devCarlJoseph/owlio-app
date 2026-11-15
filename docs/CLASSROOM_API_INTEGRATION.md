@@ -1,5 +1,17 @@
 # Classroom API integration
 
+## Classroom chat and reusable meeting codes — 15 November 2026
+
+The existing classroom and meeting layouts now connect the requested create/enroll/chat/meeting journey. New classroom invitations use `OWLIO-` plus four random uppercase letters/digits. Each classroom also receives a reusable meeting code with eight random uppercase letters/digits, available immediately after creation and on authorized list/detail reloads. Older invitations remain accepted.
+
+The classroom **Chat** tab reuses the existing chat layout and calls `GET/POST /api/v1/classrooms/:classroomId/messages`. History is persisted separately from temporary in-call chat, refreshed every five seconds, and supports older pages and scoped replies. Sends preserve drafts on failure and reuse request IDs on retry. Account/classroom changes abort reads and discard old conversation state. Only the current classroom owner with a teaching role or a currently enrolled learner can read/send; archived classroom history remains readable while new messages are blocked. Emoji message content is saved; the existing explicitly preview-only reactions remain local.
+
+The classroom meeting code and existing Meeting room links lead to the existing prejoin screen. An EDUCATOR/ESL/TUTOR owner uses **Open session room** to call `POST /api/v1/classrooms/:classroomId/native-meeting`, then **Join meeting**. The API reuses an active room or creates a four-hour online session. Enrolled learners resolve the same reusable code to the currently open session and join; before the host opens, the app explains that the meeting has not started. Classroom enrollment codes and meeting codes have distinct purposes. Copied meeting URLs, legacy short meeting codes, and `OWLIO-SESSION-<UUID>` invitations remain accepted.
+
+Live media still requires a saved, enabled LiveKit configuration on the API and jobs worker. The jobs worker handles end-for-everyone and expired room cleanup. Browser camera/microphone permissions and an actual two-account media call require live acceptance. Mocked tests do not establish those outcomes. Migration 0045 adds classroom meeting aliases and persistent chat; it requires earlier schema prerequisites, including 0043/0044. See backend `docs/CLASSROOM_MEETING_INTEGRATION.md` for the target migration record and verification.
+
+The sections below describe the earlier integration baseline; statements about chat being unavailable or losing a persisted code on reload are superseded by this section.
+
 The classroom list, creation, enrollment, details and owner-only roster use the existing Owlio API. The routed provider is always connected; it cannot select sample records or a preview provider. Existing provider/context names are retained to keep route adapters compatible. See [current API connection](API_CONNECTION.md) for the application-wide API-only boundary and newer personal/scheduling/meeting clients.
 
 ## Contract
