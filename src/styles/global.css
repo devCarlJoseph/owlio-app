@@ -133,6 +133,7 @@
 
 #root:has([data-dashboard-shell]) {
   display: flex;
+  height: 100vh;
   height: 100dvh;
   flex-direction: column;
 }
