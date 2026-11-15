@@ -5,12 +5,14 @@ import { cn } from 'cn'
 import { useImmersiveDashboard } from '@/components/common/dashboard-chrome'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { coachingSessionPreview } from './coaching-meeting-preview'
 import { CallButton, CallTile, ChatPanel, PeoplePanel, type CallPerson } from './coaching-meeting-parts'
 import { MeetingWhiteboard } from './meeting-whiteboard'
 import { createBoardSeed, type BoardState } from './meeting-whiteboard-model'
 import { meetGrid } from './meeting-grid'
 import { PrejoinDevicePreview } from './prejoin-device-preview'
+import { ParticipantStrip } from './participant-strip'
 import type { MeetingRoomScreenProps, RoomStatus } from './meeting-room-types'
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }
@@ -81,7 +83,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
   return <section aria-label="Meeting room" data-meeting-design="coaching" className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden text-foreground" onKeyDown={event => {
     if (event.key === 'Escape' && panel) { event.preventDefault(); state.onPanel(panel) }
   }}>
-    <header className="flex shrink-0 items-center gap-3">
+    <header className="flex min-w-0 shrink-0 flex-wrap items-center gap-3">
       <Link to={state.backHref} aria-label="Back to Meeting Room" className="grid size-9 shrink-0 place-items-center rounded-full text-foreground hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"><ArrowLeft aria-hidden="true" className="size-4" /></Link>
       <div className="w-0 min-w-0 flex-1">
         <h2 className="truncate text-sm font-semibold sm:text-base">{title}</h2>
@@ -94,20 +96,20 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
       {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 text-rose-700 hover:text-rose-700" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
     </header>
 
-    {(state.message || state.error) && <div className="shrink-0 space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
+    {(state.message || state.error) && <ScrollArea className="min-h-0 min-w-0 shrink-0" viewportClassName="max-h-[20vh] overflow-x-hidden! overscroll-contain" contentClassName="min-w-0! w-full space-y-1 text-xs leading-5 [overflow-wrap:anywhere]">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</ScrollArea>}
 
     <div className="relative flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden">
       <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3', strip.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
         {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0].identity, name: sample.people[0].name }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1].identity, name: sample.people[1].name }} names={names} learnerOnly={learnerView} onClose={() => setBoardOpen(false)} />
-          : pinned ? <CallTile person={pinned} featured updateKey={state.revision} className="min-h-64 flex-1" />
+          : pinned ? <CallTile person={pinned} featured updateKey={state.revision} className="min-h-0 flex-1" />
             : people.length === 0 ? <div className={cn('flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl text-center', stageSurface)}><span className="grid size-16 place-items-center rounded-full bg-card text-brand shadow-sm"><VideoOff aria-hidden="true" className="size-7" /></span><p className="text-sm font-medium">Waiting for participants</p></div>
               : <div className={grid.container}>
                 {gridPeople.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className={gridTile} />)}
                 {hiddenCount > 0 && <button type="button" onClick={() => state.onPanel('people')} className={cn(gridTile, 'grid place-items-center rounded-2xl bg-muted text-sm font-medium text-muted-foreground hover:bg-accent')}>+{hiddenCount} others</button>}
               </div>}
-        {strip.length > 0 && <div aria-label={showBoard ? 'Participants beside the whiteboard' : 'Other participants'} role="group" className="flex h-28 shrink-0 gap-3 overflow-x-auto lg:h-auto lg:w-52 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
-          {strip.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className="w-40 shrink-0 lg:h-32 lg:w-auto" />)}
-        </div>}
+        {strip.length > 0 && <ParticipantStrip label={showBoard ? 'Participants beside the whiteboard' : 'Other participants'} className="lg:w-52">
+          {strip.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className="h-24 w-40 shrink-0 lg:h-32 lg:w-auto" />)}
+        </ParticipantStrip>}
       </section>
 
       {panel && <aside aria-label={panel === 'chat' ? 'In-call messages panel' : 'Participants panel'} className={cn(card, 'absolute inset-0 z-20 flex flex-col overflow-hidden lg:static lg:w-[22rem] lg:shrink-0')}>

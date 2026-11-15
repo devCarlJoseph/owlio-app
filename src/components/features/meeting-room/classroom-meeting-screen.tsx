@@ -6,11 +6,13 @@ import { cn } from 'cn'
 import { useImmersiveDashboard } from '@/components/common/dashboard-chrome'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { AudioTrack } from './audio-track'
 import { classroomSessionPreview } from './classroom-meeting-preview'
 import { ChatPanel, PeoplePanel, type CallPerson } from './coaching-meeting-parts'
 import { meetGrid } from './meeting-grid'
 import { PrejoinDevicePreview } from './prejoin-device-preview'
+import { ParticipantStrip } from './participant-strip'
 import { useParticipantVideo } from './use-participant-video'
 import type { MeetingPanel, MeetingRoomScreenProps, RoomStatus } from './meeting-room-types'
 
@@ -43,9 +45,9 @@ function MeetTile({ person, pinned, onPin, updateKey, featured = false, classNam
   const { videoRef, videoTrack, screenTrack } = useParticipantVideo(person.participant, updateKey)
   const speaking = useSpeaking(person.participant)
   return <article data-featured={featured || undefined} aria-label={`${person.name}${person.local ? ', you' : ''}${speaking ? ', speaking' : ''}`}
-    className={cn('@container group relative isolate min-h-0 min-w-0 overflow-hidden rounded-xl text-foreground', tileSurface, speaking && 'ring-3 ring-brand ring-inset', className)}>
+    className={cn('@container group relative isolate min-h-0 min-w-0 overflow-hidden rounded-xl text-foreground [container-type:size]', tileSurface, speaking && 'ring-3 ring-brand ring-inset', className)}>
     {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={person.local} aria-label={`${person.name} video`} className={cn('absolute inset-0 -z-10 size-full', screenTrack ? 'object-contain' : 'object-cover')} />
-      : <div className="absolute inset-0 -z-10 grid place-items-center"><MeetAvatar person={person} className={featured ? 'size-24 text-4xl @xl:size-32 @xl:text-5xl' : 'size-12 text-xl @[14rem]:size-16 @[14rem]:text-2xl @[24rem]:size-24 @[24rem]:text-4xl'} /></div>}
+      : <div className="absolute inset-x-0 top-0 bottom-6 -z-10 grid place-items-center"><MeetAvatar person={person} className={cn('size-12 text-xl supports-[container-type:size]:text-[clamp(.625rem,min(10cqw,12cqh),2.5rem)]', featured ? 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),8rem)]' : 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),6rem)]')} /></div>}
     {person.participant && !person.local && [...person.participant.audioTrackPublications.values()].map(publication => publication.track ? <AudioTrack key={publication.trackSid} track={publication.track} /> : null)}
     {person.raised && <span title="Hand raised" className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-medium text-amber-700"><Hand aria-hidden="true" className="size-3.5" /><span className="sr-only @[12rem]:not-sr-only">Hand raised</span></span>}
     <span role="img" aria-label={speaking ? 'Speaking' : person.micOn ? 'Microphone on' : 'Microphone off'} className={cn('absolute top-2 right-2 grid size-7 place-items-center rounded-full', speaking ? 'bg-brand text-brand-foreground' : 'bg-foreground/55 text-background', person.micOn && !speaking && 'opacity-0 group-hover:opacity-100')}>
@@ -76,7 +78,7 @@ function MeetButton({ label, onClick, disabled, pressed, tone, badge, controlRef
 function InfoPanel({ meetingCode, preview, onCopy, onClose }: { meetingCode: string; preview: boolean; onCopy: () => void; onClose: () => void }) {
   return <section aria-label="Meeting details" className="flex min-h-0 flex-1 flex-col">
     <div className="flex shrink-0 items-center justify-between gap-2 py-3 pr-2 pl-5"><h3 className="text-base font-semibold">Meeting details</h3><Button variant="ghost" size="icon" className="rounded-full" aria-label="Close meeting details" onClick={onClose}><X aria-hidden="true" /></Button></div>
-    <div className="space-y-5 overflow-y-auto px-5 pb-5 text-sm">
+    <ScrollArea className="min-h-0 min-w-0 flex-1 basis-0" viewportClassName="overscroll-contain overflow-x-hidden!" contentClassName="min-w-0! w-full space-y-5 px-5 pb-5 text-sm">
       <div>
         <h4 className="font-medium">Joining info</h4>
         <p className="mt-1 break-words text-muted-foreground">{meetingCode || (preview ? 'Layout preview · an invite appears once a live room is created.' : 'No invite available.')}</p>
@@ -87,7 +89,7 @@ function InfoPanel({ meetingCode, preview, onCopy, onClose }: { meetingCode: str
         <li className="flex gap-2"><Users aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />Being in the call is presence only. It isn’t official attendance.</li>
         <li className="flex gap-2"><MessageSquareText aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />In-call messages belong to this session and remain available until the meeting ends.</li>
       </ul>
-    </div>
+    </ScrollArea>
   </section>
 }
 
@@ -176,7 +178,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
       {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 text-rose-700 hover:text-rose-700" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
     </header>
     {state.preview && <p className="shrink-0 text-[11px] text-muted-foreground">Sample classmates · no live people, media, or recording</p>}
-    {(state.message || state.error) && <div className="max-h-[20dvh] shrink-0 space-y-1 overflow-y-auto text-xs leading-5 [overflow-wrap:anywhere]">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
+    {(state.message || state.error) && <ScrollArea className="min-h-0 min-w-0 shrink-0" viewportClassName="max-h-[20vh] overflow-x-hidden! overscroll-contain" contentClassName="min-w-0! w-full space-y-1 text-xs leading-5 [overflow-wrap:anywhere]">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</ScrollArea>}
 
     <div className="relative flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden">
       <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden', featured && others.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
@@ -187,7 +189,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
         </div>
           : featured ? <>
             {tile(featured, 'min-h-0 flex-1', true)}
-            {others.length > 0 && <div role="group" aria-label="Other participants" className="flex h-28 shrink-0 gap-3 overflow-x-auto lg:h-auto lg:w-56 lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">{others.map(person => tile(person, 'w-40 shrink-0 lg:h-32 lg:w-auto'))}</div>}
+            {others.length > 0 && <ParticipantStrip label="Other participants">{others.map(person => tile(person, 'h-24 w-40 shrink-0 lg:h-32 lg:w-auto'))}</ParticipantStrip>}
           </>
             : <div className={grid.container}>
               {grid.visible.map(person => tile(person, cn(grid.tile)))}

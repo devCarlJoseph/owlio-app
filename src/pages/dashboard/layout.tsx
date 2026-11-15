@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Bell, CircleHelp, LogOut, Menu, Search, Settings, ShieldCheck, UserRound, type LucideIcon } from "lucide-react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router"
-import { cn } from "cn"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { DashboardChromeContext } from "@/components/common/dashboard-chrome"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -220,8 +219,10 @@ export default function PlatformLayout() {
       </header>}
       <div className="flex min-h-0 flex-1">
         {!immersive && <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />}
-        <ScrollArea className={cn("h-full min-h-0 min-w-0 flex-1", immersive && "[&_[data-slot=scroll-area-content]]:flex [&_[data-slot=scroll-area-content]]:min-w-full! [&_[data-slot=scroll-area-content]]:min-h-full [&_[data-slot=scroll-area-content]]:flex-col [&_[data-slot=scroll-area-content]]:h-full")}>
-          <main id="main-content" className={immersive ? "flex min-h-0 flex-1 flex-col p-3 sm:p-4" : "p-4 sm:p-6 lg:p-8"}>
+        <ScrollArea className="h-full min-h-0 min-w-0 flex-1"
+          viewportClassName={immersive ? "overflow-hidden!" : undefined}
+          contentClassName={immersive ? "flex h-full min-h-full min-w-full! flex-col" : "w-full min-w-0!"}>
+          <main id="main-content" className={immersive ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 sm:p-4" : "p-4 sm:p-6 lg:p-8"}>
             <h1 className="sr-only">{pageTitle}</h1>
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
             <DashboardChromeContext.Provider value={setImmersive}>

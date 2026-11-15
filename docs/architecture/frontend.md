@@ -33,6 +33,10 @@ The entry point registers the original role-specific page adapters, including Ov
 
 Connected meetings use `MeetingRoomShell` to maintain a bounded, shrinkable flex chain inside the immersive dashboard. The stage, participant list, and chat contain their own overflow; adding messages must not resize the call or move its footer off-screen. Chat headers and the composer remain outside the scrolling message log, and unbroken message text wraps within the panel. Small screens use an overlay panel and flexible grid rows; large displays retain the stage with a side panel. Pre-join pages keep ordinary page scrolling.
 
+Meeting chat, people, details, notices, and participant strips use the project-owned shadcn `ScrollArea` with themed scrollbars. `viewportRef` exposes the actual scroll element for chat auto-scroll; `viewportClassName` and `contentClassName` scope viewport/content styling, and `scrollbarOrientation` supports horizontal or dual-axis strips. Style the immersive dashboard's own content through these props instead of descendant selectors, which would also override nested meeting scroll areas. Participant avatars use tile width and height to stay clear of captions on short screens. Dashboard height includes a `100vh` fallback before `100dvh`.
+
+Classroom interiors use a group-page composition: cover and class identity, horizontally scrollable section tabs, main content, and supporting class/invite details. The layout takes inspiration from [Meta's Groups overview](https://about.fb.com/news/2021/11/new-tools-in-facebook-groups/), while retaining Owlio's roles and capabilities. About remains the default tab; query parameters, scoped meeting links, invite copying, owner-only roster loading, and API-backed chat keep their existing behavior. Unsupported sections remain explicitly unavailable. Dashboard scroll content is constrained to its viewport width so nested horizontal tabs cannot widen the page.
+
 ## UI and reference images
 
 Read the local component API before using it; Base UI wrappers do not imply Radix `asChild` support. Reuse behavior and accessibility while adapting variants, dimensions, and composition to the requested design.
