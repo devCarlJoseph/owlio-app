@@ -27,13 +27,13 @@ Owlio authentication uses HttpOnly access/refresh cookies and in-memory CSRF, no
 
 Response records for the new personal/schedule/meeting clients are runtime-validated. UUID cursor loops fail explicitly. Connected records are cleared on account/role/path remounts; late/aborted account reads cannot populate another account's screen. Mutation success uses server confirmation and is not inferred from local edits.
 
-## Removed preview entry points and remaining work
+## Restored layouts and remaining work
 
-Protected routes always require a session and assigned role. The application has no preview-mode switch, role-switch preview banner, sample dashboard, sample classroom fallback, local onboarding route, meeting layout/whiteboard preview link, or interactive auth example quiz. Query parameters such as `layout-preview` and `whiteboard-preview` do not activate those screens. Legacy room IDs are not reinterpreted as scheduled-session IDs; use `?session=<UUID>` or `OWLIO-SESSION-<UUID>`.
+Protected routes still require a session and assigned role. The original role-specific Overview, Calendar, learning/teaching pages, auth showcase, notification panel, and meeting category hub are restored. My Classes and API/session clients are preserved. The local onboarding route still redirects to registration; there is no authentication preview bypass or sample classroom fallback. Legacy room IDs are not reinterpreted as scheduled-session IDs; use `?session=<UUID>` or `OWLIO-SESSION-<UUID>` for connected meetings.
 
-The workspace content boundary prevents the older local/sample page implementations from mounting. Existing local files, notes, tasks, subjects, and study-space storage are left untouched. Retained source and isolated tests for old local tools are not evidence that those tools remain routed.
+The default workspace view mounts the original page adapter. A separate **Account records** link (`?source=account`) keeps the connected overview, student subjects/tasks/notes, notifications, calendar, and tutor-session workflows accessible. Device editors and account records retain their distinct storage and mutations; neither automatically imports or overwrites the other. Connected subject links retain the account query. Meeting Room offers **Scheduled sessions** for the connected directory and explicit `layout-preview=1` / ESL `whiteboard-preview=1` entry points for isolated layouts. These previews never open a live meeting or request devices.
 
-**Not all backend modules have frontend integrations yet.** Classwork/submissions/evaluations, discussions, materials/uploads/editors, study spaces, attendance/gradebook/progress, teaching plans/private notes/learner management, account profile/settings, and AI screens currently show unavailable states. Their backend capabilities vary; this frontend state does not claim that corresponding backend routes are missing. These workflows require separate typed adapters, UI integration, and verification before enabling them.
+**Not all backend modules have frontend integrations yet.** Restored classwork, materials/editors, study spaces, progress, teaching plans, profile/settings, and AI pages retain their existing local/example/unavailable disclosures. Restoring their layout does not connect their unimplemented API operations. Their backend capabilities vary; this does not claim that corresponding backend routes are missing. Separate typed adapters and verification are still required for new server persistence.
 
 Native calls additionally require the backend's explicit `NATIVE_MEETINGS_ENABLED`, configured LiveKit service and worker, eligible owned/enrolled classroom membership, and a scheduled online/hybrid session within its admission window. Approval-required rooms surface the backend error; host admission/moderation and synchronized whiteboard UI are not implemented by this integration. Ending returns 202/ENDING: the UI reports closure requested, not instant provider cleanup. Camera/microphone remain off until the user enables them.
 
@@ -41,7 +41,7 @@ Meeting messages and hand state use the backend's room lifecycle. Local panels c
 
 ## Verification boundary
 
-Service/component tests use mocked HTTP or service responses. They cover exact paths/payloads, CSRF limits, version conflicts, cursor termination, cancellation, draft retention, removed preview access, and blocked sample-screen mounting. They do not prove deployed authorization, real write persistence, LiveKit connectivity, admission policy, worker cleanup, or provider revocation.
+Service/component tests use mocked HTTP or service responses. They cover exact paths/payloads, CSRF limits, version conflicts, cursor termination, cancellation, draft retention, original page rendering, separate account-record access, and isolated meeting previews. They do not prove deployed authorization, real write persistence, LiveKit connectivity, admission policy, worker cleanup, or provider revocation.
 
 Browser reads can establish session restoration, classroom data, schedule/inbox rendering, and responsive layout against an available backend. Do not infer tested writes or connected media from these reads. No live account writes, schema changes, dependency installations, or deployments are needed for this frontend change.
 

@@ -15,11 +15,28 @@ function open(path = '/students/classrooms/meeting-room', teacher = false) {
   return render(<MemoryRouter initialEntries={[path]}><AuthSessionContext.Provider value={{ user: { id: 'user', name: 'Test', email: 'test@example.test', roles: teacher ? ['EDUCATOR'] : ['STUDENT'], status: 'ACTIVE', emailVerifiedAt: '2026-11-14T00:00:00Z', createdAt: '2026-11-14T00:00:00Z' }, status: 'authenticated', error: null, signIn: vi.fn(), signOut: vi.fn(), refreshCurrentUser: vi.fn() }}><ClassroomPrototypeProvider><MeetingRoomPage /></ClassroomPrototypeProvider></AuthSessionContext.Provider></MemoryRouter>)
 }
 describe('connected meeting entry', () => {
-  it.each(['students', 'educators', 'tutors', 'esl'])('does not render layout or sample previews in %s', async role => {
-    open('/' + role + '/classrooms/meeting-room?layout-preview=1&whiteboard-preview=1')
+  it.each(['students', 'educators', 'tutors', 'esl'])('restores the %s meeting hub without opening a live room', async role => {
+    open('/' + role + '/classrooms/meeting-room')
+    expect(await screen.findByRole('group', { name: 'Meeting categories' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Preview room layout' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Scheduled sessions' }).getAttribute('href')).toContain('source=account')
+    expect(createMeeting).not.toHaveBeenCalled()
+  })
+  it.each(['students', 'educators', 'tutors', 'esl'])('opens the %s room layout without connecting to media', async role => {
+    open('/' + role + '/classrooms/meeting-room?layout-preview=1')
+    expect(await screen.findByText('Layout preview')).toBeTruthy()
+    expect(createMeeting).not.toHaveBeenCalled()
+  })
+  it('keeps connected scheduled sessions accessible from the restored hub', async () => {
+    open('/students/classrooms/meeting-room?source=account')
     expect(await screen.findByText('Join or create a class to see its sessions.')).toBeTruthy()
-    expect(screen.queryByRole('link', { name: 'Preview room layout' })).toBeNull()
-    expect(screen.queryByRole('region', { name: 'Meeting stage' })).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Meeting categories' })).toBeNull()
+  })
+  it('returns from a layout preview to the category hub without opening a live room', async () => {
+    open('/tutors/classrooms/meeting-room?layout-preview=1&join=1')
+    fireEvent.click(await screen.findByRole('button', { name: 'Exit preview' }))
+    expect(await screen.findByRole('group', { name: 'Meeting categories' })).toBeTruthy()
+    expect(createMeeting).not.toHaveBeenCalled()
   })
   it('rejects legacy room invites without opening a fabricated live room', () => {
     open('/students/classrooms/meeting-room?room=' + id)

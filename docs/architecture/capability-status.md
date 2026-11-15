@@ -1,29 +1,29 @@
 # Capability status
 
-Source review: 14 November 2026. Source and configuration establish implementation; browser reads and mocked tests establish different verification scopes.
+Source review: 15 November 2026. Source and configuration establish implementation; browser reads and mocked tests establish different verification scopes.
 
 ## Operating mode
 
-The routed application is API-only. Auth/session and role guards always run. The compatibility export in `src/lib/api-mode.ts` is true; it no longer controls the guards or providers. There is no preview bypass, sample-data fallback, or local onboarding route.
+Auth/session and role guards always run. The compatibility export in `src/lib/api-mode.ts` is true; it no longer controls the guards or providers. There is no authentication preview bypass or local onboarding route. Original workspace layouts and browser-local tools are restored behind these guards.
 
-`ApiWorkspaceContent` renders connected features and blocks older local/sample screens from mounting. Existing browser-local work remains in storage without automatic import or deletion. Unconnected destinations show an unavailable state.
+`ApiWorkspaceContent` renders the original page adapters by default. **Account records** (`?source=account`) opens the separate connected overview, student subjects/tasks/notes, notifications, schedule, and tutor sessions. Browser-local work is accessible in the original tools without automatic import or deletion. Existing preview notices continue to identify example/unconnected content.
 
 ## Capability map
 
 | Area | Current routed behavior | Evidence |
 | --- | --- | --- |
 | Authentication and account security | Cookie/CSRF-backed forms, session refresh, Google callback/linking and API-derived role guards. `/onboarding` redirects to registration. | [Auth access](../AUTH_ROUTE_ACCESS.md), `src/components/features/auth/`, `src/services/api/auth.service.ts` |
-| Overview | Server identity and classroom list/count; no sample metrics. | `connected-workspace/api-workspace-content.tsx` |
+| Overview | Original role overview; separate Account records view retains server identity and classroom count. | `dashboard-overview/`, `connected-workspace/api-workspace-content.tsx` |
 | Classrooms | API list/create/join/detail and owner roster; account cleanup and one-time invite codes in memory. | [Classroom integration](../CLASSROOM_API_INTEGRATION.md) |
-| Student subjects/tasks/notes | Account collections and confirmed mutations, including versioned edits and task transitions. Existing local records are retained but not read or imported. | `connected-workspace/personal-workspace.tsx`, `personal-workspace.service.ts` |
-| Notifications | API list and mark-one-read across roles; header links to the same connected inbox. | `connected-workspace/account-notifications.tsx` |
-| Schedule and tutor sessions | Classroom-scoped calendar window with pagination; owner scheduling and meeting links. | `connected-workspace/classroom-sessions.tsx`, `meeting.service.ts` |
-| Meeting Room | Scheduled-session open/join/end with LiveKit media; HTTP room state, names, latest chat and own-hand changes. Requires backend flag/provider/session eligibility. No layout or whiteboard previews. Host admission/moderation and whiteboard UI are not connected. | `meeting-room/meeting-room-view.tsx`, `meeting.service.ts`, [API connection](../API_CONNECTION.md) |
-| Other learning/teaching tools | Unavailable in the routed app until their frontend integration is implemented. This includes study spaces, materials/editors, classwork, discussions, academic records, teaching plans and profile/settings. Backend source may already contain corresponding routes. | `connected-workspace/api-workspace-content.tsx` |
-| AI | Unavailable. No inference provider or credentials in the browser. | [AI plan](../../OWLIO_AI_IMPLEMENTATION_PLAN.md) |
+| Student subjects/tasks/notes | Original device editors plus separate account collections and confirmed mutations. No automatic migration between them. | `personal-workspace/`, `connected-workspace/personal-workspace.tsx` |
+| Notifications | Restored panel/inbox preview; separate account list and confirmed mark-one-read remain accessible. | `notifications/`, `connected-workspace/account-notifications.tsx` |
+| Schedule and tutor sessions | Original calendar/workspace; Account records retains classroom/month selection, owner scheduling, and meeting links. | `schedule/`, `connected-workspace/classroom-sessions.tsx` |
+| Meeting Room | Original category hub and isolated layout/ESL whiteboard previews. Scheduled-session open/join/end, LiveKit, HTTP room state, names, chat, and own-hand changes remain connected. Previews do not request media or mutate meetings. Host admission/moderation and whiteboard UI are not connected. | `meeting-room/meeting-room-view.tsx`, `meeting.service.ts`, [API connection](../API_CONNECTION.md) |
+| Other learning/teaching tools | Original layouts, local tools, and disclosed examples are routed again. This restoration does not add server persistence for their unconnected actions. | `src/main.tsx`, original feature components |
+| AI | Original draft/example screens are routed; no inference provider or credentials in the browser. | [AI plan](../../OWLIO_AI_IMPLEMENTATION_PLAN.md) |
 
 ## Verification
 
-See [API connection](../API_CONNECTION.md) for contract evidence, feature limits, and the distinction between mocked tests, browser reads, and live persistence/media checks. Older component guides and dated reports may describe retired previews or local tools; they do not override the current route boundary.
+See [API connection](../API_CONNECTION.md) for contract evidence, feature limits, and the distinction between mocked tests, browser reads, and live persistence/media checks. Historical integration checks describe the app at their recorded date, before the original layouts were restored.
 
 [Frontend architecture](frontend.md) | [Product overview](../product/overview.md)

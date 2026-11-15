@@ -8,18 +8,47 @@ import { formatSessionCode, getSessionIdFromInvite } from '@/lib/session-code'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import { createMeeting, endMeeting, joinMeeting, sendMeetingMessage, setMeetingHand } from '@/services/api/meeting.service'
 import { ClassroomSessions } from '@/components/features/connected-workspace/classroom-sessions'
+import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview'
+import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/esl-whiteboard-preview-route'
+import { MeetingRoomHub } from './meeting-room-hub'
 import { MeetingRoomScreen } from './meeting-room-screen'
 import { useNativeMeetingData } from './use-native-meeting-data'
 import type { MeetingCategory, MeetingPanel, RoomStatus } from './meeting-room-types'
 
 export default function MeetingRoomPage() {
+  const { pathname } = useLocation()
   const [params] = useSearchParams()
+  const role = getDashboardRole(pathname) ?? 'students'
+  if (shouldShowEslWhiteboardPreview(role, params.get('whiteboard-preview'))) return <EslWhiteboardPreview />
+  if (params.get('layout-preview') === '1') return <MeetingLayoutPreview />
   return params.has('session') || params.has('join') || params.has('room') ? <MeetingRoomSession key={params.get('session') ?? 'join'} /> : <MeetingDirectory />
 }
 function MeetingDirectory() {
   const { pathname } = useLocation()
+  const [params] = useSearchParams()
+  return params.get('source') === 'account'
+    ? <div className="space-y-5"><Link className="text-sm text-muted-foreground underline" to={pathname}>Back to Meeting Room</Link><ClassroomSessions /></div>
+    : <MeetingRoomHub />
+}
+
+// Layout previews never request media permissions or call meeting mutation APIs.
+function MeetingLayoutPreview() {
+  const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? 'students'
-  return <div className="space-y-6"><header className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-semibold">Meeting Room</h2><Link className="text-sm underline" to={'/' + role + '/classrooms/meeting-room?join=1'}>Use a session invite</Link></header><ClassroomSessions /></div>
+  const [params, setParams] = useSearchParams()
+  const roomInputRef = useRef<HTMLInputElement>(null)
+  const [panel, setPanel] = useState<MeetingPanel | null>(null)
+  const [pinned, setPinned] = useState<string | null>(null)
+  const category = ['educators', 'esl', 'tutors'].includes(params.get('category') ?? '') ? params.get('category') as MeetingCategory : null
+  const leave = () => { const next = new URLSearchParams(params); next.delete('layout-preview'); next.delete('join'); setParams(next) }
+  return <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'}
+    roomId={null} meetingCode="" roomInputRef={roomInputRef} status="idle" preview hasRoom={false} apiEnabled={false}
+    canCreate={false} isHost={false} busy={false} message="" error="" participants={[]} pinnedIdentity={pinned} onPin={setPinned}
+    raisedHands={{}} revision={0} micOn={false} cameraOn={false} screenOn={false} handUpdating={false}
+    activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0} messages={[]}
+    chatDraft="" onChatDraft={() => {}} chatSending={false} onSendChat={event => event.preventDefault()}
+    onJoin={event => event.preventDefault()} onCreate={() => {}} onPreview={() => {}} onCopy={() => {}} onLeave={leave}
+    onEnd={() => {}} onMicrophone={() => {}} onCamera={() => {}} onScreen={() => {}} onHand={() => {}} />
 }
 function MeetingRoomSession() {
   const { pathname } = useLocation()
@@ -157,7 +186,7 @@ function MeetingRoomSession() {
     catch { setMessage('Share this session code: ' + formatSessionCode(activeSessionId)) }
   }
   return <div className="space-y-4">
-    {!room && <p className="text-sm text-muted-foreground">Use a scheduled-session invite. Teachers can open their own session room before joining. <Link className="underline" to={'/' + role + '/schedule'}>View sessions</Link></p>}
+    {!room && <p className="text-sm text-muted-foreground">Use a scheduled-session invite. Teachers can open their own session room before joining. <Link className="underline" to={'/' + role + '/schedule?source=account'}>View sessions</Link></p>}
     {room && <p className="text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
     <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
       status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}

@@ -12,6 +12,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./src/test/offline.ts'],
     restoreMocks: true,
   },
 })

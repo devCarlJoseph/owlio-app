@@ -29,7 +29,7 @@ Workspace roots are `/students`, `/educators`, `/tutors`, and `/esl`. Shared pag
 
 `getDashboardRole` derives presentation context from a URL. Backend-assigned roles and resource authorization govern access. See [auth access](../AUTH_ROUTE_ACCESS.md) for session restoration, safe return paths, multi-role behavior, and guest-only routes. The actual root route redirects to login; `src/pages/App.tsx` is an unused placeholder, not the routed homepage.
 
-`ApiWorkspaceContent` renders the connected feature inventory. Other workspace destinations remain navigable but render an unavailable state; their older page adapters and sample/local implementations are not mounted. The entry point imports only active route adapters. Account/role/path changes remount connected content, and account reads are aborted on unmount. See [API connection](../API_CONNECTION.md).
+The entry point registers the original role-specific page adapters, including Overview, Calendar, study tools, teaching tools, and Meeting Room. `ApiWorkspaceContent` preserves those layouts by default and offers a separate **Account records** view (`?source=account`) for overview, student subjects/tasks/notes, notifications, schedule, and tutor sessions. My Classes continues to use its connected implementation. Account/role/path changes remount content, and account reads are aborted on unmount. See [API connection](../API_CONNECTION.md).
 
 ## UI and reference images
 
@@ -37,7 +37,7 @@ Read the local component API before using it; Base UI wrappers do not imply Radi
 
 Inter, the owl/wordmark, semantic tokens, and Auth Showcase are existing defaults. Unchanged areas retain their design. An explicit reference implementation/redesign may change the requested area's appearance without separate permission for each styling choice. Scope new styles so shared screens do not drift accidentally.
 
-The auth showcase is static brand artwork and guidance. Its interactive example quiz and fictional live-session badges have been removed. Preserve the real forms, validation, and session flow when changing its layout.
+The original auth showcase includes rotating feature artwork, a practice question, and contextual guidance. These illustrations and examples are separate from authenticated account activity. Preserve the real forms, validation, and session flow when changing its layout.
 
 Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile update. When adding palette utilities covered by the existing dark compatibility mechanism, inspect/run `node scripts/sync-dark-utilities.mjs` and review the generated CSS. New UI can use semantic tokens or scoped reference-specific styles. Authored presentation surfaces and the ESL drawing canvas use `data-theme-content` to preserve content colors.
 
@@ -45,7 +45,7 @@ Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile 
 
 Read [capability status](capability-status.md) before changing data behavior. Distinguish account-backed API records, browser-local records, tab-memory previews, and transient live-room events. A component/provider name containing `prototype` does not establish its current data mode.
 
-Current routes use the API only. Existing browser-local records are retained without automatic import, deletion, or account assignment. Their previous editors are not mounted by the routed app; a future migration must explicitly address ownership and format compatibility.
+Authentication, My Classes, account-record views, and live meetings use the API. Original browser-local editors are routed again and retain their existing storage keys and notices. Device and account records stay separate: there is no automatic import, deletion, or account assignment. Other restored pages retain their existing example/unavailable disclosures; their appearance does not establish API integration.
 
 Preserve existing storage keys and data shapes when redesigning local tools. Changes to stored formats need an explicit compatibility/recovery approach; local data must not disappear because a screen was restyled. Inspect the editor's revision checks, save-error recovery, and backup flow before changing it.
 

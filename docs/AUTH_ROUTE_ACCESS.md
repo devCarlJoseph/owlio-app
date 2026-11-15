@@ -8,7 +8,7 @@ This integration uses the existing Owlio API. It does not change backend routes,
 
 Authentication and role guards always run. There is no preview bypass or configuration that opens protected pages anonymously. The compatibility constant in `src/lib/api-mode.ts` is true; guards and session restoration no longer depend on it.
 
-The local onboarding wizard is no longer routed. `/onboarding` redirects to `/register`, whose account type is validated by the backend. Unconnected feature pages show an unavailable state through the API workspace boundary, without mounting local/sample-data views. See [API connection](API_CONNECTION.md).
+The local onboarding wizard is no longer routed. `/onboarding` redirects to `/register`, whose account type is validated by the backend. Original workspace pages and local tools remain behind the same guards; layout and whiteboard previews do not bypass authentication. Separate Account records views retain the connected workflows. See [API connection](API_CONNECTION.md).
 
 ## Route access (API integration enabled)
 

@@ -43,7 +43,7 @@ export function PersonalSubjects({ subjectId }: { subjectId?: string }) {
   }
   return <section className="mx-auto max-w-5xl space-y-5">
     <header><h2 className="text-2xl font-semibold">My Learning</h2><p className="mt-2 text-sm text-muted-foreground">Your personal subjects, saved to your account.</p></header>
-    {subjectId && <Link to="/students/subjects" className="underline">All subjects</Link>}
+    {subjectId && <Link to="/students/subjects?source=account" className="underline">All subjects</Link>}
     <RecordStatus {...state} />
     {error && <p role="alert">{error} Reload the list before retrying a conflicting edit.</p>}
     {!state.loading && !state.error && <>
@@ -56,7 +56,7 @@ export function PersonalSubjects({ subjectId }: { subjectId?: string }) {
       <div className="flex justify-end"><Button variant="outline" disabled={busy} onClick={state.reload}>Reload subjects</Button></div>
       {selected.length === 0 && <p className={card}>{subjectId ? 'This subject is not in your active subjects.' : 'No subjects yet. Add your first subject above.'}</p>}
       <div className="grid gap-4 sm:grid-cols-2">{selected.map(item => <article key={item.id} className={card}>
-        <h3 className="font-semibold"><Link className="underline" to={'/students/subjects/' + item.id}>{item.name}</Link></h3><p className="whitespace-pre-wrap text-sm">{item.description || 'No description.'}</p>
+        <h3 className="font-semibold"><Link className="underline" to={'/students/subjects/' + item.id + '?source=account'}>{item.name}</Link></h3><p className="whitespace-pre-wrap text-sm">{item.description || 'No description.'}</p>
         <div className="flex gap-2"><Button variant="outline" disabled={busy} onClick={() => { setEditing(item); setName(item.name); setDescription(item.description) }}>Edit</Button><Button variant="outline" disabled={busy || editing?.id === item.id} onClick={() => void archive(item)}>Archive</Button></div>
       </article>)}</div>
     </>}
