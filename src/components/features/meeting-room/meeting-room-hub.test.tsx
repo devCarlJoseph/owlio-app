@@ -6,8 +6,9 @@ import { ClassroomPrototypeProvider } from '@/components/features/classrooms/cla
 import { getClassrooms } from '@/services/api/classroom.service'
 import { createMeeting, openClassroomMeeting, resolveMeetingInvite, joinMeeting, getClassroomSessions } from '@/services/api/meeting.service'
 import MeetingRoomPage from './meeting-room-view'
+vi.mock('@/services/api/meeting-realtime', () => ({ watchMeetingChat: vi.fn(() => vi.fn()) }))
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
-vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), resolveMeetingInvite: vi.fn(), endMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
+vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), resolveMeetingInvite: vi.fn(), endMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), recoverMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]); vi.mocked(getClassroomSessions).mockResolvedValue([]) })
 afterEach(cleanup)

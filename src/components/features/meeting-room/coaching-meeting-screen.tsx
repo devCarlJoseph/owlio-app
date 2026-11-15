@@ -10,6 +10,7 @@ import { CallButton, CallTile, ChatPanel, PeoplePanel, type CallPerson } from '.
 import { MeetingWhiteboard } from './meeting-whiteboard'
 import { createBoardSeed, type BoardState } from './meeting-whiteboard-model'
 import { meetGrid } from './meeting-grid'
+import { PrejoinDevicePreview } from './prejoin-device-preview'
 import type { MeetingRoomScreenProps, RoomStatus } from './meeting-room-types'
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }
@@ -58,14 +59,8 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     </header>
     {(state.message || state.error) && <div className="space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
     <div className={cn(card, 'grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)] lg:gap-10 lg:p-8')}>
-      <div>
-        <div className={cn('flex h-72 flex-col items-center justify-center gap-3 rounded-2xl px-4 text-center', stageSurface)}>
-          <span className="grid size-16 place-items-center rounded-full bg-card text-brand shadow-sm"><VideoOff aria-hidden="true" className="size-7" /></span>
-          <p className="text-sm font-medium">Your session starts here</p>
-          <p className="max-w-64 text-xs leading-5 text-muted-foreground">Camera and microphone are off. Join a live room to meet with others.</p>
-        </div>
-        <p className="mt-3 text-center text-xs text-muted-foreground">You control when your camera and microphone turn on.</p>
-      </div>
+      <PrejoinDevicePreview cameraTrack={state.previewCameraTrack} micOn={state.micOn} cameraOn={state.cameraOn}
+        disabled={state.busy || Boolean(state.deviceBusy)} onMicrophone={state.onMicrophone} onCamera={state.onCamera} />
       <div className="space-y-5 self-center">
         <div>
           <p className="text-[10px] font-semibold tracking-widest text-brand uppercase">Your learning session</p>
@@ -75,9 +70,9 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
         <form key={state.roomId} onSubmit={state.onJoin} className="space-y-3">
           <label htmlFor="meeting-invite" className="text-xs font-medium">Invite link or room code</label>
           <Input ref={roomInputRef} id="meeting-invite" defaultValue={state.meetingCode} placeholder="Paste an invite or room code" autoComplete="off" className="h-10" />
-          <Button type="submit" disabled={state.busy || !state.apiEnabled} className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
+          <Button type="submit" disabled={state.busy || state.deviceBusy || !state.apiEnabled} className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
         </form>
-        {state.canCreate && <Button variant="outline" className="h-10 w-full" disabled={state.busy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
+        {state.canCreate && <Button variant="outline" className="h-10 w-full" disabled={state.busy || state.deviceBusy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
         {!state.apiEnabled && <p role="status" className="rounded-xl bg-muted p-3 text-xs leading-5 text-muted-foreground">Live meetings are unavailable while API integrations are paused. You can explore the layout without connecting or enabling devices.</p>}
       </div>
     </div>
@@ -125,8 +120,8 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     <footer className="flex shrink-0 flex-wrap items-center justify-center gap-1.5 pb-1 sm:gap-3 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
       <div className="hidden min-w-0 items-center gap-3 text-sm md:flex"><MeetingClock /><span aria-hidden="true" className="h-4 w-px bg-border" /><span className="truncate font-medium">{state.meetingCode || title}</span></div>
       <div role="group" aria-label="Meeting controls" className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3">
-        <CallButton label={state.micOn ? 'Turn microphone off' : 'Turn microphone on'} pressed={state.micOn} tone={state.micOn ? undefined : 'off'} disabled={!enabled} onClick={state.onMicrophone}>{state.micOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}</CallButton>
-        <CallButton label={state.cameraOn ? 'Turn camera off' : 'Turn camera on'} pressed={state.cameraOn} tone={state.cameraOn ? undefined : 'off'} disabled={!enabled} onClick={state.onCamera}>{state.cameraOn ? <Video aria-hidden="true" /> : <VideoOff aria-hidden="true" />}</CallButton>
+        <CallButton label={state.micOn ? 'Turn microphone off' : 'Turn microphone on'} pressed={state.micOn} tone={state.micOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onMicrophone}>{state.micOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}</CallButton>
+        <CallButton label={state.cameraOn ? 'Turn camera off' : 'Turn camera on'} pressed={state.cameraOn} tone={state.cameraOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onCamera}>{state.cameraOn ? <Video aria-hidden="true" /> : <VideoOff aria-hidden="true" />}</CallButton>
         <CallButton label={raised ? 'Lower hand' : 'Raise hand'} pressed={raised} disabled={!enabled || state.handUpdating} onClick={state.onHand}><Hand aria-hidden="true" /></CallButton>
         <CallButton label={state.screenOn ? 'Stop presenting' : 'Share screen'} pressed={state.screenOn} disabled={!enabled} onClick={state.onScreen} className="max-sm:hidden"><MonitorUp aria-hidden="true" /></CallButton>
         <CallButton label={state.preview ? 'Whiteboard' : 'Whiteboard (available in layout preview for now)'} pressed={showBoard} disabled={!state.preview} onClick={() => setBoardOpen(open => !open)}><Presentation aria-hidden="true" /></CallButton>

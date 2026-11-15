@@ -1,6 +1,6 @@
 # API connection
 
-Updated 14 November 2026. Backend contract evidence is the adjacent `owlio-api` checkout: mounted `src/routes/v1/index.ts`, auth/classroom/personal/notification/session/native-meeting route files, their Zod schemas, controllers, services, and repository response fields. This is frontend work; backend configuration, dependencies, providers, and database migrations were not changed.
+Updated 15 November 2026. Backend contract evidence is the adjacent `owlio-api` checkout: mounted `src/routes/v1/index.ts`, auth/classroom/personal/notification/session/native-meeting route files, their Zod schemas, controllers, services, and repository response fields. This is frontend work; backend configuration, dependencies, providers, and database migrations were not changed.
 
 ## Configuration and authentication
 
@@ -23,7 +23,7 @@ Owlio authentication uses HttpOnly access/refresh cookies and in-memory CSRF, no
 | Notifications (all roles) | `/users/me/notifications`: paginated list and individual read confirmation. No sample inbox or unconfirmed read state. |
 | Schedule (all roles) and tutor sessions | Selected classroom, month window (UTC), time/id pagination; owners can create dated sessions in their local timezone. Session links lead to Meeting Room. |
 | Meeting Room | Open/join/end use `/sessions/:sessionId/native-meeting`, `/join`, `/end`, with empty JSON objects. LiveKit connects using the returned `url` and short-lived `token`. Host controls use server `isHost`. |
-| In-call information | HTTP room state, authorized media directory, latest 50 chat messages, idempotent chat sends, and versioned own-hand changes. Reads poll sequentially every five seconds and abort on unmount. Access failures disconnect media. No LiveKit data publishing. |
+| In-call information | HTTP room state, authorized media directory, idempotent chat sends, and versioned own-hand changes. Chat uses the API’s cookie-authenticated Socket.IO channel; state/roster reads remain on a five-second refresh. Chat is independent of provider roster latency, with HTTP fallback and bounded reconnect recovery. Access failures disconnect media. No LiveKit data publishing. |
 
 Response records for the new personal/schedule/meeting clients are runtime-validated. UUID cursor loops fail explicitly. Connected records are cleared on account/role/path remounts; late/aborted account reads cannot populate another account's screen. Mutation success uses server confirmation and is not inferred from local edits.
 
@@ -35,15 +35,27 @@ The default workspace view mounts the original page adapter. A separate **Accoun
 
 **Not all backend modules have frontend integrations yet.** Restored classwork, materials/editors, study spaces, progress, teaching plans, profile/settings, and AI pages retain their existing local/example/unavailable disclosures. Restoring their layout does not connect their unimplemented API operations. Their backend capabilities vary; this does not claim that corresponding backend routes are missing. Separate typed adapters and verification are still required for new server persistence.
 
-Native calls additionally require the backend's explicit `NATIVE_MEETINGS_ENABLED`, configured LiveKit service and worker, eligible owned/enrolled classroom membership, and a scheduled online/hybrid session within its admission window. Approval-required rooms surface the backend error; host admission/moderation and synchronized whiteboard UI are not implemented by this integration. Ending returns 202/ENDING: the UI reports closure requested, not instant provider cleanup. Camera/microphone remain off until the user enables them.
+Native calls additionally require the backend's explicit `NATIVE_MEETINGS_ENABLED`, configured LiveKit service and worker, eligible owned/enrolled classroom membership, and a scheduled online/hybrid session within its admission window. Approval-required rooms surface the backend error; host admission/moderation and synchronized whiteboard UI are not implemented by this integration. Ending returns 202/ENDING: the UI reports closure requested, not instant provider cleanup. Camera/microphone start off. Pre-join controls request each device only on a click, render a muted local camera preview, and publish the selected tracks after a successful join. Turning a device off, changing invite, leaving, and unmounting release owned tracks; late permission results are stopped.
 
-Meeting messages and hand state use the backend's room lifecycle. Local panels clear on leave, but the UI does not claim that leaving deletes server messages. Latest-message polling is bounded to 50; older history and realtime unread counts are not implemented.
+Meeting messages and hand state use the backend's room lifecycle. Local panels clear on leave, but the UI does not claim that leaving deletes server messages. New messages arrive on the read-only Socket.IO subscription at `/api/socket.io`, using the configured API origin, credentials, and WebSocket transport. Each outgoing message appears immediately as Sending; its HTTP response adds the confirmed message without another read. Failed messages remain visibly unsent with Retry using the same request ID, while the next typed draft is preserved. Incoming and confirmed messages merge by ID. Reconnects and server gap signals recover exact timestamp/UUID cursor pages within the 1,000-message room bound. Chat falls back to five-second HTTP reads when realtime is unavailable, with a 30-second HTTP reconciliation while connected. Realtime unread counts are not implemented.
 
 ## Verification boundary
 
 Service/component tests use mocked HTTP or service responses. They cover exact paths/payloads, CSRF limits, version conflicts, cursor termination, cancellation, draft retention, original page rendering, separate account-record access, and isolated meeting previews. They do not prove deployed authorization, real write persistence, LiveKit connectivity, admission policy, worker cleanup, or provider revocation.
 
-Browser reads can establish session restoration, classroom data, schedule/inbox rendering, and responsive layout against an available backend. Do not infer tested writes or connected media from these reads. No live account writes, schema changes, dependency installations, or deployments are needed for this frontend change.
+Browser reads can establish session restoration, classroom data, schedule/inbox rendering, and responsive layout against an available backend. Do not infer tested writes or connected media from these reads. The 15 November meeting repair adds the explicitly approved `socket.io-client@4.8.4` frontend dependency. It does not change the backend contract, schema, provider/security settings, or deployment.
+
+### Meeting repair checks recorded 15 November 2026
+
+- Changed runtime files: meeting-room view/types, classroom/coaching screens and shared chat panel, new pre-join preview/device hook, meeting data hook, meeting service and new realtime client. Updated their focused tests, package/lockfile, this contract, capability status, and the source-copy snapshot notice.
+- Approved dependency: exact `socket.io-client@4.8.4`, installed with lifecycle scripts disabled; no backend changes or live API/database/provider writes.
+- Focused device/chat/service tests: `npm test -- --pool=threads src/components/features/meeting-room/meeting-devices.test.tsx src/components/features/meeting-room/use-native-meeting-data.test.ts src/services/api/meeting-realtime.test.ts src/services/api/meeting.service.test.ts` — 41 passed.
+- Existing meeting entry/layout tests: `npm test -- --pool=threads --maxWorkers=2 src/components/features/meeting-room/meeting-room-hub.test.tsx src/components/features/meeting-room/meeting-room-screen.test.tsx` — 52 passed after updating the entry tests' offline realtime mock.
+- `npm run build` passed TypeScript and production bundling; large-chunk warnings remain. ESLint passed for all changed runtime/test files.
+- Full `npm test -- --pool=threads --maxWorkers=2`: 537 passed, two tutor tests failed, and the meeting-entry suite initially failed on an incomplete service mock. The meeting mock was corrected and its 17 tests passed in the focused rerun above. The two tutor failures (missing ClassroomPrototypeProvider) reproduced in a temporary clean HEAD source snapshot: 17 passed, two failed. The complete suite was not rerun after the test-only mock correction.
+- `npm run lint` retains 13 react-refresh errors in unchanged shared UI files. Their contents match HEAD, and linting that unchanged directory reproduced all 13 errors.
+- `git diff --check` passed.
+- Browser inspection stopped because Computer Use could not verify the Windows browser URL. Responsive rendering, real device permissions, a two-participant WebRTC call, and live chat latency remain unverified. No deployment was performed. Restart/rebuild the frontend to load the new dependency; the existing backend must expose its authenticated `/api/socket.io` channel through the hosting proxy.
 
 ### Checks recorded 14 November 2026
 

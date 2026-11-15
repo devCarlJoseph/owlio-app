@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Room, RoomEvent } from 'livekit-client'
+import { Room, RoomEvent, type LocalAudioTrack, type LocalVideoTrack } from 'livekit-client'
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { useAuthSession } from '@/components/features/auth/auth-session-context'
@@ -14,6 +14,7 @@ import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teachi
 import { MeetingRoomHub } from './meeting-room-hub'
 import { MeetingRoomScreen } from './meeting-room-screen'
 import { useNativeMeetingData } from './use-native-meeting-data'
+import { usePrejoinDevices } from './use-prejoin-devices'
 import type { MeetingCategory, MeetingPanel, RoomStatus } from './meeting-room-types'
 
 export default function MeetingRoomPage() {
@@ -76,13 +77,17 @@ function MeetingRoomSession() {
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [screenOn, setScreenOn] = useState(false)
+  const devices = usePrejoinDevices()
+  const devicePending = useRef(false)
+  const [deviceBusy, setDeviceBusy] = useState(false)
   const [revision, setRevision] = useState(0)
   const [pinned, setPinned] = useState<string | null>(null)
   const [panel, setPanel] = useState<MeetingPanel | null>(null)
   const [chatDraft, setChatDraft] = useState('')
   const [chatSending, setChatSending] = useState(false)
+  const chatPending = useRef(false)
+  const [outgoing, setOutgoing] = useState<{ requestId: string; body: string; sentAt: number; failed?: boolean }[]>([])
   const [handUpdating, setHandUpdating] = useState(false)
-  const retryMessage = useRef<{ body: string; requestId: string } | null>(null)
   const data = useNativeMeetingData(room, activeSessionId)
   const code = shortCode || data.state?.meetingCode || (activeSessionId ? formatSessionCode(activeSessionId) : '')
   const canManage = Boolean(user?.roles.some(item => ['EDUCATOR', 'ESL', 'TUTOR'].includes(item)))
@@ -97,7 +102,7 @@ function MeetingRoomSession() {
     }
     const reconnecting = () => setStatus('reconnecting')
     const reconnected = () => setStatus('connected')
-    const disconnected = () => { setRoom(null); roomRef.current = null; setStatus('ended'); setMicOn(false); setCameraOn(false); setScreenOn(false); setChatDraft(''); retryMessage.current = null }
+    const disconnected = () => { if (roomRef.current !== room) return; ++operation.current; setRoom(null); roomRef.current = null; setStatus('ended'); setMicOn(false); setCameraOn(false); setScreenOn(false); setChatDraft(''); setOutgoing([]); chatPending.current = false; setChatSending(false) }
     const events = [RoomEvent.ParticipantConnected, RoomEvent.ParticipantDisconnected, RoomEvent.TrackSubscribed, RoomEvent.TrackUnsubscribed, RoomEvent.TrackMuted, RoomEvent.TrackUnmuted, RoomEvent.LocalTrackPublished, RoomEvent.LocalTrackUnpublished] as const
     events.forEach(event => room.on(event, update))
     room.on(RoomEvent.Reconnecting, reconnecting).on(RoomEvent.Reconnected, reconnected).on(RoomEvent.Disconnected, disconnected)
@@ -138,7 +143,7 @@ function MeetingRoomSession() {
   }
   const join = async (event?: FormEvent) => {
     event?.preventDefault()
-    if (pending.current) return
+    if (pending.current || devices.busy || devicePending.current) return
     pending.current = true; setBusy(true); setError('')
     const request = ++operation.current
     let selected: string
@@ -151,13 +156,26 @@ function MeetingRoomSession() {
     pending.current = true; setBusy(true); setError(''); setMessage(''); setStatus('joining')
     const next = new Room({ adaptiveStream: true, dynacast: true })
     roomRef.current = next
+    let joiningTracks: (LocalAudioTrack | LocalVideoTrack)[] = []
     try {
       const credentials = await joinMeeting(selected)
       if (request !== operation.current) return
       await next.connect(credentials.url, credentials.token, { autoSubscribe: true })
       if (request !== operation.current) { await next.disconnect(true); return }
+      joiningTracks = devices.takeTracks()
+      const publications = await Promise.allSettled(joiningTracks.map(track => next.localParticipant.publishTrack(track)))
+      publications.forEach((result, index) => { if (result.status === 'rejected') joiningTracks[index].stop() })
+      if (request !== operation.current || next.state !== 'connected') {
+        joiningTracks.forEach(track => track.stop())
+        await next.disconnect(true)
+        if (request === operation.current) throw new Error('The meeting disconnected. Please join again.')
+        return
+      }
+      setMicOn(next.localParticipant.isMicrophoneEnabled); setCameraOn(next.localParticipant.isCameraEnabled)
+      if (publications.some(result => result.status === 'rejected')) setError('Connected, but a selected device could not be shared. Try enabling it again in the meeting.')
       setActiveSessionId(selected); setRoom(next); setStatus('connected')
     } catch (cause) {
+      joiningTracks.forEach(track => track.stop())
       await next.disconnect(true).catch(() => undefined)
       if (request !== operation.current) return
       roomRef.current = null; setStatus('idle'); setError(getApiErrorMessage(cause, 'Could not join this session room.'))
@@ -165,8 +183,9 @@ function MeetingRoomSession() {
   }
   const leave = async () => {
     ++operation.current
+    pending.current = false; setBusy(false); devices.stop()
     const current = roomRef.current; roomRef.current = null
-    setRoom(null); setStatus('idle'); setMicOn(false); setCameraOn(false); setScreenOn(false); setChatDraft(''); setPanel(null); retryMessage.current = null
+    setRoom(null); setStatus('idle'); setMicOn(false); setCameraOn(false); setScreenOn(false); setChatDraft(''); setOutgoing([]); chatPending.current = false; setChatSending(false); setPanel(null)
     await current?.disconnect(true)
   }
   const end = async () => {
@@ -177,13 +196,22 @@ function MeetingRoomSession() {
     finally { pending.current = false; setBusy(false) }
   }
   const device = async (kind: 'microphone' | 'camera' | 'screen') => {
-    if (!room) return
-    setError('')
+    if (pending.current || devicePending.current) return
+    if (!room) {
+      if (kind !== 'screen') { setError(''); await devices.toggle(kind) }
+      return
+    }
+    if (status !== 'connected') return
+    const current = room
+    devicePending.current = true; setDeviceBusy(true); setError('')
     try {
-      if (kind === 'microphone') { await room.localParticipant.setMicrophoneEnabled(!micOn); setMicOn(!micOn) }
-      if (kind === 'camera') { await room.localParticipant.setCameraEnabled(!cameraOn); setCameraOn(!cameraOn) }
-      if (kind === 'screen') { await room.localParticipant.setScreenShareEnabled(!screenOn); setScreenOn(!screenOn) }
-    } catch { setError('Could not change your ' + kind + '. Check device permissions and room settings.') }
+      if (kind === 'microphone') await current.localParticipant.setMicrophoneEnabled(!current.localParticipant.isMicrophoneEnabled)
+      if (kind === 'camera') await current.localParticipant.setCameraEnabled(!current.localParticipant.isCameraEnabled)
+      if (kind === 'screen') await current.localParticipant.setScreenShareEnabled(!current.localParticipant.isScreenShareEnabled)
+      if (roomRef.current !== current) { await current.disconnect(true); return }
+      setMicOn(current.localParticipant.isMicrophoneEnabled); setCameraOn(current.localParticipant.isCameraEnabled); setScreenOn(current.localParticipant.isScreenShareEnabled)
+    } catch { if (roomRef.current === current) setError('Could not change your ' + kind + '. Check device permissions and room settings.') }
+    finally { devicePending.current = false; setDeviceBusy(false) }
   }
   const hand = async () => {
     const own = data.state?.ownParticipant
@@ -193,17 +221,29 @@ function MeetingRoomSession() {
     catch (cause) { setError(getApiErrorMessage(cause, 'Could not change your raised hand.')); data.refresh() }
     finally { setHandUpdating(false) }
   }
-  const send = async (event: FormEvent) => {
+  const sendMessage = async (body: string, requestId: string = crypto.randomUUID()) => {
+    if (!room || !body || chatPending.current || status !== 'connected') return
+    if (body.length > 2000) { setError('Messages must be 2000 characters or fewer.'); return }
+    const current = room, request = operation.current
+    chatPending.current = true; setChatSending(true); setError('')
+    setOutgoing(items => [...items.filter(item => item.requestId !== requestId), { requestId, body, sentAt: Date.now() }])
+    try {
+      const saved = await sendMeetingMessage(activeSessionId, requestId, body)
+      if (request !== operation.current || roomRef.current !== current) return
+      data.addMessage(saved); setOutgoing(items => items.filter(item => item.requestId !== requestId))
+    } catch (cause) {
+      if (request !== operation.current || roomRef.current !== current) return
+      setOutgoing(items => items.map(item => item.requestId === requestId ? { ...item, failed: true } : item))
+      setError(getApiErrorMessage(cause, 'Could not send your message. Retry it in the chat.'))
+    } finally {
+      if (request === operation.current && roomRef.current === current) { chatPending.current = false; setChatSending(false) }
+    }
+  }
+  const send = (event: FormEvent) => {
     event.preventDefault()
     const body = chatDraft.trim()
-    if (!room || !body || chatSending) return
-    if (body.length > 2000) { setError('Messages must be 2000 characters or fewer.'); return }
-    if (retryMessage.current?.body !== body) retryMessage.current = { body, requestId: crypto.randomUUID() }
-    const requestId = retryMessage.current.requestId
-    setChatSending(true); setError('')
-    try { await sendMeetingMessage(activeSessionId, requestId, body); setChatDraft(''); retryMessage.current = null; data.refresh() }
-    catch (cause) { setError(getApiErrorMessage(cause, 'Could not send your message. Your draft is still here.')) }
-    finally { setChatSending(false) }
+    if (!room || !body || chatPending.current || status !== 'connected' || body.length > 2000) return
+    setChatDraft(''); void sendMessage(body)
   }
   const identity = (userId: string) => userId === user?.id ? room?.localParticipant.identity ?? userId : data.directory.find(item => item.userId === userId)?.mediaIdentity ?? userId
   const copy = async () => {
@@ -216,13 +256,13 @@ function MeetingRoomSession() {
     {room && <p className="text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
     <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
       status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}
-      message={message} error={error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}
+      message={message} error={error || devices.error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}
       participantNames={Object.fromEntries(data.directory.map(item => [item.mediaIdentity, item.name]))}
       pinnedIdentity={pinned} onPin={setPinned} raisedHands={Object.fromEntries((data.state?.raisedHands ?? []).map(item => [identity(item.userId), true]))} revision={revision}
-      micOn={micOn} cameraOn={cameraOn} screenOn={screenOn} handUpdating={handUpdating} activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0}
-      messages={data.messages.map(item => ({ id: item.id, identity: identity(item.authorId), authorName: item.authorName, text: item.body, sentAt: Date.parse(item.createdAt) }))}
+      previewCameraTrack={devices.cameraTrack} deviceBusy={devices.busy || deviceBusy} micOn={room ? micOn : devices.micOn} cameraOn={room ? cameraOn : devices.cameraOn} screenOn={screenOn} handUpdating={handUpdating} activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0}
+      messages={[...data.messages.map(item => ({ id: item.id, identity: identity(item.authorId), authorName: item.authorName, text: item.body, sentAt: Date.parse(item.createdAt) })), ...outgoing.map(item => ({ id: item.requestId, identity: room?.localParticipant.identity ?? '', text: item.body, sentAt: item.sentAt, delivery: item.failed ? 'failed' as const : 'sending' as const, onRetry: () => { void sendMessage(item.body, item.requestId) } }))]}
       chatDraft={chatDraft} onChatDraft={setChatDraft} chatSending={chatSending} onSendChat={event => void send(event)} onJoin={event => void join(event)} onCreate={() => void open()}
       onPreview={() => {}} onCopy={() => void copy()} onLeave={() => void leave()} onEnd={() => void end()} onMicrophone={() => void device('microphone')} onCamera={() => void device('camera')} onScreen={() => void device('screen')} onHand={() => void hand()} />
-    {!room && <Button variant="outline" onClick={() => { setError(''); setShortCode(''); setActiveSessionId(''); setParams({ join: '1' }) }}>Use another invite</Button>}
+    {!room && <Button variant="outline" disabled={busy} onClick={() => { void leave(); setError(''); setShortCode(''); setActiveSessionId(''); setParams({ join: '1' }) }}>Use another invite</Button>}
   </div>
 }

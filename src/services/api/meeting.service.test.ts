@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
 import { postApiWithCsrf } from './auth.service'
-import { createMeeting, openClassroomMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from './meeting.service'
+import { createMeeting, openClassroomMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, recoverMeetingMessages, setMeetingHand, resolveMeetingInvite } from './meeting.service'
 vi.mock('@/lib/axios', () => ({ default: { get: vi.fn() } }))
 vi.mock('./auth.service', () => ({ postApiWithCsrf: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
@@ -74,5 +74,22 @@ describe('short meeting invitations', () => {
     vi.mocked(api.get).mockRejectedValue(new Error('NOT_FOUND'))
     await expect(resolveMeetingInvite('OWLIOA7K2')).rejects.toThrow('NOT_FOUND')
     expect(postApiWithCsrf).not.toHaveBeenCalled()
+  })
+})
+
+describe('meeting chat recovery', () => {
+  const message = { id, authorId: other, authorName: 'Fixture', body: 'Hello', createdAt: '2026-11-15T10:00:00.123456Z' }
+  it('follows exact timestamp/UUID cursors and deduplicates overlapping pages', async () => {
+    const next = { beforeCreatedAt: message.createdAt, beforeId: id }
+    vi.mocked(api.get).mockResolvedValueOnce({ data: { status: 'success', data: { items: [message], next } } })
+      .mockResolvedValueOnce({ data: { status: 'success', data: { items: [message], next: null } } })
+    const signal = new AbortController().signal
+    expect(await recoverMeetingMessages(id, signal)).toEqual([message])
+    expect(api.get).toHaveBeenLastCalledWith(path + '/messages', { params: { limit: 50, ...next }, signal })
+  })
+  it('rejects repeated history cursors rather than reading indefinitely', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { items: [message], next: { beforeCreatedAt: message.createdAt, beforeId: id } } } })
+    await expect(recoverMeetingMessages(id)).rejects.toThrow('repeated a message page')
+    expect(api.get).toHaveBeenCalledTimes(2)
   })
 })
