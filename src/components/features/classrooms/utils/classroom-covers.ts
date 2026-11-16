@@ -31,3 +31,12 @@ export function getClassroomCoverTheme(classroomId: string): ClassroomCoverTheme
 export function getClassroomCoverUrl(classroomId: string): string {
   return `/classroom-covers/${getClassroomCoverTheme(classroomId).file}`
 }
+
+const classroomBanners = ['learning-studio', 'discovery-lab', 'creative-ideas'] as const
+
+// Derive the artwork from the permanent ID so new and existing classrooms keep
+// the same banner for every member, without storing presentation data in the API.
+export function getClassroomBannerUrl(classroomId: string): string {
+  const banner = classroomBanners[hashClassroomId(classroomId) % classroomBanners.length]
+  return `/classroom-banners/${banner}.png`
+}
