@@ -1,0 +1,100 @@
+.classroom-detail {
+  --classroom-accent: #d94439;
+  --classroom-soft: #fff5f3;
+  --classroom-strong: #080b10;
+}
+
+.dark .classroom-detail {
+  --classroom-accent: #ff9287;
+  --classroom-soft: #2b2022;
+  --classroom-strong: #edf0f4;
+}
+
+.classroom-detail-header {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--classroom-soft);
+  padding: 24px;
+}
+
+.classroom-detail .classroom-panel {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  box-shadow: none;
+}
+
+.classroom-detail .classroom-primary-action {
+  border-radius: 4px;
+  background: var(--classroom-strong);
+  color: var(--background);
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.classroom-detail .classroom-secondary-action {
+  border-radius: 4px;
+  background: var(--card);
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.classroom-section-navigation { min-width: 0; }
+.classroom-navigation-viewport { overflow-x: auto; padding: 2px; }
+
+.classroom-detail .classroom-section-list {
+  display: flex;
+  width: max-content;
+  justify-content: start;
+  gap: 6px;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.classroom-detail .classroom-section-trigger {
+  flex: none;
+  justify-content: start;
+  gap: 10px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--card);
+  padding: 5px 10px 5px 5px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 400;
+  box-shadow: none;
+}
+
+.classroom-detail .classroom-section-trigger[data-active] {
+  border-color: transparent;
+  background: var(--classroom-soft);
+  color: var(--classroom-accent);
+}
+
+.classroom-section-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 2px;
+  background: var(--muted);
+}
+
+[data-active] > .classroom-section-icon { background: var(--card); }
+.classroom-section-chevron { display: none; }
+
+@media (min-width: 1024px) {
+  .classroom-section-navigation { position: sticky; top: 0; }
+  .classroom-navigation-viewport { overflow: visible; }
+  .classroom-detail .classroom-section-list { display: grid; width: 100%; }
+  .classroom-detail .classroom-section-trigger { width: 100%; white-space: normal; text-align: left; }
+  .classroom-section-chevron { display: block; }
+}
+
+@media (max-width: 639px) {
+  .classroom-detail-header { padding: 18px; }
+}
