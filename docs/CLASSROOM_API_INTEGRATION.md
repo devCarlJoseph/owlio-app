@@ -1,5 +1,11 @@
 # Classroom API integration
 
+## Member directory and conversation layout — 16 November 2026
+
+The **Members** tab and **Chat → Conversation details → Chat members** use `GET /api/v1/classrooms/:classroomId/members`. This additive API is implemented in `owlio-api` for the owner and currently enrolled students. It returns paginated display identities (`id`, `name`, `role: owner | student`) only, with UUID cursors and the existing authenticated envelope. The frontend validates the response, cancels stale reads, deduplicates page overlaps, and reports denied/failed reads without mock fallbacks. The owner-only `/students` roster and its permissions remain unchanged. This requires releasing the matching API endpoint; no migration or dependency change is needed. UI checks use fixtures and do not establish production deployment or live database access.
+
+Classroom chat uses a Messenger-inspired conversation layout with grouped bubbles, actual message dates/times, search, server-backed replies, a bounded shadcn message viewport, and a collapsible details/member panel. On narrow screens details replace the conversation temporarily; closing restores focus and the draft. Existing message routes, cookie/CSRF handling, five-second refresh, request-ID retry behavior, and archived/denied restrictions are unchanged. The unsupported local preview reactions were removed from classroom chat; emoji message content still uses the existing server-backed send flow. There are no fabricated typing, online, read-receipt, file-sharing, or encryption indicators.
+
 ## Classroom chat and reusable meeting codes — 15 November 2026
 
 The existing classroom and meeting layouts now connect the requested create/enroll/chat/meeting journey. New classroom invitations use `OWLIO-` plus four random uppercase letters/digits. Each classroom also receives a reusable meeting code with eight random uppercase letters/digits, available immediately after creation and on authorized list/detail reloads. Older invitations remain accepted.

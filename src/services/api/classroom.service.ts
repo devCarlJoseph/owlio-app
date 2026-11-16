@@ -1,11 +1,14 @@
 import api from '@/lib/axios'
 import type { AxiosResponse } from 'axios'
+import { z } from 'zod'
 import { postApiWithCsrf } from './auth.service'
 import type { ApiSuccess } from './api.types'
 
 export type ApiClassroom = { id: string; ownerId: string; name: string; description: string; createdAt: string; ownerWorkspace?: 'educators' | 'esl' | 'tutors' | null; joinCode?: string | null; meetingId?: string | null; meetingCode?: string | null }
 export type ApiPage<T> = { items: T[]; nextCursor: string | null }
 export type ApiStudent = { studentId: string; name: string; joinedAt: string }
+const memberSchema = z.object({ id: z.uuid(), name: z.string(), role: z.enum(['owner', 'student']) })
+export type ApiClassroomMember = z.infer<typeof memberSchema>
 export type CreateClassroomRequest = { name: string; description: string }
 export type CreatedClassroom = { classroom: ApiClassroom; joinCode: string }
 export type Enrollment = { id: string; classroomId: string; studentId: string; joinedAt: string }
@@ -53,4 +56,13 @@ export async function getClassroomStudents(id: string, cursor?: string, signal?:
 export function rotateClassroomInvite(classroomId: string) {
   return postApiWithCsrf<{ classroomId: string; joinCode: string; message: string }>(
     '/api/v1/classrooms/' + encodeURIComponent(classroomId) + '/join-code/rotate', {})
+}
+
+export async function getClassroomMembers(id: string, cursor?: string, signal?: AbortSignal) {
+  const response = await api.get<unknown>('/api/v1/classrooms/' + encodeURIComponent(id) + '/members', {
+    params: { limit: 50, ...(cursor ? { cursor } : {}) }, signal,
+  })
+  return z.object({ status: z.literal('success'), data: z.object({
+    items: z.array(memberSchema), nextCursor: z.uuid().nullable(),
+  }) }).parse(response.data).data
 }

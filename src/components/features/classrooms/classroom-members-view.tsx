@@ -1,40 +1,77 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import axios from 'axios'
+import { GraduationCap, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuthSession } from '@/components/features/auth/auth-session-context'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import { getClassroomStudents, type ApiPage, type ApiStudent } from '@/services/api/classroom.service'
+import { getClassroomMembers, type ApiPage, type ApiClassroomMember } from '@/services/api/classroom.service'
 import type { Classroom, WorkspaceRole } from './classroom-types'
+import { PersonAvatar } from './classroom-ui'
 
 export function ClassroomMembersView({ classroom }: { classroom: Classroom; role: WorkspaceRole }) {
-  return classroom.access !== 'owner' ? <p>Only the classroom owner can view the student roster.</p> : <Roster key={classroom.id} classroomId={classroom.id} />
+  const { user } = useAuthSession()
+  return <MemberDirectory key={user?.id + ':' + classroom.id} classroomId={classroom.id} />
 }
-function Roster({ classroomId }: { classroomId: string }) {
-  const [page, setPage] = useState<ApiPage<ApiStudent>>({ items: [], nextCursor: null })
+
+function MemberDirectory({ classroomId }: { classroomId: string }) {
+  const [page, setPage] = useState<ApiPage<ApiClassroomMember>>({ items: [], nextCursor: null })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reload, setReload] = useState(0)
+  const active = useRef<AbortController | null>(null)
+  const pending = useRef(false)
+  const cursors = useRef(new Set<string>())
+
   useEffect(() => {
     const controller = new AbortController()
-    getClassroomStudents(classroomId, undefined, controller.signal).then(result => {
-      if (!controller.signal.aborted) { setPage(result); setError('') }
-    }).catch(failure => { if (!controller.signal.aborted) setError(getApiErrorMessage(failure, 'Students could not be loaded.')) })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    active.current = controller
+    cursors.current.clear()
+    getClassroomMembers(classroomId, undefined, controller.signal).then(result => {
+      if (controller.signal.aborted) return
+      setPage(result)
+      if (result.nextCursor) cursors.current.add(result.nextCursor)
+      setError('')
+    }).catch(failure => {
+      if (!controller.signal.aborted) {
+        setPage({ items: [], nextCursor: null })
+        setError(getApiErrorMessage(failure, 'Classroom members could not be loaded.'))
+      }
+    }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [classroomId, reload])
+
   async function more() {
-    if (loading || !page.nextCursor) return
-    setLoading(true); setError('')
+    const controller = active.current
+    if (loading || pending.current || !page.nextCursor || !controller || controller.signal.aborted) return
+    pending.current = true
+    setLoading(true)
+    setError('')
     try {
-      const result = await getClassroomStudents(classroomId, page.nextCursor)
-      setPage(current => ({ items: [...current.items, ...result.items], nextCursor: result.nextCursor }))
-    } catch (failure) { setError(getApiErrorMessage(failure, 'More students could not be loaded.')) }
-    finally { setLoading(false) }
+      const result = await getClassroomMembers(classroomId, page.nextCursor, controller.signal)
+      if (controller.signal.aborted) return
+      if (result.nextCursor && cursors.current.has(result.nextCursor)) throw new Error('Member pagination could not continue. Please reload the member list.')
+      if (result.nextCursor) cursors.current.add(result.nextCursor)
+      setPage(current => ({ items: [...new Map([...current.items, ...result.items].map(member => [member.id, member])).values()], nextCursor: result.nextCursor }))
+    } catch (failure) {
+      if (!controller.signal.aborted) {
+        if (axios.isAxiosError(failure) && [401, 403, 404].includes(failure.response?.status ?? 0)) setPage({ items: [], nextCursor: null })
+        setError(getApiErrorMessage(failure, 'More members could not be loaded.'))
+      }
+    } finally {
+      pending.current = false
+      if (!controller.signal.aborted) setLoading(false)
+    }
   }
-  return <section className="space-y-3"><h3 className="text-lg font-semibold">Students</h3>
-    {error && <div role="alert"><p>{error}</p><Button variant="outline" onClick={() => { setLoading(true); setReload(value => value + 1) }}>Try again</Button></div>}
-    {loading && <p role="status">Loading students…</p>}
-    {!loading && !error && page.items.length === 0 && <p>No students have joined yet.</p>}
-    <ul className="divide-y">{page.items.map(student => <li key={student.studentId} className="py-3">{student.name}</li>)}</ul>
-    {page.nextCursor && <Button variant="outline" disabled={loading} onClick={() => void more()}>Load more students</Button>}
-    <p className="text-sm text-muted-foreground">Students join using the private invite code. Adding or removing members here is not available yet.</p>
+
+  return <section aria-label="Classroom members" className="min-w-0 space-y-4">
+    <p className="text-xs leading-5 text-muted-foreground">The class owner and currently enrolled students.</p>
+    {error && <div role="alert" className="space-y-2 rounded-lg bg-destructive/5 p-3 text-sm"><p>{error}</p><Button variant="outline" size="sm" onClick={() => { setLoading(true); setReload(value => value + 1) }}>Reload members</Button></div>}
+    {loading && <p role="status" className="text-sm text-muted-foreground">Loading members…</p>}
+    {!loading && !error && page.items.length === 0 && <p className="text-sm text-muted-foreground">No members to display.</p>}
+    <ul className="divide-y divide-border">{page.items.map(member => <li key={member.id} className="flex min-w-0 items-center gap-3 py-3 first:pt-0">
+      <PersonAvatar name={member.name} />
+      <div className="min-w-0 flex-1"><p className="break-words text-sm font-medium [overflow-wrap:anywhere]">{member.name}</p><p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">{member.role === 'owner' ? <GraduationCap aria-hidden="true" className="size-3" /> : <Users aria-hidden="true" className="size-3" />}{member.role === 'owner' ? 'Class owner' : 'Student'}</p></div>
+    </li>)}</ul>
+    {page.nextCursor && <Button variant="outline" size="sm" disabled={loading} onClick={() => void more()}>Load more members</Button>}
   </section>
 }

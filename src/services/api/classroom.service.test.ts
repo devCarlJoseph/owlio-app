@@ -1,12 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
 import { postApiWithCsrf } from './auth.service'
-import { createClassroom, getClassrooms, joinClassroomByCode, getClassroomStudents } from './classroom.service'
+import { createClassroom, getClassrooms, joinClassroomByCode, getClassroomStudents, getClassroomMembers } from './classroom.service'
 vi.mock('@/lib/axios', () => ({ default: { get: vi.fn() } }))
 vi.mock('./auth.service', () => ({ postApiWithCsrf: vi.fn() }))
 const record = { id: 'class-id', ownerId: 'teacher-id', name: 'Math', description: '', createdAt: '2026-01-01' }
 beforeEach(() => { vi.resetAllMocks() })
 describe('classroom API contract', () => {
+  it('uses the participant member endpoint with a validated display-only response', async () => {
+    const id = '902df2ea-e551-43c0-b879-956366138d93'
+    const signal = new AbortController().signal
+    vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { items: [{ id, name: 'Teacher', role: 'owner', email: 'private@example.test' }], nextCursor: null } } })
+    expect(await getClassroomMembers('class/id', id, signal)).toEqual({ items: [{ id, name: 'Teacher', role: 'owner' }], nextCursor: null })
+    expect(api.get).toHaveBeenCalledWith('/api/v1/classrooms/class%2Fid/members', { params: { limit: 50, cursor: id }, signal })
+  })
+  it('rejects an invalid directory instead of displaying invented member identities', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { items: [{ id: 'invalid', name: 'Unknown', role: 'admin' }], nextCursor: null } } })
+    await expect(getClassroomMembers('class-id')).rejects.toThrow()
+  })
   it('unwraps every list page and passes cancellation through', async () => {
     const signal = new AbortController().signal
     vi.mocked(api.get).mockResolvedValueOnce({ data: { data: { items: [record], nextCursor: 'cursor-id' } } })

@@ -8,7 +8,7 @@ import { REACTION_CHOICES } from "./discussion-reaction-data"
 const MAX_LENGTH = 500
 
 const iconButton =
-  "inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+  "inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#0866ff] outline-none hover:bg-background focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent dark:text-[#75b6ff]"
 
 export function ChatComposer({
   onSend,
@@ -58,7 +58,7 @@ export function ChatComposer({
   }
 
   return (
-    <form onSubmit={submit} className="border-t border-border p-3">
+    <form onSubmit={submit} className="shrink-0 bg-card p-3 sm:px-4">
       {replyingTo && (
         <div className="mb-2 flex items-start gap-2 rounded-lg border-l-2 border-primary bg-muted px-3 py-2 text-xs">
           <div className="min-w-0 flex-1">
@@ -90,7 +90,7 @@ export function ChatComposer({
           ))}
         </div>
       )}
-      <div className="flex items-end gap-1.5 rounded-2xl border border-border bg-background px-2 py-1.5 focus-within:ring-2 focus-within:ring-ring/50">
+      <div className="flex min-w-0 items-end gap-1 rounded-3xl bg-muted px-1.5 py-1.5 focus-within:ring-2 focus-within:ring-ring/50">
         <button type="button" disabled className={iconButton} aria-label="Attach a file (not available yet)" title="Attachments are not available yet">
           <Paperclip aria-hidden="true" className="size-4" />
         </button>
@@ -104,13 +104,13 @@ export function ChatComposer({
           maxLength={MAX_LENGTH}
           onChange={(event) => setDraft(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type message…"
-          className="max-h-32 min-h-9 min-w-0 flex-1 resize-none border-0 bg-transparent px-1 py-2 shadow-none focus-visible:ring-0"
+          placeholder="Aa"
+          className="max-h-32 min-h-9 min-w-0 flex-1 resize-none border-0 bg-transparent px-1 py-2 shadow-none focus-visible:ring-0 dark:bg-transparent"
         />
         <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
           <Smile aria-hidden="true" className="size-4" />
         </button>
-        <Button type="submit" size="icon" disabled={!canSend} aria-label="Send class chat message" className="shrink-0 rounded-full">
+        <Button type="submit" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-9 shrink-0 rounded-full bg-[#0866ff] text-white hover:bg-[#075bd8]">
           <Send aria-hidden="true" />
         </Button>
       </div>
