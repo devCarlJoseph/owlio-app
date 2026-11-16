@@ -19,17 +19,17 @@ export function ClassroomInformation({ classroom, owned, notice, onAbout, onCopy
             <p className="flex items-start gap-2 text-sm"><GraduationCap aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" /><span>{classroom.instructorName || 'Instructor details unavailable'}</span></p>
             <p className="flex items-center gap-2 text-sm"><Users aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />{owned ? 'Teaching workspace' : 'Enrolled member'}</p>
           </div>
-          <Button variant="ghost" className="mt-4 h-auto w-full justify-between rounded-sm bg-muted/60 px-2 py-2 text-xs whitespace-normal" onClick={onAbout}>View class information<ChevronRight aria-hidden="true" className="size-4" /></Button>
+          <Button variant="ghost" className="mt-4 h-auto w-full justify-between bg-muted/60 px-2 py-2 text-xs whitespace-normal" onClick={onAbout}>View class information<ChevronRight aria-hidden="true" className="size-4" /></Button>
         </div>
       </section>
       <details className="classroom-panel p-4">
-        <summary className="cursor-pointer rounded text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom invite</summary>
+        <summary className="cursor-pointer rounded-md text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom invite</summary>
         <section aria-label="Classroom invite" className="mt-4 space-y-3">
           <h3 className="text-sm font-semibold">Student invite code</h3>
           {classroom.joinCode ? (
             <>
-              <code className="block select-all break-all rounded-sm bg-muted p-3 text-sm">{classroom.joinCode}</code>
-              <Button variant="outline" className="classroom-secondary-action w-full" onClick={onCopyCode}>Copy invite code</Button>
+              <code className="block select-all break-all rounded-lg bg-muted p-3 text-sm">{classroom.joinCode}</code>
+              <Button variant="outline" className="w-full" onClick={onCopyCode}>Copy invite code</Button>
               <p className="text-xs leading-5 text-muted-foreground">Share this code only with students invited to this classroom.</p>
             </>
           ) : <p className="text-sm leading-6 text-muted-foreground">This classroom has a legacy invite. Its owner must rotate the code before it can be displayed here.</p>}
@@ -38,8 +38,8 @@ export function ClassroomInformation({ classroom, owned, notice, onAbout, onCopy
       </details>
       {classroom.meetingCode && (
         <details className="classroom-panel p-4">
-          <summary className="cursor-pointer rounded text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom meeting code</summary>
-          <code className="mt-3 block select-all break-all rounded-sm bg-muted p-3 text-sm">{classroom.meetingCode}</code>
+          <summary className="cursor-pointer rounded-md text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom meeting code</summary>
+          <code className="mt-3 block select-all break-all rounded-lg bg-muted p-3 text-sm">{classroom.meetingCode}</code>
         </details>
       )}
       <p className="px-1 text-xs leading-5 text-muted-foreground">Your classroom, your learning community.</p>

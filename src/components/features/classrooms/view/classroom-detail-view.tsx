@@ -41,7 +41,7 @@ export function ClassroomDetailView() {
   const owned = classroom?.access === 'owner'
   const visible = classroom && (role === 'students' ? !owned : owned)
   if (classroomsLoading) return <p role="status">Loading classroom…</p>
-  if (classroomsError) return <section role="alert" className="space-y-3 rounded-xl border p-6"><h2>Classroom could not be loaded</h2><p>{classroomsError}</p><Button onClick={reloadClassrooms}>Try again</Button></section>
+  if (classroomsError) return <section role="alert" className="space-y-3 rounded-xl border p-6"><h2>Classroom could not be loaded</h2><p>{classroomsError}</p><Button className="bg-brand text-brand-foreground hover:bg-brand/90" onClick={reloadClassrooms}>Try again</Button></section>
   if (!classroom || !visible) return <section className="space-y-3 rounded-xl border p-6"><h2>Classroom unavailable</h2>
     <p>This classroom is not available to your account in this workspace.</p><Link className="underline" to={'/' + role + '/classrooms'}>Back to classrooms</Link></section>
   const selectTab = (value: string) => setParams(current => { const next = new URLSearchParams(current); if (value === defaultTab) next.delete('tab'); else next.set('tab', value); return next }, { replace: true })

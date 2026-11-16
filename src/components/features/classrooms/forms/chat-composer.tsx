@@ -8,7 +8,7 @@ import { REACTION_CHOICES } from "../contents/discussion-reaction-data"
 const MAX_LENGTH = 500
 
 const iconButton =
-  "inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#6ba8ff] outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+  "inline-flex size-9 shrink-0 items-center justify-center rounded-md text-brand outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
 
 export function ChatComposer({
   onSend,
@@ -105,12 +105,12 @@ export function ChatComposer({
           onChange={(event) => setDraft(event.currentTarget.value)}
           onKeyDown={handleKeyDown}
           placeholder="Aa"
-          className="max-h-32 min-h-9 min-w-0 flex-1 resize-none rounded-3xl border-0 bg-muted px-4 py-2 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-muted"
+          className="max-h-32 min-h-9 min-w-0 flex-1 resize-none rounded-md border-0 bg-muted px-4 py-2 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-muted"
         />
         <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
           <Smile aria-hidden="true" className="size-4" />
         </button>
-        <Button type="submit" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-9 shrink-0 rounded-full bg-[#0866ff] text-white hover:bg-[#075bd8]">
+        <Button type="submit" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-9 shrink-0 bg-brand text-brand-foreground hover:bg-brand/90">
           <Send aria-hidden="true" />
         </Button>
       </div>

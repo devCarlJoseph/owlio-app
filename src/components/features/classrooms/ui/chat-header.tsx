@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import type { Classroom, WorkspaceRole } from '../types/classroom-types'
 import { getInitials } from '../utils/classroom-utils'
 
-const iconButton = 'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-[#b66aff] outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring'
+const iconButton = 'inline-flex size-9 shrink-0 items-center justify-center rounded-md text-brand outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring'
 
 export function ChatHeader({ classroom, role, searchOpen, query, onToggleSearch, onQueryChange, detailsOpen, detailsId, onToggleDetails, detailsToggleRef }: {
   classroom: Classroom
@@ -34,6 +34,6 @@ export function ChatHeader({ classroom, role, searchOpen, query, onToggleSearch,
       <button type="button" className={iconButton} aria-label={searchOpen ? 'Close message search' : 'Search messages'} aria-expanded={searchOpen} aria-controls={searchId} onClick={onToggleSearch}>{searchOpen ? <X aria-hidden="true" className="size-5" /> : <Search aria-hidden="true" className="size-5" />}</button>
       <button ref={detailsToggleRef} type="button" className={iconButton + (detailsOpen ? ' bg-muted' : '')} aria-label="Conversation details" aria-expanded={detailsOpen} aria-controls={detailsId} onClick={onToggleDetails}><Info aria-hidden="true" className="size-5" /></button>
     </div>
-    {searchOpen && <div id={searchId} className="mt-3"><label htmlFor={`${searchId}-input`} className="sr-only">Search messages in this class chat</label><Input id={`${searchId}-input`} type="search" autoFocus value={query} onChange={event => onQueryChange(event.currentTarget.value)} placeholder="Search in conversation" className="rounded-full border-0 bg-muted shadow-none" /></div>}
+    {searchOpen && <div id={searchId} className="mt-3"><label htmlFor={`${searchId}-input`} className="sr-only">Search messages in this class chat</label><Input id={`${searchId}-input`} type="search" autoFocus value={query} onChange={event => onQueryChange(event.currentTarget.value)} placeholder="Search in conversation" className="rounded-md border-0 bg-muted shadow-none" /></div>}
   </header>
 }
