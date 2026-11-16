@@ -3,8 +3,10 @@ import { DiscussionText } from './discussion-text'
 import { PersonAvatar } from './classroom-ui'
 import { chatTimeLabel } from '../utils/chat-format'
 import type { ClassroomChatMessage } from '../types/classroom-types'
+import { ChatMessageReceipt } from './chat-message-receipt'
 
-export function ChatMessageBubble({ message, mine, showHeader, highlighted, mentioned = false, onReply, onJumpToMessage }: {
+export function ChatMessageBubble({ classroomId, message, mine, showHeader, highlighted, mentioned = false, onReply, onJumpToMessage }: {
+  classroomId: string
   message: ClassroomChatMessage
   mine: boolean
   showHeader: boolean
@@ -23,7 +25,7 @@ export function ChatMessageBubble({ message, mine, showHeader, highlighted, ment
         <div className={`min-w-0 rounded-xl px-3 py-2 text-left text-sm leading-5 [overflow-wrap:anywhere] ${mine ? 'bg-brand text-brand-foreground' : 'bg-muted text-foreground'}`}><DiscussionText text={message.body} /></div>
         <button type="button" onClick={onReply} aria-label={`Reply to ${message.authorName}`} className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring sm:opacity-0 sm:group-hover/message:opacity-100 sm:group-focus-within/message:opacity-100"><Reply aria-hidden="true" className="size-3.5" /></button>
       </div>
-      <time dateTime={message.createdAt} title={message.createdAt} className="px-3 text-[10px] text-muted-foreground">{chatTimeLabel(message.createdAt)}</time>
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 px-3 text-[10px] text-muted-foreground"><time dateTime={message.createdAt} title={message.createdAt}>{chatTimeLabel(message.createdAt)}</time>{mine && <><span aria-hidden="true">·</span><ChatMessageReceipt classroomId={classroomId} messageId={message.id} seenCount={message.seenCount} /></>}</div>
     </article>
   </li>
 }

@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
 import { postApiWithCsrf } from './auth.service'
-import { getClassroomUnread, markClassroomRead, sendClassroomMessage } from './classroom-chat.service'
+import { getClassroomMessageReaders, getClassroomUnread, markClassroomRead, sendClassroomMessage } from './classroom-chat.service'
 vi.mock('@/lib/axios', () => ({ default: { get: vi.fn() } }))
 vi.mock('./auth.service', () => ({ postApiWithCsrf: vi.fn() }))
 const id = '902df2ea-e551-43c0-b879-956366138d93'
@@ -21,4 +21,13 @@ it('uses the CSRF helper for read acknowledgments and structured mentions', asyn
   expect(postApiWithCsrf).toHaveBeenLastCalledWith('/api/v1/classrooms/class/messages/read', { messageId: id })
   await sendClassroomMessage('class', id, '@students Hello', null, { mentionUserIds: [id], mentionStudents: true })
   expect(postApiWithCsrf).toHaveBeenLastCalledWith('/api/v1/classrooms/class/messages', { requestId: id, body: '@students Hello', replyToId: null, mentionUserIds: [id], mentionStudents: true })
+})
+
+it('validates scoped reader pages and passes the cursor and cancellation signal', async () => {
+  const signal = new AbortController().signal
+  vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { items: [{ id, name: 'Reader', email: 'private@example.test' }], nextCursor: null } } })
+  expect(await getClassroomMessageReaders('class/id', id, id, signal)).toEqual({ items: [{ id, name: 'Reader' }], nextCursor: null })
+  expect(api.get).toHaveBeenCalledWith(`/api/v1/classrooms/class%2Fid/messages/${id}/readers`, { params: { limit: 50, cursor: id }, signal })
+  vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { items: [{ id: 'invalid', name: 'Reader' }], nextCursor: null } } })
+  await expect(getClassroomMessageReaders('class', id)).rejects.toThrow()
 })

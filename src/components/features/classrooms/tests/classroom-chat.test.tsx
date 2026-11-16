@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { getClassrooms, getClassroomMembers } from '@/services/api/classroom.service'
-import { getClassroomMessages, getClassroomUnread, markClassroomRead, sendClassroomMessage } from '@/services/api/classroom-chat.service'
+import { getClassroomMessages, getClassroomMessageReaders, getClassroomUnread, markClassroomRead, sendClassroomMessage } from '@/services/api/classroom-chat.service'
 import { ClassroomDetailView } from '../view/classroom-detail-view'
 import { TestSession } from './classroom-test-fixtures'
 import { classroom, student, teacher } from './classroom-test-data'
 import { ChatComposer } from '../forms/chat-composer'
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), getClassroomMembers: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
-vi.mock('@/services/api/classroom-chat.service', () => ({ getClassroomMessages: vi.fn(), getClassroomUnread: vi.fn(), markClassroomRead: vi.fn(), sendClassroomMessage: vi.fn() }))
+vi.mock('@/services/api/classroom-chat.service', () => ({ getClassroomMessages: vi.fn(), getClassroomMessageReaders: vi.fn(), getClassroomUnread: vi.fn(), markClassroomRead: vi.fn(), sendClassroomMessage: vi.fn() }))
 const saved = { id: 'message-id', authorId: student.id, authorName: student.name, authorRole: 'student' as const,
   body: 'Hello class', createdAt: '2030-01-01T10:00:00Z', replyTo: null }
 beforeEach(() => {
@@ -37,6 +37,8 @@ it('loads the classroom conversation and sends only after the server confirms', 
   expect(await screen.findByText('A new message')).toBeTruthy()
   expect(sendClassroomMessage).toHaveBeenCalledWith(classroom.id, expect.any(String), 'A new message', null)
   expect((input as HTMLTextAreaElement).value).toBe('')
+  expect(screen.queryByText('Message sent to this classroom.')).toBeNull()
+  expect(screen.getAllByText('Sent').at(-1)?.parentElement?.querySelector('time')).toBeTruthy()
 })
 it('keeps a failed draft and reuses its request ID when retried', async () => {
   vi.mocked(sendClassroomMessage).mockRejectedValueOnce(new Error('Message not confirmed')).mockResolvedValue(saved)
@@ -238,4 +240,62 @@ it('does not notify a selected member after their mention text is edited', async
   fireEvent.change(input, { target: { value: '@Class TeacherX hello' } })
   await userEvent.click(screen.getByRole('button', { name: 'Send class chat message' }))
   expect(send).toHaveBeenCalledWith('@Class TeacherX hello', undefined)
+})
+
+it('removes the visible typing and mention guidelines', async () => {
+  render(<ChatComposer classroomId={classroom.id} onSend={vi.fn()} replyingTo={null} onCancelReply={() => {}} />)
+  await userEvent.type(screen.getByRole('textbox', { name: 'Message this class' }), '@c')
+  await screen.findByRole('option', { name: '@Class Teacher · Class owner' })
+  expect(screen.queryByText(/Enter to send|Enter to mention|Esc to close/)).toBeNull()
+})
+
+it('shows seen status beside the timestamp and loads confirmed readers on demand', async () => {
+  vi.mocked(getClassroomMessages).mockResolvedValue({ items: [{ ...saved, seenCount: 2 }], next: null })
+  vi.mocked(getClassroomMessageReaders).mockResolvedValueOnce({ items: [{ id: 'reader-one', name: 'Reader One' }], nextCursor: 'next-reader' })
+    .mockResolvedValueOnce({ items: [{ id: 'reader-two', name: 'Reader Two' }], nextCursor: null })
+  mount()
+  const seen = await screen.findByRole('button', { name: 'Seen by 2. View readers' })
+  expect(seen.parentElement?.querySelector('time')).toBeTruthy()
+  expect(getClassroomMessageReaders).not.toHaveBeenCalled()
+  await userEvent.click(seen)
+  expect(await screen.findByText('Reader One')).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: 'Load more readers' }))
+  expect(await screen.findByText('Reader Two')).toBeTruthy()
+  expect(getClassroomMessageReaders).toHaveBeenCalledWith(classroom.id, saved.id, 'next-reader', expect.any(AbortSignal))
+  const signal = vi.mocked(getClassroomMessageReaders).mock.calls[0][3]!
+  await userEvent.keyboard('{Escape}')
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(signal.aborted).toBe(true)
+})
+
+it('keeps reader errors distinct from an empty list and hides receipt controls on incoming messages', async () => {
+  vi.mocked(getClassroomMessages).mockResolvedValue({ items: [{ ...saved, seenCount: 1 }, { ...saved, id: 'incoming', authorId: 'owner', seenCount: null }], next: null })
+  vi.mocked(getClassroomMessageReaders).mockRejectedValue(new Error('Offline'))
+  mount()
+  expect(await screen.findAllByText('Hello class')).toHaveLength(2)
+  expect(screen.getAllByRole('button', { name: /View readers/ })).toHaveLength(1)
+  await userEvent.click(screen.getByRole('button', { name: 'Seen by 1. View readers' }))
+  expect(await screen.findByText('Readers could not be loaded.')).toBeTruthy()
+  expect(screen.queryByText('No current class members have seen this message yet.')).toBeNull()
+})
+
+it('acknowledges a fully visible latest message only in a focused conversation', async () => {
+  vi.mocked(getClassroomMessages).mockResolvedValue({ items: [{ ...saved, authorId: 'owner' }], next: null })
+  vi.mocked(getClassroomUnread).mockResolvedValueOnce({ total: 1, unreadCount: 1, mentionCount: 0, firstUnread: { id: saved.id, createdAt: saved.createdAt } })
+    .mockResolvedValue({ total: 1, unreadCount: 0, mentionCount: 0, firstUnread: null })
+  const focused = vi.spyOn(document, 'hasFocus').mockReturnValue(false)
+  try {
+    mount()
+    await screen.findByText('1 unread')
+    const list = screen.getByRole('log').querySelector('[data-slot="scroll-area-viewport"]')!
+    vi.spyOn(list, 'getClientRects').mockReturnValue([{}] as unknown as DOMRectList)
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue({ top: 0, bottom: 100 } as DOMRect)
+    vi.spyOn(document.getElementById('chat-message-' + saved.id)!, 'getBoundingClientRect').mockReturnValue({ top: 10, bottom: 80 } as DOMRect)
+    fireEvent(window, new Event('focus'))
+    await new Promise(resolve => setTimeout(resolve, 550))
+    expect(markClassroomRead).not.toHaveBeenCalled()
+    focused.mockReturnValue(true)
+    fireEvent(window, new Event('focus'))
+    await waitFor(() => expect(markClassroomRead).toHaveBeenCalledWith(classroom.id, saved.id))
+  } finally { focused.mockRestore() }
 })

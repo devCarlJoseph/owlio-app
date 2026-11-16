@@ -177,10 +177,7 @@ export function ChatComposer({
           <Send aria-hidden="true" />
         </Button>
       </div>
-      <div className="mt-1 flex items-center justify-between gap-2 px-1 text-[11px] text-muted-foreground">
-        <span>Enter to send · Shift+Enter for a new line</span>
-        {draft.length >= 400 && <span aria-live="polite">{draft.length}/{MAX_LENGTH}</span>}
-      </div>
+      {draft.length >= 400 && <p aria-live="polite" className="mt-1 px-1 text-right text-[11px] text-muted-foreground">{draft.length}/{MAX_LENGTH}</p>}
     </form>
   )
 }

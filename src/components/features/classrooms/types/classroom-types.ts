@@ -45,6 +45,7 @@ export type ClassroomChatReplyRef = {
 }
 
 export type ClassroomChatMessage = {
+  seenCount?: number | null
   mentionUserIds?: string[]
   mentionStudents?: boolean
   id: string

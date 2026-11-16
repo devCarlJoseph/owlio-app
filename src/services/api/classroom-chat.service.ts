@@ -7,6 +7,7 @@ const message = z.object({
   body: z.string(), createdAt: z.string(),
   replyTo: z.object({ messageId: z.uuid(), authorName: z.string(), excerpt: z.string() }).nullable(),
   mentionUserIds: z.array(z.uuid()).optional(), mentionStudents: z.boolean().optional(),
+  seenCount: z.number().int().nonnegative().nullable().optional(),
 })
 const cursor = z.object({ beforeCreatedAt: z.string(), beforeId: z.uuid() })
 export type ClassroomChatMessage = z.infer<typeof message>
@@ -27,4 +28,9 @@ export async function getClassroomUnread(classroomId: string, signal?: AbortSign
 }
 export async function markClassroomRead(classroomId: string, messageId: string) {
   return z.object({ messageId: z.uuid() }).parse(await postApiWithCsrf(path(classroomId) + '/read', { messageId }))
+}
+export type ChatReader = { id: string; name: string }
+export async function getClassroomMessageReaders(classroomId: string, messageId: string, cursor?: string, signal?: AbortSignal) {
+  return z.object({ status: z.literal('success'), data: z.object({ items: z.array(z.object({ id: z.uuid(), name: z.string() })), nextCursor: z.uuid().nullable() }) })
+    .parse((await api.get<unknown>(path(classroomId) + '/' + encodeURIComponent(messageId) + '/readers', { params: { limit: 50, ...(cursor ? { cursor } : {}) }, signal })).data).data
 }

@@ -50,6 +50,27 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
   }, [newestMessageId, normalizedQuery, chat.unread, hasUnread])
 
   useEffect(() => {
+    const list = listRef.current
+    const latest = newestMessageId ? document.getElementById(`chat-message-${newestMessageId}`) : null
+    if (!hasUnread || !list || !latest || normalizedQuery || detailsOpen || loading || chat.findingUnread) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const check = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        if (document.visibilityState !== 'visible' || !document.hasFocus() || !list.getClientRects().length) return
+        const viewport = list.getBoundingClientRect(), message = latest.getBoundingClientRect()
+        if (message.top >= viewport.top && message.bottom <= viewport.bottom && newestMessageId) void markRead(newestMessageId)
+      }, 500)
+    }
+    const observer = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(check, { root: list, threshold: 1 }) : null
+    observer?.observe(latest)
+    window.addEventListener('focus', check)
+    document.addEventListener('visibilitychange', check)
+    check()
+    return () => { if (timer) clearTimeout(timer); observer?.disconnect(); window.removeEventListener('focus', check); document.removeEventListener('visibilitychange', check) }
+  }, [newestMessageId, hasUnread, normalizedQuery, detailsOpen, loading, chat.findingUnread, markRead])
+
+  useEffect(() => {
     if (detailsOpen) closeDetailsRef.current?.focus({ preventScroll: true })
   }, [detailsOpen])
 
@@ -95,7 +116,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
   const handleSend = async (body: string, mentions?: ChatMentions) => {
     setQuery('')
     const sent = await chat.send(body, replyingTo?.messageId ?? null, mentions)
-    if (sent) { setReplyingTo(null); setStatus('Message sent to this classroom.') }
+    if (sent) setReplyingTo(null)
     return sent
   }
 
@@ -122,7 +143,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
             const previous = messages[index - 1]
             const newDay = !previous || chatDay(previous.createdAt) !== chatDay(message.createdAt)
             const showHeader = !previous || previous.authorId !== message.authorId || newDay
-            return <Fragment key={message.id}>{newDay && <li className="my-4 self-center rounded-full px-3 text-center text-[11px] font-medium text-muted-foreground">{chatDateLabel(message.createdAt)}</li>}<ChatMessageBubble mentioned={message.authorId !== user?.id && (message.mentionUserIds?.includes(user?.id ?? "") || Boolean(message.mentionStudents && classroom.ownerId !== user?.id))} message={{ ...message, replyTo: message.replyTo ?? undefined }} mine={message.authorId === user?.id} showHeader={showHeader} highlighted={highlightedId === message.id} onReply={() => startReply(message)} onJumpToMessage={jumpToMessage} /></Fragment>
+            return <Fragment key={message.id}>{newDay && <li className="my-4 self-center rounded-full px-3 text-center text-[11px] font-medium text-muted-foreground">{chatDateLabel(message.createdAt)}</li>}<ChatMessageBubble classroomId={classroom.id} mentioned={message.authorId !== user?.id && (message.mentionUserIds?.includes(user?.id ?? "") || Boolean(message.mentionStudents && classroom.ownerId !== user?.id))} message={{ ...message, replyTo: message.replyTo ?? undefined }} mine={message.authorId === user?.id} showHeader={showHeader} highlighted={highlightedId === message.id} onReply={() => startReply(message)} onJumpToMessage={jumpToMessage} /></Fragment>
           })}
         </ol>}
       </ScrollArea>
