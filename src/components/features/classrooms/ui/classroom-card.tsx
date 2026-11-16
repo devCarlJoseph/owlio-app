@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getClassroomCoverUrl } from "../utils/classroom-covers"
+import { getClassroomBannerUrl } from "../utils/classroom-covers"
 import { getClassroomCategory, getClassroomMeta } from "../utils/classroom-list-meta"
 import { StatusChip } from "./classroom-list-ui"
 import type { Classroom, WorkspaceRole } from "../types/classroom-types"
@@ -49,10 +49,7 @@ function ClassroomMenu({ classroom, href }: { classroom: Classroom; href: string
 export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
   return <Card className="flex h-full flex-col gap-5 rounded-2xl border border-border bg-card p-5 shadow-none ring-0">
     <div className="flex flex-1 items-start gap-4">
-      <div className="relative shrink-0">
-        <img src={getClassroomCoverUrl(classroom.id)} alt="" className="size-20 rounded-xl object-cover sm:size-24" />
-        <img src="/mascot/owlio-mark.png" alt="" className="absolute inset-0 m-auto size-10 object-contain drop-shadow-sm" />
-      </div>
+      <img src={getClassroomBannerUrl(classroom.id)} alt="" loading="lazy" decoding="async" className="size-20 shrink-0 rounded-xl bg-brand-soft object-cover object-right sm:size-24" />
       <div className="min-w-0 py-0.5">
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-soft-foreground">{getClassroomCategory(classroom)}</p>
         <h3 className="line-clamp-2 text-base font-semibold leading-snug"><Link to={href} className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand">{classroom.name}</Link></h3>
@@ -90,10 +87,12 @@ export function ClassroomListRow({ classroom, href, role }: ClassroomCardProps) 
     <div role="row" className={cn("grid gap-3 border-b border-slate-100 surface-dark:border-border px-4 py-3 last:border-b-0 md:items-center md:gap-4", listColumns)}>
       <div role="cell" className="flex min-w-0 items-center gap-3">
         <img
-          src={getClassroomCoverUrl(classroom.id)}
+          src={getClassroomBannerUrl(classroom.id)}
           alt=""
           aria-hidden="true"
-          className="size-12 shrink-0 rounded-lg object-cover"
+          loading="lazy"
+          decoding="async"
+          className="size-12 shrink-0 rounded-lg bg-brand-soft object-cover object-right"
         />
         <div className="min-w-0">
           <Link to={href} className="block truncate rounded text-sm font-semibold text-slate-900 surface-dark:text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand">

@@ -1,6 +1,6 @@
 # Owlio classroom banners
 
-Original illustrations created for this project with the built-in ImageGen tool. These are bundled static assets, not images generated when a user creates a classroom. The interior chooses a stable variant from the permanent classroom ID. Existing classroom-list thumbnails use their separate cover selection.
+Original illustrations created for this project with the built-in ImageGen tool. These are bundled static assets, not images generated when a user creates a classroom. The interior chooses a stable variant from the permanent classroom ID. Classroom-list cards and list rows reuse the same selection, cropping the illustrated right-hand side into their existing thumbnail dimensions.
 
 Files: `learning-studio.png`, `discovery-lab.png`, `creative-ideas.png`.
 
