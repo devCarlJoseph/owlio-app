@@ -1,3 +1,4 @@
+import { ClassroomDetailSkeleton } from '../ui/classroom-skeletons'
 import { useState, useSyncExternalStore } from 'react'
 import { ArrowLeft, GraduationCap, Info, MessageSquare } from 'lucide-react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router'
@@ -42,7 +43,7 @@ export function ClassroomDetailView() {
   const tab = tabs.find(item => item.value === params.get('tab'))?.value ?? defaultTab
   const owned = classroom?.access === 'owner'
   const visible = classroom && (role === 'students' ? !owned : owned)
-  if (classroomsLoading) return <p role="status">Loading classroom…</p>
+  if (classroomsLoading) return <ClassroomDetailSkeleton tab={tab} />
   if (classroomsError) return <section role="alert" className="space-y-3 rounded-xl border p-6"><h2>Classroom could not be loaded</h2><p>{classroomsError}</p><Button className="bg-brand text-brand-foreground hover:bg-brand/90" onClick={reloadClassrooms}>Try again</Button></section>
   if (!classroom || !visible) return <section className="space-y-3 rounded-xl border p-6"><h2>Classroom unavailable</h2>
     <p>This classroom is not available to your account in this workspace.</p><Link className="underline" to={'/' + role + '/classrooms'}>Back to classrooms</Link></section>

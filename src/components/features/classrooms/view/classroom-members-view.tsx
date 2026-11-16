@@ -1,3 +1,4 @@
+import { ClassroomMembersSkeleton } from '../ui/classroom-skeletons'
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { GraduationCap, Users } from 'lucide-react'
@@ -66,7 +67,7 @@ function MemberDirectory({ classroomId }: { classroomId: string }) {
   return <section aria-label="Classroom members" className="min-w-0 space-y-4">
     <p className="text-xs leading-5 text-muted-foreground">The class owner and currently enrolled students.</p>
     {error && <div role="alert" className="space-y-2 rounded-lg bg-destructive/5 p-3 text-sm"><p>{error}</p><Button variant="outline" size="sm" onClick={() => { setLoading(true); setReload(value => value + 1) }}>Reload members</Button></div>}
-    {loading && <p role="status" className="text-sm text-muted-foreground">Loading members…</p>}
+    {loading && <ClassroomMembersSkeleton />}
     {!loading && !error && page.items.length === 0 && <p className="text-sm text-muted-foreground">No members to display.</p>}
     <ul className="divide-y divide-border">{page.items.map(member => <li key={member.id} className="flex min-w-0 items-center gap-3 py-3 first:pt-0">
       <PersonAvatar name={member.name} />

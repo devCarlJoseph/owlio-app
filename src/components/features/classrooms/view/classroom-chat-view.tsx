@@ -1,3 +1,4 @@
+import { ClassroomChatSkeleton } from '../ui/classroom-skeletons'
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { ChevronDown, ChevronRight, MessageCircle, Users, X } from 'lucide-react'
@@ -138,7 +139,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
         }
       }} role="log" aria-live="polite" aria-relevant="additions" aria-label={`${classroom.name} group chat messages`} className="min-h-0 min-w-0 flex-1 basis-0" viewportClassName="overscroll-contain overflow-x-hidden!" contentClassName="flex min-h-full min-w-0! w-full flex-col px-3 py-5 sm:px-5">
         {chat.next && <Button variant="ghost" className="mx-auto mb-4 shrink-0 text-xs text-muted-foreground" disabled={chat.loadingOlder} onClick={() => void chat.loadOlder()}>{chat.loadingOlder ? 'Loading older messages…' : 'Load older messages'}</Button>}
-        {chat.loading ? <p role="status" className="m-auto text-sm text-muted-foreground">Loading classroom messages…</p> : messages.length === 0 ? <div className="m-auto flex max-w-sm flex-col items-center gap-3 py-8 text-center"><span className="grid size-16 place-items-center rounded-full bg-brand-soft text-brand"><MessageCircle aria-hidden="true" className="size-7" /></span><h4 className="font-semibold">{normalizedQuery ? 'No matching messages' : classroom.name}</h4><p className="text-sm leading-6 text-muted-foreground">{normalizedQuery ? 'No messages match your search.' : 'No messages yet. Start the class-only conversation.'}</p></div> : <ol className="flex min-w-0 flex-col gap-1">
+        {chat.loading ? <ClassroomChatSkeleton /> : messages.length === 0 ? <div className="m-auto flex max-w-sm flex-col items-center gap-3 py-8 text-center"><span className="grid size-16 place-items-center rounded-full bg-brand-soft text-brand"><MessageCircle aria-hidden="true" className="size-7" /></span><h4 className="font-semibold">{normalizedQuery ? 'No matching messages' : classroom.name}</h4><p className="text-sm leading-6 text-muted-foreground">{normalizedQuery ? 'No messages match your search.' : 'No messages yet. Start the class-only conversation.'}</p></div> : <ol className="flex min-w-0 flex-col gap-1">
           {messages.map((message, index) => {
             const previous = messages[index - 1]
             const newDay = !previous || chatDay(previous.createdAt) !== chatDay(message.createdAt)

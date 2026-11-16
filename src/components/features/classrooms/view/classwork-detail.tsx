@@ -1,3 +1,4 @@
+import { ClassworkDetailSkeleton } from '../ui/classroom-skeletons'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, Check, Clock3, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -28,7 +29,7 @@ export function ClassworkDetail({ classroomId, id, owned, notice, onBack, onEntr
   }, [classroomId, id, owned, attempt])
   return <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-2"><Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft />All classwork</Button><Button variant="ghost" size="sm" onClick={() => { setEntry(null); setError(''); setAttempt(value => value + 1) }}>Reload saved work</Button></div>
     {notice && <p role="status" className="rounded-lg border border-border bg-muted p-3 text-sm">{notice}</p>}
-    {error ? <div role="alert" className="space-y-3 rounded-xl border border-border bg-card p-5"><p>{error}</p><Button variant="outline" onClick={() => { setError(''); setAttempt(value => value + 1) }}>Retry classwork</Button></div> : entry ? <ClassworkContent entry={entry} owned={owned} onEntryChange={onEntryChange} /> : <p role="status" className="p-6 text-sm text-muted-foreground">Loading classwork…</p>}
+    {error ? <div role="alert" className="space-y-3 rounded-xl border border-border bg-card p-5"><p>{error}</p><Button variant="outline" onClick={() => { setError(''); setAttempt(value => value + 1) }}>Retry classwork</Button></div> : entry ? <ClassworkContent entry={entry} owned={owned} onEntryChange={onEntryChange} /> : <ClassworkDetailSkeleton />}
   </div>
 }
 

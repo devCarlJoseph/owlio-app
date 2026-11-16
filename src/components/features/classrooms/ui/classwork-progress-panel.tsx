@@ -1,3 +1,4 @@
+import { ClassworkProgressSkeleton } from './classroom-skeletons'
 import { useEffect, useState } from 'react'
 import { Check, ClipboardCheck, FileText, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -29,7 +30,7 @@ export function ClassworkProgressPanel({ items, active, owned, loading, error, n
     <section className="rounded-2xl border border-border bg-card p-4">
       <header className="flex items-center justify-between gap-2"><h3 className="text-sm font-semibold">Classwork progress</h3><Info aria-label="Progress reflects saved work and confirmed submissions, not grades." className="size-3.5 shrink-0 text-muted-foreground" /></header>
       {!owned && !loading && !error && <div className="mt-4 space-y-2"><p className="text-xs text-muted-foreground">{completed} of {published.length} activities submitted</p><progress aria-label="Activities submitted" value={completed} max={Math.max(1, published.length)} className="h-1.5 w-full overflow-hidden rounded-full appearance-none accent-brand [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-brand [&::-moz-progress-bar]:bg-brand" /></div>}
-      {loading ? <p role="status" className="mt-5 text-xs text-muted-foreground">Loading deadlines…</p> : error ? <p className="mt-5 text-xs text-muted-foreground">Deadlines could not be loaded. Retry classwork to refresh.</p> : timeline.length === 0 ? <p className="mt-5 text-xs leading-5 text-muted-foreground">Assigned work and closing times will appear here.</p> : <ol className="mt-5 space-y-0">{timeline.map((item, index) => {
+      {loading ? <ClassworkProgressSkeleton /> : error ? <p className="mt-5 text-xs text-muted-foreground">Deadlines could not be loaded. Retry classwork to refresh.</p> : timeline.length === 0 ? <p className="mt-5 text-xs leading-5 text-muted-foreground">Assigned work and closing times will appear here.</p> : <ol className="mt-5 space-y-0">{timeline.map((item, index) => {
         const selected = active?.work.id === item.work.id
         const submitted = item.submission?.status === 'SUBMITTED'
         const closed = classworkClosed(item.work.dueAt, now)
