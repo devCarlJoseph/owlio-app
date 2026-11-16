@@ -2,7 +2,7 @@
 
 > Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
 
-This is a **proposal, not an implemented tree**. Use it to reorganize one feature at a time. No import paths, runtime code, providers, or stored records should change just because this guide exists. The folder example in [Notes](../../src/components/features/personal-workspace/notes/) is the starting point; do not create empty directories simply to match a screenshot. For separate manuals within each docs feature folder, use the [per-feature breakdown index](../component-breakdowns.md); the inventories below are an overview, and the per-feature manuals are the place to maintain future file-by-file decisions.
+This is a **proposal, not an implemented tree**. Use it to reorganize one feature at a time. No import paths, runtime code, providers, or stored records should change just because this guide exists. The folder example in [Notes](../../src/components/features/personal-workspace/notes/) is the starting point; do not create empty directories simply to match a screenshot. For current module ownership, use [feature composition](../architecture/feature-composition.md); the inventories below remain historical migration proposals.
 
 Read [AGENTS.md](../../AGENTS.md), [frontend architecture](../architecture/frontend.md), and [verification](verification.md) before making a migration. Specialized skills apply only when the work actually changes their domain (for example, local storage, API integration, or LiveKit behavior). Routes in `src/pages/` remain thin adapters.
 
@@ -140,7 +140,7 @@ For `personal-workspace/study-spaces/`, keep the existing `detail/` subfeature:
 - `study-spaces/detail/model/`: `drawer-storage.ts`, `room-ambience.ts`, `room-lockers.ts`, `room-tasks.ts`, `room-tv.ts`, `study-space-seats.ts`; `study-spaces/detail/audio/`: `focus-music.ts` (Web Audio lifecycle); `study-spaces/detail/hooks/`: `use-focus-music.ts`, `use-pomodoro.ts`.
 - `study-spaces/detail/view/`: `study-space-detail-view.tsx`, `study-space-detail.test.tsx`; `study-space-room-features.test.ts` can go here if it tests the full room.
 
-The existing `study-spaces/{contents,forms,ui,view}/notes.md` files are documentation placeholders, not UI source files; do not confuse them with the Notes feature. Large Three.js scenes need resource and interaction profiling before splitting; a file move alone does not improve frame rate.
+The former `study-spaces/{contents,forms,ui,view}/notes.md` files were documentation placeholders and have been removed; they were unrelated to the Notes feature. Large Three.js scenes need resource and interaction profiling before splitting; a file move alone does not improve frame rate.
 
 For `personal-workspace/subjects/`:
 

@@ -23,7 +23,7 @@ Owlio is a client-rendered React/TypeScript SPA with Vite, npm, React Router, Ta
 | [global.css](../../src/styles/global.css) | Tailwind entry point, font, semantic theme tokens |
 | [dark-surfaces.css](../../src/styles/dark-surfaces.css) | Compatibility styles for existing palette-based surfaces |
 
-Use the `@/*` alias for `src/*`. Features use responsibility folders as needed within existing domain/subfeature boundaries. See [feature composition](feature-composition.md) for the current structure and global provider lifecycle. The [page adapter guide](../components/page-adapters.md) identifies page ownership and inline-page exceptions; its mirrored guides retain historical code snapshots.
+Use the `@/*` alias for `src/*`. Features use responsibility folders as needed within existing domain/subfeature boundaries. See [feature composition](feature-composition.md) for the current structure and global provider lifecycle. The [page adapter guide](../components/page-adapters.md) identifies page ownership and inline-page exceptions.
 
 ## Navigation and workspaces
 

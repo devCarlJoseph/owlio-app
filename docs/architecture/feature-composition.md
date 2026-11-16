@@ -48,4 +48,4 @@ Add global state only when independent domains need it and its owner/reset lifec
 
 ## Historical plans
 
-The guides under `docs/components/features/`, their embedded code, and `.txt` source copies are pre-migration planning snapshots. Proposed destinations may differ from this runtime organization. Their snapshot generators compare against the old layout and are not runtime verification commands for this migration. Inspect live `src/` modules for current implementations.
+The redundant pre-migration component guides and source indexes have been removed. Remaining `.txt` source copies and snapshot generators describe the old layout and are not runtime verification tools. Inspect live `src/` modules for current implementations. The retained [tutor AI guide](../components/features/tutor-workspace/ai/README.md) is a historical reference, not evidence of connected AI generation.

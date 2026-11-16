@@ -1,1 +1,0 @@
-small components direct to this feature

@@ -8,7 +8,6 @@ Start with the document that answers the task's question. Read only the relevant
 | Product purpose, roles, ownership, and planned boundaries | [Product overview](product/overview.md) |
 | Source organization, UI implementation, and security conventions | [Frontend architecture](architecture/frontend.md) |
 | Current feature folders, reusable blocks, and context ownership | [Feature composition](architecture/feature-composition.md) |
-| Historical component decomposition plans and source copies | [Per-feature component breakdowns](component-breakdowns.md) |
 | Page files that render feature views | [Thin page adapters](components/page-adapters.md) |
 | What is implemented, paused, local, or illustrative | [Capability status](architecture/capability-status.md) |
 | Task execution and completion | [Agent workflow](sops/README.md) |
@@ -17,6 +16,7 @@ Start with the document that answers the task's question. Read only the relevant
 | Defect investigation | [Bug fix SOP](sops/bug-fix.md) |
 | Backend integration | [API integration SOP](sops/api-integration.md) |
 | Choosing checks and reporting evidence | [Verification](sops/verification.md) |
+| Tutor AI assistant boundaries | [AI assistant guide](components/features/tutor-workspace/ai/README.md) |
 | API integration skill | [Contract integration guidance](../.agents/skills/owlio-api-contract-integration/SKILL.md) |
 
 ## Detailed product plans

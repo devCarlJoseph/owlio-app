@@ -1,6 +1,6 @@
 # Page adapters for feature views
 
-`src/main.tsx` registers URLs and auth/role boundaries; `src/pages/` contains route adapters; `src/components/features/` owns view composition, UI, forms, context, and behavior. A folder under `features/` does **not** automatically need its own page. See [current feature composition](../architecture/feature-composition.md) for module locations. The [mirrored feature guides](features/README.md) retain pre-migration adapter examples and ownership references; inspect live `src/pages/` adapters for current imports. Shared pages can serve multiple role-prefixed routes.
+`src/main.tsx` registers URLs and auth/role boundaries; `src/pages/` contains route adapters; `src/components/features/` owns view composition, UI, forms, context, and behavior. A folder under `features/` does **not** automatically need its own page. See [current feature composition](../architecture/feature-composition.md) for module locations. Inspect live `src/pages/` adapters for current imports and ownership. Shared pages can serve multiple role-prefixed routes.
 
 ## What belongs in a page
 
@@ -22,11 +22,11 @@ There is no need to invent an `index.tsx` for every subfeature. The existing `sr
 
 - `src/pages/dashboard/classroom/meeting-room.lazy.tsx` and `src/pages/dashboard/students/study-spaces/detail/lazy.tsx` preserve lazy-loading boundaries. Their paired entry adapters render or re-export the feature view; `src/main.tsx` owns the Suspense fallback. Do not replace a lazy entry with a direct import just to make the adapter shorter.
 - `src/pages/onboarding/index.tsx` keeps `RequireOnboarding` around `OnboardingView`. `src/pages/dashboard/layout.tsx` is the shared shell/provider boundary, **not** a one-view adapter.
-- Feature responsibility folders are now implemented; page imports and tests use the new paths. See [current feature composition](../architecture/feature-composition.md). The mirrored per-feature guides retain pre-migration code snapshots; inspect live adapters for current imports.
+- Feature responsibility folders are now implemented; page imports and tests use the new paths. See [current feature composition](../architecture/feature-composition.md). Inspect live adapters for current imports.
 
 ## Inline-page exceptions
 
-The following current page files contain UI rather than only a feature view. Their feature READMEs show a **future-only** five-line page adapter; those imports do not exist yet. Extract and test the view first, then replace the inline page without altering role or data boundaries:
+The following current page files contain UI rather than only a feature view. Extract and test the view first, then replace the inline page without altering role or data boundaries:
 
 | Existing page | Future view owner to evaluate |
 | --- | --- |
@@ -39,4 +39,4 @@ The following current page files contain UI rather than only a feature view. The
 
 All examples here describe source as it exists today unless marked **future-only**. These guides change documentation, not runtime page behavior.
 
-[Frontend architecture](../architecture/frontend.md) | [Feature breakdown index](../component-breakdowns.md)
+[Frontend architecture](../architecture/frontend.md) | [Feature composition](../architecture/feature-composition.md)
