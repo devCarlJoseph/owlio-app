@@ -156,7 +156,7 @@ ACCOUNT
 - Show classroom context, author, timestamp, thread/reply structure, and allowed audience.
 - Provide educator and learner participation/actions only as supported by role and classroom permissions. No general direct-message inbox in the first release.
 - Keep meeting-room chat separate from saved class discussions. Safely render untrusted text and avoid exposing private feedback or grades in public threads.
-- Existing `/educators/communication` is a UI-only discussions/announcements/polls preview. Classroom feed mutations currently change in-memory demo state only.
+- Existing `/educators/communication` remains a separate discussions/announcements/polls preview. Classroom Discussion now has API-backed teaching-owner posts, enrolled-learner class comments and reactions; the matching API release and pending migration 0046 are required for live use. See [classroom integration](docs/CLASSROOM_API_INTEGRATION.md). Live persistence and browser visual fidelity have not been verified.
 
 ### Announcements
 

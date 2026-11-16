@@ -519,7 +519,7 @@ flowchart LR
   DISC(["Discussions /students/communication E"]) --> CTX{"Choose authorized context"}
   subgraph CLASS_CONTEXT["Instructor class"]
     CL["My Classes /students/classrooms E"]
-    FEED["Class detail feed tab E; demo only"]
+    FEED["Class detail Discussion; API source ready, migration 0046 pending"]
     CL --> FEED
   end
   subgraph PEER_CONTEXT["Student-created peer space"]

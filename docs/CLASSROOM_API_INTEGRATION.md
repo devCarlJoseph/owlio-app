@@ -1,5 +1,15 @@
 # Classroom API integration
 
+## Discussion feed and class comments — 17 November 2026
+
+The classroom **Discussion** tab (`/:workspace/classrooms/:classroomId?tab=feed`) now uses a single feed surface with author avatars, timestamps, linked post text, reaction pills, participant previews, expandable class comments, and an educator composer. The supplied reference applies only to this discussion surface; the dashboard and classroom navigation remain intact. Initial avatars use existing Owlio components. Unsupported attachments are omitted.
+
+The matching backend source adds `GET/POST /api/v1/classrooms/:classroomId/posts`, `GET/POST /api/v1/classrooms/:classroomId/posts/:postId/comments`, and `POST /api/v1/classrooms/:classroomId/posts/:postId/reactions`. Only the teaching owner publishes posts. The owner and currently enrolled students read, comment, and react; archived history is read-only. Permissions are rechecked transactionally by the backend, independently of URL context. Failed saves retain drafts, post/comment retries reuse request IDs, and reactions set an explicit desired state. Posts/comments use timestamp/UUID cursor pages; the newest post page and open comment threads refresh every ten seconds. Account/classroom changes discard view state and reject late results. There is no mock fallback or browser-local persistence.
+
+Backend migration `0046_classroom_discussion` creates three additive tables and their constraints/indexes. It has been generated and reviewed locally, **not applied to a database**. Release the migration and matching API before relying on this tab in a deployed environment. Migration application needs approval for the exact database and operation; no deployment or live database writes were included here. Component/service and fake-repository/HTTP checks do not prove live persistence. Browser visual comparison remains unverified because local browser access failed.
+
+Verification for this change: 56 frontend classroom/service tests passed; TypeScript/Vite build, changed-file ESLint, and diff checks passed. Full frontend lint reports 13 existing Fast Refresh export errors in untouched shared UI files. Backend discussion HTTP/repository checks passed; the full suite recorded 724 passes and one contract-generation timeout, and all seven contract tests passed when rerun in isolation. Backend TypeScript/build and migration metadata checks passed; backend lint has zero errors and eight warnings in untouched services. No live database or viewport comparison was performed.
+
 ## Member directory and conversation layout — 16 November 2026
 
 The **Members** tab and **Chat → Conversation details → Chat members** use `GET /api/v1/classrooms/:classroomId/members`. This additive API is implemented in `owlio-api` for the owner and currently enrolled students. It returns paginated display identities (`id`, `name`, `role: owner | student`) only, with UUID cursors and the existing authenticated envelope. The frontend validates the response, cancels stale reads, deduplicates page overlaps, and reports denied/failed reads without mock fallbacks. The owner-only `/students` roster and its permissions remain unchanged. This requires releasing the matching API endpoint; no migration or dependency change is needed. UI checks use fixtures and do not establish production deployment or live database access.
@@ -35,7 +45,7 @@ The provider starts empty, replaces data on successful loads, and clears it on l
 
 Create/list/join/detail and teacher roster are connected. Empty, loading, error/retry, confirmed-success and permission-denied states replace demo fallbacks. The existing grid/list toggle, classroom cards, route prefixes, tabs and keyboard-accessible dialogs are retained.
 
-Classroom discussion, classwork, quizzes/submissions, materials, attendance, progress, and membership edits are not integrated into these frontend tabs. Current backend source contains additional modules; unavailable frontend tabs do not imply missing backend endpoints. Schedule and Meeting Room now have separate connected screens using classroom sessions and native-meeting contracts. Decorative classroom cover artwork is presentation. Missing subject/instructor metadata is not invented.
+Classroom discussion is integrated as described above. Classwork, quizzes/submissions, materials, attendance, progress, and membership edits are not integrated into these frontend tabs. Current backend source contains additional modules; unavailable frontend tabs do not imply missing backend endpoints. Schedule and Meeting Room now have separate connected screens using classroom sessions and native-meeting contracts. Decorative classroom cover artwork is presentation. Missing subject/instructor metadata is not invented.
 
 ## Setup and verification
 

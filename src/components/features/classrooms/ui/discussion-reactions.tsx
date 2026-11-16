@@ -4,29 +4,32 @@ import { Plus } from "lucide-react"
 import { REACTION_CHOICES, type ReactionState } from "../contents/discussion-reaction-data"
 
 const chipClass =
-  "inline-flex h-7 items-center gap-1.5 rounded-full border border-transparent bg-muted px-2.5 text-xs font-medium text-foreground outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
+  "inline-flex min-h-8 items-center gap-1.5 rounded-full border border-transparent bg-muted px-2.5 text-xs font-medium text-foreground outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
 
 export function DiscussionReactions({
   postId,
   reactions,
   onToggle,
+  disabled = false,
 }: {
   postId: string
   reactions: ReactionState
   onToggle: (emoji: string) => void
+  disabled?: boolean
 }) {
   const [picking, setPicking] = useState(false)
   const active = REACTION_CHOICES.filter(({ emoji }) => (reactions[emoji]?.count ?? 0) > 0)
   const available = REACTION_CHOICES.filter(({ emoji }) => (reactions[emoji]?.count ?? 0) === 0)
 
   return (
-    <div role="group" aria-label="Reactions (preview only)" className="flex flex-wrap items-center gap-2">
+    <div role="group" aria-label="Post reactions" className="flex flex-wrap items-center gap-1.5">
       {active.map(({ emoji, label }) => {
         const { count, mine } = reactions[emoji]
         return (
           <button
             key={emoji}
             type="button"
+            disabled={disabled}
             aria-pressed={mine}
             aria-label={`${label}, ${count} ${count === 1 ? "reaction" : "reactions"}`}
             onClick={() => onToggle(emoji)}
@@ -40,6 +43,7 @@ export function DiscussionReactions({
       {available.length > 0 && (
         <button
           type="button"
+          disabled={disabled}
           aria-expanded={picking}
           aria-controls={`reaction-picker-${postId}`}
           aria-label="Add reaction"
@@ -55,6 +59,7 @@ export function DiscussionReactions({
             <button
               key={emoji}
               type="button"
+              disabled={disabled}
               aria-label={`Add ${label} reaction`}
               onClick={() => {
                 onToggle(emoji)
