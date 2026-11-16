@@ -1,5 +1,19 @@
 # Classroom API integration
 
+## Educator deadline controls — 17 November 2026
+
+Classwork creation, draft-save, and publish actions use the existing brand theme colors. The create/edit deadline field uses a project-owned expandable calendar with month navigation, selected/today states, keyboard day navigation, text-based hour/minute fields, AM/PM controls, Clear, and Done. It does not use native date/time inputs or install a calendar dependency. Escape closes the picker and restores trigger focus. Invalid time values cannot produce a deadline; the existing future-deadline validation remains authoritative in the form.
+
+The picker initializes from the draft's local time and supplies the unchanged local `dueAt` form value. The existing adapter converts it to an absolute ISO timestamp for the API, preserving the fixed class-wide cutoff and time-zone disclosure. No backend or persistence format changes are included. Focused interaction tests cover leap day, month-boundary keyboard navigation, midnight/noon, invalid times, clearing, disabled state, and the educator creation flow. Browser rendering remains unverified due to local-browser connectivity limitations.
+
+## Classwork progress sidebar — 17 November 2026
+
+Only the Classwork tab replaces the class details/invite/meeting-code sidebar with the supplied timeline-style progress panel. The classroom shell gives this tab the full content area; the Classwork view owns its content and 17rem sidebar grid, which stacks on narrow screens. Other tabs retain their existing sidebars. Activity deep links use the same progress panel.
+
+The timeline shows actual classwork titles, closing times, time remaining, and saved submission states, with buttons that open the corresponding activity. Students see their own submitted-activity count and saved quiz-answer count; successful draft saves and submissions update the panel. Owners can select published work to read submission counts against the paginated current roster and refresh explicitly. Duplicate submission attempts and outsiders do not inflate counts. Pending becomes Missing after closing. Draft classwork remains private. There is no live typing, per-student unsaved-answer tracking, grade inference, or fictional lesson content. Existing services and deadline enforcement remain unchanged; no backend change is needed for this sidebar.
+
+Component tests cover sidebar replacement, saved-answer updates, owner counts, privacy, deadline transitions, and error/retry behavior. Rendered comparison remains unverified because the available in-app browser cannot reach the local development server.
+
 ## Classwork and fixed closing times — 17 November 2026
 
 The classroom **Classwork** tab and existing `/:workspace/classrooms/:classroomId/classwork/:activityId` links now use the mounted classwork/question/submission APIs. Classroom owners can create drafts, edit draft instructions and a required future closing time, add/remove single-choice questions with answer keys, review, and publish. A question-based item is presented as a Quiz; an item without questions is a written Assessment. This is derived from the existing content model, not a new stored type. Drafts are owner-only; students see only published work in classrooms available to their account. Failed reads remain errors with retry, and a saved draft whose initial question fails is opened with an explicit partial-success notice instead of being recreated.

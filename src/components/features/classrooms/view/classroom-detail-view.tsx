@@ -57,7 +57,7 @@ export function ClassroomDetailView() {
     {tab !== 'chat' && <ClassroomDetailHeader classroom={classroom} owned={owned} meetingHref={meetingHref} onClasswork={() => selectTab('classwork')} />}
     <Tabs orientation={desktop ? 'vertical' : 'horizontal'} value={tab} onValueChange={selectTab} className="min-w-0 gap-5 lg:grid lg:grid-cols-[11rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[12rem_minmax(0,1fr)]">
       <ClassroomSectionNavigation tab={tab} schoolClassroom={classroom.ownerWorkspace === 'educators'} />
-      <div className={['chat', 'feed'].includes(tab) ? 'min-w-0' : 'grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_15rem]'}>
+      <div className={['chat', 'feed', 'classwork'].includes(tab) ? 'min-w-0' : 'grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_15rem]'}>
         <section aria-label="Classroom content" className="min-w-0 space-y-5">
           <TabsContent value="about" className={`${card} space-y-5 p-5 sm:p-6`}><header className="flex items-center gap-2 border-b border-border pb-4"><Info aria-hidden="true" className="size-4 text-muted-foreground" /><h3 className="text-sm font-semibold">About this classroom</h3></header><p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground">{classroom.description || 'No description provided.'}</p><div className="flex items-start gap-3 rounded-lg bg-muted/60 p-4"><GraduationCap aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand" /><div><h4 className="text-sm font-semibold">A space for your class</h4><p className="mt-1 text-sm leading-6 text-muted-foreground">Classroom creation and enrollment are connected. Use Sessions to schedule or join a meeting.</p></div></div></TabsContent>
           <TabsContent value="people" className={`${card} p-5 sm:p-6`}><h3 className="mb-5 border-b border-border pb-4 text-sm font-semibold">Class members</h3><ClassroomMembersView classroom={classroom} role={role} /></TabsContent>
@@ -66,7 +66,7 @@ export function ClassroomDetailView() {
           {tab === 'feed' && <TabsContent value="feed"><ClassroomFeedView key={user?.id + ':' + classroom.id} classroom={classroom} /></TabsContent>}
           {tab === 'chat' && <TabsContent value="chat"><ClassroomChatView key={user?.id + ':' + classroom.id} classroom={classroom} role={role} /></TabsContent>}
         </section>
-        {!['chat', 'feed'].includes(tab) && <ClassroomInformation classroom={classroom} owned={owned} notice={notice} onAbout={() => selectTab('about')} onCopyCode={() => void copyCode()} />}
+        {!['chat', 'feed', 'classwork'].includes(tab) && <ClassroomInformation classroom={classroom} owned={owned} notice={notice} onAbout={() => selectTab('about')} onCopyCode={() => void copyCode()} />}
       </div>
     </Tabs>
   </div>

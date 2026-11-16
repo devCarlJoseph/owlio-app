@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Classroom } from '../types/classroom-types'
@@ -32,7 +32,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 async function open(owned = false) {
   render(<ClassroomClassworkView classroom={{ ...room, access: owned ? 'owner' : 'student' }} />)
-  await userEvent.click(await screen.findByRole('button', { name: /Internet of Things/ }))
+  await userEvent.click(await within(await screen.findByRole('region', { name: 'Classwork' })).findByRole('button', { name: /Internet of Things/ }))
   await screen.findByRole('heading', { name: 'Internet of Things' })
 }
 
@@ -58,6 +58,8 @@ describe('classwork deadlines', () => {
     expect(service.saveClassworkResponse).toHaveBeenCalledWith(work.id, 0, '', [answer])
     expect(service.submitClassworkResponse).toHaveBeenCalledWith(work.id, 7)
     await screen.findByText('Your classwork was submitted.')
+    expect(await screen.findByText('1 of 1 activities submitted')).toBeTruthy()
+    expect(screen.getByText('1 of 1 answers saved')).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Submitted' }) as HTMLButtonElement).disabled).toBe(true)
   })
 
@@ -157,7 +159,13 @@ describe('educator classwork', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save question' }))
     await userEvent.type(screen.getByRole('textbox', { name: 'Title' }), work.title)
     await userEvent.type(screen.getByRole('textbox', { name: 'Instructions' }), work.instructions)
-    fireEvent.change(screen.getByLabelText('Closing date and time'), { target: { value: '2031-01-01T10:00' } })
+    await userEvent.click(screen.getByLabelText('Closing date and time'))
+    await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+    const nextMonth = new Date()
+    nextMonth.setDate(1)
+    nextMonth.setMonth(nextMonth.getMonth() + 1)
+    await userEvent.click(screen.getByRole('button', { name: new Intl.DateTimeFormat(undefined, { dateStyle: 'full' }).format(nextMonth) }))
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create draft' }))
     await screen.findByText(/draft was saved, but adding its first question could not be confirmed/)
     expect(service.createClassroomWork).toHaveBeenCalledTimes(1)

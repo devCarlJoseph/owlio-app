@@ -25,7 +25,13 @@ describe('connected classroom details', () => {
     render(<TestSession path={'/students/classrooms/class-id?tab=' + tab}><Routes><Route path="/students/classrooms/:classroomId" element={<ClassroomDetailView />} /></Routes></TestSession>)
     await screen.findByText(classroom.name)
     expect(screen.getByRole('tab', { selected: true }).textContent).toBe({ classwork: 'Classwork', materials: 'Materials', chat: 'Chat', feed: 'Discussion' }[tab])
-    if (tab === 'classwork') expect(await screen.findByText('No classwork yet')).toBeTruthy()
+    if (tab === 'classwork') {
+      expect(await screen.findByText('No classwork yet')).toBeTruthy()
+      expect(screen.getByRole('complementary', { name: 'Classwork deadlines and progress' })).toBeTruthy()
+      expect(screen.queryByText('Class details')).toBeNull()
+      expect(screen.queryByText('Classroom invite')).toBeNull()
+      expect(screen.queryByText('Classroom meeting code')).toBeNull()
+    }
     else expect(screen.getByText('This section is under development.')).toBeTruthy()
   })
   it('defaults unknown tabs to real classroom details', async () => {
