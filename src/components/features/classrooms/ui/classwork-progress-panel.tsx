@@ -1,3 +1,5 @@
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ClassworkProgressSkeleton } from './classroom-skeletons'
 import { useEffect, useState } from 'react'
 import { Check, ClipboardCheck, FileText, Info } from 'lucide-react'
@@ -73,7 +75,7 @@ function ClassSubmissionProgress({ classroomId, classworkId, closed }: { classro
     return () => controller.abort()
   }, [classroomId, classworkId, revision])
   return <div className="space-y-2 text-xs text-muted-foreground">
-    {error ? <p role="alert">{error}</p> : !counts ? <p role="status">Loading student progress…</p> : <><p>{counts.submitted} of {counts.total} students submitted</p><progress aria-label="Students submitted" value={counts.submitted} max={Math.max(1, counts.total)} className="h-1.5 w-full appearance-none accent-brand [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-brand [&::-moz-progress-bar]:bg-brand" /><p>{counts.total - counts.submitted} {closed ? 'missing' : 'not submitted'}</p></>}
+    {error ? <p role="alert">{error}</p> : !counts ? <LoadingSkeleton label="Loading student progress…"><div className="space-y-2"><Skeleton className="h-4 w-4/5" /><Skeleton className="h-1.5 w-full" /><Skeleton className="h-4 w-24" /></div></LoadingSkeleton> : <><p>{counts.submitted} of {counts.total} students submitted</p><progress aria-label="Students submitted" value={counts.submitted} max={Math.max(1, counts.total)} className="h-1.5 w-full appearance-none accent-brand [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-brand [&::-moz-progress-bar]:bg-brand" /><p>{counts.total - counts.submitted} {closed ? 'missing' : 'not submitted'}</p></>}
     <Button size="sm" variant="ghost" className="h-7 px-0 text-[11px]" onClick={() => { setCounts(null); setError(''); setRevision(value => value + 1) }}>Refresh progress</Button>
   </div>
 }

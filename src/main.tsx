@@ -2,6 +2,8 @@ import "@/styles/global.css";
 
 import { createRoot } from "react-dom/client";
 import { Suspense } from "react";
+import { MeetingRoomRouteSkeleton } from "@/components/features/meeting-room/ui/meeting-room-route-skeleton";
+import { StudySpaceSkeleton } from "@/components/features/personal-workspace/study-spaces/ui/study-space-skeleton";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
 import RegisterPage from "@/pages/auth/register";
 import LoginPage from "@/pages/auth/login";
@@ -110,9 +112,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
-                      Loading study space…
-                    </p>
+                    <StudySpaceSkeleton />
                   }
                 >
                   <StudentStudySpaceDetailPage />
@@ -126,9 +126,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
-                      Loading meeting room…
-                    </p>
+                    <MeetingRoomRouteSkeleton />
                   }
                 >
                   <MeetingRoomPage />
@@ -169,9 +167,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
-                      Loading meeting room…
-                    </p>
+                    <MeetingRoomRouteSkeleton />
                   }
                 >
                   <MeetingRoomPage />
@@ -210,9 +206,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
-                      Loading meeting room…
-                    </p>
+                    <MeetingRoomRouteSkeleton />
                   }
                 >
                   <MeetingRoomPage />
@@ -248,9 +242,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
-                      Loading meeting room…
-                    </p>
+                    <MeetingRoomRouteSkeleton />
                   }
                 >
                   <MeetingRoomPage />

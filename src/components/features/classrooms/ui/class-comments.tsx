@@ -1,3 +1,5 @@
+import { LoadingSkeleton, SkeletonLines } from '@/components/ui/loading-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/services/api/api-error'
@@ -64,7 +66,7 @@ export function ClassComments({ classroomId, postId, authorName, disabled, onCom
     finally { pending.current = false; if (!controller.signal.aborted) setBusy(false) }
   }
   return <section aria-label="Class comments" className="min-w-0 space-y-4">
-    {loading && <p role="status" className="text-xs text-muted-foreground">Loading class comments…</p>}
+    {loading && <LoadingSkeleton label="Loading class comments…"><div className="space-y-4">{[0, 1].map(i => <div key={i} className="flex gap-2.5"><Skeleton className="size-8 shrink-0 rounded-full" /><SkeletonLines /></div>)}</div></LoadingSkeleton>}
     {next && <Button variant="ghost" size="sm" disabled={busy} onClick={() => void older()}>Load older comments</Button>}
     {comments.map(comment => <div key={comment.id} className="flex items-start gap-2.5">
       <PersonAvatar name={comment.authorName} size="sm" />

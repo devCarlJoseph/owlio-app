@@ -1,3 +1,5 @@
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
@@ -54,7 +56,7 @@ function AccountOverview() {
   const classrooms = getClassroomsForWorkspace(role)
   return <section className="mx-auto max-w-5xl space-y-6"><header><h2 className="text-2xl font-semibold">Welcome, {user?.name}</h2><p className="mt-2 text-sm text-muted-foreground">Your Owlio workspace.</p></header>
     <section className="space-y-3 rounded-2xl border bg-card p-6"><h3 className="font-semibold">My classes</h3>
-      {classroomsLoading ? <p role="status">Loading your classes…</p> : classroomsError ? <div role="alert"><p>{classroomsError}</p><Button variant="outline" onClick={reloadClassrooms}>Try again</Button></div> : <p>{classrooms.length} {classrooms.length === 1 ? 'class' : 'classes'}</p>}
+      {classroomsLoading ? <LoadingSkeleton label="Loading your classes…"><Skeleton className="h-6 w-20" /></LoadingSkeleton> : classroomsError ? <div role="alert"><p>{classroomsError}</p><Button variant="outline" onClick={reloadClassrooms}>Try again</Button></div> : <p>{classrooms.length} {classrooms.length === 1 ? 'class' : 'classes'}</p>}
       <Link to={'/' + role + '/classrooms'} className="text-sm underline">View my classes</Link>
     </section>
     {role === 'students' && <nav aria-label="Personal learning" className="flex flex-wrap gap-4">{[['subjects', 'My Learning'], ['tasks', 'My Tasks'], ['notes', 'My Notes']].map(([path, label]) => <Link key={path} to={'/students/' + path + '?source=account'} className="rounded-xl border bg-card p-5 underline">{label}</Link>)}</nav>}

@@ -1,3 +1,4 @@
+import { PeopleRowsSkeleton } from '@/components/ui/loading-skeleton'
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { CircleCheck, CheckCheck } from 'lucide-react'
@@ -61,7 +62,7 @@ function Readers({ classroomId, messageId, onRetry }: { classroomId: string; mes
   return <div className="space-y-3">
     {error && <div role="alert" className="text-sm text-destructive">{error}<Button variant="link" size="sm" onClick={onRetry}>Retry</Button></div>}
     <ul aria-label="Message readers" className="max-h-[50dvh] space-y-3 overflow-y-auto">{items.map(reader => <li key={reader.id} className="flex items-center gap-3"><PersonAvatar name={reader.name} size="sm" /><span className="min-w-0 break-words text-sm">{reader.name}</span></li>)}</ul>
-    {loading && <p role="status" className="text-xs text-muted-foreground">Loading readers…</p>}
+    {loading && <PeopleRowsSkeleton label="Loading readers…" />}
     {!loading && !error && items.length === 0 && <p className="text-sm text-muted-foreground">No current class members have seen this message yet.</p>}
     {next && <Button variant="outline" size="sm" disabled={loading} onClick={() => void more()}>Load more readers</Button>}
   </div>

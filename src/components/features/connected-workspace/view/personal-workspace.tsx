@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from 'react'
+import { RecordListSkeleton } from '@/components/ui/loading-skeleton'
+import { PersonalRecordsSkeleton } from './record-skeletons'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,9 +12,9 @@ import { archivePersonalSubject, deletePersonalNote, getPersonalNotes, getPerson
 import { useAccountRecords } from '../hooks/use-account-records'
 
 const card = 'space-y-3 rounded-2xl border bg-card p-5'
-type StatusProps = { loading: boolean; error: string; reload: () => void }
-export function RecordStatus({ loading, error, reload }: StatusProps) {
-  if (loading) return <p role="status">Loading your records…</p>
+type StatusProps = { loading: boolean; error: string; reload: () => void; kind?: 'subjects' | 'tasks' | 'notes'; skeleton?: ReactNode }
+export function RecordStatus({ loading, error, reload, kind, skeleton }: StatusProps) {
+  if (loading) return skeleton ?? (kind ? <PersonalRecordsSkeleton kind={kind} /> : <RecordListSkeleton />)
   return error ? <div role="alert" className={card}><p>{error}</p><Button variant="outline" onClick={reload}>Try again</Button></div> : null
 }
 
@@ -44,7 +46,7 @@ export function PersonalSubjects({ subjectId }: { subjectId?: string }) {
   return <section className="mx-auto max-w-5xl space-y-5">
     <header><h2 className="text-2xl font-semibold">My Learning</h2><p className="mt-2 text-sm text-muted-foreground">Your personal subjects, saved to your account.</p></header>
     {subjectId && <Link to="/students/subjects?source=account" className="underline">All subjects</Link>}
-    <RecordStatus {...state} />
+    <RecordStatus {...state} kind="subjects" />
     {error && <p role="alert">{error} Reload the list before retrying a conflicting edit.</p>}
     {!state.loading && !state.error && <>
       <form onSubmit={event => void save(event)} className={card} aria-label="Subject editor">
@@ -95,7 +97,7 @@ export function PersonalTasks() {
   }
   return <section className="mx-auto max-w-5xl space-y-5">
     <header><h2 className="text-2xl font-semibold">My Tasks</h2><p className="mt-2 text-sm text-muted-foreground">Personal learning tasks. Completion does not affect classroom grades.</p></header>
-    <RecordStatus {...state} />{error && <p role="alert">{error}</p>}
+    <RecordStatus {...state} kind="tasks" />{error && <p role="alert">{error}</p>}
     {!state.loading && !state.error && <>
       <form className={card} onSubmit={event => void save(event)} aria-label="Task editor">
         <h3 className="font-semibold">{editing ? 'Edit task' : 'Add a task'}</h3>
@@ -144,7 +146,7 @@ export function PersonalNotes() {
   }
   return <section className="mx-auto max-w-5xl space-y-5">
     <header><h2 className="text-2xl font-semibold">My Notes</h2><p className="mt-2 text-sm text-muted-foreground">Private notes saved to your account.</p></header>
-    <RecordStatus {...state} />{error && <p role="alert">{error}</p>}
+    <RecordStatus {...state} kind="notes" />{error && <p role="alert">{error}</p>}
     {!state.loading && !state.error && <>
       <form className={card} onSubmit={event => void save(event)} aria-label="Note editor">
         <h3 className="font-semibold">{editing ? 'Edit note' : 'Add a note'}</h3>

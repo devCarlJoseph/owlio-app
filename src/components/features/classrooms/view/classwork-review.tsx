@@ -1,3 +1,4 @@
+import { ClassworkReviewSkeleton } from '../ui/classwork-review-skeleton'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/services/api/api-error'
@@ -28,7 +29,7 @@ export function ClassworkReview({ work, questions, closed }: { work: Classwork; 
   const names = new Map(data?.learners.map(learner => [learner.studentId, learner.name]))
   return <section aria-labelledby="classwork-review-heading" className="space-y-4">
     <header className="flex flex-wrap items-center justify-between gap-2"><div><h4 id="classwork-review-heading" className="text-sm font-semibold">Student submissions</h4><p className="mt-1 text-xs text-muted-foreground">Review submitted answers, save a private grade, and release it when ready.</p></div><Button variant="ghost" size="sm" onClick={() => { setData(null); setError(''); setRevision(value => value + 1) }}>Refresh submissions</Button></header>
-    {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !data ? <p role="status" className="text-sm text-muted-foreground">Loading student work…</p> : <>
+    {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !data ? <ClassworkReviewSkeleton /> : <>
       <h5 className="text-xs font-semibold text-muted-foreground">Submitted · {submitted.length}</h5>
       {!submitted.length ? <p className="text-sm text-muted-foreground">No student submissions yet.</p> : <ul className="divide-y divide-border">{submitted.map(submission => {
         const name = names.get(submission.studentId) ?? 'Former class member'

@@ -1,3 +1,4 @@
+import { ClassworkDetailSkeleton } from '../ui/classroom-skeletons'
 import { Link, useLocation, useParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { useAuthSession } from '@/components/features/auth/context/auth-session-context'
@@ -15,6 +16,6 @@ export function ClassroomActivityView() {
   const owned = classroom?.access === 'owner'
   const available = classroom && (role === 'students' ? !owned : owned)
   return <div className="mx-auto max-w-4xl space-y-4"><Link className="text-sm text-muted-foreground underline" to={`/${role}/classrooms/${encodeURIComponent(classroomId ?? '')}?tab=classwork`}>Back to classroom</Link>
-    {classroomsLoading ? <p role="status">Loading classroom…</p> : classroomsError ? <div role="alert"><p>{classroomsError}</p><Button onClick={reloadClassrooms}>Retry classroom</Button></div> : available && activityId ? <ClassroomClassworkView key={user?.id + ':' + classroom.id + ':' + activityId} classroom={classroom} initialId={activityId} /> : <p>Classwork is not available in this workspace.</p>}
+    {classroomsLoading ? <ClassworkDetailSkeleton /> : classroomsError ? <div role="alert"><p>{classroomsError}</p><Button onClick={reloadClassrooms}>Retry classroom</Button></div> : available && activityId ? <ClassroomClassworkView key={user?.id + ':' + classroom.id + ':' + activityId} classroom={classroom} initialId={activityId} /> : <p>Classwork is not available in this workspace.</p>}
   </div>
 }

@@ -1,3 +1,5 @@
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect, useRef, useState } from "react"
 import { Download, FileText, Pencil, Trash2, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -176,7 +178,7 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
       ) : null}
 
       <ul aria-label="Files in my drawer" className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
-        {loading ? <li className="text-xs text-slate-500 surface-dark:text-muted-foreground">Opening your drawer…</li> : null}
+        {loading ? <li><LoadingSkeleton label="Opening your drawer…"><div className="space-y-1">{[0, 1, 2].map(i => <div key={i} className="flex items-center gap-2 rounded-lg border p-2"><Skeleton className="size-8 shrink-0" /><Skeleton className="h-4 w-3/5" /><Skeleton className="ml-auto size-7 shrink-0" /></div>)}</div></LoadingSkeleton></li> : null}
         {!loading && available && files.length === 0 ? (
           <li className="rounded-lg border border-dashed border-slate-200 surface-dark:border-border p-4 text-center text-xs text-slate-500 surface-dark:text-muted-foreground">
             Your drawer is empty. Add the files you work on in this space.

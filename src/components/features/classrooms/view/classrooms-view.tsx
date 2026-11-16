@@ -1,3 +1,4 @@
+import { ClassroomListSkeleton } from '../ui/classroom-list-skeleton'
 import { Link } from 'react-router'
 import { Plus, UserRoundPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -30,7 +31,7 @@ export function ClassroomsView() {
     <ClassroomListToolbar query={query} onQueryChange={setQuery} sort={sort} onSortChange={setSort} view={view} onViewChange={setView} />
     {student && <p className="text-xs text-muted-foreground">Teaching categories and active status are unavailable from the classroom service.</p>}
     {!classroomsLoading && !classroomsError && <p role="status" className="text-sm font-medium">{student ? "Classes you’ve joined" : 'Your classes'} <span className="text-muted-foreground">({filtered.length}{filtered.length !== classrooms.length ? ` of ${classrooms.length}` : ''})</span></p>}
-    {classroomsLoading ? <p role="status">Loading classes…</p> : !classroomsError && filtered.length === 0
+    {classroomsLoading ? <ClassroomListSkeleton view={view} /> : !classroomsError && filtered.length === 0
       ? <section className="rounded-xl border border-dashed p-8 text-center"><h3>{classrooms.length ? 'No classes match your search' : student ? 'No classes joined yet' : 'No classrooms yet'}</h3>
         <p className="mt-2 text-sm text-muted-foreground">{classrooms.length ? 'Clear your search to see your other classes.' : student ? 'Ask your teacher for a classroom invite code.' : 'Create your first classroom to get started.'}</p>
         {classrooms.length > 0 && <Button variant="outline" className="mt-4" onClick={() => { setQuery('') }}>Clear filters</Button>}</section>

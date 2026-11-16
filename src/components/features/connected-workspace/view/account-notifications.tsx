@@ -1,3 +1,4 @@
+import { AccountNotificationsSkeleton } from './record-skeletons'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/services/api/api-error'
@@ -17,7 +18,7 @@ export function AccountNotifications() {
     finally { setBusy(false) }
   }
   return <section className="mx-auto max-w-5xl space-y-5"><h2 className="text-2xl font-semibold">Notifications</h2>
-    <RecordStatus {...state} />{error && <p role="alert">{error}</p>}
+    <RecordStatus {...state} skeleton={<AccountNotificationsSkeleton />} />{error && <p role="alert">{error}</p>}
     {!state.loading && !state.error && <><Button variant="outline" disabled={busy} onClick={state.reload}>Refresh</Button>
       {state.records.length === 0 && <p className="rounded-2xl border p-6">You have no notifications.</p>}
       <ul className="space-y-3">{[...state.records].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(item => <li key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-5">

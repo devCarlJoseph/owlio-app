@@ -1,3 +1,4 @@
+import { MeetingClassesSkeleton } from '../ui/meeting-room-skeleton'
 import { GraduationCap, Languages, School, Video } from 'lucide-react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
@@ -50,7 +51,7 @@ export function MeetingRoomHub() {
       </div>
       {!connectedModeEnabled && <p className="text-sm text-muted-foreground">Class previews are shown below. Live meetings are unavailable in this preview.</p>}
       {connectedModeEnabled && classrooms.some(item => item.ownerWorkspace === null) && <p className="text-sm text-muted-foreground">Your classes can’t be grouped by teacher type yet. Use your teacher’s meeting invite to join.</p>}
-      {classroomsLoading ? <p role="status">Loading your classes…</p> : classroomsError ? <div role="alert" className="space-y-3 rounded-xl border p-4"><p>{classroomsError}</p><Button variant="outline" onClick={reloadClassrooms}>Try again</Button></div> : matches.length === 0 ? <div className="rounded-2xl border border-dashed p-8 text-center"><p className="font-medium">No {selected.label.toLowerCase()} classes to show</p><p className="mt-2 text-sm text-muted-foreground">Use a meeting invite from your teacher when it’s time to join.</p></div> : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {classroomsLoading ? <MeetingClassesSkeleton /> : classroomsError ? <div role="alert" className="space-y-3 rounded-xl border p-4"><p>{classroomsError}</p><Button variant="outline" onClick={reloadClassrooms}>Try again</Button></div> : matches.length === 0 ? <div className="rounded-2xl border border-dashed p-8 text-center"><p className="font-medium">No {selected.label.toLowerCase()} classes to show</p><p className="mt-2 text-sm text-muted-foreground">Use a meeting invite from your teacher when it’s time to join.</p></div> : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {matches.map(classroom => <Card key={classroom.id}>
           <CardHeader><h4 className="font-semibold">{classroom.name}</h4><p className="text-sm text-muted-foreground">{classroom.instructorName || 'Your teacher'}{classroom.isMock ? ' · Preview' : ''}</p></CardHeader>
           <CardContent>

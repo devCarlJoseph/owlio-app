@@ -1,3 +1,4 @@
+import { PeopleRowsSkeleton } from '@/components/ui/loading-skeleton'
 import { useEffect, useImperativeHandle, useState, type Ref } from 'react'
 import { Button } from '@/components/ui/button'
 import { getClassroomMembers, type ApiClassroomMember } from '@/services/api/classroom.service'
@@ -61,7 +62,7 @@ export function ChatMentionPicker({ classroomId, userId, canMentionStudents, que
   } }))
   if (!open) return null
   return <section aria-label="Mention a classroom member" className="mb-2 space-y-1 rounded-lg border border-border bg-card p-2 shadow-sm">
-    {loading && <p role="status" className="text-xs text-muted-foreground">Loading members…</p>}
+    {loading && <PeopleRowsSkeleton label="Loading members…" compact />}
     {error && <p role="alert" className="text-xs text-destructive">{error} <Button variant="link" size="sm" onClick={() => setRetry(value => value + 1)}>Retry</Button></p>}
     <ul id={listId} role="listbox" aria-label="Mention suggestions" className="max-h-40 overflow-y-auto">{options.map((member, index) => <li key={member.id} role="presentation"><button type="button" role="option" id={`${listId}-${member.id}`} aria-selected={index === activeIndex} tabIndex={-1} className={`w-full rounded-md px-3 py-2 text-left text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring ${index === activeIndex ? 'bg-muted' : ''}`} onMouseDown={event => event.preventDefault()} onClick={() => onSelect(member)}>{member.label}</button></li>)}</ul>
     {!loading && !error && options.length === 0 && <p role="status" className="px-2 py-1 text-xs text-muted-foreground">No matching members.</p>}

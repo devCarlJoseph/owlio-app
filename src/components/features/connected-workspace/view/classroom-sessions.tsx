@@ -1,3 +1,5 @@
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useCallback, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
@@ -19,7 +21,7 @@ export function ClassroomSessions() {
   const [selectedId, setSelectedId] = useState('')
   const classroom = classrooms.find(item => item.id === selectedId) ?? classrooms[0]
   return <section className="mx-auto max-w-5xl space-y-5"><header><h2 className="text-2xl font-semibold">Sessions</h2><p className="mt-2 text-sm text-muted-foreground">Scheduled sessions for your classes. Online rooms open shortly before a session starts.</p></header>
-    {classroomsLoading ? <p role="status">Loading your classes…</p> : classroomsError ? <div role="alert"><p>{classroomsError}</p><Button variant="outline" onClick={reloadClassrooms}>Try again</Button></div> : classrooms.length === 0 ? <p className="rounded-2xl border p-6">Join or create a class to see its sessions.</p> : <>
+    {classroomsLoading ? <LoadingSkeleton label="Loading your classes…"><div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full" /></div></LoadingSkeleton> : classroomsError ? <div role="alert"><p>{classroomsError}</p><Button variant="outline" onClick={reloadClassrooms}>Try again</Button></div> : classrooms.length === 0 ? <p className="rounded-2xl border p-6">Join or create a class to see its sessions.</p> : <>
       <label className="block space-y-2"><span className="text-sm">Classroom</span><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={classroom?.id ?? ''} onChange={event => setSelectedId(event.target.value)}>{classrooms.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       {classroom && <ClassroomSessionList key={classroom.id} classroomId={classroom.id} role={role} canSchedule={classroom.ownerId === user?.id && Boolean(user?.roles.some(item => ['EDUCATOR', 'TUTOR', 'ESL'].includes(item)))} />}
     </>}
@@ -57,7 +59,7 @@ function SessionWindow({ classroomId, role, canSchedule, load }: { classroomId: 
     } catch (cause) { setError(getApiErrorMessage(cause, 'Could not schedule the session. Your draft is still here.')) }
     finally { setBusy(false) }
   }
-  return <div className="space-y-5"><RecordStatus {...state} />{error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
+  return <div className="space-y-5">{error && <p role="alert">{error}</p>}{notice && <p role="status">{notice}</p>}
     {canSchedule && <form onSubmit={event => void create(event)} className="space-y-4 rounded-2xl border bg-card p-5" aria-label="Schedule session">
       <h3 className="font-semibold">Schedule a session</h3>
       <label className="block space-y-2"><span className="text-sm">Title</span><Input required maxLength={120} value={title} onChange={event => setTitle(event.target.value)} disabled={busy} /></label>
@@ -65,6 +67,7 @@ function SessionWindow({ classroomId, role, canSchedule, load }: { classroomId: 
       <label className="block space-y-2"><span className="text-sm">Session mode</span><select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={mode} onChange={event => setMode(event.target.value as typeof mode)} disabled={busy}><option value="ONLINE">Online</option><option value="IN_PERSON">In person</option><option value="HYBRID">Hybrid</option></select></label>
       <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Schedule session'}</Button>
     </form>}
+    <RecordStatus {...state} />
     {!state.loading && !state.error && <><Button variant="outline" disabled={busy} onClick={state.reload}>Refresh sessions</Button>
       {state.records.length === 0 && <p className="rounded-xl border p-6">No sessions scheduled in this month.</p>}
       <ul className="space-y-3">{state.records.map(item => <li key={item.id} className="space-y-3 rounded-2xl border bg-card p-5"><h3 className="font-semibold">{item.title}</h3><p className="text-sm">{new Date(item.startsAt).toLocaleString()} – {new Date(item.endsAt).toLocaleTimeString()} · {item.mode.replace('_', ' ').toLowerCase()} · {item.status.toLowerCase()}</p>

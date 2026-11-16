@@ -1,3 +1,4 @@
+import { StudySpaceSkeleton } from '../ui/study-space-skeleton'
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router"
 import { Globe2, Info, Layers, List, Maximize2, Minimize2, Plus, Search, Users } from "lucide-react"
@@ -290,9 +291,7 @@ export function StudySpacesView() {
           {webgl ? (
             <Suspense
               fallback={
-                <div className="flex h-full items-center justify-center text-sm text-slate-600 surface-dark:text-muted-foreground">
-                  Loading study hall…
-                </div>
+                <StudySpaceSkeleton world />
               }
             >
               <StudyHallWorld

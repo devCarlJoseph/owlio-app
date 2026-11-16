@@ -1,3 +1,4 @@
+import { ClassworkReviewSkeleton } from '../ui/classwork-review-skeleton'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -41,7 +42,7 @@ export function ClassworkSubmissionReview({ work, questions, selection, onClose 
   return <section className="space-y-5" aria-label={`Review ${selection.name}`}>
     <header className="flex flex-wrap items-center justify-between gap-2"><Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft />All submissions</Button><Button variant="ghost" size="sm" onClick={() => { setData(null); setError(''); setRevision(value => value + 1) }}>Reload saved grade</Button></header>
     <div><h4 className="break-words text-base font-semibold">{selection.name}</h4><p className="mt-1 text-xs text-muted-foreground">{work.title}</p></div>
-    {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !data ? <p role="status" className="text-sm text-muted-foreground">Loading submitted answers and grade…</p> : <>
+    {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !data ? <ClassworkReviewSkeleton answers /> : <>
       <p className="text-xs text-muted-foreground">Attempt {data.submission.attempt} · Submitted {formatClassworkDate(data.submission.submittedAt)}</p>
       {data.answerScore && <p className="rounded-xl bg-brand-soft p-3 text-sm font-medium text-brand-soft-foreground">Answer-key check: {data.answerScore.correct} of {data.answerScore.total} correct<span className="mt-1 block text-xs font-normal">This is a review aid. Save and release the grade separately.</span></p>}
       <ol className="space-y-5">{questions.map((question, index) => {

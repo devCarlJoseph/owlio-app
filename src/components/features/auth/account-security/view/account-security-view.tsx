@@ -1,3 +1,5 @@
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,7 +58,7 @@ export function AccountSecurityView() {
         <CardContent>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           {loading ? (
-            <p role="status" className="text-sm text-slate-500 surface-dark:text-muted-foreground">Checking linked accounts…</p>
+            <LoadingSkeleton label="Checking linked accounts…"><Skeleton className="h-9 w-36" /></LoadingSkeleton>
           ) : googleStatus?.linked ? (
             <p role="status" className="text-sm text-slate-700 surface-dark:text-foreground">
               Google is connected.
