@@ -41,14 +41,14 @@ export const tasksStorageNotice =
   "Sample tasks are for layout preview only. Your tasks are kept in this browser and are never sent to a server."
 
 export const taskPriorityOptions: TaskOption<TaskPriority>[] = [
-  { value: "low", label: "Low", badge: "bg-slate-100 text-slate-600" },
-  { value: "medium", label: "Medium", badge: "bg-blue-50 text-blue-700" },
+  { value: "low", label: "Low", badge: "bg-slate-100 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground" },
+  { value: "medium", label: "Medium", badge: "bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300" },
   { value: "high", label: "High", badge: "bg-destructive/10 text-destructive" },
 ]
 
 export const taskStatusOptions: TaskOption<TaskStatus>[] = [
-  { value: "todo", label: "To do", icon: Circle, badge: "border-slate-200 bg-slate-50 text-slate-600" },
-  { value: "in-progress", label: "In progress", icon: Clock, badge: "bg-blue-50 text-blue-700" },
+  { value: "todo", label: "To do", icon: Circle, badge: "border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-600 surface-dark:text-muted-foreground" },
+  { value: "in-progress", label: "In progress", icon: Clock, badge: "bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300" },
   { value: "done", label: "Done", icon: CircleCheck, badge: "bg-blue-700 text-white" },
 ]
 

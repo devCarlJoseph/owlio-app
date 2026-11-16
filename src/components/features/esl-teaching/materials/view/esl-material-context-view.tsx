@@ -23,7 +23,7 @@ export default function EslMaterialContextView() {
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
-      <Link to="/esl/materials" className="inline-flex items-center gap-2 rounded-md text-sm font-medium text-slate-600 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
+      <Link to="/esl/materials" className="inline-flex items-center gap-2 rounded-md text-sm font-medium text-slate-600 surface-dark:text-muted-foreground hover:text-slate-950 surface-dark:hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
         <ArrowLeft aria-hidden="true" className="size-4" /> Back to Teaching Materials
       </Link>
       <header className="rounded-3xl bg-slate-950 p-6 text-white sm:p-9">
@@ -34,13 +34,13 @@ export default function EslMaterialContextView() {
         <h2 className="mt-2 text-3xl font-semibold tracking-tight">{selected?.label ?? "Resource context"}</h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">{selected?.description ?? "This resource context is not available."}</p>
       </header>
-      <section aria-labelledby="materials-empty-heading" className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 sm:p-8">
+      <section aria-labelledby="materials-empty-heading" className="rounded-2xl border border-dashed border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card p-6 sm:p-8">
         <div className="flex items-start gap-4">
-          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Info aria-hidden="true" className="size-5" /></span>
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground"><Info aria-hidden="true" className="size-5" /></span>
           <div>
-            <h3 id="materials-empty-heading" className="font-semibold text-slate-900">Materials are not connected yet</h3>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{selected?.guidance ?? "Return to Teaching Materials and choose a classroom or lesson context."} Resource browsing, uploads, previews, and sharing are unavailable until a materials service is implemented.</p>
-            <Link to="/esl/materials" className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">Back to contexts <ArrowLeft aria-hidden="true" className="size-4 rotate-180" /></Link>
+            <h3 id="materials-empty-heading" className="font-semibold text-slate-900 surface-dark:text-foreground">Materials are not connected yet</h3>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">{selected?.guidance ?? "Return to Teaching Materials and choose a classroom or lesson context."} Resource browsing, uploads, previews, and sharing are unavailable until a materials service is implemented.</p>
+            <Link to="/esl/materials" className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-300 surface-dark:border-border px-4 text-sm font-semibold text-slate-800 surface-dark:text-foreground hover:bg-slate-50 surface-dark:hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">Back to contexts <ArrowLeft aria-hidden="true" className="size-4 rotate-180" /></Link>
           </div>
         </div>
       </section>

@@ -13,9 +13,9 @@ import {
 
 const urgencyStyles: Record<TimerUrgency, string> = {
   normal: "border-border bg-card",
-  warning: "border-amber-300 bg-amber-50 text-amber-950",
-  critical: "border-rose-300 bg-rose-50 text-rose-950",
-  over: "border-rose-400 bg-rose-100 text-rose-950",
+  warning: "border-amber-300 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-950 surface-dark:text-amber-200",
+  critical: "border-rose-300 surface-dark:border-surface-rose-border bg-rose-50 surface-dark:bg-surface-rose-soft text-rose-950 surface-dark:text-rose-200",
+  over: "border-rose-400 bg-rose-100 surface-dark:bg-surface-rose-soft text-rose-950 surface-dark:text-rose-200",
 }
 
 const urgencyLabels: Record<TimerUrgency, string> = {

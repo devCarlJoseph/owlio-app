@@ -27,10 +27,10 @@ export function SubjectDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-900">
+          <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">
             Delete this subject?
           </DialogTitle>
-          <DialogDescription className="text-slate-600">
+          <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
             {subject
               ? `“${subject.name}” will be removed from this browser.`
               : "This subject will be removed."}{" "}

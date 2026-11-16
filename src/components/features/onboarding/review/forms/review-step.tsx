@@ -20,12 +20,12 @@ function SummaryGroup({ title, step, rows, onEdit }: SummaryGroupProps) {
   return (
     <section className="px-4 py-5 sm:px-6" aria-labelledby={`review-${step}`}>
       <div className="flex items-center justify-between gap-3">
-        <h2 id={`review-${step}`} className="text-sm font-semibold text-slate-950">{title}</h2>
+        <h2 id={`review-${step}`} className="text-sm font-semibold text-slate-950 surface-dark:text-foreground">{title}</h2>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 rounded-full px-3 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800"
+          className="h-8 rounded-full px-3 text-indigo-700 surface-dark:text-indigo-300 hover:bg-indigo-50 surface-dark:hover:bg-surface-indigo-soft hover:text-indigo-800 surface-dark:hover:text-indigo-300"
           onClick={() => onEdit(step)}
           aria-label={`Edit ${title}`}
         >
@@ -76,7 +76,7 @@ export function ReviewStep({ values, onEdit }: ReviewStepProps) {
         ]
 
   return (
-    <Card className="gap-0 divide-y divide-border/70 rounded-2xl border border-border/70 bg-slate-50/40 p-0 shadow-none ring-0">
+    <Card className="gap-0 divide-y divide-border/70 rounded-2xl border border-border/70 bg-slate-50/40 surface-dark:bg-background/40 p-0 shadow-none ring-0">
       <SummaryGroup title="Your role" step="entity" onEdit={onEdit} rows={[{ label: "Using Owlio as", value: entity }]} />
       <SummaryGroup
         title="Profile basics"

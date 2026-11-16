@@ -80,10 +80,10 @@ export function EmailVerificationView() {
 
   return (
     <AuthShowcaseLayout context="email-verification">
-      <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 surface-dark:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">
         {verificationStatus === 'verified' ? 'Email verified' : 'Verify your email'}
       </h1>
-      <p className="mt-1.5 text-sm text-slate-500">
+      <p className="mt-1.5 text-sm text-slate-500 surface-dark:text-muted-foreground">
         {emailHint
           ? `Enter the six-digit code sent to ${emailHint}.`
           : 'Enter the six-digit code sent to your email address.'}
@@ -109,15 +109,15 @@ export function EmailVerificationView() {
             />
             <ol className="space-y-2">
               {verificationSteps.map(({ title, description }, index) => (
-                <li key={title} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white/80 px-3 py-3 shadow-sm">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[10px] font-bold text-blue-700">0{index + 1}</span>
-                  <span><span className="block text-xs font-semibold text-slate-800">{title}</span><span className="mt-0.5 block text-[11px] leading-4 text-slate-500">{description}</span></span>
+                <li key={title} className="flex items-start gap-3 rounded-xl border border-slate-100 surface-dark:border-border bg-white/80 surface-dark:bg-card/80 px-3 py-3 shadow-sm">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 surface-dark:bg-surface-blue-soft text-[10px] font-bold text-blue-700 surface-dark:text-blue-300">0{index + 1}</span>
+                  <span><span className="block text-xs font-semibold text-slate-800 surface-dark:text-foreground">{title}</span><span className="mt-0.5 block text-[11px] leading-4 text-slate-500 surface-dark:text-muted-foreground">{description}</span></span>
                 </li>
               ))}
             </ol>
           </div>
         )}
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-500 surface-dark:text-muted-foreground">
           Already have an account? <Link to="/login" className={authLinkClassName}>Log in</Link>
         </p>
       </div>

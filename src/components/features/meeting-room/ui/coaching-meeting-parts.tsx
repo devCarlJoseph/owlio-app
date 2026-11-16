@@ -20,7 +20,7 @@ export type CallPerson = {
   participant?: Participant
 }
 
-const avatarTones = ['bg-amber-100 text-amber-700', 'bg-sky-100 text-sky-700', 'bg-violet-100 text-violet-700', 'bg-rose-100 text-rose-700', 'bg-emerald-100 text-emerald-700']
+const avatarTones = ['bg-amber-100 surface-dark:bg-surface-amber-soft text-amber-700 surface-dark:text-amber-300', 'bg-sky-100 surface-dark:bg-surface-sky-soft text-sky-700 surface-dark:text-sky-300', 'bg-violet-100 surface-dark:bg-surface-violet-soft text-violet-700 surface-dark:text-violet-300', 'bg-rose-100 surface-dark:bg-surface-rose-soft text-rose-700 surface-dark:text-rose-300', 'bg-emerald-100 surface-dark:bg-surface-emerald-soft text-emerald-700 surface-dark:text-emerald-300']
 const tileSurface = 'bg-linear-to-br from-brand-soft via-muted/80 to-brand-soft/70'
 
 function toneFor(identity: string) {
@@ -42,8 +42,8 @@ export function CallTile({ person, updateKey, featured = false, className }: { p
         <Avatar person={person} className={cn('size-10 text-sm ring-2 ring-card/70 supports-[container-type:size]:text-[clamp(.625rem,min(10cqw,12cqh),2rem)]', featured ? 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),7rem)]' : 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),5rem)]')} />
       </div>}
     {person.participant && !person.local && [...person.participant.audioTrackPublications.values()].map(publication => publication.track ? <AudioTrack key={publication.trackSid} track={publication.track} /> : null)}
-    {person.raised && <span title="Hand raised" className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-medium text-amber-700 shadow-sm"><Hand aria-hidden="true" className="size-3.5" /><span className="sr-only @[14rem]:not-sr-only">Hand raised</span></span>}
-    <span role="img" aria-label={person.micOn ? 'Microphone on' : 'Microphone off'} className={cn('absolute top-2.5 right-2.5 grid size-7 place-items-center rounded-full shadow-sm', person.micOn ? 'bg-card/85 text-foreground' : 'bg-rose-100 text-rose-700')}>
+    {person.raised && <span title="Hand raised" className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-amber-100 surface-dark:bg-surface-amber-soft px-2 py-1 text-[11px] font-medium text-amber-700 surface-dark:text-amber-300 shadow-sm"><Hand aria-hidden="true" className="size-3.5" /><span className="sr-only @[14rem]:not-sr-only">Hand raised</span></span>}
+    <span role="img" aria-label={person.micOn ? 'Microphone on' : 'Microphone off'} className={cn('absolute top-2.5 right-2.5 grid size-7 place-items-center rounded-full shadow-sm', person.micOn ? 'bg-card/85 text-foreground' : 'bg-rose-100 surface-dark:bg-surface-rose-soft text-rose-700 surface-dark:text-rose-300')}>
       {person.micOn ? <Mic aria-hidden="true" className="size-3.5" /> : <MicOff aria-hidden="true" className="size-3.5" />}
     </span>
     <span className="absolute bottom-2.5 left-2.5 max-w-[calc(100%-1.25rem)] truncate rounded-md bg-card/85 px-2 py-0.5 text-xs font-medium text-foreground shadow-sm">{person.name}{person.local ? ' (You)' : ''}{screenTrack ? ' · Presenting' : ''}</span>
@@ -56,7 +56,7 @@ export function CallButton({ label, pressed, disabled, onClick, tone, badge, wid
   return <Button variant="ghost" title={label} aria-label={label} aria-pressed={tone === 'leave' ? undefined : pressed} disabled={disabled} onClick={onClick}
     className={cn('relative h-10 rounded-full px-0 disabled:opacity-60 sm:h-11 [&_svg:not([class*=size-])]:size-5', wide ? 'w-14 sm:w-16' : 'w-10 sm:w-11', className,
       tone === 'leave' ? 'bg-rose-600 text-white hover:bg-rose-700 hover:text-white dark:hover:bg-rose-700'
-        : tone === 'off' ? 'bg-rose-100 text-rose-700 hover:bg-rose-100 hover:text-rose-700 dark:hover:bg-rose-100'
+        : tone === 'off' ? 'bg-rose-100 surface-dark:bg-surface-rose-soft text-rose-700 surface-dark:text-rose-300 hover:bg-rose-100 hover:text-rose-700 surface-dark:hover:text-rose-300 dark:hover:bg-rose-100'
           : 'bg-muted text-foreground hover:bg-accent dark:hover:bg-accent aria-pressed:bg-brand-soft aria-pressed:text-brand-soft-foreground')}>
     {children}
     {Boolean(badge) && <span aria-hidden="true" className="absolute -top-1 -right-1 min-w-4.5 rounded-full bg-brand px-1 text-[10px] leading-4.5 font-semibold text-brand-foreground">{Math.min(badge ?? 0, 99)}</span>}
@@ -80,9 +80,9 @@ export function PeoplePanel({ people, preview, pinnedIdentity, onPin, onClose }:
           <Avatar person={person} className="size-9 text-xs" />
           <div className="min-w-0 flex-1"><p className="truncate text-[13px] font-medium">{person.name}{person.local ? ' (You)' : ''}</p><p className="truncate text-[11px] text-muted-foreground">{person.detail}</p></div>
           <div className="flex shrink-0 items-center gap-1.5">
-            {person.raised && <Hand role="img" aria-label="Hand raised" className="size-4 text-amber-600" />}
+            {person.raised && <Hand role="img" aria-label="Hand raised" className="size-4 text-amber-600 surface-dark:text-amber-300" />}
             <Button variant="ghost" size="icon-xs" className="text-muted-foreground aria-pressed:text-brand" aria-label={`${pinned ? 'Unpin' : 'Pin'} ${person.name} ${pinned ? 'from' : 'for'} your view`} aria-pressed={pinned} onClick={() => onPin(pinned ? null : person.identity)}><Pin aria-hidden="true" className={cn('size-4', pinned && 'fill-current')} /></Button>
-            {person.micOn ? <Mic role="img" aria-label="Microphone on" className="size-4 text-foreground/80" /> : <MicOff role="img" aria-label="Microphone off" className="size-4 text-rose-600" />}
+            {person.micOn ? <Mic role="img" aria-label="Microphone on" className="size-4 text-foreground/80" /> : <MicOff role="img" aria-label="Microphone off" className="size-4 text-rose-600 surface-dark:text-rose-300" />}
             {person.cameraOn ? <Video role="img" aria-label="Camera on" className="size-4 text-foreground/80" /> : <VideoOff role="img" aria-label="Camera off" className="size-4 text-muted-foreground/70" />}
           </div>
         </li>

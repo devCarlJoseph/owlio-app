@@ -35,10 +35,10 @@ export const classworkStorageNotice =
   "Sample classwork is for layout preview only. Assignments, submissions, and results are not connected to a service."
 
 export const classworkStatusMeta: Record<ClassworkStatus, ClassworkStatusMeta> = {
-  assigned: { label: "Assigned", badge: "border-slate-200 bg-slate-50 text-slate-600" },
-  "in-progress": { label: "In progress", badge: "bg-blue-50 text-blue-700" },
+  assigned: { label: "Assigned", badge: "border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-600 surface-dark:text-muted-foreground" },
+  "in-progress": { label: "In progress", badge: "bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300" },
   submitted: { label: "Submitted", badge: "bg-blue-700 text-white" },
-  released: { label: "Released", badge: "bg-slate-100 text-slate-700" },
+  released: { label: "Released", badge: "bg-slate-100 surface-dark:bg-muted text-slate-700 surface-dark:text-foreground" },
 }
 
 export const classworkTypeMeta: Record<ClassworkType, { label: string; icon: LucideIcon }> = {

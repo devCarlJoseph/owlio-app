@@ -110,7 +110,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500">
+                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
                       Loading study space…
                     </p>
                   }
@@ -126,7 +126,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500">
+                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
                       Loading meeting room…
                     </p>
                   }
@@ -169,7 +169,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500">
+                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
                       Loading meeting room…
                     </p>
                   }
@@ -210,7 +210,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500">
+                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
                       Loading meeting room…
                     </p>
                   }
@@ -248,7 +248,7 @@ createRoot(document.getElementById("root")!).render(
               element={
                 <Suspense
                   fallback={
-                    <p className="p-6 text-sm text-slate-500">
+                    <p className="p-6 text-sm text-slate-500 surface-dark:text-muted-foreground">
                       Loading meeting room…
                     </p>
                   }

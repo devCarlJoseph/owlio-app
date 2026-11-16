@@ -66,7 +66,7 @@ export function RegisterView() {
   return (
     <FormProvider {...form}>
       <AuthShowcaseLayout context="register">
-        <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">{googleOnly ? 'Finish Google signup' : 'Create your account'}</h1>
+        <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">{googleOnly ? 'Finish Google signup' : 'Create your account'}</h1>
         <div className="mt-7 space-y-4">
           {locationState?.oauthNotice && !useEmail && <AuthFeedback title="Continue account setup" tone="info">{locationState.oauthNotice}</AuthFeedback>}
           {submitError && <AuthFeedback title="Account creation failed" tone="error">{submitError}</AuthFeedback>}

@@ -93,7 +93,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
         </div>
       </div>
       <span role="status" className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-medium whitespace-nowrap text-brand-soft-foreground"><span aria-hidden="true" className={cn('size-1.5 rounded-full', enabled ? 'bg-emerald-500' : 'bg-brand')} />{state.preview ? 'Layout preview' : statusLabels[state.status]}</span>
-      {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 text-rose-700 hover:text-rose-700" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
+      {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 surface-dark:border-surface-rose-border text-rose-700 surface-dark:text-rose-300 hover:text-rose-700 surface-dark:hover:text-rose-300" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
     </header>
 
     {(state.message || state.error) && <ScrollArea className="min-h-0 min-w-0 shrink-0" viewportClassName="max-h-[20vh] overflow-x-hidden! overscroll-contain" contentClassName="min-w-0! w-full space-y-1 text-xs leading-5 [overflow-wrap:anywhere]">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</ScrollArea>}

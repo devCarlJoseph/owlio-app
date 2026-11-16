@@ -54,8 +54,8 @@ export function LoginView() {
   return (
     <FormProvider {...form}>
       <AuthShowcaseLayout context="login">
-        <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">Welcome back!</h1>
-        <p className="mt-1.5 text-sm text-slate-500">Log in to your Owlio account to continue learning.</p>
+        <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">Welcome back!</h1>
+        <p className="mt-1.5 text-sm text-slate-500 surface-dark:text-muted-foreground">Log in to your Owlio account to continue learning.</p>
         <div className="mt-7 space-y-4">
           {oauthNotice && <AuthFeedback title="Google sign-in" tone="info">{oauthNotice}</AuthFeedback>}
           {submitError && <AuthFeedback title="Sign-in failed" tone="error">{submitError}</AuthFeedback>}

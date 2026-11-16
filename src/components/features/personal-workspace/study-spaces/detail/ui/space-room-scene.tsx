@@ -110,7 +110,7 @@ export function SpaceRoomScene({
       camera={{ position: [18, 18, 18], zoom: 40, near: -100, far: 400 }}
       aria-label="3D study room preview with a discussion table, nap area and watch room. Walk with WASD or the arrow keys, select a seat to sit, or use the overlay controls."
       fallback={
-        <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-600">
+        <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-600 surface-dark:text-muted-foreground">
           The 3D room preview could not start because WebGL is unavailable in this browser. You can
           still use the space chat below.
         </div>
@@ -207,8 +207,8 @@ export function SpaceRoomScene({
             />
             {napping ? <SleepBubble y={1.15} /> : null}
             {showNameTag ? (
-              <Html position={[0, napping ? 1.5 : 2.1, napping ? 0.4 : 0]} center style={{ pointerEvents: "none" }} zIndexRange={[18, 0]}>
-                <span className="block rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-700 shadow">
+              <Html position={[0, napping ? 1.5 : 2.1, napping ? 0.4 : 0]} center className="pointer-events-none" zIndexRange={[18, 0]}>
+                <span className="block rounded-md bg-white/90 surface-dark:bg-card/90 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-700 surface-dark:text-foreground shadow">
                   {person.name} · {napping ? "napping · sample" : "sample"}
                 </span>
               </Html>
@@ -231,7 +231,7 @@ export function SpaceRoomScene({
 
 function SleepBubble({ y }: { y: number }) {
   return (
-    <Html position={[0.3, y, 0.2]} center style={{ pointerEvents: "none" }} zIndexRange={[16, 0]}>
+    <Html position={[0.3, y, 0.2]} center className="pointer-events-none" zIndexRange={[16, 0]}>
       <span aria-hidden="true" className="block font-bold text-violet-500 motion-safe:animate-pulse">
         <span className="text-[10px]">z</span>
         <span className="text-[13px]">Z</span>
@@ -367,7 +367,7 @@ function ExitPortal({ position, onExit }: { position: [number, number, number]; 
           <meshStandardMaterial color={WALL_BLUE} emissive="#60a5fa" emissiveIntensity={0.4} />
         </mesh>
       </group>
-      <Html position={[0, 2.05, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[14, 0]}>
+      <Html position={[0, 2.05, 0]} center className="pointer-events-none" zIndexRange={[14, 0]}>
         <span className="block whitespace-nowrap rounded-full bg-blue-600 px-2.5 py-0.5 text-[11px] font-semibold text-white shadow">
           {hovered ? "Back to the study hall" : "Exit to hall"}
         </span>
@@ -548,7 +548,7 @@ function SeatFurniture({
       </mesh>
 
       {hovered ? (
-        <Html position={[0, 1.9, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[15, 0]}>
+        <Html position={[0, 1.9, 0]} center className="pointer-events-none" zIndexRange={[15, 0]}>
           <span className="block rounded-md bg-slate-900/90 px-2 py-1 text-[11px] font-medium whitespace-nowrap text-white shadow">
             {seat.name} · {status}
           </span>
@@ -734,7 +734,7 @@ function SpaceCharacter({
       {napping ? <SleepBubble y={1.15} /> : null}
 
       {showNameTag ? (
-        <Html position={[0, tagY, napping ? 0.4 : 0]} center style={{ pointerEvents: "none" }} zIndexRange={[20, 0]}>
+        <Html position={[0, tagY, napping ? 0.4 : 0]} center className="pointer-events-none" zIndexRange={[20, 0]}>
           <span className="block rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-white shadow">
             {character.name}
             {napping ? " · napping" : ""}
@@ -743,12 +743,12 @@ function SpaceCharacter({
       ) : null}
 
       {bubbleText ? (
-        <Html position={[0, bubbleY, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[30, 0]}>
-          <span className="relative block max-w-48 rounded-xl bg-white px-3 py-2 text-xs leading-4 break-words text-slate-800 shadow-lg">
+        <Html position={[0, bubbleY, 0]} center className="pointer-events-none" zIndexRange={[30, 0]}>
+          <span className="relative block max-w-48 rounded-xl bg-white surface-dark:bg-card px-3 py-2 text-xs leading-4 break-words text-slate-800 surface-dark:text-foreground shadow-lg">
             {bubbleText}
             <span
               aria-hidden="true"
-              className="absolute -bottom-1 left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-white"
+              className="absolute -bottom-1 left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-white surface-dark:bg-card"
             />
           </span>
         </Html>

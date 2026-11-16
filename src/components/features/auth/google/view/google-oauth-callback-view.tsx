@@ -66,7 +66,7 @@ export function GoogleOAuthCallbackView() {
 
   return (
     <AuthShowcaseLayout context="login">
-      <h1 className="text-[28px] font-semibold tracking-tight text-slate-900">Connecting to Owlio</h1>
+      <h1 className="text-[28px] font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">Connecting to Owlio</h1>
       {error
         ? (
           <div className="space-y-4">

@@ -3,7 +3,6 @@ import { Link } from "react-router"
 import { Card } from "@/components/ui/card"
 import { libraryKindIcons, librarySourceMeta } from "../utils/library-records"
 import type { LibraryResource } from "../types/library-types"
-import styles from './library-theme.module.css'
 
 export function LibraryGalleryCard({ resource }: { resource: LibraryResource }) {
   const meta = librarySourceMeta[resource.source]
@@ -12,11 +11,11 @@ export function LibraryGalleryCard({ resource }: { resource: LibraryResource }) 
 
   return (
     <Card className="group/resource relative h-full gap-0 rounded-xl border border-border/70 bg-card p-2 shadow-none ring-0 transition-shadow hover:shadow-md motion-reduce:transition-none">
-      <div aria-hidden="true" data-source={resource.source} className={`${styles.cover} relative h-36 overflow-hidden rounded-lg px-5 pt-4`}>
+      <div aria-hidden="true" data-source={resource.source} className={`[--library-cover:#fffbeb] data-[source=classroom]:[--library-cover:#f0f9ff] data-[source=study-space]:[--library-cover:#ecfdf5] dark:[--library-cover:#3b3b49] dark:data-[source=classroom]:[--library-cover:#2d4058] dark:data-[source=study-space]:[--library-cover:#2b4546] bg-[var(--library-cover)] relative h-36 overflow-hidden rounded-lg px-5 pt-4`}>
         <div className={`mx-auto min-h-44 max-w-48 rounded-t border border-border/60 bg-card p-4 shadow-sm transition-transform duration-200 group-hover/resource:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none ${resource.kind === "Template" ? "rotate-3" : resource.kind === "Reading" ? "-rotate-3" : ""}`}>
           <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
             <span className="text-[8px] font-medium uppercase tracking-wider text-muted-foreground">{resource.context}</span>
-            <KindIcon className={`${styles.icon} size-5 shrink-0 rounded p-1`} />
+            <KindIcon className={`bg-[var(--library-cover)] text-foreground size-5 shrink-0 rounded p-1`} />
           </div>
           <p className="mt-2 text-[11px] font-semibold leading-4 text-card-foreground">{resource.title}</p>
           {resource.kind === "Worksheet" || resource.kind === "Template" ? (
@@ -25,7 +24,7 @@ export function LibraryGalleryCard({ resource }: { resource: LibraryResource }) 
             </div>
           ) : (
             <div className="mt-3 space-y-1.5">
-              <div className={`${styles.accent} h-5 rounded-sm`} />
+              <div className={`bg-[var(--library-cover)] h-5 rounded-sm`} />
               <div className="h-1 rounded-full bg-muted" />
               <div className="h-1 w-4/5 rounded-full bg-muted" />
               <div className="h-1 w-3/5 rounded-full bg-muted" />

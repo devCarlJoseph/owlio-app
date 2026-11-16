@@ -80,8 +80,8 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">Create a study space</DialogTitle>
-        <DialogDescription className="text-slate-600">
+        <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Create a study space</DialogTitle>
+        <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
           A study space is for peer collaboration. It is not an official classroom and cannot hold grades or
           attendance.
         </DialogDescription>
@@ -89,7 +89,7 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
 
       <div className="grid gap-4">
         <Field data-invalid={nameError !== null}>
-          <FieldLabel htmlFor="space-name" className="text-slate-700">
+          <FieldLabel htmlFor="space-name" className="text-slate-700 surface-dark:text-foreground">
             Space name
           </FieldLabel>
           <Input
@@ -99,13 +99,13 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
             aria-invalid={nameError !== null}
             aria-describedby={nameError ? "space-name-error" : undefined}
             placeholder="Physics Group"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <FieldError id="space-name-error">{nameError}</FieldError>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="space-about" className="text-slate-700">
+          <FieldLabel htmlFor="space-about" className="text-slate-700 surface-dark:text-foreground">
             What is it about?
           </FieldLabel>
           <Textarea
@@ -114,12 +114,12 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
             value={draft.about}
             onChange={(event) => setDraft((current) => ({ ...current, about: event.target.value }))}
             placeholder="Weekly problem sets and past paper review."
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
         </Field>
 
         <div role="radiogroup" aria-label="Room type" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Room type</span>
+          <span className="text-sm font-medium text-slate-700 surface-dark:text-foreground">Room type</span>
           <div className="grid gap-2 sm:grid-cols-3">
             {studySpaceKinds.map((kind) => {
               const selected = draft.kind === kind.value
@@ -132,11 +132,11 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
                   onClick={() => setDraft((current) => ({ ...current, kind: kind.value }))}
                   className={`rounded-xl border p-2.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 ${
                     selected
-                      ? "border-emerald-700 bg-emerald-50/50"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      ? "border-emerald-700 bg-emerald-50/50 surface-dark:bg-surface-emerald-soft/50"
+                      : "border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card hover:border-slate-300 surface-dark:hover:border-border"
                   }`}
                 >
-                  <span className="relative block overflow-hidden rounded-lg border border-slate-200">
+                  <span className="relative block overflow-hidden rounded-lg border border-slate-200 surface-dark:border-border">
                     <RoomPlanPreview
                       kind={kind.value}
                       capacity={maxSpaceCapacity}
@@ -148,9 +148,9 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
                       </span>
                     ) : null}
                   </span>
-                  <span className="mt-2 block text-sm font-medium text-slate-900">{kind.label}</span>
-                  <span className="mt-0.5 block text-xs leading-4 text-slate-600">{kind.description}</span>
-                  <span className="mt-1 block text-[11px] text-slate-500">
+                  <span className="mt-2 block text-sm font-medium text-slate-900 surface-dark:text-foreground">{kind.label}</span>
+                  <span className="mt-0.5 block text-xs leading-4 text-slate-600 surface-dark:text-muted-foreground">{kind.description}</span>
+                  <span className="mt-1 block text-[11px] text-slate-500 surface-dark:text-muted-foreground">
                     Up to {maxSpaceCapacity} seats
                   </span>
                 </button>
@@ -160,7 +160,7 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
         </div>
 
         <Field data-invalid={capacityError !== null}>
-          <span id="space-capacity-label" className="text-sm font-medium text-slate-700">
+          <span id="space-capacity-label" className="text-sm font-medium text-slate-700 surface-dark:text-foreground">
             Seats in the room
           </span>
           <div className="flex items-center gap-3">
@@ -168,7 +168,7 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
               role="group"
               aria-labelledby="space-capacity-label"
               aria-describedby="space-capacity-hint space-capacity-error"
-              className="flex items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+              className="flex items-center overflow-hidden rounded-lg border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
             >
               <Button
                 type="button"
@@ -184,7 +184,7 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
               </Button>
               <output
                 aria-live="polite"
-                className="w-16 text-center text-sm font-medium tabular-nums text-slate-800"
+                className="w-16 text-center text-sm font-medium tabular-nums text-slate-800 surface-dark:text-foreground"
               >
                 {draft.capacity} seats
               </output>
@@ -201,11 +201,11 @@ function CreateSpaceForm({ onCancel, onSubmit }: { onCancel: () => void; onSubmi
                 <Plus aria-hidden="true" />
               </Button>
             </div>
-            <p id="space-capacity-hint" className="flex-1 text-xs leading-5 text-slate-500">
+            <p id="space-capacity-hint" className="flex-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
               {minSpaceCapacity}–{maxSpaceCapacity} seats. The plan below shows the layout you will get.
             </p>
           </div>
-          <div className="overflow-hidden rounded-lg border border-slate-200">
+          <div className="overflow-hidden rounded-lg border border-slate-200 surface-dark:border-border">
             <RoomPlanPreview kind={draft.kind} capacity={draft.capacity} className="h-36 w-full" />
           </div>
           <FieldError id="space-capacity-error">{capacityError}</FieldError>

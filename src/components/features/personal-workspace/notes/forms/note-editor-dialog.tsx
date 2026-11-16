@@ -137,7 +137,7 @@ export function NoteEditorDialog({
             onChange={(event) => update({ title: event.currentTarget.value })}
             placeholder="Title"
             aria-label="Note title"
-            className="h-auto border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-slate-900 shadow-none focus-visible:ring-0"
+            className="h-auto border-0 bg-transparent px-0 text-2xl font-semibold tracking-tight text-slate-900 surface-dark:text-foreground shadow-none focus-visible:ring-0"
           />
 
           {note.kind === "checklist" ? (
@@ -154,7 +154,7 @@ export function NoteEditorDialog({
                     onChange={(event) => handleUpdateItem(item.id, { text: event.currentTarget.value })}
                     placeholder="List item"
                     aria-label={`Checklist item ${note.items.indexOf(item) + 1}`}
-                    className="h-auto border-0 bg-transparent px-0 text-base text-slate-700 shadow-none focus-visible:ring-0"
+                    className="h-auto border-0 bg-transparent px-0 text-base text-slate-700 surface-dark:text-foreground shadow-none focus-visible:ring-0"
                   />
                   <Button
                     type="button"
@@ -162,7 +162,7 @@ export function NoteEditorDialog({
                     size="icon-xs"
                     aria-label="Remove checklist item"
                     onClick={() => handleRemoveItem(item.id)}
-                    className="shrink-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                    className="shrink-0 text-slate-400 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-700 surface-dark:hover:text-foreground"
                   >
                     <X aria-hidden="true" />
                   </Button>
@@ -174,7 +174,7 @@ export function NoteEditorDialog({
                 variant="ghost"
                 size="sm"
                 onClick={addItem}
-                className="w-fit text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                className="w-fit text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
               >
                 <Plus aria-hidden="true" />
                 Add item
@@ -187,7 +187,7 @@ export function NoteEditorDialog({
               rows={8}
               placeholder="Start writing..."
               aria-label="Note content"
-              className="resize-none border-0 bg-transparent px-0 text-base leading-7 text-slate-700 shadow-none focus-visible:ring-0"
+              className="resize-none border-0 bg-transparent px-0 text-base leading-7 text-slate-700 surface-dark:text-foreground shadow-none focus-visible:ring-0"
             />
           )}
         </div>
@@ -211,7 +211,7 @@ export function NoteEditorDialog({
               placeholder="Label name"
               aria-label="New label"
               autoFocus
-              className="h-9 rounded-lg border-slate-200 bg-slate-50"
+              className="h-9 rounded-lg border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
             />
             <Button type="button" size="sm" onClick={handleAddLabel} className="bg-blue-700 text-white hover:bg-blue-800">
               <Check aria-hidden="true" />
@@ -226,7 +226,7 @@ export function NoteEditorDialog({
                 setAddingLabel(false)
                 setLabelInput("")
               }}
-              className="text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              className="text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
             >
               <X aria-hidden="true" />
             </Button>
@@ -235,13 +235,13 @@ export function NoteEditorDialog({
 
         {!isNew ? (
           <div className="flex items-center justify-end">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">
               Edited {Number.isNaN(edited.getTime()) ? "just now" : editedFormatter.format(edited)}
             </p>
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 surface-dark:border-border pt-3">
           <div className="flex items-center gap-1">
             <Button
               type="button"
@@ -249,7 +249,7 @@ export function NoteEditorDialog({
               size="icon-sm"
               aria-label={note.pinned ? "Unpin note" : "Pin note"}
               onClick={() => onTogglePin(note)}
-              className="text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              className="text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
             >
               {note.pinned ? <PinOff aria-hidden="true" /> : <Pin aria-hidden="true" />}
             </Button>
@@ -262,7 +262,7 @@ export function NoteEditorDialog({
                     variant="ghost"
                     size="icon-sm"
                     aria-label="Change note colour"
-                    className="text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    className="text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
                   />
                 }
               >
@@ -290,7 +290,7 @@ export function NoteEditorDialog({
               size="icon-sm"
               aria-label={note.kind === "checklist" ? "Switch to a text note" : "Switch to a checklist"}
               onClick={() => handleKindChange(note.kind === "checklist" ? "text" : "checklist")}
-              className="text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              className="text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
             >
               {note.kind === "checklist" ? (
                 <StickyNote aria-hidden="true" />
@@ -307,7 +307,7 @@ export function NoteEditorDialog({
                     variant="ghost"
                     size="icon-sm"
                     aria-label="More note options"
-                    className="text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    className="text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
                   />
                 }
               >
@@ -349,7 +349,7 @@ export function NoteEditorDialog({
             {!isNew ? (
               <Link
                 to="/students/materials/personal"
-                className="text-xs font-medium text-slate-500 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="text-xs font-medium text-slate-500 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 Study library
               </Link>

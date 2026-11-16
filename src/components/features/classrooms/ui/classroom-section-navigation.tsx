@@ -30,14 +30,14 @@ export function ClassroomSectionNavigation({ tab, schoolClassroom }: { tab: stri
   }, [tab])
 
   return (
-    <nav aria-label="Classroom navigation" className="classroom-section-navigation">
-      <div ref={viewportRef} className="classroom-navigation-viewport">
-        <TabsList aria-label="Classroom sections" className="classroom-section-list">
+    <nav aria-label="Classroom navigation" className="min-w-0 lg:sticky lg:top-0">
+      <div ref={viewportRef} className="overflow-x-auto p-0.5 lg:overflow-visible">
+        <TabsList aria-label="Classroom sections" className="flex h-auto w-max justify-start gap-1.5 rounded-none bg-transparent p-0 group-data-[orientation=horizontal]/tabs:data-[variant=default]:h-auto lg:grid lg:w-full">
           {classroomSections.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger key={value} ref={value === tab ? activeRef : undefined} value={value} className="classroom-section-trigger">
-              <span className="classroom-section-icon"><Icon aria-hidden="true" className="size-3.5" /></span>
+            <TabsTrigger key={value} ref={value === tab ? activeRef : undefined} value={value} className="group/section h-[42px] flex-none justify-start gap-2.5 border-border bg-card py-[5px] pl-[5px] pr-2.5 text-xs font-normal text-foreground shadow-none dark:text-foreground data-active:border-transparent data-active:bg-brand-soft data-active:text-brand-soft-foreground dark:data-active:border-transparent dark:data-active:bg-brand-soft dark:data-active:text-brand-soft-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none lg:w-full lg:whitespace-normal lg:text-left">
+              <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted group-data-active/section:bg-card"><Icon aria-hidden="true" className="size-3.5" /></span>
               <span>{value === 'progress' && !schoolClassroom ? 'Progress & Feedback' : label}</span>
-              <ChevronRight aria-hidden="true" className="classroom-section-chevron ml-auto size-3" />
+              <ChevronRight aria-hidden="true" className="hidden lg:block ml-auto size-3" />
             </TabsTrigger>
           ))}
         </TabsList>

@@ -44,7 +44,7 @@ export function QuizResultCard({
           <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">Your educator has not returned results yet.</p>
         )}
         {released && (submission?.evaluation || submission?.feedback) && (
-          <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-950">
+          <div className="rounded-lg bg-emerald-50 surface-dark:bg-surface-emerald-soft p-3 text-sm text-emerald-950 surface-dark:text-emerald-200">
             {submission?.evaluation && <p className="font-semibold">{submission.evaluation}</p>}
             {submission?.feedback && <p className="mt-1 whitespace-pre-wrap">{submission.feedback}</p>}
           </div>

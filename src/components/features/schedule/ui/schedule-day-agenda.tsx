@@ -14,7 +14,7 @@ export function ScheduleDayAgenda({ content, selectedDate, examples, showingExam
   const dayEvents = examples.filter((event) => dateKey(event.date) === dateKey(selectedDate))
 
   return (
-    <section aria-label="Selected day agenda" className="border-t border-border bg-slate-50/50 p-5 sm:p-6">
+    <section aria-label="Selected day agenda" className="border-t border-border bg-slate-50/50 surface-dark:bg-background/50 p-5 sm:p-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Selected day</p>
@@ -33,7 +33,7 @@ export function ScheduleDayAgenda({ content, selectedDate, examples, showingExam
         <div>
           <div className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" /><p>{content.boundary}</p></div>
           <nav aria-label="Related workspaces" className="mt-3 flex flex-wrap gap-2">
-            {content.links.map(({ label, href, icon: Icon }) => <Link key={href} to={href} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-xs font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand"><Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />{label}<ArrowUpRight className="size-3" aria-hidden="true" /></Link>)}
+            {content.links.map(({ label, href, icon: Icon }) => <Link key={href} to={href} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-white surface-dark:bg-card px-3 py-2 text-xs font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand"><Icon className="size-3.5 text-muted-foreground" aria-hidden="true" />{label}<ArrowUpRight className="size-3" aria-hidden="true" /></Link>)}
           </nav>
         </div>
       </div>

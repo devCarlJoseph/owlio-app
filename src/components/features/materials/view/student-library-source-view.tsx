@@ -64,11 +64,11 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <nav aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500 surface-dark:text-muted-foreground">
           <li>
             <Link
               to="/students/materials"
-              className="inline-flex items-center gap-1 rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1 rounded-md font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
               Study Library
@@ -77,7 +77,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
           <li aria-hidden="true" className="text-slate-300">
             /
           </li>
-          <li aria-current="page" className="font-medium text-slate-900">
+          <li aria-current="page" className="font-medium text-slate-900 surface-dark:text-foreground">
             {meta.label}
           </li>
         </ol>
@@ -108,11 +108,11 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
             {meta.ownerLabel}
           </p>
 
-          <h2 className="col-start-2 row-start-2 mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          <h2 className="col-start-2 row-start-2 mt-2 text-2xl font-semibold tracking-tight text-slate-900 surface-dark:text-foreground sm:text-3xl">
             {meta.label}
           </h2>
 
-          <p className="col-start-2 row-start-3 mt-2 max-w-xl text-sm leading-6 text-slate-600">
+          <p className="col-start-2 row-start-3 mt-2 max-w-xl text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">
             {meta.description}
           </p>
         </div>
@@ -151,10 +151,10 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
 
       <section
         aria-label="Library guidance"
-        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3"
+        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft px-4 py-3"
       >
-        <FolderOpen className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
-        <p className="flex-1 text-sm leading-6 text-blue-800">
+        <FolderOpen className="mt-1 size-4 shrink-0 text-blue-700 surface-dark:text-blue-300" aria-hidden="true" />
+        <p className="flex-1 text-sm leading-6 text-blue-800 surface-dark:text-blue-300">
           {source === "personal" ? "Your documents open in Owlio. Example resources below link to their owning context." : "Opening a resource takes you to the context that owns it. Nothing here is copied, moved, or shared between contexts."}
         </p>
       </section>
@@ -163,8 +163,8 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-slate-900">Sample resources in this library</h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Sample resources in this library</h3>
+              <p className="mt-1 text-sm text-slate-500 surface-dark:text-muted-foreground">
                 Example resources link to their owning context. External files and account sync aren’t connected.
               </p>
             </div>
@@ -191,7 +191,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
               className={cn(
                 activeContext === "all"
                   ? cn("border-transparent", meta.buttonClassName)
-                  : "border-slate-200 bg-white/70 text-slate-600 hover:bg-white",
+                  : "border-slate-200 surface-dark:border-border bg-white/70 surface-dark:bg-card/70 text-slate-600 surface-dark:text-muted-foreground hover:bg-white surface-dark:hover:bg-card",
               )}
             >
               All
@@ -212,7 +212,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
                     "min-w-0",
                     isActive
                       ? cn("border-transparent", meta.buttonClassName)
-                      : "border-slate-200 bg-white/70 text-slate-600 hover:bg-white",
+                      : "border-slate-200 surface-dark:border-border bg-white/70 surface-dark:bg-card/70 text-slate-600 surface-dark:text-muted-foreground hover:bg-white surface-dark:hover:bg-card",
                   )}
                 >
                   <span className="truncate">{context}</span>
@@ -222,7 +222,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
           </div>
 
           {isPreviewing ? (
-            <p className="text-xs text-slate-500" role="status">
+            <p className="text-xs text-slate-500 surface-dark:text-muted-foreground" role="status">
               {visibleResources.length}{" "}
               {visibleResources.length === 1 ? "resource" : "resources"} shown
             </p>
@@ -242,7 +242,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
                 return (
                   <section key={group.context} aria-labelledby={groupId}>
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 id={groupId} className="text-sm font-semibold text-slate-900">
+                      <h4 id={groupId} className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">
                         <Link
                           to={subjectHref}
                           className={cn(
@@ -257,7 +257,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
                       <span className="group/count relative inline-flex items-center gap-1">
                         <Badge
                           variant="outline"
-                          className="border-slate-200 bg-white/70 text-slate-600"
+                          className="border-slate-200 surface-dark:border-border bg-white/70 surface-dark:bg-card/70 text-slate-600 surface-dark:text-muted-foreground"
                         >
                           {group.items.length}{" "}
                           {group.items.length === 1 ? "resource" : "resources"}
@@ -269,7 +269,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
                               type="button"
                               aria-label={`Show all ${group.context} resources`}
                               onClick={() => setActiveContext(group.context)}
-                              className="inline-flex size-6 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-600 outline-none transition hover:bg-white hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                              className="inline-flex size-6 items-center justify-center rounded-full border border-slate-200 surface-dark:border-border bg-white/80 surface-dark:bg-card/80 text-slate-600 surface-dark:text-muted-foreground outline-none transition hover:bg-white surface-dark:hover:bg-card hover:text-slate-900 surface-dark:hover:text-foreground focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                             >
                               <ChevronRight aria-hidden="true" className="size-4" />
                             </button>

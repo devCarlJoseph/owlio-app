@@ -49,11 +49,11 @@ export function TagInput({ id, label, value, onChange, placeholder, optional, er
         }`}
       >
         {value.map((tag, index) => (
-          <span key={`${tag}-${index}`} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 py-1 pr-1.5 pl-3 text-sm font-medium text-indigo-800 ring-1 ring-indigo-100">
+          <span key={`${tag}-${index}`} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 surface-dark:bg-surface-indigo-soft py-1 pr-1.5 pl-3 text-sm font-medium text-indigo-800 surface-dark:text-indigo-300 ring-1 ring-indigo-100 surface-dark:ring-surface-indigo-border">
             {tag}
             <button
               type="button"
-              className="rounded-full p-0.5 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="rounded-full p-0.5 text-indigo-500 hover:bg-indigo-100 surface-dark:hover:bg-surface-indigo-soft hover:text-indigo-800 surface-dark:hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               aria-label={`Remove ${tag}`}
               onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))}
             >

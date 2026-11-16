@@ -219,7 +219,7 @@ export function MeetingWhiteboard({ board, onChange, host, hostLabel, learner, n
       </div>
     </form>}
 
-    <div data-theme-content className="relative min-h-64 flex-1 bg-white text-slate-900 [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:22px_22px]" onKeyDown={handleKeyDown}>
+    <div data-theme-content className="relative min-h-64 flex-1 bg-white surface-dark:bg-card text-slate-900 surface-dark:text-foreground [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:22px_22px]" onKeyDown={handleKeyDown}>
       <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-3">
         <div role="status" aria-label="Current instruction" className="flex max-w-full items-center gap-2 rounded-full bg-slate-900/90 py-1.5 pr-4 pl-1.5 text-white shadow-lg">
           <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-white/15"><Megaphone className="size-3.5" /></span>
@@ -270,21 +270,21 @@ export function MeetingWhiteboard({ board, onChange, host, hostLabel, learner, n
         })()}
       </svg>
 
-      {library && teacher && <div role="dialog" aria-label={library === 'shapes' ? 'Add a shape' : 'Add an object'} className="absolute bottom-20 left-1/2 z-20 w-[min(22rem,calc(100%-1.5rem))] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+      {library && teacher && <div role="dialog" aria-label={library === 'shapes' ? 'Add a shape' : 'Add an object'} className="absolute bottom-20 left-1/2 z-20 w-[min(22rem,calc(100%-1.5rem))] -translate-x-1/2 rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-3 shadow-xl">
         {library === 'shapes' ? <>
-          <p className="mb-2 text-[11px] font-semibold text-slate-500">Color</p>
+          <p className="mb-2 text-[11px] font-semibold text-slate-500 surface-dark:text-muted-foreground">Color</p>
           <div className="mb-3 flex gap-1.5">{boardColors.map(option => <button key={option.value} type="button" aria-label={`${option.name} color`} aria-pressed={color.value === option.value} onClick={() => setColor(option)} className={cn('size-7 rounded-full focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 focus-visible:outline-none', color.value === option.value && 'ring-2 ring-slate-900 ring-offset-2')}><svg aria-hidden="true" viewBox="0 0 28 28" className="size-7"><circle cx={14} cy={14} r={14} fill={option.value} /></svg></button>)}</div>
-          <div className="grid grid-cols-3 gap-2">{boardShapes.map(({ shape, label }) => <button key={shape} type="button" aria-label={`Add ${color.name} ${label.toLowerCase()}`} onClick={() => addItem((x, y) => ({ id: boardId(), authorId: host.id, kind: 'shape', shape, color: color.value, colorName: color.name, x, y }), `Added a ${color.name} ${label.toLowerCase()}.`)} className="flex flex-col items-center gap-1 rounded-xl border border-slate-200 p-2 text-[11px] text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none">
+          <div className="grid grid-cols-3 gap-2">{boardShapes.map(({ shape, label }) => <button key={shape} type="button" aria-label={`Add ${color.name} ${label.toLowerCase()}`} onClick={() => addItem((x, y) => ({ id: boardId(), authorId: host.id, kind: 'shape', shape, color: color.value, colorName: color.name, x, y }), `Added a ${color.name} ${label.toLowerCase()}.`)} className="flex flex-col items-center gap-1 rounded-xl border border-slate-200 surface-dark:border-border p-2 text-[11px] text-slate-600 surface-dark:text-muted-foreground hover:border-indigo-300 surface-dark:hover:border-surface-indigo-border hover:bg-indigo-50 surface-dark:hover:bg-surface-indigo-soft focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none">
             <svg aria-hidden="true" viewBox="0 0 100 100" className="size-10"><ShapeGlyph shape={shape} x={0} y={0} fill={color.value} /></svg>{label}
           </button>)}</div>
-        </> : <div className="grid grid-cols-4 gap-2">{boardObjects.map(entry => <button key={entry.label} type="button" aria-label={`Add ${entry.label}`} onClick={() => addItem((x, y) => ({ id: boardId(), authorId: host.id, kind: 'object', glyph: entry.glyph, src: entry.src, label: entry.label, x, y }), `Added ${entry.label}.`)} className="flex flex-col items-center gap-0.5 rounded-xl border border-slate-200 p-1.5 text-[10px] text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none">
+        </> : <div className="grid grid-cols-4 gap-2">{boardObjects.map(entry => <button key={entry.label} type="button" aria-label={`Add ${entry.label}`} onClick={() => addItem((x, y) => ({ id: boardId(), authorId: host.id, kind: 'object', glyph: entry.glyph, src: entry.src, label: entry.label, x, y }), `Added ${entry.label}.`)} className="flex flex-col items-center gap-0.5 rounded-xl border border-slate-200 surface-dark:border-border p-1.5 text-[10px] text-slate-600 surface-dark:text-muted-foreground hover:border-indigo-300 surface-dark:hover:border-surface-indigo-border hover:bg-indigo-50 surface-dark:hover:bg-surface-indigo-soft focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none">
           {entry.src ? <img src={entry.src} alt="" className="size-8 object-contain" /> : <span aria-hidden="true" className="text-2xl leading-8">{entry.glyph}</span>}{entry.label}
         </button>)}</div>}
       </div>}
 
-      <div role="toolbar" aria-label="Whiteboard tools" className="absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl">
+      <div role="toolbar" aria-label="Whiteboard tools" className="absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-1.5 shadow-xl">
         {tools.map(entry => <BoardTool key={entry.id} label={entry.label} active={tool === entry.id} onClick={() => { setTool(entry.id); setLibrary(null) }}>{entry.icon}</BoardTool>)}
-        <span aria-hidden="true" className="mx-0.5 h-6 w-px shrink-0 bg-slate-200" />
+        <span aria-hidden="true" className="mx-0.5 h-6 w-px shrink-0 bg-slate-200 surface-dark:bg-muted" />
         {teacher ? <>
           <BoardTool label="Add a shape" active={library === 'shapes'} onClick={() => setLibrary(library === 'shapes' ? null : 'shapes')}><Shapes aria-hidden="true" /></BoardTool>
           <BoardTool label="Add an object" active={library === 'objects'} onClick={() => setLibrary(library === 'objects' ? null : 'objects')}><Smile aria-hidden="true" /></BoardTool>
@@ -308,5 +308,5 @@ function ShapeGlyph({ shape, x, y, fill }: { shape: BoardShape; x: number; y: nu
 
 function BoardTool({ label, active = false, disabled = false, onClick, children }: { label: string; active?: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
   return <button type="button" aria-label={label} title={label} aria-pressed={active} disabled={disabled} onClick={onClick}
-    className={cn('grid size-10 shrink-0 place-items-center rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 [&_svg]:size-[18px]', active ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100')}>{children}</button>
+    className={cn('grid size-10 shrink-0 place-items-center rounded-xl transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-35 [&_svg]:size-[18px]', active ? 'bg-indigo-100 surface-dark:bg-surface-indigo-soft text-indigo-700 surface-dark:text-indigo-300' : 'text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted')}>{children}</button>
 }

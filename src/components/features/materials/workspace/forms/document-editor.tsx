@@ -40,7 +40,7 @@ export function DocumentEditor({ work, onChange }: { work: LibraryWork; onChange
         <h2 className="mb-8 break-words text-3xl font-semibold tracking-tight">{work.title || "Untitled document"}</h2>
         {work.blocks.map((block, index) => <div key={block.id} className={`rounded-lg border p-2 ${block.id === active.id ? "border-ring/40 bg-muted/20" : "border-transparent"}`}>
           <label htmlFor={`block-${block.id}`} className="mb-1 block text-[10px] font-medium tracking-wider text-muted-foreground uppercase">{index + 1} · {block.kind === "bullets" ? "Bullet list" : block.kind}</label>
-          <Textarea id={`block-${block.id}`} value={block.text} onFocus={() => setActiveId(block.id)} onChange={event => onChange({ ...work, blocks: work.blocks.map(item => item.id === block.id ? { ...item, text: event.target.value } : item) })} placeholder={block.kind === "heading" ? "Section heading…" : block.kind === "bullets" ? "First idea\nNext idea" : "Start writing…"} rows={Math.max(2, Math.min(18, block.text.split("\n").length + 1))} style={{ textAlign: block.align, fontWeight: block.bold || block.kind === "heading" ? 600 : 400, fontStyle: block.italic ? "italic" : "normal" }} className={`resize-y border-0 bg-transparent shadow-none ${block.kind === "heading" ? "text-xl md:text-xl" : "text-base md:text-base"}`} />
+          <Textarea id={`block-${block.id}`} value={block.text} onFocus={() => setActiveId(block.id)} onChange={event => onChange({ ...work, blocks: work.blocks.map(item => item.id === block.id ? { ...item, text: event.target.value } : item) })} placeholder={block.kind === "heading" ? "Section heading…" : block.kind === "bullets" ? "First idea\nNext idea" : "Start writing…"} rows={Math.max(2, Math.min(18, block.text.split("\n").length + 1))} className={`${block.align === "center" ? "text-center" : block.align === "right" ? "text-right" : "text-left"} ${block.bold || block.kind === "heading" ? "font-semibold" : "font-normal"} ${block.italic ? "italic" : "not-italic"} resize-y border-0 bg-transparent shadow-none ${block.kind === "heading" ? "text-xl md:text-xl" : "text-base md:text-base"}`} />
         </div>)}
       </article>
     </div>
@@ -50,7 +50,7 @@ export function DocumentEditor({ work, onChange }: { work: LibraryWork; onChange
 export function DocumentPreview({ work }: { work: LibraryWork }) {
   return <article className="space-y-5 break-words rounded-xl bg-card p-5 text-card-foreground sm:p-8">
     <h2 className="text-3xl font-semibold">{work.title || "Untitled document"}</h2>
-    {work.blocks.map(block => <div key={block.id} style={{ textAlign: block.align, fontWeight: block.bold ? 700 : undefined, fontStyle: block.italic ? "italic" : undefined }}>
+    {work.blocks.map(block => <div key={block.id} className={`${block.align === "center" ? "text-center" : block.align === "right" ? "text-right" : "text-left"} ${block.bold ? "font-bold" : ""} ${block.italic ? "italic" : ""}`}>
       {block.kind === "heading" ? <h3 className="whitespace-pre-wrap text-xl font-semibold">{block.text}</h3> : block.kind === "bullets" ? <ul className="list-inside list-disc space-y-1">{block.text.split("\n").map((line, i) => <li key={i}>{line}</li>)}</ul> : <p className="whitespace-pre-wrap leading-7">{block.text}</p>}
     </div>)}
   </article>

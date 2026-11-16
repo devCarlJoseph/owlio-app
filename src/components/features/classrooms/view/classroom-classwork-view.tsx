@@ -67,12 +67,12 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
   const toReview = classroom.activities.reduce((total, activity) => total + activity.submissions.filter((item) => item.status === "In review").length, 0)
   const nextDue = classroom.activities.map((activity) => activity.dueDate).filter(Boolean).sort()[0]
   const stats = [
-    { label: "Total classwork", value: String(classroom.activities.length), tone: "bg-white" },
-    { label: "Next due", value: nextDue || "None", tone: "bg-white" },
+    { label: "Total classwork", value: String(classroom.activities.length), tone: "bg-white surface-dark:bg-card" },
+    { label: "Next due", value: nextDue || "None", tone: "bg-white surface-dark:bg-card" },
     isStudent
-      ? { label: "Submitted by you", value: `${mySubmitted} of ${classroom.activities.length}`, tone: "bg-indigo-50" }
-      : { label: "Awaiting review", value: String(toReview), tone: "bg-indigo-50" },
-    { label: "Status", value: classroom.activities.length ? "Published" : "No classwork", tone: "bg-blue-50" },
+      ? { label: "Submitted by you", value: `${mySubmitted} of ${classroom.activities.length}`, tone: "bg-indigo-50 surface-dark:bg-surface-indigo-soft" }
+      : { label: "Awaiting review", value: String(toReview), tone: "bg-indigo-50 surface-dark:bg-surface-indigo-soft" },
+    { label: "Status", value: classroom.activities.length ? "Published" : "No classwork", tone: "bg-blue-50 surface-dark:bg-surface-blue-soft" },
   ]
 
   const visibleActivities = isStudent ? classroom.activities.filter((activity) => activity.status === "Published") : classroom.activities
@@ -145,8 +145,8 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Classwork</h3>
-          <p className="mt-1 text-sm text-slate-600">Activities and assignment work for {classroom.name}.</p>
+          <h3 className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Classwork</h3>
+          <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">Activities and assignment work for {classroom.name}.</p>
         </div>
         {!isStudent && (
           <Button type="button" onClick={() => setShowCreate((current) => !current)}>
@@ -157,23 +157,23 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
 
       <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map(({ label, value, tone }) => (
-          <div key={label} className={`min-w-0 rounded-2xl border border-slate-200 p-3 sm:p-4 ${tone}`}>
-            <dt className="text-xs text-slate-500">{label}</dt>
-            <dd className="mt-1 break-words text-base font-semibold text-slate-900 sm:text-lg">{value}</dd>
+          <div key={label} className={`min-w-0 rounded-2xl border border-slate-200 surface-dark:border-border p-3 sm:p-4 ${tone}`}>
+            <dt className="text-xs text-slate-500 surface-dark:text-muted-foreground">{label}</dt>
+            <dd className="mt-1 break-words text-base font-semibold text-slate-900 surface-dark:text-foreground sm:text-lg">{value}</dd>
           </div>
         ))}
       </dl>
 
-      <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+      <Alert className="border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-900 surface-dark:text-amber-200">
         <TriangleAlert aria-hidden="true" />
         <AlertTitle>Prototype classwork</AlertTitle>
-        <AlertDescription className="text-amber-800">Activity content, responses, evaluation, and feedback are mock data. Nothing is submitted or saved to a classroom service.</AlertDescription>
+        <AlertDescription className="text-amber-800 surface-dark:text-amber-300">Activity content, responses, evaluation, and feedback are mock data. Nothing is submitted or saved to a classroom service.</AlertDescription>
       </Alert>
 
-      {status && <p role="status" className="text-sm text-amber-800">{status}</p>}
+      {status && <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">{status}</p>}
 
       {showCreate && !isStudent && (
-        <Card className="border-blue-200">
+        <Card className="border-blue-200 surface-dark:border-surface-blue-border">
           <CardHeader>
             <CardTitle>Create classwork preview</CardTitle>
             <CardDescription>Publish a demo activity to this classroom's in-memory workspace.</CardDescription>
@@ -191,7 +191,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
                     id="activity-type"
                     value={activityType}
                     onChange={(event) => setActivityType(event.currentTarget.value as ActivityType)}
-                    className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="h-10 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
                     {activityTypes.map((type) => <option key={type} value={type}>{type}</option>)}
                   </select>
@@ -203,24 +203,24 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="activity-due-date">Due date <span className="font-normal text-slate-500">(optional)</span></Label>
+                  <Label htmlFor="activity-due-date">Due date <span className="font-normal text-slate-500 surface-dark:text-muted-foreground">(optional)</span></Label>
                   <Input id="activity-due-date" name="activity-due-date" type="date" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="activity-evaluation">Evaluation note <span className="font-normal text-slate-500">(optional)</span></Label>
+                  <Label htmlFor="activity-evaluation">Evaluation note <span className="font-normal text-slate-500 surface-dark:text-muted-foreground">(optional)</span></Label>
                   <Input id="activity-evaluation" name="activity-evaluation" maxLength={200} placeholder="e.g. Feedback-based review" />
                 </div>
               </div>
               {isFormBased ? (
-                <fieldset className="grid gap-4 rounded-xl border border-slate-200 p-4">
-                  <legend className="px-1 text-sm font-semibold text-slate-800">Question preview</legend>
+                <fieldset className="grid gap-4 rounded-xl border border-slate-200 surface-dark:border-border p-4">
+                  <legend className="px-1 text-sm font-semibold text-slate-800 surface-dark:text-foreground">Question preview</legend>
                   <div className="grid gap-2">
                     <Label htmlFor="question-type">Question type</Label>
                     <select
                       id="question-type"
                       value={questionType}
                       onChange={(event) => setQuestionType(event.currentTarget.value as QuestionType)}
-                      className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="h-10 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       {questionTypes.map((type) => <option key={type} value={type}>{type}</option>)}
                     </select>
@@ -235,7 +235,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
                       <Input id="question-options" name="question-options" required placeholder="Separate options with commas" />
                     </div>
                   )}
-                  <p className="text-xs text-slate-500">The prototype captures one example question; quiz scoring and answer-key behavior are not connected.</p>
+                  <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">The prototype captures one example question; quiz scoring and answer-key behavior are not connected.</p>
                 </fieldset>
               ) : (
                 <div className="grid gap-2 sm:max-w-sm">
@@ -244,7 +244,7 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
                     id="response-type"
                     name="response-type"
                     defaultValue="Text"
-                    className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="h-10 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
                     <option value="Text">Written response</option>
                     <option value="File">File name preview</option>
@@ -264,16 +264,16 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
 
       {sections.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="py-8 text-sm text-slate-600">{isStudent ? "No demo classwork is available yet." : "Create a demo activity to preview learner classwork."}</CardContent>
+          <CardContent className="py-8 text-sm text-slate-600 surface-dark:text-muted-foreground">{isStudent ? "No demo classwork is available yet." : "Create a demo activity to preview learner classwork."}</CardContent>
         </Card>
       ) : (
         <div className="space-y-5">
           {sections.map((section) => (
-            <section key={section.title} aria-label={`${section.title} classwork`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <h4 className="border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-900">
-                {section.title} <span className="font-normal text-slate-500">· {section.items.length}</span>
+            <section key={section.title} aria-label={`${section.title} classwork`} className="overflow-hidden rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card">
+              <h4 className="border-b border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-4 py-2.5 text-sm font-semibold text-slate-900 surface-dark:text-foreground">
+                {section.title} <span className="font-normal text-slate-500 surface-dark:text-muted-foreground">· {section.items.length}</span>
               </h4>
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-slate-100 surface-dark:border-border">
                 {section.items.map((activity) => {
                   const submission = activity.submissions.find((item) => item.learnerId === currentLearnerId)
                   const Icon = activityIcons[activity.type]
@@ -285,12 +285,12 @@ export function ClassroomClassworkView({ classroom, role }: { classroom: Classro
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h5 className="font-semibold text-slate-900">{activity.title}</h5>
-                          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>
+                          <h5 className="font-semibold text-slate-900 surface-dark:text-foreground">{activity.title}</h5>
+                          <Badge variant="outline" className="border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300">Demo</Badge>
                           <QuizTimingBadges activity={activity} />
                         </div>
-                        <p className="mt-1 line-clamp-2 text-sm text-slate-600">{activity.instructions}</p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-600 surface-dark:text-muted-foreground">{activity.instructions}</p>
+                        <p className="mt-1 text-xs text-slate-500 surface-dark:text-muted-foreground">
                           {activity.type} · {activity.dueDate ? `Due ${activity.dueDate}` : "No due date"}{isStudent ? "" : ` · ${activity.submissions.length} demo submissions`}
                         </p>
                       </div>

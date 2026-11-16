@@ -11,7 +11,7 @@ type AuthShowcaseLayoutProps = {
 
 export function AuthShowcaseLayout({ children, context }: AuthShowcaseLayoutProps) {
   return (
-    <div className="min-h-svh bg-white lg:grid lg:h-svh lg:grid-cols-2 lg:gap-4 lg:overflow-hidden lg:p-3">
+    <div className="min-h-svh bg-white surface-dark:bg-card lg:grid lg:h-svh lg:grid-cols-2 lg:gap-4 lg:overflow-hidden lg:p-3">
       <main className="min-h-svh lg:h-full lg:min-h-0 lg:overflow-hidden">
         <ScrollArea className="h-full">
           <div className="flex min-h-svh flex-col px-6 py-6 sm:px-10 lg:min-h-full lg:px-8 lg:py-5">

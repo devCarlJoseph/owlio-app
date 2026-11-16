@@ -23,22 +23,22 @@ export function ClassroomMaterialsView({
   return (
     <section className="space-y-4" aria-labelledby={headingId}>
       <div>
-        <h3 id={headingId} className="text-lg font-semibold text-slate-900">{title}</h3>
-        <p className="mt-1 text-sm text-slate-600">Resources listed for {classroom.name}.</p>
+        <h3 id={headingId} className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">{title}</h3>
+        <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">Resources listed for {classroom.name}.</p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">Resource entries are preview metadata only. No documents or media are uploaded or stored.</p>
+      <p className="rounded-lg border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-4 py-3 text-xs leading-5 text-amber-900 surface-dark:text-amber-200">Resource entries are preview metadata only. No documents or media are uploaded or stored.</p>
       {materials.length === 0 ? (
-        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">{classroom.isMock ? `No demo ${kindGroup === "all" ? "materials" : kindGroup} in this classroom yet.` : `No ${kindGroup === "all" ? "materials" : kindGroup} are connected to this classroom.`}</CardContent></Card>
+        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600 surface-dark:text-muted-foreground">{classroom.isMock ? `No demo ${kindGroup === "all" ? "materials" : kindGroup} in this classroom yet.` : `No ${kindGroup === "all" ? "materials" : kindGroup} are connected to this classroom.`}</CardContent></Card>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {materials.map((material) => (
             <li key={material.id}>
               <Card>
                 <CardContent className="flex items-start gap-3 py-4">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><BookOpen aria-hidden="true" className="size-4" /></span>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300"><BookOpen aria-hidden="true" className="size-4" /></span>
                   <div className="min-w-0">
-                    <h4 className="font-semibold text-slate-900">{material.title}</h4>
-                    <p className="mt-1 text-sm text-slate-600">{material.description}</p>
+                    <h4 className="font-semibold text-slate-900 surface-dark:text-foreground">{material.title}</h4>
+                    <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">{material.description}</p>
                     <Badge variant="outline" className="mt-2">{material.kind} · demo</Badge>
                   </div>
                 </CardContent>
@@ -55,13 +55,13 @@ export function ClassroomPeopleView({ classroom }: { classroom: Classroom }) {
   return (
     <section className="space-y-4" aria-labelledby="people-heading">
       <div>
-        <h3 id="people-heading" className="text-lg font-semibold text-slate-900">People in this class</h3>
-        <p className="mt-1 text-sm text-slate-600">{classroom.isMock
+        <h3 id="people-heading" className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">People in this class</h3>
+        <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">{classroom.isMock
           ? classroom.access === 'student' ? 'Your instructor and your own enrollment.' : `${classroom.members.length} demo members.`
           : "Connected classroom membership is verified by the API."}
         </p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">{classroom.isMock
+      <p className="rounded-lg border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-4 py-3 text-xs text-amber-900 surface-dark:text-amber-200">{classroom.isMock
         ? "This is a sample roster, not live membership data."
         : "The classroom API does not return a full member roster yet; only the instructor and current learner context are shown."}
       </p>
@@ -70,12 +70,12 @@ export function ClassroomPeopleView({ classroom }: { classroom: Classroom }) {
           <li key={member.id}>
             <Card>
               <CardContent className="flex items-center gap-3 py-4">
-                <span className="flex size-10 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">
+                <span className="flex size-10 items-center justify-center rounded-full bg-slate-100 surface-dark:bg-muted text-sm font-semibold text-slate-700 surface-dark:text-foreground">
                   {member.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()}
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-900">{member.name}</p>
-                  <p className="text-xs capitalize text-slate-500">{member.role} · demo</p>
+                  <p className="truncate text-sm font-semibold text-slate-900 surface-dark:text-foreground">{member.name}</p>
+                  <p className="text-xs capitalize text-slate-500 surface-dark:text-muted-foreground">{member.role} · demo</p>
                 </div>
               </CardContent>
             </Card>
@@ -110,13 +110,13 @@ export function ClassroomScheduleView({ classroom, role }: { classroom: Classroo
     <section className="space-y-4" aria-labelledby="schedule-heading">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 id="schedule-heading" className="text-lg font-semibold text-slate-900">Class schedule</h3>
-          <p className="mt-1 text-sm text-slate-600">Sessions for {classroom.name}.</p>
+          <h3 id="schedule-heading" className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Class schedule</h3>
+          <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">Sessions for {classroom.name}.</p>
         </div>
         {!isStudent && <Button type="button" variant="outline" onClick={() => setShowForm((current) => !current)}><CalendarDays aria-hidden="true" /> Add session preview</Button>}
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">Schedule entries are local-time mock previews. No reminders, recurrence, or calendar integration is active.</p>
-      {status && <p role="status" className="text-sm text-amber-800">{status}</p>}
+      <p className="rounded-lg border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-4 py-3 text-xs text-amber-900 surface-dark:text-amber-200">Schedule entries are local-time mock previews. No reminders, recurrence, or calendar integration is active.</p>
+      {status && <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">{status}</p>}
       {showForm && !isStudent && (
         <Card>
           <CardHeader><CardTitle>Add a demo session</CardTitle><CardDescription>This session will appear only in this app session.</CardDescription></CardHeader>
@@ -131,19 +131,19 @@ export function ClassroomScheduleView({ classroom, role }: { classroom: Classroo
         </Card>
       )}
       {classroom.sessions.length === 0 ? (
-        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">No demo sessions scheduled.</CardContent></Card>
+        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600 surface-dark:text-muted-foreground">No demo sessions scheduled.</CardContent></Card>
       ) : (
         <ol className="space-y-3">
           {classroom.sessions.map((session) => (
             <li key={session.id}>
               <Card>
                 <CardContent className="flex flex-wrap items-center gap-3 py-4">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><CalendarDays aria-hidden="true" className="size-4" /></span>
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300"><CalendarDays aria-hidden="true" className="size-4" /></span>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-semibold text-slate-900">{session.title}</h4>
-                    <p className="mt-1 text-sm text-slate-600">{session.date} · {session.time} · {session.meetingNote}</p>
+                    <h4 className="font-semibold text-slate-900 surface-dark:text-foreground">{session.title}</h4>
+                    <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">{session.date} · {session.time} · {session.meetingNote}</p>
                   </div>
-                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo</Badge>
+                  <Badge variant="outline" className="border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300">Demo</Badge>
                 </CardContent>
               </Card>
             </li>
@@ -166,26 +166,26 @@ export function ClassroomAttendanceView({ classroom, role }: { classroom: Classr
   return (
     <section className="space-y-4" aria-labelledby="attendance-heading">
       <div>
-        <h3 id="attendance-heading" className="text-lg font-semibold text-slate-900">Attendance</h3>
-        <p className="mt-1 text-sm text-slate-600">{isStudent ? "Your permitted attendance preview for this class." : "Educator-managed attendance preview for this class."}</p>
+        <h3 id="attendance-heading" className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Attendance</h3>
+        <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">{isStudent ? "Your permitted attendance preview for this class." : "Educator-managed attendance preview for this class."}</p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">Attendance here is mock data and does not create an official record. It is recorded explicitly by the teacher, never inferred from meeting presence.</p>
-      {status && <p role="status" className="text-sm text-amber-800">{status}</p>}
+      <p className="rounded-lg border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-4 py-3 text-xs text-amber-900 surface-dark:text-amber-200">Attendance here is mock data and does not create an official record. It is recorded explicitly by the teacher, never inferred from meeting presence.</p>
+      {status && <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">{status}</p>}
       {sessions.length === 0 ? (
-        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">Add a demo session before viewing attendance.</CardContent></Card>
+        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600 surface-dark:text-muted-foreground">Add a demo session before viewing attendance.</CardContent></Card>
       ) : sessions.map((session) => (
         <Card key={session.id}>
           <CardHeader><CardTitle className="text-base">{session.title}</CardTitle><CardDescription>{session.date} · {session.time} · demo</CardDescription></CardHeader>
           <CardContent>
             {visibleMembers.length === 0 ? (
-              <p className="text-sm text-slate-600">No demo learner attendance to display.</p>
+              <p className="text-sm text-slate-600 surface-dark:text-muted-foreground">No demo learner attendance to display.</p>
             ) : (
               <ul className="space-y-3">
                 {visibleMembers.map((member) => {
                   const record = classroom.attendance.find((item) => item.sessionId === session.id && item.learnerId === member.id)
                   return (
-                    <li key={member.id} className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                      <span className="text-sm font-medium text-slate-800">{isStudent ? "You · demo learner" : member.name}</span>
+                    <li key={member.id} className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 surface-dark:border-border pt-3">
+                      <span className="text-sm font-medium text-slate-800 surface-dark:text-foreground">{isStudent ? "You · demo learner" : member.name}</span>
                       {isStudent ? (
                         <Badge variant="outline">{record?.status ?? "Not recorded · demo"}</Badge>
                       ) : (
@@ -201,7 +201,7 @@ export function ClassroomAttendanceView({ classroom, role }: { classroom: Classr
                             markAttendance(classroom.id, session.id, member.id, nextStatus)
                             setStatus(`${member.name}'s attendance preview was changed for this session only.`)
                           }}
-                          className="h-9 rounded-md border border-slate-300 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          className="h-9 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         >
                           <option value="" disabled>Select status</option>
                           {statuses.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -230,12 +230,12 @@ export function ClassroomProgressView({ classroom, role }: { classroom: Classroo
   return (
     <section className="space-y-4" aria-labelledby="progress-heading">
       <div>
-        <h3 id="progress-heading" className="text-lg font-semibold text-slate-900">{isStudent ? "Your released results" : classroom.ownerWorkspace === "tutors" || classroom.ownerWorkspace === "esl" ? "Learner evaluations" : "Grades & progress"}</h3>
-        <p className="mt-1 text-sm text-slate-600">{isStudent ? "Only your released classroom feedback is shown." : `Mock learning records for ${classroom.name}.`}</p>
+        <h3 id="progress-heading" className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">{isStudent ? "Your released results" : classroom.ownerWorkspace === "tutors" || classroom.ownerWorkspace === "esl" ? "Learner evaluations" : "Grades & progress"}</h3>
+        <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">{isStudent ? "Only your released classroom feedback is shown." : `Mock learning records for ${classroom.name}.`}</p>
       </div>
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">Preview records only. These are not official grades or saved progress.</p>
+      <p className="rounded-lg border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-4 py-3 text-xs text-amber-900 surface-dark:text-amber-200">Preview records only. These are not official grades or saved progress.</p>
       {progress.length === 0 ? (
-        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600">{isStudent ? "No released demo results yet." : "No demo evaluations yet."}</CardContent></Card>
+        <Card className="border-dashed"><CardContent className="py-8 text-sm text-slate-600 surface-dark:text-muted-foreground">{isStudent ? "No released demo results yet." : "No demo evaluations yet."}</CardContent></Card>
       ) : (
         <ul className="space-y-3">
           {progress.map((record) => (
@@ -244,12 +244,12 @@ export function ClassroomProgressView({ classroom, role }: { classroom: Classroo
                 <CardContent className="py-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h4 className="font-semibold text-slate-900">{record.activityTitle}</h4>
-                      {!isStudent && <p className="mt-1 text-xs text-slate-500">{record.learnerName}</p>}
+                      <h4 className="font-semibold text-slate-900 surface-dark:text-foreground">{record.activityTitle}</h4>
+                      {!isStudent && <p className="mt-1 text-xs text-slate-500 surface-dark:text-muted-foreground">{record.learnerName}</p>}
                     </div>
                     <Badge variant="outline">{record.evaluation} · {record.released ? 'Released' : 'Unreleased'}</Badge>
                   </div>
-                  {record.feedback && <p className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700">{record.feedback}</p>}
+                  {record.feedback && <p className="mt-3 whitespace-pre-wrap text-sm leading-5 text-slate-700 surface-dark:text-foreground">{record.feedback}</p>}
                 </CardContent>
               </Card>
             </li>

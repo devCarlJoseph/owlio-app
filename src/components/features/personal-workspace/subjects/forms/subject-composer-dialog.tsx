@@ -136,7 +136,7 @@ function SubjectComposerForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">
+        <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">
           {subject ? "Customize subject" : "New subject"}
         </DialogTitle>
       </DialogHeader>
@@ -144,10 +144,10 @@ function SubjectComposerForm({
       <div className="grid gap-4">
         {subject ? (
           <fieldset className="grid gap-3">
-            <legend className="text-xs font-medium text-slate-500">Background</legend>
+            <legend className="text-xs font-medium text-slate-500 surface-dark:text-muted-foreground">Background</legend>
 
             <div className="grid gap-2">
-              <p className="text-xs font-medium text-slate-600">Illustration</p>
+              <p className="text-xs font-medium text-slate-600 surface-dark:text-muted-foreground">Illustration</p>
               <div className="flex flex-wrap gap-2" role="group" aria-label="Background illustration">
                 {subjectCoverPresets.map((preset) => {
                   const isActive = coverImage === preset.file
@@ -179,7 +179,7 @@ function SubjectComposerForm({
             </div>
 
             <div className="grid gap-2">
-              <p className="text-xs font-medium text-slate-600">Colour</p>
+              <p className="text-xs font-medium text-slate-600 surface-dark:text-muted-foreground">Colour</p>
               <div className="flex flex-wrap gap-2" role="group" aria-label="Background colour">
                 {subjectCoverColors.map((color) => {
                   const isActive = color.value === coverColor && coverImage === null
@@ -206,7 +206,7 @@ function SubjectComposerForm({
             </div>
 
             <div className="grid gap-2">
-              <FieldLabel htmlFor="subject-cover-image" className="text-slate-700">
+              <FieldLabel htmlFor="subject-cover-image" className="text-slate-700 surface-dark:text-foreground">
                 Background image
               </FieldLabel>
               <div className="flex flex-wrap items-center gap-2">
@@ -216,7 +216,7 @@ function SubjectComposerForm({
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="block w-full max-w-xs text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full max-w-xs text-sm text-slate-600 surface-dark:text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 surface-dark:file:bg-surface-blue-soft file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 surface-dark:file:text-blue-300 hover:file:bg-blue-100 surface-dark:hover:file:bg-surface-blue-soft"
                 />
                 {coverImage ? (
                   <Button type="button" variant="outline" size="sm" onClick={handleRemoveImage}>
@@ -225,7 +225,7 @@ function SubjectComposerForm({
                   </Button>
                 ) : null}
               </div>
-              <FieldDescription className="text-slate-500">
+              <FieldDescription className="text-slate-500 surface-dark:text-muted-foreground">
                 Optional. Stored in this browser only, up to {subjectCoverImageLimitLabel}.
               </FieldDescription>
               {coverError ? (
@@ -236,14 +236,14 @@ function SubjectComposerForm({
             </div>
 
             {coverImage ? (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-2">
                 <img
                   src={coverImage}
                   alt=""
                   aria-hidden="true"
                   className="size-12 rounded-lg object-cover"
                 />
-                <p className="text-xs leading-5 text-slate-500">
+                <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
                   This image is now the subject background.
                 </p>
               </div>
@@ -252,7 +252,7 @@ function SubjectComposerForm({
         ) : null}
 
         <Field data-invalid={nameError !== null}>
-          <FieldLabel htmlFor="subject-name" className="text-slate-700">
+          <FieldLabel htmlFor="subject-name" className="text-slate-700 surface-dark:text-foreground">
             Subject name
           </FieldLabel>
           <Input
@@ -263,14 +263,14 @@ function SubjectComposerForm({
             aria-describedby={nameError ? "subject-name-error" : undefined}
             placeholder="e.g. Physics I"
             autoComplete="off"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <FieldError id="subject-name-error">{nameError}</FieldError>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="subject-code" className="text-slate-700">
-            Code <span className="font-normal text-slate-400">(optional)</span>
+          <FieldLabel htmlFor="subject-code" className="text-slate-700 surface-dark:text-foreground">
+            Code <span className="font-normal text-slate-400 surface-dark:text-muted-foreground">(optional)</span>
           </FieldLabel>
           <Input
             id="subject-code"
@@ -278,13 +278,13 @@ function SubjectComposerForm({
             onChange={(event) => setCode(event.currentTarget.value)}
             placeholder="e.g. SCI-PHY1"
             autoComplete="off"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="subject-instructor" className="text-slate-700">
-            Instructor <span className="font-normal text-slate-400">(optional)</span>
+          <FieldLabel htmlFor="subject-instructor" className="text-slate-700 surface-dark:text-foreground">
+            Instructor <span className="font-normal text-slate-400 surface-dark:text-muted-foreground">(optional)</span>
           </FieldLabel>
           <Input
             id="subject-instructor"
@@ -292,9 +292,9 @@ function SubjectComposerForm({
             onChange={(event) => setInstructor(event.currentTarget.value)}
             placeholder="e.g. Ramon Diaz"
             autoComplete="off"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
-          <FieldDescription className="text-slate-500">{subjectsGuidance}</FieldDescription>
+          <FieldDescription className="text-slate-500 surface-dark:text-muted-foreground">{subjectsGuidance}</FieldDescription>
         </Field>
       </div>
 

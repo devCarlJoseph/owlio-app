@@ -11,15 +11,15 @@ export default function TutorMaterialsView() {
     >
       <div className="grid gap-4 md:grid-cols-3">
         <TutorSection title="Learner context" description="Select an authorized learner or group before attaching a resource.">
-          <Users aria-hidden="true" className="size-5 text-blue-700" />
-          <Link className="text-sm font-semibold text-blue-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" to="/tutors/learners">Open My Learners</Link>
+          <Users aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
+          <Link className="text-sm font-semibold text-blue-700 surface-dark:text-blue-300 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" to="/tutors/learners">Open My Learners</Link>
         </TutorSection>
         <TutorSection title="Session context" description="Materials may be linked to an appointment when sessions are available.">
-          <BookOpenText aria-hidden="true" className="size-5 text-blue-700" />
-          <Link className="text-sm font-semibold text-blue-700 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" to="/tutors/sessions">Open Sessions</Link>
+          <BookOpenText aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
+          <Link className="text-sm font-semibold text-blue-700 surface-dark:text-blue-300 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" to="/tutors/sessions">Open Sessions</Link>
         </TutorSection>
         <TutorSection title="Tutor library" description="Browse, upload, preview, and share only when storage rules are confirmed.">
-          <FolderOpen aria-hidden="true" className="size-5 text-blue-700" />
+          <FolderOpen aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
         </TutorSection>
       </div>
       <TutorUnavailable

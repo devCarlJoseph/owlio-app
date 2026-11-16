@@ -28,7 +28,7 @@ function NoteChecklistPreview({
   onToggleItem: (note: NoteRecord, itemId: string) => void
 }) {
   if (note.items.length === 0) {
-    return <p className="text-sm italic leading-5 text-slate-500">No checklist items yet.</p>
+    return <p className="text-sm italic leading-5 text-slate-500 surface-dark:text-muted-foreground">No checklist items yet.</p>
   }
 
   return (
@@ -43,7 +43,7 @@ function NoteChecklistPreview({
           />
           <span
             className={`text-sm leading-5 ${
-              item.done ? "text-slate-400 line-through" : "text-slate-700"
+              item.done ? "text-slate-400 surface-dark:text-muted-foreground line-through" : "text-slate-700 surface-dark:text-foreground"
             }`}
           >
             {item.text}
@@ -67,7 +67,7 @@ export function NoteCard({ note, variant, actions }: NoteCardProps) {
 
   if (variant === "list") {
     return (
-      <Card size="sm" className="border border-slate-200 bg-white shadow-sm ring-0">
+      <Card size="sm" className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
         <CardContent className="flex-row items-center gap-3">
           <span
             aria-hidden="true"
@@ -78,11 +78,11 @@ export function NoteCard({ note, variant, actions }: NoteCardProps) {
             <button
               type="button"
               onClick={() => actions.onOpen(note)}
-              className="block w-full truncate text-left text-sm font-semibold text-slate-900 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="block w-full truncate text-left text-sm font-semibold text-slate-900 surface-dark:text-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               {getNoteTitle(note)}
             </button>
-            <p className="truncate text-xs text-slate-500">
+            <p className="truncate text-xs text-slate-500 surface-dark:text-muted-foreground">
               {note.kind === "checklist"
                 ? `${doneItems} of ${note.items.length} done`
                 : note.body || "No text yet"}
@@ -91,7 +91,7 @@ export function NoteCard({ note, variant, actions }: NoteCardProps) {
 
           <NoteLabels labels={note.labels} onLabelClick={actions.onSelectTag} max={2} />
 
-          <span className="hidden shrink-0 items-center gap-1 text-[11px] text-slate-500 sm:flex">
+          <span className="hidden shrink-0 items-center gap-1 text-[11px] text-slate-500 surface-dark:text-muted-foreground sm:flex">
             {note.pinned ? <Pin aria-hidden="true" className="size-3" /> : null}
             <time dateTime={note.updatedAt}>{formatNoteTimestamp(note.updatedAt)}</time>
           </span>
@@ -111,12 +111,12 @@ export function NoteCard({ note, variant, actions }: NoteCardProps) {
   return (
     <Card
       size="sm"
-      className={`h-full border border-slate-200/80 shadow-sm ring-0 ${colorMeta.card}`}
+      className={`h-full border border-slate-200/80 surface-dark:border-border/80 shadow-sm ring-0 ${colorMeta.card}`}
     >
       <CardContent className="flex-1 gap-2">
         <div className="flex items-start justify-between gap-2">
           {title ? (
-            <h4 className="min-w-0 flex-1 text-sm font-semibold leading-5 text-slate-900">
+            <h4 className="min-w-0 flex-1 text-sm font-semibold leading-5 text-slate-900 surface-dark:text-foreground">
               <button
                 type="button"
                 onClick={() => actions.onOpen(note)}
@@ -146,14 +146,14 @@ export function NoteCard({ note, variant, actions }: NoteCardProps) {
             onClick={() => actions.onOpen(note)}
             className="block w-full rounded text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
           >
-            <span className="line-clamp-4 text-sm leading-6 text-slate-700">{note.body}</span>
+            <span className="line-clamp-4 text-sm leading-6 text-slate-700 surface-dark:text-foreground">{note.body}</span>
           </button>
         )}
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
           <NoteLabels labels={note.labels} onLabelClick={actions.onSelectTag} max={2} />
 
-          <span className="flex shrink-0 items-center gap-1 text-[11px] text-slate-500">
+          <span className="flex shrink-0 items-center gap-1 text-[11px] text-slate-500 surface-dark:text-muted-foreground">
             {note.pinned ? <Pin aria-hidden="true" className="size-3" /> : null}
             <time dateTime={note.updatedAt}>{formatNoteTimestamp(note.updatedAt)}</time>
           </span>

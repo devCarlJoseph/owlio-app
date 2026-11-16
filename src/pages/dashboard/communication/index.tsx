@@ -52,10 +52,10 @@ export default function CommunicationPage() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <section className="relative isolate overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 p-6 text-white shadow-sm sm:p-8">
-        <div aria-hidden="true" className="absolute -right-14 -top-24 -z-10 size-72 rounded-full border border-teal-200/10" />
-        <div aria-hidden="true" className="absolute -right-2 -top-12 -z-10 size-48 rounded-full border border-teal-200/10" />
+        <div aria-hidden="true" className="absolute -right-14 -top-24 -z-10 size-72 rounded-full border border-teal-200/10 surface-dark:border-surface-teal-border/10" />
+        <div aria-hidden="true" className="absolute -right-2 -top-12 -z-10 size-48 rounded-full border border-teal-200/10 surface-dark:border-surface-teal-border/10" />
         <div className="max-w-3xl">
-          <Badge className="border border-teal-200/20 bg-teal-300/10 text-teal-100 hover:bg-teal-300/10">
+          <Badge className="border border-teal-200/20 surface-dark:border-surface-teal-border/20 bg-teal-300/10 surface-dark:bg-surface-teal-strong/10 text-teal-100 hover:bg-teal-300/10 surface-dark:hover:bg-surface-teal-strong/10">
             Shared workspace
           </Badge>
           <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">Communication</h2>
@@ -75,13 +75,13 @@ export default function CommunicationPage() {
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.8fr)]">
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="communication-feed-title">
-          <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm" aria-labelledby="communication-feed-title">
+          <div className="flex flex-col gap-3 border-b border-slate-100 surface-dark:border-border p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
-              <h3 id="communication-feed-title" className="text-base font-semibold text-slate-900">Your communication</h3>
-              <p className="mt-1 text-sm text-slate-500">Choose a format to see its context and availability.</p>
+              <h3 id="communication-feed-title" className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Your communication</h3>
+              <p className="mt-1 text-sm text-slate-500 surface-dark:text-muted-foreground">Choose a format to see its context and availability.</p>
             </div>
-            <Badge variant="outline" className="w-fit border-amber-200 bg-amber-50 text-amber-800">
+            <Badge variant="outline" className="w-fit border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300">
               Not connected
             </Badge>
           </div>
@@ -97,8 +97,8 @@ export default function CommunicationPage() {
                   onClick={() => setActiveType(id)}
                   className={`flex min-h-11 items-center justify-center gap-2 rounded-lg border px-2 py-2 text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 sm:text-sm ${
                     selected
-                      ? "border-teal-200 bg-teal-50 text-teal-900"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      ? "border-teal-200 surface-dark:border-surface-teal-border bg-teal-50 surface-dark:bg-surface-teal-soft text-teal-900 surface-dark:text-teal-200"
+                      : "border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
                   }`}
                 >
                   <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -109,14 +109,14 @@ export default function CommunicationPage() {
           </div>
 
           <div className="px-4 pb-5 sm:px-6 sm:pb-6">
-            <div className="relative flex min-h-72 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-5 py-8 text-center">
-              <div aria-hidden="true" className="absolute -right-8 -top-8 size-36 rounded-full bg-teal-100/50 blur-2xl" />
-              <div className="relative flex size-14 items-center justify-center rounded-2xl border border-teal-100 bg-white text-teal-700 shadow-sm">
+            <div className="relative flex min-h-72 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/70 surface-dark:bg-background/70 px-5 py-8 text-center">
+              <div aria-hidden="true" className="absolute -right-8 -top-8 size-36 rounded-full bg-teal-100/50 surface-dark:bg-surface-teal-soft/50 blur-2xl" />
+              <div className="relative flex size-14 items-center justify-center rounded-2xl border border-teal-100 surface-dark:border-surface-teal-border bg-white surface-dark:bg-card text-teal-700 surface-dark:text-teal-300 shadow-sm">
                 <ActiveIcon className="size-6" aria-hidden="true" />
               </div>
-              <h4 className="relative mt-4 text-base font-semibold text-slate-900">{activeItem.heading}</h4>
-              <p className="relative mt-2 max-w-md text-sm leading-6 text-slate-600">{activeItem.description}</p>
-              <p className="relative mt-4 max-w-lg text-xs leading-5 text-slate-500" role="status">
+              <h4 className="relative mt-4 text-base font-semibold text-slate-900 surface-dark:text-foreground">{activeItem.heading}</h4>
+              <p className="relative mt-2 max-w-md text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">{activeItem.description}</p>
+              <p className="relative mt-4 max-w-lg text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground" role="status">
                 Posts, replies, and polls are not connected yet, so this page is not showing live activity.
               </p>
             </div>
@@ -124,14 +124,14 @@ export default function CommunicationPage() {
         </section>
 
         <aside className="space-y-5" aria-label="Communication context">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-800">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 surface-dark:bg-surface-cyan-soft text-cyan-800 surface-dark:text-cyan-300">
                 <BookOpenText className="size-5" aria-hidden="true" />
               </span>
               <div>
-                <h3 className="text-sm font-semibold text-slate-900">Start with a space</h3>
-                <p className="mt-1 text-sm leading-5 text-slate-600">
+                <h3 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">Start with a space</h3>
+                <p className="mt-1 text-sm leading-5 text-slate-600 surface-dark:text-muted-foreground">
                   Messages should stay with the class, lesson, or group they are about.
                 </p>
               </div>
@@ -140,7 +140,7 @@ export default function CommunicationPage() {
               <Button
                 render={<Link to={classroomsHref} />}
                 variant="outline"
-                className="mt-5 w-full justify-between border-slate-200 text-slate-700 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-900"
+                className="mt-5 w-full justify-between border-slate-200 surface-dark:border-border text-slate-700 surface-dark:text-foreground hover:border-teal-200 surface-dark:hover:border-surface-teal-border hover:bg-teal-50 surface-dark:hover:bg-surface-teal-soft hover:text-teal-900 surface-dark:hover:text-teal-200"
               >
                 <span className="inline-flex items-center gap-2">
                   <School className="size-4" aria-hidden="true" />
@@ -152,14 +152,14 @@ export default function CommunicationPage() {
           </section>
 
           {isStudentWorkspace && (
-            <section className="rounded-2xl border border-sky-200 bg-sky-50/60 p-5 shadow-sm sm:p-6">
+            <section className="rounded-2xl border border-sky-200 surface-dark:border-surface-sky-border bg-sky-50/60 surface-dark:bg-surface-sky-soft/60 p-5 shadow-sm sm:p-6">
               <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-sky-800">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white surface-dark:bg-card text-sky-800 surface-dark:text-sky-300">
                   <Users className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">Peer spaces stay peer-led</h3>
-                  <p className="mt-1 text-sm leading-5 text-slate-600">
+                  <h3 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">Peer spaces stay peer-led</h3>
+                  <p className="mt-1 text-sm leading-5 text-slate-600 surface-dark:text-muted-foreground">
                     Study-space conversations are separate from official classroom records.
                   </p>
                 </div>
@@ -167,7 +167,7 @@ export default function CommunicationPage() {
               <Button
                 render={<Link to="/students/study-spaces" />}
                 variant="outline"
-                className="mt-5 w-full justify-between border-sky-200 bg-white text-sky-900 hover:bg-sky-100"
+                className="mt-5 w-full justify-between border-sky-200 surface-dark:border-surface-sky-border bg-white surface-dark:bg-card text-sky-900 surface-dark:text-sky-200 hover:bg-sky-100 surface-dark:hover:bg-surface-sky-soft"
               >
                 Open study spaces
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -175,7 +175,7 @@ export default function CommunicationPage() {
             </section>
           )}
 
-          <p className="px-1 text-xs leading-5 text-slate-500">
+          <p className="px-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
             Communication features are a UI preview only. Creating, sending, replying, and voting require a supported service.
           </p>
         </aside>

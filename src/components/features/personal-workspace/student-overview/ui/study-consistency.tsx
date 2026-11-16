@@ -4,12 +4,12 @@ import { weekDayLabels } from "../contents/student-overview-copy"
 
 export function StudyConsistency() {
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+    <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
       <CardHeader>
         <CardTitle>
-          <h3 className="text-base font-semibold text-slate-900">Study consistency</h3>
+          <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Study consistency</h3>
         </CardTitle>
-        <CardDescription className="mt-1 text-slate-500">Your activity across the current week.</CardDescription>
+        <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">Your activity across the current week.</CardDescription>
       </CardHeader>
       <CardContent className="gap-4">
         <ul className="grid grid-cols-7 gap-2">
@@ -19,11 +19,11 @@ export function StudyConsistency() {
                 className="size-9 rounded-full motion-reduce:animate-none"
                 aria-hidden="true"
               />
-              <span className="text-[11px] font-medium text-slate-400">{day}</span>
+              <span className="text-[11px] font-medium text-slate-400 surface-dark:text-muted-foreground">{day}</span>
             </li>
           ))}
         </ul>
-        <p className="text-sm leading-5 text-slate-500">
+        <p className="text-sm leading-5 text-slate-500 surface-dark:text-muted-foreground">
           Study history is not connected, so no streak is counted.
         </p>
       </CardContent>

@@ -12,8 +12,8 @@ export function StatusChip({ status, className }: { status: ClassroomStatus; cla
       className={cn(
         "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-medium",
         status.tone === "demo"
-          ? "border-amber-200 bg-amber-50 text-amber-800"
-          : "border-emerald-200 bg-emerald-50 text-emerald-800",
+          ? "border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300"
+          : "border-emerald-200 surface-dark:border-surface-emerald-border bg-emerald-50 surface-dark:bg-surface-emerald-soft text-emerald-800 surface-dark:text-emerald-300",
         className
       )}
     >
@@ -26,8 +26,8 @@ export function StatusChip({ status, className }: { status: ClassroomStatus; cla
 export function MetaCell({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] text-slate-500">{label}</p>
-      <div className="mt-0.5 truncate text-sm font-medium text-slate-900">{children}</div>
+      <p className="text-[11px] text-slate-500 surface-dark:text-muted-foreground">{label}</p>
+      <div className="mt-0.5 truncate text-sm font-medium text-slate-900 surface-dark:text-foreground">{children}</div>
     </div>
   )
 }
@@ -46,7 +46,7 @@ export function FilterPills({
   onValueChange: (value: string) => void
 }) {
   return (
-    <div role="group" aria-label={label} className="flex min-w-0 gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-1 [scrollbar-width:none]">
+    <div role="group" aria-label={label} className="flex min-w-0 gap-1 overflow-x-auto rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-1 [scrollbar-width:none]">
       {options.map((option) => {
         const active = option.value === value
 
@@ -58,11 +58,11 @@ export function FilterPills({
             onClick={() => onValueChange(option.value)}
             className={cn(
               "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand",
-              active ? "bg-white font-medium text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+              active ? "bg-white surface-dark:bg-card font-medium text-slate-900 surface-dark:text-foreground shadow-sm" : "text-slate-600 surface-dark:text-muted-foreground hover:text-slate-900 surface-dark:hover:text-foreground"
             )}
           >
             {option.label}
-            <span className={cn("text-xs", active ? "text-brand-soft-foreground" : "text-slate-500")}>{option.count}</span>
+            <span className={cn("text-xs", active ? "text-brand-soft-foreground" : "text-slate-500 surface-dark:text-muted-foreground")}>{option.count}</span>
           </button>
         )
       })}
@@ -82,12 +82,12 @@ export function GridListToggle({ value, onValueChange }: { value: ClassroomView;
         if (selected === "grid" || selected === "list") onValueChange(selected)
       }}
       spacing={1}
-      className="rounded-xl border border-slate-200 bg-slate-50 p-1"
+      className="rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-1"
     >
-      <ToggleGroupItem value="grid" aria-label="Grid view" title="Grid view" className="size-8 rounded-lg data-[pressed]:bg-white data-[pressed]:shadow-sm">
+      <ToggleGroupItem value="grid" aria-label="Grid view" title="Grid view" className="size-8 rounded-lg data-[pressed]:bg-white surface-dark:data-[pressed]:bg-card data-[pressed]:shadow-sm">
         <LayoutGrid aria-hidden="true" className="size-4" />
       </ToggleGroupItem>
-      <ToggleGroupItem value="list" aria-label="List view" title="List view" className="size-8 rounded-lg data-[pressed]:bg-white data-[pressed]:shadow-sm">
+      <ToggleGroupItem value="list" aria-label="List view" title="List view" className="size-8 rounded-lg data-[pressed]:bg-white surface-dark:data-[pressed]:bg-card data-[pressed]:shadow-sm">
         <List aria-hidden="true" className="size-4" />
       </ToggleGroupItem>
     </ToggleGroup>

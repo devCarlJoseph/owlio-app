@@ -7,13 +7,13 @@ import type { OverviewContent } from "../types/overview-types"
 
 export function DashboardOverview({ content }: { content: OverviewContent }) {
   return (
-    <div className="mx-auto w-full max-w-7xl rounded-[2rem] bg-gradient-to-br from-slate-100 via-cyan-50/60 to-brand-soft/60 p-3 text-foreground sm:p-5 lg:p-6">
+    <div className="mx-auto w-full max-w-7xl rounded-[2rem] bg-gradient-to-br from-slate-100 surface-dark:from-muted via-cyan-50/60 surface-dark:via-surface-cyan-soft/60 to-brand-soft/60 p-3 text-foreground sm:p-5 lg:p-6">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3 px-1">
         <div>
           <p className="text-xs font-medium text-muted-foreground">{content.workspace}</p>
           <h2 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Overview</h2>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-white bg-white/70 px-3 py-2 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white surface-dark:border-border bg-white/70 surface-dark:bg-card/70 px-3 py-2 text-xs text-muted-foreground">
           <CircleDashed className="size-3.5" aria-hidden="true" />Overview preview
         </span>
       </header>

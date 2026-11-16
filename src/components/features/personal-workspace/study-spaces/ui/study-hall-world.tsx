@@ -159,7 +159,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
         camera={{ position: [20, 46, 50], fov: 38, near: 0.5, far: 600 }}
         aria-label="3D study hall city. Each building is a study space; the labels above buildings are buttons."
         fallback={
-          <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-600">
+          <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-600 surface-dark:text-muted-foreground">
             The 3D study hall could not start because WebGL is unavailable. Switch to the list view.
           </div>
         }
@@ -182,10 +182,10 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
 
       {mode === "walk" && character ? (
         <div className="pointer-events-none absolute left-3 top-[4.5rem] z-10 flex flex-wrap items-center gap-2 max-sm:top-32">
-          <span className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm">
+          <span className="rounded-full bg-white/95 surface-dark:bg-card/95 px-3 py-1.5 text-xs font-semibold text-slate-800 surface-dark:text-foreground shadow-sm">
             Owlio Study Hall · Street {street}
           </span>
-          <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-white/95 py-1 pl-1 pr-1.5 text-xs font-medium text-slate-700 shadow-sm">
+          <span className="pointer-events-auto flex items-center gap-1 rounded-full bg-white/95 surface-dark:bg-card/95 py-1 pl-1 pr-1.5 text-xs font-medium text-slate-700 surface-dark:text-foreground shadow-sm">
             <span className="size-5 rounded-full border-2" style={{ backgroundColor: character.bodyColor, borderColor: character.accentColor }} aria-hidden="true" />
             {character.name}
             <Button
@@ -204,7 +204,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
 
       {empty ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-6">
-          <p className="max-w-xs rounded-2xl bg-white/95 px-5 py-4 text-center text-sm leading-6 text-slate-700 shadow-md">
+          <p className="max-w-xs rounded-2xl bg-white/95 surface-dark:bg-card/95 px-5 py-4 text-center text-sm leading-6 text-slate-700 surface-dark:text-foreground shadow-md">
             No study spaces match. Clear the search, or create or join a space to add a building.
           </p>
         </div>
@@ -212,9 +212,9 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
 
       <div className="absolute bottom-3 left-3 z-10 flex max-w-[calc(100%-6rem)] flex-col items-start gap-2">
         {infoOpen ? (
-          <div id="study-hall-info" className="w-80 max-w-full rounded-2xl border border-slate-200 bg-white/95 p-4 text-xs leading-5 text-slate-700 shadow-lg">
+          <div id="study-hall-info" className="w-80 max-w-full rounded-2xl border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 p-4 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-lg">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-slate-900">About the study hall</p>
+              <p className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">About the study hall</p>
               <Button type="button" variant="ghost" size="icon-xs" aria-label="Close study hall info" onClick={() => setInfoOpen(false)}>
                 <X aria-hidden="true" />
               </Button>
@@ -222,13 +222,13 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
             <p>{studySpacesGuidance}</p>
             <p className="mt-2">{studySpacesStorageNotice}</p>
             {locked.length > 0 ? <p className="mt-2">{studySpacesDiscoveryCaption}</p> : null}
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-slate-500 surface-dark:text-muted-foreground">
               Focus towers, group halls and study cafés each have one discussion table inside. Owlio Plaza and the
               fountain are for gathering; the cars and traffic lights are decorative.
             </p>
           </div>
         ) : null}
-        <div className="flex flex-wrap items-center gap-2 rounded-full bg-white/95 px-2 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 rounded-full bg-white/95 surface-dark:bg-card/95 px-2 py-1.5 text-[11px] font-medium text-slate-700 surface-dark:text-foreground shadow-sm">
           <Button
             type="button"
             variant="ghost"
@@ -243,7 +243,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
           <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />Yours</span>
           <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-blue-500" aria-hidden="true" />Joined</span>
           <span className="flex items-center gap-1 pr-1"><Lock className="size-3" aria-hidden="true" />Locked</span>
-          <span aria-hidden="true" className="h-4 w-px bg-slate-200" />
+          <span aria-hidden="true" className="h-4 w-px bg-slate-200 surface-dark:bg-muted" />
           <Button
             type="button"
             variant="ghost"
@@ -265,13 +265,13 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
             <span className="hidden text-xs text-slate-300 sm:inline">
               {statusLabel(nearby)} · press <kbd className="rounded bg-white/15 px-1.5 font-sans">E</kbd>
             </span>
-            <Button type="button" size="sm" className="rounded-full bg-white text-slate-900 hover:bg-slate-100" onClick={() => activate(nearby)}>
+            <Button type="button" size="sm" className="rounded-full bg-white surface-dark:bg-card text-slate-900 surface-dark:text-foreground hover:bg-slate-100 surface-dark:hover:bg-muted" onClick={() => activate(nearby)}>
               {nearby.role === "visitor" ? <Lock aria-hidden="true" /> : <DoorOpen aria-hidden="true" />}
               {nearby.role === "visitor" ? "Enter code" : "Enter"}
             </Button>
           </div>
         ) : (
-          <p className="hidden rounded-full bg-white/90 px-4 py-1.5 text-center text-[11px] leading-4 text-slate-600 shadow-sm md:block">
+          <p className="hidden rounded-full bg-white/90 surface-dark:bg-card/90 px-4 py-1.5 text-center text-[11px] leading-4 text-slate-600 surface-dark:text-muted-foreground shadow-sm md:block">
             {mode === "walk"
               ? "Walk with WASD or the arrow keys · click the ground to move · walk up to a door to enter"
               : "Drag to move · scroll to zoom · right-drag to rotate · click a building to open it"}
@@ -282,7 +282,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
       <div className="absolute bottom-3 right-3 z-10 flex flex-col items-end gap-2">
         {mode === "walk" ? <WalkPad onPress={walk.setPad} /> : null}
         <div className="flex items-end gap-2">
-          <div role="group" aria-label="Map mode" className="flex rounded-full bg-white/95 p-1 shadow-sm">
+          <div role="group" aria-label="Map mode" className="flex rounded-full bg-white/95 surface-dark:bg-card/95 p-1 shadow-sm">
             <Button
               type="button"
               size="sm"
@@ -306,7 +306,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
               Walk
             </Button>
           </div>
-          <div className="flex flex-col items-center gap-1 rounded-xl bg-white/95 p-1 shadow-sm">
+          <div className="flex flex-col items-center gap-1 rounded-xl bg-white/95 surface-dark:bg-card/95 p-1 shadow-sm">
             <Button type="button" variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => handleRef.current?.zoomBy(1.25)}>
               <Plus aria-hidden="true" />
             </Button>
@@ -339,7 +339,7 @@ function WalkPad({ onPress }: { onPress: (key: WalkKey, pressed: boolean) => voi
       type="button"
       tabIndex={-1}
       className={cn(
-        "flex size-9 touch-none items-center justify-center rounded-lg bg-white/95 text-slate-700 shadow-sm active:bg-slate-200",
+        "flex size-9 touch-none items-center justify-center rounded-lg bg-white/95 surface-dark:bg-card/95 text-slate-700 surface-dark:text-foreground shadow-sm active:bg-slate-200 surface-dark:active:bg-muted",
         className
       )}
       onPointerDown={(event) => {
@@ -597,7 +597,7 @@ function Roads({ layout }: { layout: CityLayout }) {
         })
       )}
       {roadsZ.slice(1).map((z, index) => (
-        <Html key={`street-${z}`} position={[-width / 2 + 3.2, 0.1, z]} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
+        <Html key={`street-${z}`} position={[-width / 2 + 3.2, 0.1, z]} center zIndexRange={[5, 0]} className="pointer-events-none">
           <span className="whitespace-nowrap rounded-full bg-blue-600 px-2.5 py-0.5 text-[11px] font-semibold text-white shadow-sm">
             Street {index + 1}
           </span>
@@ -721,22 +721,22 @@ function BuildingLabel({
   const ariaLabel = locked ? `${space.name} — locked preview, needs a space code (map)` : `Open ${space.name} (map)`
 
   return (
-    <Html position={[0, y, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
+    <Html position={[0, y, 0]} center zIndexRange={[20, 0]} className="pointer-events-none">
       <div className="group relative flex justify-center">
         <button
           type="button"
           aria-label={ariaLabel}
           onClick={onActivate}
           className={cn(
-            "pointer-events-auto flex max-w-44 items-center gap-1.5 whitespace-nowrap rounded-full border bg-white/95 py-1 pl-1.5 pr-2.5 text-[11px] font-semibold text-slate-900 shadow-md outline-none transition-transform focus-visible:ring-2 focus-visible:ring-blue-500",
-            highlighted ? "scale-110 border-blue-400" : "border-white"
+            "pointer-events-auto flex max-w-44 items-center gap-1.5 whitespace-nowrap rounded-full border bg-white/95 surface-dark:bg-card/95 py-1 pl-1.5 pr-2.5 text-[11px] font-semibold text-slate-900 surface-dark:text-foreground shadow-md outline-none transition-transform focus-visible:ring-2 focus-visible:ring-blue-500",
+            highlighted ? "scale-110 border-blue-400" : "border-white surface-dark:border-border"
           )}
         >
           <span
             aria-hidden="true"
             className={cn(
               "flex size-4 shrink-0 items-center justify-center rounded-full",
-              locked ? "bg-slate-200 text-slate-600" : role === "owner" ? "bg-emerald-500" : "bg-blue-500"
+              locked ? "bg-slate-200 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground" : role === "owner" ? "bg-emerald-500" : "bg-blue-500"
             )}
           >
             {locked ? <Lock className="size-2.5" /> : null}
@@ -745,16 +745,16 @@ function BuildingLabel({
         </button>
         <div
           role="tooltip"
-          className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 hidden w-52 -translate-x-1/2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left shadow-md group-focus-within:block group-hover:block"
+          className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 hidden w-52 -translate-x-1/2 rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-3 py-2 text-left shadow-md group-focus-within:block group-hover:block"
         >
-          <p className="text-xs font-semibold text-slate-900">{space.name}</p>
-          <p className="text-[11px] leading-4 text-slate-600">
+          <p className="text-xs font-semibold text-slate-900 surface-dark:text-foreground">{space.name}</p>
+          <p className="text-[11px] leading-4 text-slate-600 surface-dark:text-muted-foreground">
             {kindLabel(space.kind)} · {space.capacity} seats
           </p>
-          <p className="text-[11px] font-medium leading-4 text-slate-800">
+          <p className="text-[11px] font-medium leading-4 text-slate-800 surface-dark:text-foreground">
             {locked ? studySpacesLockedTooltip : statusLabel(lot)}
           </p>
-          <p className="text-[11px] leading-4 text-slate-500">
+          <p className="text-[11px] leading-4 text-slate-500 surface-dark:text-muted-foreground">
             {locked ? "Preview only — not opened" : `${metaLine(space)} · browser only`}
           </p>
         </div>
@@ -847,7 +847,7 @@ function Walker({
         getMode={() => figureMode.current}
         reducedMotion={reducedMotion}
       />
-      <Html position={[0, 2.2, 0]} center zIndexRange={[25, 0]} style={{ pointerEvents: "none" }}>
+      <Html position={[0, 2.2, 0]} center zIndexRange={[25, 0]} className="pointer-events-none">
         <span className="block whitespace-nowrap rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-medium text-white shadow">
           {character.name} · you
         </span>

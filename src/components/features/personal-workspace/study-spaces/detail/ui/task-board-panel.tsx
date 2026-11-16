@@ -50,13 +50,13 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
-      className="absolute inset-y-3 right-3 z-20 flex w-96 max-w-[94%] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+      className="absolute inset-y-3 right-3 z-20 flex w-96 max-w-[94%] flex-col overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2">
-        <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
-          <ClipboardList className="size-4 text-emerald-800" aria-hidden="true" />
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 surface-dark:border-border px-3 py-2">
+        <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">
+          <ClipboardList className="size-4 text-emerald-800 surface-dark:text-emerald-300" aria-hidden="true" />
           Group task board
-          <Badge variant="secondary" className="bg-slate-100 text-slate-600">
+          <Badge variant="secondary" className="bg-slate-100 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground">
             {isLeader ? "You are the leader" : "Group mate"}
           </Badge>
         </p>
@@ -65,18 +65,18 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
         </Button>
       </div>
 
-      <p className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">{roomTasksNotice}</p>
+      <p className="border-b border-slate-100 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-3 py-2 text-xs leading-5 text-slate-600 surface-dark:text-muted-foreground">{roomTasksNotice}</p>
 
       <ul aria-label="Group tasks" className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {tasks.length === 0 ? (
-          <li className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-xs text-slate-500">
+          <li className="rounded-lg border border-dashed border-slate-200 surface-dark:border-border p-4 text-center text-xs text-slate-500 surface-dark:text-muted-foreground">
             {isLeader ? "No tasks yet. Add the first task for your group below." : "The leader has not set any tasks."}
           </li>
         ) : null}
         {tasks.map((task, index) => {
           const tickable = canTickTask(task)
           return (
-            <li key={task.id} className="rounded-lg border border-slate-200 p-2">
+            <li key={task.id} className="rounded-lg border border-slate-200 surface-dark:border-border p-2">
               <div className="flex items-start gap-2">
                 <input
                   type="checkbox"
@@ -87,12 +87,12 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
                   className="mt-1 size-4 accent-emerald-700"
                 />
                 <label htmlFor={`task-${task.id}`} className="min-w-0 flex-1">
-                  <span className={`block text-sm font-medium ${task.done ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                  <span className={`block text-sm font-medium ${task.done ? "text-slate-400 surface-dark:text-muted-foreground line-through" : "text-slate-800 surface-dark:text-foreground"}`}>
                     {task.title}
                   </span>
-                  {task.notes ? <span className="block text-xs text-slate-500">{task.notes}</span> : null}
-                  <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
-                    <Badge variant="outline" className="border-slate-200 text-slate-600">
+                  {task.notes ? <span className="block text-xs text-slate-500 surface-dark:text-muted-foreground">{task.notes}</span> : null}
+                  <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-slate-500 surface-dark:text-muted-foreground">
+                    <Badge variant="outline" className="border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground">
                       {assigneeLabel(task.assignee, people)}
                     </Badge>
                     {task.due ? <span>Due {task.due}</span> : null}
@@ -123,7 +123,7 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
 
       {isLeader ? (
         <form
-          className="space-y-2 border-t border-slate-100 p-3"
+          className="space-y-2 border-t border-slate-100 surface-dark:border-border p-3"
           onSubmit={(event) => {
             event.preventDefault()
             submit()
@@ -145,7 +145,7 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
               id="task-assignee"
               value={assignee}
               onChange={(event) => setAssignee(event.target.value)}
-              className="h-8 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-sm"
+              className="h-8 min-w-0 flex-1 rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-2 text-sm"
             >
               <option value="everyone">Everyone</option>
               <option value="me">Me</option>
@@ -163,11 +163,11 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
               type="date"
               value={due}
               onChange={(event) => setDue(event.target.value)}
-              className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-sm"
+              className="h-8 rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-2 text-sm"
             />
           </div>
           {error ? (
-            <p role="alert" className="text-xs text-red-700">
+            <p role="alert" className="text-xs text-red-700 surface-dark:text-red-300">
               {error}
             </p>
           ) : null}
@@ -177,7 +177,7 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
           </Button>
         </form>
       ) : (
-        <p className="border-t border-slate-100 px-3 py-2 text-xs text-slate-500">
+        <p className="border-t border-slate-100 surface-dark:border-border px-3 py-2 text-xs text-slate-500 surface-dark:text-muted-foreground">
           Only the space leader can add or remove tasks. You can tick the tasks that are yours.
         </p>
       )}

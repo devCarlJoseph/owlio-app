@@ -140,12 +140,12 @@ export function StudySpaceDetailView() {
   if (!space) {
     return (
       <div className="mx-auto w-full max-w-3xl">
-        <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+        <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
           <CardHeader>
             <CardTitle>
-              <h2 className="text-lg font-semibold text-slate-900">Study space not found</h2>
+              <h2 className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Study space not found</h2>
             </CardTitle>
-            <CardDescription className="text-slate-600">
+            <CardDescription className="text-slate-600 surface-dark:text-muted-foreground">
               This space is not saved in this browser. It may have been removed or created on another
               device.
             </CardDescription>
@@ -287,26 +287,26 @@ export function StudySpaceDetailView() {
       className={cn(
         "flex w-full flex-col gap-2",
         expanded
-          ? "fixed inset-0 z-40 bg-slate-100 p-2"
+          ? "fixed inset-0 z-40 bg-slate-100 surface-dark:bg-muted p-2"
           : "mx-auto h-[calc(100svh-6rem)] min-h-[560px] sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
       )}
     >
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-3 py-2 shadow-sm">
         <div className="flex min-w-0 items-center gap-2">
-          <h2 className="truncate text-base font-semibold tracking-tight text-slate-900">
+          <h2 className="truncate text-base font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">
             {space.name}
           </h2>
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+          <Badge variant="secondary" className="bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300">
             {space.role === "owner" ? "Created by you" : "Joined"}
           </Badge>
           <Badge
             variant="outline"
-            className="border-amber-300 bg-amber-50 text-amber-800"
+            className="border-amber-300 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300"
             title={studySpaceRoomPreviewNotice}
           >
             Local preview
           </Badge>
-          <span className="hidden text-xs text-slate-500 sm:inline">
+          <span className="hidden text-xs text-slate-500 surface-dark:text-muted-foreground sm:inline">
             {freeSeats} of {tableSeats.length} table seats open
           </span>
         </div>
@@ -353,7 +353,7 @@ export function StudySpaceDetailView() {
           >
             <RotateCcw aria-hidden="true" />
           </Button>
-          <span aria-hidden="true" className="mx-1 h-5 w-px bg-slate-200" />
+          <span aria-hidden="true" className="mx-1 h-5 w-px bg-slate-200 surface-dark:bg-muted" />
           <Button
             type="button"
             variant="ghost"
@@ -471,7 +471,7 @@ export function StudySpaceDetailView() {
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-[#e8eef6] shadow-sm">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-[#e8eef6] shadow-sm">
         {character ? (
           <div className="absolute inset-0">
           <SpaceRoomScene
@@ -507,7 +507,7 @@ export function StudySpaceDetailView() {
         )}
 
         {!noticeDismissed ? (
-          <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs leading-5 text-slate-700 shadow-sm">
+          <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
             <p className="flex-1">
               {studySpaceRoomPreviewNotice}
               {samplePeople.length > 0 ? ` ${sampleRosterNotice}` : ""}
@@ -516,7 +516,7 @@ export function StudySpaceDetailView() {
               type="button"
               onClick={() => setNoticeDismissed(true)}
               aria-label="Dismiss preview notice"
-              className="shrink-0 rounded text-slate-400 outline-none hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="shrink-0 rounded text-slate-400 surface-dark:text-muted-foreground outline-none hover:text-slate-900 surface-dark:hover:text-foreground focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               ×
             </button>
@@ -597,9 +597,9 @@ export function StudySpaceDetailView() {
           {timer.status === "finished" ? " Focus timer finished." : ""}
         </p>
 
-        <div className="absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2 shadow-md backdrop-blur">
+        <div className="absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 shadow-md backdrop-blur">
           {seatedSeat ? (
-            <span className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
+            <span className="flex items-center gap-2 rounded-lg border border-emerald-200 surface-dark:border-surface-emerald-border bg-emerald-50 surface-dark:bg-surface-emerald-soft px-2 py-1 text-xs text-emerald-800 surface-dark:text-emerald-300">
               <Armchair className="size-3.5" aria-hidden="true" />
               {napping ? `Resting on ${seatedSeat.name}` : `Seated at ${seatedSeat.name}`}
               <Button
@@ -607,15 +607,15 @@ export function StudySpaceDetailView() {
                 size="xs"
                 variant="ghost"
                 onClick={standUp}
-                className="text-emerald-700 hover:text-emerald-900"
+                className="text-emerald-700 surface-dark:text-emerald-300 hover:text-emerald-900 surface-dark:hover:text-emerald-200"
               >
                 {napping ? "Get up" : "Stand up"}
               </Button>
             </span>
           ) : (
-            <span className="hidden items-center gap-2 text-xs text-slate-500 md:flex">
+            <span className="hidden items-center gap-2 text-xs text-slate-500 surface-dark:text-muted-foreground md:flex">
               <span>Choose a seat in the room</span>
-              <span aria-hidden="true" className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">
+              <span aria-hidden="true" className="rounded bg-slate-100 surface-dark:bg-muted px-1.5 py-0.5 font-medium text-slate-600 surface-dark:text-muted-foreground">
                 WASD to walk
               </span>
             </span>
@@ -638,7 +638,7 @@ export function StudySpaceDetailView() {
               placeholder={character ? "Say something in this room…" : "Create your character to chat"}
               disabled={!character}
               maxLength={200}
-              className="rounded-full border-slate-200 bg-slate-50"
+              className="rounded-full border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
             />
             <Button
               type="submit"
@@ -652,20 +652,20 @@ export function StudySpaceDetailView() {
           </form>
 
           {standHint ? (
-            <span role="status" className="rounded-lg bg-amber-100 px-2 py-1 text-xs text-amber-900">
+            <span role="status" className="rounded-lg bg-amber-100 surface-dark:bg-surface-amber-soft px-2 py-1 text-xs text-amber-900 surface-dark:text-amber-200">
               Stand up to walk around.
             </span>
           ) : null}
 
           {activeTrack ? (
-            <span className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700 sm:flex">
-              <Music className="size-3.5 text-emerald-600" aria-hidden="true" />
+            <span className="hidden items-center gap-1 rounded-full border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-2 py-1 text-xs text-slate-700 surface-dark:text-foreground sm:flex">
+              <Music className="size-3.5 text-emerald-600 surface-dark:text-emerald-300" aria-hidden="true" />
               <span className="max-w-28 truncate">{activeTrack.title}</span>
               <button
                 type="button"
                 onClick={() => (music.playback.playing ? music.pause() : music.play(activeTrack))}
                 aria-label={music.playback.playing ? "Pause music" : "Resume music"}
-                className="rounded px-1 text-slate-600 outline-none hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="rounded px-1 text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-slate-900 surface-dark:hover:text-foreground focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 {music.playback.playing ? "Pause" : "Play"}
               </button>
@@ -675,9 +675,9 @@ export function StudySpaceDetailView() {
               type="button"
               onClick={music.toggle}
               aria-label="Play room music"
-              className="hidden items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700 outline-none hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 sm:flex"
+              className="hidden items-center gap-1 rounded-full border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-2 py-1 text-xs text-slate-700 surface-dark:text-foreground outline-none hover:text-slate-900 surface-dark:hover:text-foreground focus-visible:ring-2 focus-visible:ring-blue-500 sm:flex"
             >
-              <Music className="size-3.5 text-emerald-600" aria-hidden="true" />
+              <Music className="size-3.5 text-emerald-600 surface-dark:text-emerald-300" aria-hidden="true" />
               Play music
             </button>
           )}

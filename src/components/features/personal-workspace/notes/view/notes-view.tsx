@@ -199,11 +199,11 @@ export function NotesView() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <nav aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500 surface-dark:text-muted-foreground">
           <li>
             <Link
               to="/students/materials"
-              className="rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="rounded-md font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               Study Library
             </Link>
@@ -214,7 +214,7 @@ export function NotesView() {
           <li>
             <Link
               to="/students/materials/personal"
-              className="rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="rounded-md font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               Personal resources
             </Link>
@@ -222,19 +222,19 @@ export function NotesView() {
           <li aria-hidden="true" className="text-slate-300">
             /
           </li>
-          <li aria-current="page" className="font-medium text-slate-900">
+          <li aria-current="page" className="font-medium text-slate-900 surface-dark:text-foreground">
             Notes
           </li>
         </ol>
       </nav>
 
-      <section className="relative overflow-visible rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-100 via-sky-50 to-blue-200 p-6 shadow-sm sm:p-8">
+      <section className="relative overflow-visible rounded-2xl border border-blue-200 surface-dark:border-surface-blue-border bg-gradient-to-br from-blue-100 surface-dark:from-surface-blue-soft via-sky-50 surface-dark:via-surface-sky-soft to-blue-200 surface-dark:to-surface-blue-strong p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-2xl">
-            <Badge variant="secondary" className="bg-white/80 text-blue-700 ring-1 ring-blue-200">
+            <Badge variant="secondary" className="bg-white/80 surface-dark:bg-card/80 text-blue-700 surface-dark:text-blue-300 ring-1 ring-blue-200 surface-dark:ring-surface-blue-border">
               Personal workspace
             </Badge>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 surface-dark:text-foreground sm:text-3xl">
               Notes
             </h2>
           </div>
@@ -253,7 +253,7 @@ export function NotesView() {
           <button
             type="button"
             aria-label="About Notes"
-            className="group/info relative inline-flex size-9 items-center justify-center rounded-full bg-white/80 text-slate-500 ring-1 ring-blue-200 outline-none transition hover:bg-white hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="group/info relative inline-flex size-9 items-center justify-center rounded-full bg-white/80 surface-dark:bg-card/80 text-slate-500 surface-dark:text-muted-foreground ring-1 ring-blue-200 surface-dark:ring-surface-blue-border outline-none transition hover:bg-white surface-dark:hover:bg-card hover:text-blue-700 surface-dark:hover:text-blue-300 focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <Info aria-hidden="true" className="size-4" />
             <span
@@ -268,26 +268,26 @@ export function NotesView() {
 
       <section
         aria-label="Notes guidance"
-        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3"
+        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft px-4 py-3"
       >
-        <FolderOpen className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
-        <p className="flex-1 text-sm leading-6 text-blue-800">{notesGuidance}</p>
-        <p className="flex w-full items-start gap-2 border-t border-blue-100 pt-2 text-xs leading-5 text-blue-800 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
+        <FolderOpen className="mt-1 size-4 shrink-0 text-blue-700 surface-dark:text-blue-300" aria-hidden="true" />
+        <p className="flex-1 text-sm leading-6 text-blue-800 surface-dark:text-blue-300">{notesGuidance}</p>
+        <p className="flex w-full items-start gap-2 border-t border-blue-100 surface-dark:border-surface-blue-border pt-2 text-xs leading-5 text-blue-800 surface-dark:text-blue-300 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
           <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           {notesStorageNotice}
         </p>
       </section>
 
-      <Card className="overflow-visible border border-slate-200 bg-white shadow-sm ring-0">
+      <Card className="overflow-visible border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <h3 className="text-base font-semibold text-slate-900">Your notes</h3>
+            <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Your notes</h3>
 
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative sm:w-64">
                 <Search
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 surface-dark:text-muted-foreground"
                 />
                 <Input
                   type="search"
@@ -295,14 +295,14 @@ export function NotesView() {
                   onChange={(event) => setQuery(event.currentTarget.value)}
                   aria-label="Search notes"
                   placeholder="Search notes..."
-                  className="h-9 rounded-lg border-slate-200 bg-slate-50 pl-9"
+                  className="h-9 rounded-lg border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background pl-9"
                 />
               </div>
 
               <div
                 role="group"
                 aria-label="Note layout"
-                className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1"
+                className="inline-flex rounded-lg border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-1"
               >
                 {(
                   [
@@ -322,8 +322,8 @@ export function NotesView() {
                       onClick={() => setView(option.value)}
                       className={`inline-flex size-8 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
                         isActive
-                          ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-500 hover:text-slate-900"
+                          ? "bg-white surface-dark:bg-card text-slate-900 surface-dark:text-foreground shadow-sm"
+                          : "text-slate-500 surface-dark:text-muted-foreground hover:text-slate-900 surface-dark:hover:text-foreground"
                       }`}
                     >
                       <OptionIcon aria-hidden="true" className="size-4" />
@@ -344,12 +344,12 @@ export function NotesView() {
           >
             <TabsList
               variant="line"
-              className="h-auto w-full flex-wrap justify-start gap-1 border-b border-slate-200 pb-px"
+              className="h-auto w-full flex-wrap justify-start gap-1 border-b border-slate-200 surface-dark:border-border pb-px"
             >
               {noteBuckets.map((item) => (
                 <TabsTrigger key={item} value={item} className="flex-none gap-2">
                   {notesBucketLabels[item]}
-                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-slate-500 group-data-[variant=line]/tabs-list:data-active:bg-blue-50 group-data-[variant=line]/tabs-list:data-active:text-blue-700">
+                  <span className="rounded-full bg-slate-100 surface-dark:bg-muted px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-slate-500 surface-dark:text-muted-foreground group-data-[variant=line]/tabs-list:data-active:bg-blue-50 group-data-[variant=line]/tabs-list:data-active:text-blue-700">
                     {countNotesInBucket(notes, item)}
                   </span>
                 </TabsTrigger>
@@ -371,13 +371,13 @@ export function NotesView() {
                       size="sm"
                       variant="outline"
                       onClick={() => setActiveLabel(null)}
-                      className="w-fit border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                      className="w-fit border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
                     >
                       {activeLabel}
                       <X aria-hidden="true" />
                       <span className="sr-only">Clear label filter</span>
                     </Button>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 surface-dark:text-muted-foreground">
                       Showing one label of {bucketNotes.length}{" "}
                       {bucketNotes.length === 1 ? "note" : "notes"}.
                     </span>
@@ -434,7 +434,7 @@ export function NotesView() {
             )}
           </div>
 
-          <p className="text-xs leading-5 text-slate-500">{notesStorageNotice}</p>
+          <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{notesStorageNotice}</p>
         </CardContent>
       </Card>
 

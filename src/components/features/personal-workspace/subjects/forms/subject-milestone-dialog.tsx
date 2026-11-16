@@ -65,13 +65,13 @@ function SubjectMilestoneForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">
+        <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">
           {milestone ? "Edit milestone" : "Add milestone"}
         </DialogTitle>
       </DialogHeader>
 
       <Field data-invalid={titleError !== null}>
-        <FieldLabel htmlFor="milestone-title" className="text-slate-700">
+        <FieldLabel htmlFor="milestone-title" className="text-slate-700 surface-dark:text-foreground">
           Milestone
         </FieldLabel>
         <Input
@@ -82,7 +82,7 @@ function SubjectMilestoneForm({
           aria-describedby={titleError ? "milestone-title-error" : undefined}
           placeholder="e.g. Newton's laws of motion"
           autoComplete="off"
-          className="border-slate-200 bg-slate-50"
+          className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
         />
         <FieldError id="milestone-title-error">{titleError}</FieldError>
       </Field>

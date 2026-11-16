@@ -12,7 +12,6 @@ import { ClassroomInformation } from '../ui/classroom-information'
 import { ClassroomDetailHeader } from '../ui/classroom-detail-header'
 import { ClassroomSectionNavigation } from '../ui/classroom-section-navigation'
 import { classroomSections } from '../contents/classroom-sections'
-import '../ui/classroom-detail.css'
 
 const desktopQuery = '(min-width: 1024px)'
 function subscribeToLayout(callback: () => void) {
@@ -23,7 +22,7 @@ function subscribeToLayout(callback: () => void) {
 function isDesktopLayout() { return window.matchMedia?.(desktopQuery).matches ?? false }
 
 const sections = classroomSections
-const card = 'classroom-panel'
+const card = 'rounded-xl border border-border bg-card shadow-none'
 
 export function ClassroomDetailView() {
   const desktop = useSyncExternalStore(subscribeToLayout, isDesktopLayout, () => false)

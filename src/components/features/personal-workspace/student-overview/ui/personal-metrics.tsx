@@ -4,16 +4,16 @@ import { personalMetricTiles } from "../contents/student-overview-copy"
 
 export function PersonalMetrics() {
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+    <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <CardTitle>
-              <h3 className="text-base font-semibold text-slate-900">My learning</h3>
+              <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">My learning</h3>
             </CardTitle>
-            <CardDescription className="mt-1 text-slate-500">Counts from your own workspace.</CardDescription>
+            <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">Counts from your own workspace.</CardDescription>
           </div>
-          <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
+          <Badge variant="outline" className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-600 surface-dark:text-muted-foreground">
             No data yet
           </Badge>
         </div>
@@ -21,14 +21,14 @@ export function PersonalMetrics() {
       <CardContent className="gap-1">
         {personalMetricTiles.map(({ label, icon: Icon }) => (
           <div key={label} className="flex items-center gap-3 rounded-xl px-2 py-2">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300">
               <Icon className="size-4" aria-hidden="true" />
             </span>
-            <span className="flex-1 text-sm font-medium text-slate-800">{label}</span>
-            <span className="size-10 shrink-0 rounded-full border-[5px] border-slate-100" aria-hidden="true" />
+            <span className="flex-1 text-sm font-medium text-slate-800 surface-dark:text-foreground">{label}</span>
+            <span className="size-10 shrink-0 rounded-full border-[5px] border-slate-100 surface-dark:border-border" aria-hidden="true" />
           </div>
         ))}
-        <p className="mt-2 px-2 text-xs leading-5 text-slate-500">
+        <p className="mt-2 px-2 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
           These totals are not connected yet, so nothing is counted here.
         </p>
       </CardContent>

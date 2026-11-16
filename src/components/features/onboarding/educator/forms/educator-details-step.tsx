@@ -55,8 +55,8 @@ export function EducatorDetailsStep() {
           <TagInput id="gradeLevels" label="Grade or year levels" optional value={field.value ?? []} onChange={field.onChange} placeholder="Add a grade or year level" />
         )}
       />
-      <div className="flex items-start gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-4 sm:p-5">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 ring-1 ring-slate-200" aria-hidden="true">
+      <div className="flex items-start gap-4 rounded-2xl border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-4 sm:p-5">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white surface-dark:bg-card text-indigo-600 surface-dark:text-indigo-300 ring-1 ring-slate-200 surface-dark:ring-border" aria-hidden="true">
           <Presentation className="size-5" />
         </span>
         <div>

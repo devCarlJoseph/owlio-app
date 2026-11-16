@@ -17,8 +17,8 @@ export default function TutorStudentProgressView() {
       <div className="grid gap-4 md:grid-cols-3">
         {evidence.map(({ title, description, icon: Icon }) => (
           <TutorSection key={title} title={title}>
-            <p className="text-sm leading-6 text-slate-600">{description}</p>
-            <Icon aria-hidden="true" className="size-5 text-blue-700" />
+            <p className="text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">{description}</p>
+            <Icon aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
           </TutorSection>
         ))}
       </div>

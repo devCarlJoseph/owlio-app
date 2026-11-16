@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { editorSelectClass } from "./document-editor"
 import { createSlide, createWorkId, type LibraryWork, type WorkSlide } from "../utils/work-records"
 
-const themes = { paper: "bg-white text-slate-900", sage: "bg-emerald-50 text-emerald-950", midnight: "bg-slate-900 text-white" }
+const themes = { paper: "bg-white surface-dark:bg-card text-slate-900 surface-dark:text-foreground", sage: "bg-emerald-50 surface-dark:bg-surface-emerald-soft text-emerald-950 surface-dark:text-emerald-200", midnight: "bg-slate-900 text-white" }
 
 export function SlidePreview({ slide }: { slide: WorkSlide }) {
   return <div data-theme-content className={`flex aspect-video flex-col justify-center overflow-y-auto rounded-lg border border-black/10 p-5 sm:p-10 ${themes[slide.theme]}`}>

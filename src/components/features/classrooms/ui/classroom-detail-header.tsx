@@ -12,7 +12,7 @@ export function ClassroomDetailHeader({ classroom, owned, meetingHref, onClasswo
   onClasswork: () => void
 }) {
   return (
-    <section aria-label="Classroom group header" className="classroom-detail-header">
+    <section aria-label="Classroom group header" className="rounded-xl border border-border bg-brand-soft p-[18px] sm:p-6">
       <div className="flex min-w-0 items-start gap-4 sm:gap-5">
         <img src={getClassroomCoverUrl(classroom.id)} alt="" className="hidden size-24 shrink-0 rounded-lg object-cover sm:block" />
         <div className="min-w-0 flex-1">

@@ -1,11 +1,44 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource-variable/inter";
-@import "./dark-surfaces.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant surface-dark (&:is(.dark *):not([data-theme-content], [data-theme-content] *));
 
 @theme inline {
+    --color-surface-blue-soft: color-mix(in oklab, var(--color-blue-400) 12%, var(--card));
+    --color-surface-blue-border: color-mix(in oklab, var(--color-blue-400) 35%, var(--border));
+    --color-surface-indigo-soft: color-mix(in oklab, var(--color-indigo-400) 12%, var(--card));
+    --color-surface-indigo-strong: color-mix(in oklab, var(--color-indigo-400) 23%, var(--card));
+    --color-surface-indigo-border: color-mix(in oklab, var(--color-indigo-400) 35%, var(--border));
+    --color-surface-sky-strong: color-mix(in oklab, var(--color-sky-400) 23%, var(--card));
+    --color-surface-emerald-soft: color-mix(in oklab, var(--color-emerald-400) 12%, var(--card));
+    --color-surface-rose-soft: color-mix(in oklab, var(--color-rose-400) 12%, var(--card));
+    --color-surface-violet-soft: color-mix(in oklab, var(--color-violet-400) 12%, var(--card));
+    --color-surface-amber-soft: color-mix(in oklab, var(--color-amber-400) 12%, var(--card));
+    --color-surface-blue-strong: color-mix(in oklab, var(--color-blue-400) 23%, var(--card));
+    --color-surface-violet-strong: color-mix(in oklab, var(--color-violet-400) 23%, var(--card));
+    --color-surface-amber-border: color-mix(in oklab, var(--color-amber-400) 35%, var(--border));
+    --color-surface-emerald-border: color-mix(in oklab, var(--color-emerald-400) 35%, var(--border));
+    --color-surface-sky-soft: color-mix(in oklab, var(--color-sky-400) 12%, var(--card));
+    --color-surface-rose-border: color-mix(in oklab, var(--color-rose-400) 35%, var(--border));
+    --color-surface-orange-soft: color-mix(in oklab, var(--color-orange-400) 12%, var(--card));
+    --color-surface-cyan-soft: color-mix(in oklab, var(--color-cyan-400) 12%, var(--card));
+    --color-surface-rose-strong: color-mix(in oklab, var(--color-rose-400) 23%, var(--card));
+    --color-surface-teal-strong: color-mix(in oklab, var(--color-teal-400) 23%, var(--card));
+    --color-surface-lime-strong: color-mix(in oklab, var(--color-lime-400) 23%, var(--card));
+    --color-surface-sky-border: color-mix(in oklab, var(--color-sky-400) 35%, var(--border));
+    --color-surface-violet-border: color-mix(in oklab, var(--color-violet-400) 35%, var(--border));
+    --color-surface-amber-strong: color-mix(in oklab, var(--color-amber-400) 23%, var(--card));
+    --color-surface-teal-soft: color-mix(in oklab, var(--color-teal-400) 12%, var(--card));
+    --color-surface-emerald-strong: color-mix(in oklab, var(--color-emerald-400) 23%, var(--card));
+    --color-surface-orange-strong: color-mix(in oklab, var(--color-orange-400) 23%, var(--card));
+    --color-surface-cyan-strong: color-mix(in oklab, var(--color-cyan-400) 23%, var(--card));
+    --color-surface-red-soft: color-mix(in oklab, var(--color-red-400) 12%, var(--card));
+    --color-surface-red-border: color-mix(in oklab, var(--color-red-400) 35%, var(--border));
+    --color-surface-orange-border: color-mix(in oklab, var(--color-orange-400) 35%, var(--border));
+    --color-surface-teal-border: color-mix(in oklab, var(--color-teal-400) 35%, var(--border));
+
     --font-heading: var(--font-sans);
     --font-sans: 'Inter Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
@@ -131,23 +164,6 @@
 
 
 
-#root:has([data-dashboard-shell]) {
-  display: flex;
-  height: 100vh;
-  height: 100dvh;
-  flex-direction: column;
-}
-
-#root:has([data-dashboard-shell]) > [role="status"] {
-  flex-shrink: 0;
-}
-
-html:has([data-dashboard-shell]),
-body:has([data-dashboard-shell]) {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -158,4 +174,78 @@ body:has([data-dashboard-shell]) {
   html {
     @apply font-sans;
     }
+}
+
+/* Animation definitions consumed by Tailwind animate-* utilities. */
+@theme {
+  --animate-owlio-breathe: owlio-breathe 7s ease-in-out infinite;
+  --animate-owlio-tilt: owlio-tilt 14s ease-in-out infinite;
+  --animate-owlio-open-eyes: owlio-open-eyes 12s steps(1, end) infinite;
+  --animate-owlio-blink: owlio-blink 12s steps(1, end) infinite;
+  --animate-owlio-welcome: owlio-welcome 1.4s both;
+  --animate-owlio-wave: owlio-wave 1.4s ease-in-out both;
+  --animate-owlio-welcome-eyes: owlio-welcome-eyes 1.4s steps(1, end) both;
+  --animate-owlio-welcome-blink: owlio-welcome-blink 1.4s steps(1, end) both;
+  --animate-owlio-approve: owlio-approve 560ms ease-in-out both;
+  --animate-owlio-nod: owlio-nod 560ms ease-in-out both;
+  --animate-owlio-selection-eyes: owlio-selection-eyes 560ms steps(1, end) both;
+  --animate-owlio-selection-happy: owlio-selection-happy 560ms steps(1, end) both;
+  --animate-owlio-hop: owlio-hop 600ms ease-in-out both;
+  --animate-owlio-hop-shadow: owlio-hop-shadow 600ms ease-in-out both;
+  --animate-owlio-hop-left: owlio-hop-left 600ms ease-in-out both;
+  --animate-owlio-hop-right: owlio-hop-right 600ms ease-in-out both;
+  --animate-owlio-celebrate: owlio-celebrate 1.3s ease-in-out both;
+  --animate-owlio-celebrate-left: owlio-celebrate-left 1.3s ease-in-out both;
+  --animate-owlio-celebrate-right: owlio-celebrate-right 1.3s ease-in-out both;
+  --animate-owlio-celebrate-shadow: owlio-hop-shadow 1.3s ease-in-out both;
+  --animate-owlio-particle: owlio-particle 900ms 180ms ease-out both;
+  --animate-owlio-content-enter: owlio-content-enter 600ms ease-out both;
+  @keyframes owlio-breathe { 0%, 20%, 80%, 100% { transform: scale(1); } 50% { transform: scale(1.008, 1.014); } }
+  @keyframes owlio-tilt { 0%, 68%, 88%, 100% { transform: rotate(0); } 76%, 81% { transform: rotate(-3deg); } }
+  @keyframes owlio-open-eyes { 0%, 40%, 42%, 83%, 85%, 100% { opacity: 1; } 41%, 84% { opacity: 0; } }
+  @keyframes owlio-blink { 0%, 40%, 42%, 83%, 85%, 100% { opacity: 0; } 41%, 84% { opacity: 1; } }
+  @keyframes owlio-welcome {
+    0% { transform: translateY(14px) scale(.98, 1.02); }
+    24% { transform: translateY(-6px) scale(1.01, .99); }
+    40% { transform: translateY(2px) scale(1.02, .98); }
+    56%, 100% { transform: none; }
+  }
+  @keyframes owlio-wave {
+    0% { transform: rotate(16deg); }
+    20%, 46% { transform: rotate(0deg); }
+    33%, 59% { transform: rotate(25deg); }
+    76%, 100% { transform: rotate(42deg); }
+  }
+  @keyframes owlio-welcome-eyes { 0%, 86%, 100% { opacity: 1; } 78% { opacity: 0; } }
+  @keyframes owlio-welcome-blink { 0%, 86%, 100% { opacity: 0; } 78% { opacity: 1; } }
+  @keyframes owlio-approve { 0%, 100% { transform: none; } 45% { transform: scale(1.01, .99); } }
+  @keyframes owlio-nod { 0%, 100% { transform: none; } 20% { transform: translateY(-2px) rotate(-2deg); } 48% { transform: translateY(7px) rotate(3deg); } 75% { transform: translateY(-1px); } }
+  @keyframes owlio-selection-eyes { 0%, 88%, 100% { opacity: 1; } 16% { opacity: 0; } }
+  @keyframes owlio-selection-happy { 0%, 88%, 100% { opacity: 0; } 16% { opacity: 1; } }
+  @keyframes owlio-hop {
+    0%, 100% { transform: none; }
+    18% { transform: translateY(3px) scale(1.025, .97); }
+    47% { transform: translateY(-23px) scale(.985, 1.02); }
+    76% { transform: translateY(3px) scale(1.035, .96); }
+    90% { transform: scale(.995, 1.005); }
+  }
+  @keyframes owlio-hop-shadow { 0%, 100% { transform: scale(1); opacity: 1; } 47% { transform: scale(.82, .9); opacity: .6; } }
+  @keyframes owlio-hop-left { 0%, 100% { transform: rotate(-4deg); } 55% { transform: rotate(10deg); } }
+  @keyframes owlio-hop-right { 0%, 100% { transform: rotate(42deg); } 55% { transform: rotate(26deg); } }
+  @keyframes owlio-celebrate {
+    0%, 100% { transform: none; }
+    15% { transform: translateY(4px) scale(1.035, .96); }
+    38% { transform: translateY(-30px) scale(.98, 1.025); }
+    61% { transform: translateY(4px) scale(1.04, .95); }
+    76% { transform: scale(.99, 1.01); }
+    90% { transform: none; }
+  }
+  @keyframes owlio-celebrate-left { 0% { transform: rotate(-4deg); } 40%, 60% { transform: rotate(45deg); } 100% { transform: rotate(16deg); } }
+  @keyframes owlio-celebrate-right { 0% { transform: rotate(42deg); } 43%, 63% { transform: rotate(0deg); } 100% { transform: rotate(24deg); } }
+  @keyframes owlio-particle {
+    0% { opacity: 0; transform: translate(0, 12px) scale(.5); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--particle-x), var(--particle-y)) rotate(80deg) scale(.7); }
+  }
+  @keyframes owlio-content-enter { 0%, 18% { opacity: 0; transform: translateY(6px); } 65%, 100% { opacity: 1; transform: none; } }
 }

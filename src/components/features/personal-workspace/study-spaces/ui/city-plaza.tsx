@@ -286,7 +286,7 @@ export function Plaza({
         walking={walking}
       />
 
-      <Html position={[plaza.x, 0.2, top + 1.6]} center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
+      <Html position={[plaza.x, 0.2, top + 1.6]} center zIndexRange={[6, 0]} className="pointer-events-none">
         <span className="whitespace-nowrap rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
           Owlio Plaza
         </span>
@@ -386,7 +386,7 @@ export function OwlioFountain({ layout, lamps }: { layout: CityLayout; lamps: nu
         </group>
       ))}
 
-      <Html position={[0, 3.6, 0]} center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
+      <Html position={[0, 3.6, 0]} center zIndexRange={[6, 0]} className="pointer-events-none">
         <span className="whitespace-nowrap rounded-full bg-amber-500 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
           Owlio Fountain
         </span>

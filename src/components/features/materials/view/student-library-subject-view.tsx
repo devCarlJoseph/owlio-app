@@ -37,7 +37,7 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
       <div className="mx-auto w-full max-w-3xl space-y-4">
         <Link
           to={meta.libraryHref}
-          className="inline-flex items-center gap-1 rounded-md text-sm font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="inline-flex items-center gap-1 rounded-md text-sm font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <ChevronLeft aria-hidden="true" className="size-4" />
           {meta.label}
@@ -45,8 +45,8 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
 
         <Card className={cn("shadow-sm ring-0", meta.panelClassName)}>
           <CardContent className="items-center py-10 text-center">
-            <h2 className="text-base font-semibold text-slate-900">Subject not found</h2>
-            <p className="mt-1 max-w-md text-sm leading-6 text-slate-600">
+            <h2 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Subject not found</h2>
+            <p className="mt-1 max-w-md text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">
               There are no resources for this {meta.shortLabel.toLowerCase()} group in your library.
             </p>
             <Link
@@ -68,11 +68,11 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <nav aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500 surface-dark:text-muted-foreground">
           <li>
             <Link
               to="/students/materials"
-              className="rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="rounded-md font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               Study Library
             </Link>
@@ -83,7 +83,7 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
           <li>
             <Link
               to={meta.libraryHref}
-              className="rounded-md font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="rounded-md font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               {meta.label}
             </Link>
@@ -91,7 +91,7 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
           <li aria-hidden="true" className="text-slate-300">
             /
           </li>
-          <li aria-current="page" className="font-medium text-slate-900">
+          <li aria-current="page" className="font-medium text-slate-900 surface-dark:text-foreground">
             {contextName}
           </li>
         </ol>
@@ -108,10 +108,10 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
             <Badge variant="outline" className={meta.badgeClassName}>
               {meta.ownerLabel}
             </Badge>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 surface-dark:text-foreground sm:text-3xl">
               {contextName}
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">
               Every resource you collected for {contextName}.
             </p>
           </div>
@@ -140,8 +140,8 @@ export function StudentLibrarySubjectView({ source }: StudentLibrarySubjectViewP
       <Card className={cn("shadow-sm ring-0", meta.panelClassName)}>
         <CardContent className="gap-4">
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Resources in this library</h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Resources in this library</h3>
+            <p className="mt-1 text-sm text-slate-500 surface-dark:text-muted-foreground">
               {resources.length} {resources.length === 1 ? "resource" : "resources"} collected.
             </p>
           </div>

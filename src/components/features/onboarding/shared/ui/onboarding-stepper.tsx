@@ -28,13 +28,13 @@ export function OnboardingStepper({ activeStep }: OnboardingStepperProps) {
             <li key={id} className="min-w-0" aria-current={isActive ? "step" : undefined}>
               <span
                 className={`block h-1.5 rounded-full transition-colors ${
-                  isActive ? "bg-indigo-600" : isComplete ? "bg-indigo-400" : "bg-slate-200"
+                  isActive ? "bg-indigo-600" : isComplete ? "bg-indigo-400" : "bg-slate-200 surface-dark:bg-muted"
                 }`}
                 aria-hidden="true"
               />
               <span
                 className={`mt-2 hidden truncate text-xs sm:block ${
-                  isActive ? "font-semibold text-foreground" : isComplete ? "text-slate-600" : "text-muted-foreground"
+                  isActive ? "font-semibold text-foreground" : isComplete ? "text-slate-600 surface-dark:text-muted-foreground" : "text-muted-foreground"
                 }`}
               >
                 {label}

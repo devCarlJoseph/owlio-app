@@ -14,14 +14,14 @@ import {
 
 export function SubjectsTable() {
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+    <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <CardTitle>
-              <h3 className="text-base font-semibold text-slate-900">My subjects</h3>
+              <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">My subjects</h3>
             </CardTitle>
-            <CardDescription className="mt-1 text-slate-500">
+            <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">
               Progress and status for each subject you track.
             </CardDescription>
           </div>
@@ -29,7 +29,7 @@ export function SubjectsTable() {
             render={<Link to="/students/subjects" />}
             variant="outline"
             size="sm"
-            className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+            className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
           >
             Manage subjects
             <ArrowUpRight aria-hidden="true" />
@@ -39,14 +39,14 @@ export function SubjectsTable() {
       <CardContent className="gap-4">
         <Table aria-label="Subject progress">
           <TableHeader>
-            <TableRow className="bg-slate-50 hover:bg-slate-50">
-              <TableHead scope="col" className="text-slate-500">
+            <TableRow className="bg-slate-50 surface-dark:bg-background hover:bg-slate-50 surface-dark:hover:bg-background">
+              <TableHead scope="col" className="text-slate-500 surface-dark:text-muted-foreground">
                 Subject
               </TableHead>
-              <TableHead scope="col" className="text-slate-500">
+              <TableHead scope="col" className="text-slate-500 surface-dark:text-muted-foreground">
                 Progress
               </TableHead>
-              <TableHead scope="col" className="text-slate-500">
+              <TableHead scope="col" className="text-slate-500 surface-dark:text-muted-foreground">
                 Status
               </TableHead>
             </TableRow>
@@ -73,7 +73,7 @@ export function SubjectsTable() {
             ))}
           </TableBody>
         </Table>
-        <p className="text-sm leading-5 text-slate-500">
+        <p className="text-sm leading-5 text-slate-500 surface-dark:text-muted-foreground">
           Your subject list is not connected yet, so there is nothing to show here.
         </p>
       </CardContent>

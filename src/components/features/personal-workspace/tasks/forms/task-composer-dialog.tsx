@@ -97,10 +97,10 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">
+        <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">
           {task ? "Edit task" : "New task"}
         </DialogTitle>
-        <DialogDescription className="text-slate-600">
+        <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
           {task
             ? "Update your personal task. Educator-assigned work stays in the classroom."
             : "Plan personal study work. Educator-assigned work stays in the classroom."}
@@ -109,7 +109,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
 
       <div className="grid gap-4">
         <Field data-invalid={titleError !== null}>
-          <FieldLabel htmlFor="task-title" className="text-slate-700">
+          <FieldLabel htmlFor="task-title" className="text-slate-700 surface-dark:text-foreground">
             Title
           </FieldLabel>
           <Input
@@ -119,13 +119,13 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
             aria-invalid={titleError !== null}
             aria-describedby={titleError ? "task-title-error" : undefined}
             placeholder="Finish wave problem set"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <FieldError id="task-title-error">{titleError}</FieldError>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="task-subject" className="text-slate-700">
+          <FieldLabel htmlFor="task-subject" className="text-slate-700 surface-dark:text-foreground">
             Subject
           </FieldLabel>
           <Input
@@ -135,20 +135,20 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
             onChange={(event) => setDraft((current) => ({ ...current, subject: event.target.value }))}
             placeholder="Choose one of your subjects"
             aria-describedby="task-subject-hint"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <datalist id="student-subjects">
             {subjectNames.map((subject) => (
               <option key={subject} value={subject} />
             ))}
           </datalist>
-          <FieldDescription id="task-subject-hint" className="text-slate-500">
+          <FieldDescription id="task-subject-hint" className="text-slate-500 surface-dark:text-muted-foreground">
             Pick a subject you are tracking, or type another one.
           </FieldDescription>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="task-due-date" className="text-slate-700">
+          <FieldLabel htmlFor="task-due-date" className="text-slate-700 surface-dark:text-foreground">
             Due date
           </FieldLabel>
           <Input
@@ -156,12 +156,12 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
             type="date"
             value={draft.dueDate}
             onChange={(event) => setDraft((current) => ({ ...current, dueDate: event.target.value }))}
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
         </Field>
 
         <Field>
-          <FieldLabel className="text-slate-700">Priority</FieldLabel>
+          <FieldLabel className="text-slate-700 surface-dark:text-foreground">Priority</FieldLabel>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Task priority">
             {taskPriorityOptions.map((option) => {
               const isActive = draft.priority === option.value
@@ -177,7 +177,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
                   className={
                     isActive
                       ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                      : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
                   }
                 >
                   {option.label}
@@ -188,7 +188,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
         </Field>
 
         <Field>
-          <FieldLabel className="text-slate-700">Status</FieldLabel>
+          <FieldLabel className="text-slate-700 surface-dark:text-foreground">Status</FieldLabel>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Task status">
             {taskStatusOptions.map((option) => {
               const isActive = draft.status === option.value
@@ -204,7 +204,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
                   className={
                     isActive
                       ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                      : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
                   }
                 >
                   {option.label}
@@ -215,7 +215,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="task-notes" className="text-slate-700">
+          <FieldLabel htmlFor="task-notes" className="text-slate-700 surface-dark:text-foreground">
             Personal notes
           </FieldLabel>
           <Textarea
@@ -224,9 +224,9 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
             value={draft.notes}
             onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))}
             placeholder="Questions 4 to 9 first, then review the diagram."
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
-          <FieldDescription className="text-slate-500">
+          <FieldDescription className="text-slate-500 surface-dark:text-muted-foreground">
             Personal notes stay with your task in this browser. They aren’t sent to educators or synced to an account.
           </FieldDescription>
         </Field>

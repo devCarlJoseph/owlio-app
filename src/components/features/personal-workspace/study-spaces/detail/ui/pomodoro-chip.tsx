@@ -26,7 +26,7 @@ export function PomodoroChip({ timer, onOpen }: { timer: PomodoroControls; onOpe
       size="sm"
       onClick={onOpen}
       aria-label={`${label}. Open focus timer`}
-      className="rounded-full border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+      className="rounded-full border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-700 surface-dark:text-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
     >
       <Timer aria-hidden="true" />
       <span className="tabular-nums">{label}</span>
@@ -39,11 +39,11 @@ export function PomodoroPanel({ timer, onClose }: { timer: PomodoroControls; onC
     <div
       role="dialog"
       aria-label="Focus timer"
-      className="absolute bottom-16 left-3 z-20 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
+      className="absolute bottom-16 left-3 z-20 w-64 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-3 shadow-lg"
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
-          <Timer className="size-4 text-emerald-800" aria-hidden="true" />
+        <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">
+          <Timer className="size-4 text-emerald-800 surface-dark:text-emerald-300" aria-hidden="true" />
           Focus timer
         </p>
         <Button type="button" variant="ghost" size="icon-xs" onClick={onClose} aria-label="Close focus timer">
@@ -51,7 +51,7 @@ export function PomodoroPanel({ timer, onClose }: { timer: PomodoroControls; onC
         </Button>
       </div>
 
-      <div role="group" aria-label="Timer mode" className="mt-2 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+      <div role="group" aria-label="Timer mode" className="mt-2 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 surface-dark:bg-muted p-1">
         {(["focus", "break"] as const).map((mode) => (
           <button
             key={mode}
@@ -60,7 +60,7 @@ export function PomodoroPanel({ timer, onClose }: { timer: PomodoroControls; onC
             disabled={timer.status === "running"}
             onClick={() => timer.selectMode(mode)}
             className={`rounded-md px-2 py-1 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-700 ${
-              timer.mode === mode ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              timer.mode === mode ? "bg-white surface-dark:bg-card text-slate-900 surface-dark:text-foreground shadow-sm" : "text-slate-500 surface-dark:text-muted-foreground hover:text-slate-700 surface-dark:hover:text-foreground"
             }`}
           >
             {`${mode === "focus" ? "Focus" : "Break"} · ${POMODORO_DURATIONS[mode] / 60_000}m`}
@@ -68,10 +68,10 @@ export function PomodoroPanel({ timer, onClose }: { timer: PomodoroControls; onC
         ))}
       </div>
 
-      <p className="mt-3 text-center text-3xl font-semibold tabular-nums tracking-tight text-slate-900">
+      <p className="mt-3 text-center text-3xl font-semibold tabular-nums tracking-tight text-slate-900 surface-dark:text-foreground">
         {formatRemaining(timer.remainingMs)}
       </p>
-      <p className="mt-1 text-center text-xs text-slate-500" role="status">
+      <p className="mt-1 text-center text-xs text-slate-500 surface-dark:text-muted-foreground" role="status">
         {timer.status === "finished"
           ? timer.mode === "focus"
             ? "Focus session complete — take a break."

@@ -71,10 +71,10 @@ function JoinSpaceForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">
+        <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">
           {isPreview ? "Enter this space's code" : "Join a study space"}
         </DialogTitle>
-        <DialogDescription className="text-slate-600">
+        <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
           {isPreview
             ? `"${previewName}" is a sample preview space. Unlocking it only adds it to this browser. `
             : ""}
@@ -85,7 +85,7 @@ function JoinSpaceForm({
 
       <div className="grid gap-4">
         <Field data-invalid={nameError !== null}>
-          <FieldLabel htmlFor="join-space-name" className="text-slate-700">
+          <FieldLabel htmlFor="join-space-name" className="text-slate-700 surface-dark:text-foreground">
             Space name
           </FieldLabel>
           <Input
@@ -96,13 +96,13 @@ function JoinSpaceForm({
             aria-invalid={nameError !== null}
             aria-describedby={nameError ? "join-space-name-error" : undefined}
             placeholder="History Circle"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <FieldError id="join-space-name-error">{nameError}</FieldError>
         </Field>
 
         <Field data-invalid={codeError !== null}>
-          <FieldLabel htmlFor="join-space-code" className="text-slate-700">
+          <FieldLabel htmlFor="join-space-code" className="text-slate-700 surface-dark:text-foreground">
             Invite code or link
           </FieldLabel>
           <Input
@@ -112,9 +112,9 @@ function JoinSpaceForm({
             aria-invalid={codeError !== null}
             aria-describedby={codeError ? "join-space-code-hint join-space-code-error" : "join-space-code-hint"}
             placeholder="PHY-4821"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
-          <p id="join-space-code-hint" className="text-xs leading-5 text-slate-500">
+          <p id="join-space-code-hint" className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
             {studySpacesJoinHint}
           </p>
           <FieldError id="join-space-code-error">{codeError}</FieldError>

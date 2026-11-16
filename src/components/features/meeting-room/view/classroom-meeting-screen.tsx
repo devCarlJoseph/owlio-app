@@ -18,7 +18,7 @@ import type { MeetingPanel, MeetingRoomScreenProps, RoomStatus } from '../types/
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }
 const avatarColors = ['bg-sky-600', 'bg-violet-600', 'bg-emerald-600', 'bg-rose-600', 'bg-amber-600', 'bg-indigo-600', 'bg-teal-600']
-const tileSurface = 'bg-slate-200'
+const tileSurface = 'bg-slate-200 surface-dark:bg-muted'
 
 function colorFor(identity: string) {
   let hash = 0
@@ -49,7 +49,7 @@ function MeetTile({ person, pinned, onPin, updateKey, featured = false, classNam
     {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={person.local} aria-label={`${person.name} video`} className={cn('absolute inset-0 -z-10 size-full', screenTrack ? 'object-contain' : 'object-cover')} />
       : <div className="absolute inset-x-0 top-0 bottom-6 -z-10 grid place-items-center"><MeetAvatar person={person} className={cn('size-12 text-xl supports-[container-type:size]:text-[clamp(.625rem,min(10cqw,12cqh),2.5rem)]', featured ? 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),8rem)]' : 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),6rem)]')} /></div>}
     {person.participant && !person.local && [...person.participant.audioTrackPublications.values()].map(publication => publication.track ? <AudioTrack key={publication.trackSid} track={publication.track} /> : null)}
-    {person.raised && <span title="Hand raised" className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-medium text-amber-700"><Hand aria-hidden="true" className="size-3.5" /><span className="sr-only @[12rem]:not-sr-only">Hand raised</span></span>}
+    {person.raised && <span title="Hand raised" className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-amber-100 surface-dark:bg-surface-amber-soft px-2 py-1 text-[11px] font-medium text-amber-700 surface-dark:text-amber-300"><Hand aria-hidden="true" className="size-3.5" /><span className="sr-only @[12rem]:not-sr-only">Hand raised</span></span>}
     <span role="img" aria-label={speaking ? 'Speaking' : person.micOn ? 'Microphone on' : 'Microphone off'} className={cn('absolute top-2 right-2 grid size-7 place-items-center rounded-full', speaking ? 'bg-brand text-brand-foreground' : 'bg-foreground/55 text-background', person.micOn && !speaking && 'opacity-0 group-hover:opacity-100')}>
       {speaking ? <AudioLines aria-hidden="true" className="size-4" /> : person.micOn ? <Mic aria-hidden="true" className="size-3.5" /> : <MicOff aria-hidden="true" className="size-3.5" />}
     </span>
@@ -68,8 +68,8 @@ function MeetButton({ label, onClick, disabled, pressed, tone, badge, controlRef
     className={cn('relative h-10 rounded-full px-0 disabled:opacity-60 [&_svg:not([class*=size-])]:size-5', tone === 'leave' ? 'w-14' : 'w-10', className,
       tone === 'leave' ? 'bg-rose-600 text-white hover:bg-rose-700 hover:text-white dark:hover:bg-rose-700'
         : tone === 'off' ? 'bg-rose-600 text-white hover:bg-rose-700 hover:text-white dark:hover:bg-rose-700'
-          : tone === 'panel' ? 'text-foreground hover:bg-slate-200 aria-pressed:bg-brand-soft aria-pressed:text-brand-soft-foreground'
-            : 'bg-slate-200 text-foreground hover:bg-slate-100 aria-pressed:bg-brand-soft aria-pressed:text-brand-soft-foreground')}>
+          : tone === 'panel' ? 'text-foreground hover:bg-slate-200 surface-dark:hover:bg-muted aria-pressed:bg-brand-soft aria-pressed:text-brand-soft-foreground'
+            : 'bg-slate-200 surface-dark:bg-muted text-foreground hover:bg-slate-100 surface-dark:hover:bg-muted aria-pressed:bg-brand-soft aria-pressed:text-brand-soft-foreground')}>
     {children}
     {Boolean(badge) && <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 min-w-4.5 rounded-full bg-slate-500 px-1 text-[10px] leading-4.5 font-semibold text-white">{Math.min(badge ?? 0, 99)}</span>}
   </Button>
@@ -141,7 +141,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
 
   if (!inCall) return <section aria-label="Meeting room" data-meeting-design="classroom" className="flex min-w-0 flex-col gap-4 text-foreground">
     <header className="flex items-center gap-3">
-      <Link to={state.backHref} aria-label="Back to Meeting Room" className="grid size-9 shrink-0 place-items-center rounded-full hover:bg-slate-200 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"><ArrowLeft aria-hidden="true" className="size-4" /></Link>
+      <Link to={state.backHref} aria-label="Back to Meeting Room" className="grid size-9 shrink-0 place-items-center rounded-full hover:bg-slate-200 surface-dark:hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"><ArrowLeft aria-hidden="true" className="size-4" /></Link>
       <div className="w-0 min-w-0 flex-1"><h2 className="truncate text-base font-semibold">Meeting room</h2><p className="truncate text-xs text-muted-foreground">{state.meetingCode || 'A space to learn together'}</p></div>
     </header>
     {(state.message || state.error) && <div className="space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
@@ -158,7 +158,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
           <Button type="submit" disabled={state.busy || state.deviceBusy || !state.apiEnabled} className="h-11 rounded-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
         </form>
         {state.canCreate && <Button variant="outline" className="h-11 rounded-full" disabled={state.busy || state.deviceBusy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
-        {!state.apiEnabled && <p role="status" className="rounded-xl bg-slate-200 p-3 text-left text-xs leading-5 text-muted-foreground">Live meetings are currently unavailable. You can preview the layout without connecting or enabling devices.</p>}
+        {!state.apiEnabled && <p role="status" className="rounded-xl bg-slate-200 surface-dark:bg-muted p-3 text-left text-xs leading-5 text-muted-foreground">Live meetings are currently unavailable. You can preview the layout without connecting or enabling devices.</p>}
       </div>
     </div>
   </section>
@@ -169,13 +169,13 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     <header className="flex min-w-0 shrink-0 flex-wrap items-center gap-2">
       <div className="flex min-w-0 flex-1 basis-32 items-center gap-2 sm:basis-0">
         <h2 className="truncate text-sm font-medium">{title}</h2>
-        <span role="status" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-medium whitespace-nowrap"><span aria-hidden="true" className={cn('size-1.5 rounded-full', enabled ? 'bg-emerald-500' : 'bg-slate-500')} />{state.preview ? 'Layout preview' : statusLabels[state.status]}</span>
+        <span role="status" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-200 surface-dark:bg-muted px-2.5 py-1 text-[11px] font-medium whitespace-nowrap"><span aria-hidden="true" className={cn('size-1.5 rounded-full', enabled ? 'bg-emerald-500' : 'bg-slate-500')} />{state.preview ? 'Layout preview' : statusLabels[state.status]}</span>
       </div>
-      <div role="group" aria-label="Video layout" className="flex shrink-0 items-center rounded-full bg-slate-200 p-0.5">
+      <div role="group" aria-label="Video layout" className="flex shrink-0 items-center rounded-full bg-slate-200 surface-dark:bg-muted p-0.5">
         <Button variant="ghost" size="icon-sm" className="rounded-full aria-pressed:bg-card aria-pressed:shadow-xs" title="Grid view" aria-label="Grid view" aria-pressed={!featured && layout === 'grid'} onClick={() => { state.onPin(null); setLayout('grid') }}><Grid2X2 aria-hidden="true" /></Button>
         <Button variant="ghost" size="icon-sm" className="rounded-full aria-pressed:bg-card aria-pressed:shadow-xs" title="Spotlight view" aria-label="Spotlight view" aria-pressed={Boolean(featured) || layout === 'spotlight'} onClick={() => setLayout('spotlight')}><PanelLeft aria-hidden="true" /></Button>
       </div>
-      {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 text-rose-700 hover:text-rose-700" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
+      {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 surface-dark:border-surface-rose-border text-rose-700 surface-dark:text-rose-300 hover:text-rose-700 surface-dark:hover:text-rose-300" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
     </header>
     {state.preview && <p className="shrink-0 text-[11px] text-muted-foreground">Sample classmates · no live people, media, or recording</p>}
     {(state.message || state.error) && <ScrollArea className="min-h-0 min-w-0 shrink-0" viewportClassName="max-h-[20vh] overflow-x-hidden! overscroll-contain" contentClassName="min-w-0! w-full space-y-1 text-xs leading-5 [overflow-wrap:anywhere]">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</ScrollArea>}
@@ -193,7 +193,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
           </>
             : <div className={grid.container}>
               {grid.visible.map(person => tile(person, cn(grid.tile)))}
-              {grid.hidden > 0 && <button type="button" onClick={() => togglePanel('people')} className={cn(grid.tile, 'grid place-items-center rounded-xl text-sm font-medium hover:bg-slate-100', tileSurface)}>+{grid.hidden} others</button>}
+              {grid.hidden > 0 && <button type="button" onClick={() => togglePanel('people')} className={cn(grid.tile, 'grid place-items-center rounded-xl text-sm font-medium hover:bg-slate-100 surface-dark:hover:bg-muted', tileSurface)}>+{grid.hidden} others</button>}
             </div>}
       </section>
       {panel && <aside ref={panelRef} tabIndex={-1} aria-label={panel === 'chat' ? 'In-call messages panel' : panel === 'people' ? 'Participants panel' : 'Meeting details panel'}

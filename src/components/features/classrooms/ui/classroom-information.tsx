@@ -11,7 +11,7 @@ export function ClassroomInformation({ classroom, owned, notice, onAbout, onCopy
 }) {
   return (
     <aside aria-label="Classroom information" className="min-w-0 space-y-4 xl:sticky xl:top-0">
-      <section className="classroom-panel overflow-hidden">
+      <section className="rounded-xl border border-border bg-card shadow-none overflow-hidden">
         <h3 className="border-b border-border px-4 py-3 text-xs font-semibold">Class details</h3>
         <div className="p-4">
           <p className="line-clamp-4 break-words text-sm leading-6 text-muted-foreground">{classroom.description || 'No description provided.'}</p>
@@ -22,7 +22,7 @@ export function ClassroomInformation({ classroom, owned, notice, onAbout, onCopy
           <Button variant="ghost" className="mt-4 h-auto w-full justify-between bg-muted/60 px-2 py-2 text-xs whitespace-normal" onClick={onAbout}>View class information<ChevronRight aria-hidden="true" className="size-4" /></Button>
         </div>
       </section>
-      <details className="classroom-panel p-4">
+      <details className="rounded-xl border border-border bg-card shadow-none p-4">
         <summary className="cursor-pointer rounded-md text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom invite</summary>
         <section aria-label="Classroom invite" className="mt-4 space-y-3">
           <h3 className="text-sm font-semibold">Student invite code</h3>
@@ -37,7 +37,7 @@ export function ClassroomInformation({ classroom, owned, notice, onAbout, onCopy
         </section>
       </details>
       {classroom.meetingCode && (
-        <details className="classroom-panel p-4">
+        <details className="rounded-xl border border-border bg-card shadow-none p-4">
           <summary className="cursor-pointer rounded-md text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom meeting code</summary>
           <code className="mt-3 block select-all break-all rounded-lg bg-muted p-3 text-sm">{classroom.meetingCode}</code>
         </details>

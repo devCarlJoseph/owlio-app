@@ -9,9 +9,9 @@ type AuthFeedbackProps = {
 }
 
 const toneStyles = {
-  info: "border-indigo-200 bg-indigo-50/70 text-indigo-950",
+  info: "border-indigo-200 surface-dark:border-surface-indigo-border bg-indigo-50/70 surface-dark:bg-surface-indigo-soft/70 text-indigo-950 surface-dark:text-indigo-200",
   error: "border-destructive/30 bg-destructive/5 text-foreground",
-  success: "border-indigo-200 bg-indigo-50/70 text-indigo-950",
+  success: "border-indigo-200 surface-dark:border-surface-indigo-border bg-indigo-50/70 surface-dark:bg-surface-indigo-soft/70 text-indigo-950 surface-dark:text-indigo-200",
 }
 
 const toneIcons = {
@@ -31,7 +31,7 @@ export function AuthFeedback({ title, children, tone = "info", preview = false }
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-semibold">{title}</p>
-            {preview && <span className="rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">Preview only</span>}
+            {preview && <span className="rounded-full bg-white/80 surface-dark:bg-card/80 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide">Preview only</span>}
           </div>
           <div className="mt-1 text-sm leading-5">{children}</div>
         </div>

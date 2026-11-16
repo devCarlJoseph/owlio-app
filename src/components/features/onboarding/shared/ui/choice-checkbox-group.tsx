@@ -37,10 +37,10 @@ export function ChoiceCheckboxGroup({ id, label, options, value, onChange, optio
               htmlFor={inputId}
               className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 has-[:focus-visible]:ring-offset-2 ${
                 checked
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-800"
+                  ? "border-indigo-600 bg-indigo-50 surface-dark:bg-surface-indigo-soft text-indigo-800 surface-dark:text-indigo-300"
                   : error
                     ? "border-destructive/60 bg-background text-foreground hover:bg-muted/50"
-                    : "border-border bg-background text-foreground hover:border-indigo-300 hover:bg-muted/40"
+                    : "border-border bg-background text-foreground hover:border-indigo-300 surface-dark:hover:border-surface-indigo-border hover:bg-muted/40"
               }`}
             >
               <input
@@ -54,7 +54,7 @@ export function ChoiceCheckboxGroup({ id, label, options, value, onChange, optio
               />
               <span
                 className={`flex size-4 items-center justify-center rounded-full border ${
-                  checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300"
+                  checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 surface-dark:border-border"
                 }`}
                 aria-hidden="true"
               >

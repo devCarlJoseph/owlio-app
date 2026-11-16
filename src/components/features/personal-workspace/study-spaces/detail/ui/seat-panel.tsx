@@ -34,15 +34,15 @@ export function SeatPanel({ seat, occupied, takenBy = null, onSit, onClose }: Se
     <div
       role="dialog"
       aria-label={`Seat: ${seat.name}`}
-      className="absolute bottom-16 left-1/2 z-20 w-72 max-w-[92%] -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-4 shadow-lg"
+      className="absolute bottom-16 left-1/2 z-20 w-72 max-w-[92%] -translate-x-1/2 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-4 shadow-lg"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <Icon className="size-4 text-emerald-800" aria-hidden="true" />
+          <p className="flex items-center gap-2 text-sm font-semibold text-slate-900 surface-dark:text-foreground">
+            <Icon className="size-4 text-emerald-800 surface-dark:text-emerald-300" aria-hidden="true" />
             {seat.name}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">{seat.characteristic}</p>
+          <p className="mt-0.5 text-xs text-slate-500 surface-dark:text-muted-foreground">{seat.characteristic}</p>
         </div>
         <Button type="button" variant="ghost" size="icon-xs" onClick={onClose} aria-label="Close seat details">
           <X aria-hidden="true" />
@@ -50,16 +50,16 @@ export function SeatPanel({ seat, occupied, takenBy = null, onSit, onClose }: Se
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
+        <Badge variant="outline" className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-600 surface-dark:text-muted-foreground">
           {seat.zoneLabel}
         </Badge>
-        <Badge variant="secondary" className={occupied ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"}>
+        <Badge variant="secondary" className={occupied ? "bg-emerald-50 surface-dark:bg-surface-emerald-soft text-emerald-800 surface-dark:text-emerald-300" : "bg-slate-100 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground"}>
           {status}
         </Badge>
       </div>
 
       {seat.furniture === "mat" && !occupied && !takenBy ? (
-        <p className="mt-2 text-xs leading-5 text-slate-500">
+        <p className="mt-2 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
           Resting shows a napping status in this room preview. It is not shared with other students yet.
         </p>
       ) : null}

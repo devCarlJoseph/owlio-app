@@ -9,7 +9,7 @@ export default function TutorAnnouncementsView() {
       description="Tutor-authored notices need an explicitly selected learner or group audience and service-confirmed publication."
     >
       <TutorSection title="Notice audience" description="No learner/group audience can be selected until authorized tutoring relationships are loaded.">
-        <Megaphone aria-hidden="true" className="size-5 text-blue-700" />
+        <Megaphone aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
       </TutorSection>
       <TutorUnavailable
         title="Announcements are unavailable"

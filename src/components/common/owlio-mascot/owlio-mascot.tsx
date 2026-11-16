@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { OwlioMascotArtwork } from "./owlio-mascot-artwork"
-import "./owlio-mascot.css"
 
 export type OwlioMascotState = "idle" | "welcome" | "selection" | "next" | "complete"
 
@@ -29,7 +28,7 @@ function MascotScene({ state, id }: { state: OwlioMascotState; id: string }) {
   }, [])
 
   return (
-    <div ref={ref} className="owlio-mascot-scene" data-state={settled && state !== "complete" ? "idle" : state}>
+    <div ref={ref} className="owlio-mascot-scene group/scene size-full" data-state={settled && state !== "complete" ? "idle" : state}>
       <OwlioMascotArtwork id={id} />
     </div>
   )
@@ -65,7 +64,7 @@ export function OwlioMascot({ state = "idle", replayKey = 0, size = 240, classNa
   }, [])
 
   return (
-    <div ref={ref} className={cn("owlio-mascot", className)} style={{ width: size }} aria-hidden="true">
+    <div ref={ref} className={cn("owlio-mascot aspect-square max-w-full shrink-0 pointer-events-none select-none data-[motion=paused]:[&_*]:[animation-play-state:paused]! data-[reduced-motion=true]:[&_*]:animate-none! motion-reduce:[&_*]:animate-none!", className)} style={{ width: size }} aria-hidden="true">
       <MascotScene key={`${state}-${replayKey}`} state={state} id={`owlio-${id}`} />
     </div>
   )

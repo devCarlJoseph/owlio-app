@@ -42,16 +42,16 @@ export function LockerPanel({
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
-      className="absolute inset-y-3 left-3 z-20 flex w-80 max-w-[92%] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg motion-safe:animate-in motion-safe:slide-in-from-left-4"
+      className="absolute inset-y-3 left-3 z-20 flex w-80 max-w-[92%] flex-col overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg motion-safe:animate-in motion-safe:slide-in-from-left-4"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2">
-        <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 surface-dark:border-border px-3 py-2">
+        <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">
           {selected ? (
             <Button type="button" variant="ghost" size="icon-xs" aria-label="Back to all lockers" onClick={() => onSelect(null)}>
               <ArrowLeft aria-hidden="true" />
             </Button>
           ) : (
-            <KeyRound className="size-4 text-blue-700" aria-hidden="true" />
+            <KeyRound className="size-4 text-blue-700 surface-dark:text-blue-300" aria-hidden="true" />
           )}
           {selected ? `${selected.owner.name}'s locker` : "Lockers"}
         </p>
@@ -60,7 +60,7 @@ export function LockerPanel({
         </Button>
       </div>
 
-      <p className="border-b border-slate-100 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{lockerPreviewNotice}</p>
+      <p className="border-b border-slate-100 surface-dark:border-border bg-amber-50 surface-dark:bg-surface-amber-soft px-3 py-2 text-xs leading-5 text-amber-900 surface-dark:text-amber-200">{lockerPreviewNotice}</p>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {selected ? (
@@ -72,14 +72,14 @@ export function LockerPanel({
           />
         ) : (
           <ul className="space-y-2" aria-label="Lockers in this room">
-            <li className="rounded-lg border border-blue-200 bg-blue-50/60 p-2">
+            <li className="rounded-lg border border-blue-200 surface-dark:border-surface-blue-border bg-blue-50/60 surface-dark:bg-surface-blue-soft/60 p-2">
               <div className="flex items-center gap-2">
                 <span className="flex size-7 items-center justify-center rounded-md bg-blue-600 text-white">
                   <LockOpen className="size-3.5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900">Your locker</p>
-                  <p className="text-xs text-slate-600">{ownCode ? "Code set" : "No code set"}</p>
+                  <p className="text-sm font-medium text-slate-900 surface-dark:text-foreground">Your locker</p>
+                  <p className="text-xs text-slate-600 surface-dark:text-muted-foreground">{ownCode ? "Code set" : "No code set"}</p>
                 </div>
                 <Button type="button" size="xs" onClick={onOpenMine}>
                   Open
@@ -90,7 +90,7 @@ export function LockerPanel({
             {lockers.map((locker) => {
               const open = unlockedIds.includes(locker.owner.id)
               return (
-                <li key={locker.owner.id} className="flex items-center gap-2 rounded-lg border border-slate-200 p-2">
+                <li key={locker.owner.id} className="flex items-center gap-2 rounded-lg border border-slate-200 surface-dark:border-border p-2">
                   <span
                     aria-hidden="true"
                     className="flex size-7 items-center justify-center rounded-md text-white"
@@ -99,8 +99,8 @@ export function LockerPanel({
                     {open ? <LockOpen className="size-3.5" /> : <Lock className="size-3.5" />}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-900">{locker.owner.name}&apos;s locker</p>
-                    <p className="text-xs text-slate-500">Sample study-mate · {open ? "unlocked" : "locked"}</p>
+                    <p className="truncate text-sm font-medium text-slate-900 surface-dark:text-foreground">{locker.owner.name}&apos;s locker</p>
+                    <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">Sample study-mate · {open ? "unlocked" : "locked"}</p>
                   </div>
                   <Button
                     type="button"
@@ -155,7 +155,7 @@ function OwnCodeForm({ ownCode, onChange }: { ownCode: string | null; onChange: 
       }}
     >
       <Field data-invalid={error !== null}>
-        <FieldLabel htmlFor="own-locker-code" className="text-xs text-slate-700">
+        <FieldLabel htmlFor="own-locker-code" className="text-xs text-slate-700 surface-dark:text-foreground">
           New locker code
         </FieldLabel>
         <Input
@@ -167,11 +167,11 @@ function OwnCodeForm({ ownCode, onChange }: { ownCode: string | null; onChange: 
           onChange={(event) => setDraft(event.target.value.replace(/\D/g, ""))}
           aria-invalid={error !== null}
           aria-describedby="own-locker-code-help"
-          className="h-8 bg-white"
+          className="h-8 bg-white surface-dark:bg-card"
         />
         <FieldError>{error}</FieldError>
       </Field>
-      <p id="own-locker-code-help" className="text-[11px] leading-4 text-slate-500">
+      <p id="own-locker-code-help" className="text-[11px] leading-4 text-slate-500 surface-dark:text-muted-foreground">
         {ownLockerCodeNotice}
       </p>
       <div className="flex gap-2">
@@ -194,16 +194,16 @@ function LockerDetail({ locker, unlocked, onUnlock }: { locker: SampleLocker; un
   if (unlocked) {
     return (
       <div className="space-y-2">
-        <p className="text-xs text-slate-600">
+        <p className="text-xs text-slate-600 surface-dark:text-muted-foreground">
           Files {name} keeps for this room. These are sample entries with nothing to download.
         </p>
         <ul aria-label={`${name}'s files`} className="space-y-2">
           {locker.files.map((file) => (
-            <li key={file.name} className="flex items-start gap-2 rounded-lg border border-slate-200 p-2">
-              <FileText className="mt-0.5 size-4 shrink-0 text-slate-500" aria-hidden="true" />
+            <li key={file.name} className="flex items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border p-2">
+              <FileText className="mt-0.5 size-4 shrink-0 text-slate-500 surface-dark:text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-900">{file.name}</p>
-                <p className="text-xs text-slate-500">
+                <p className="truncate text-sm font-medium text-slate-900 surface-dark:text-foreground">{file.name}</p>
+                <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">
                   {file.size} · {file.note} · sample
                 </p>
               </div>
@@ -227,12 +227,12 @@ function LockerDetail({ locker, unlocked, onUnlock }: { locker: SampleLocker; un
         }
       }}
     >
-      <div className="flex items-center gap-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+      <div className="flex items-center gap-2 rounded-lg bg-slate-50 surface-dark:bg-background p-3 text-sm text-slate-700 surface-dark:text-foreground">
         <Lock className="size-4 shrink-0" aria-hidden="true" />
         Ask {name} for their locker code to see the files they keep here.
       </div>
       <Field data-invalid={error !== null}>
-        <FieldLabel htmlFor="locker-code" className="text-slate-700">
+        <FieldLabel htmlFor="locker-code" className="text-slate-700 surface-dark:text-foreground">
           Locker code
         </FieldLabel>
         <Input
@@ -247,7 +247,7 @@ function LockerDetail({ locker, unlocked, onUnlock }: { locker: SampleLocker; un
         />
         <FieldError id="locker-code-error">{error}</FieldError>
       </Field>
-      <p id="locker-code-hint" className="text-xs leading-5 text-slate-500">
+      <p id="locker-code-hint" className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
         Preview hint: {name} is a sample study-mate, so the demo code is <span className="font-mono font-semibold">{locker.code}</span>.
       </p>
       <Button type="submit" size="sm" className="w-full" disabled={code.length < 4}>

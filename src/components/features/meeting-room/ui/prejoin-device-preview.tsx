@@ -16,7 +16,7 @@ export function PrejoinDevicePreview({ cameraTrack, micOn, cameraOn, disabled, o
     return () => { cameraTrack.detach(video) }
   }, [cameraTrack])
   return <div>
-    <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-slate-200">
+    <div className="relative grid aspect-video place-items-center overflow-hidden rounded-2xl bg-slate-200 surface-dark:bg-muted">
       {cameraTrack ? <video ref={videoRef} autoPlay playsInline muted aria-label="Your camera preview" className="absolute inset-0 size-full -scale-x-100 object-cover" />
         : <div className="flex flex-col items-center gap-3 text-center"><span className="grid size-20 place-items-center rounded-full bg-slate-500 text-white"><VideoOff aria-hidden="true" className="size-8" /></span><p className="text-sm font-medium">Camera is off</p></div>}
       <div role="group" aria-label="Prepare your devices" className="absolute inset-x-0 bottom-4 flex justify-center gap-3">

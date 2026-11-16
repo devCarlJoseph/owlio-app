@@ -26,7 +26,7 @@ export function NapBanner({ onWake }: { onWake: () => void }) {
       role="region"
       aria-label="Nap status"
       className={`absolute left-1/2 top-3 z-20 flex max-w-[94%] -translate-x-1/2 flex-wrap items-center gap-3 rounded-2xl border px-4 py-2 text-sm shadow-lg ${
-        due ? "border-amber-300 bg-amber-50 text-amber-900" : "border-violet-200 bg-violet-50/95 text-violet-900"
+        due ? "border-amber-300 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-900 surface-dark:text-amber-200" : "border-violet-200 surface-dark:border-surface-violet-border bg-violet-50/95 surface-dark:bg-surface-violet-soft/95 text-violet-900 surface-dark:text-violet-200"
       }`}
     >
       <BedDouble className="size-4 shrink-0" aria-hidden="true" />
@@ -41,7 +41,7 @@ export function NapBanner({ onWake }: { onWake: () => void }) {
         <select
           value={reminder}
           onChange={(event) => setReminder(Number(event.target.value))}
-          className="rounded-md border border-violet-200 bg-white px-1.5 py-0.5 text-xs text-slate-800"
+          className="rounded-md border border-violet-200 surface-dark:border-surface-violet-border bg-white surface-dark:bg-card px-1.5 py-0.5 text-xs text-slate-800 surface-dark:text-foreground"
         >
           {REMINDERS.map((minutes) => (
             <option key={minutes} value={minutes}>

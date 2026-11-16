@@ -22,7 +22,7 @@ export function LoginForm({ onSubmit, onGoogle, googlePending }: LoginFormProps)
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
       <GoogleAuthButton onClick={onGoogle} disabled={googlePending} label={googlePending ? 'Connecting to Google…' : 'Continue with Google'} />
-      <div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />or with email<span className="h-px flex-1 bg-slate-200" /></div>
+      <div className="flex items-center gap-3 text-xs text-slate-400 surface-dark:text-muted-foreground"><span className="h-px flex-1 bg-slate-200 surface-dark:bg-muted" />or with email<span className="h-px flex-1 bg-slate-200 surface-dark:bg-muted" /></div>
       <FieldGroup className="gap-3.5">
         <div className="space-y-1.5">
           <Label htmlFor="loginEmail" className="sr-only">Email</Label>
@@ -31,7 +31,7 @@ export function LoginForm({ onSubmit, onGoogle, googlePending }: LoginFormProps)
         </div>
         <AuthPasswordInput id="loginPassword" label="Password" placeholder="Enter your password" autoComplete="current-password" registration={form.register("password")} error={errors.password?.message} />
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <label htmlFor="rememberMe" className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+          <label htmlFor="rememberMe" className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 surface-dark:text-muted-foreground">
             <input id="rememberMe" type="checkbox" className="size-4 rounded accent-blue-600" {...form.register("rememberMe")} />
             Stay signed in
           </label>
@@ -39,7 +39,7 @@ export function LoginForm({ onSubmit, onGoogle, googlePending }: LoginFormProps)
         </div>
       </FieldGroup>
       <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Signing in…' : 'Log in'}</Button>
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-500 surface-dark:text-muted-foreground">
         Don’t have an account? <Link to="/register" className={authLinkClassName}>Sign up</Link>
       </p>
     </form>

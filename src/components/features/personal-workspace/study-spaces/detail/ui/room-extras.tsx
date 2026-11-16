@@ -28,7 +28,7 @@ function useHoverClick(onActivate: () => void) {
 
 function HoverTag({ label }: { label: string }) {
   return (
-    <Html position={[0, 0.2, 0.2]} center style={{ pointerEvents: "none" }} zIndexRange={[15, 0]}>
+    <Html position={[0, 0.2, 0.2]} center className="pointer-events-none" zIndexRange={[15, 0]}>
       <span className="block rounded-md bg-slate-900/90 px-2 py-1 text-[11px] font-medium whitespace-nowrap text-white shadow">
         {label}
       </span>
@@ -270,7 +270,7 @@ export function LockerWall({ position, slots, onSelect }: { position: Vec3; slot
           />
         )
       })}
-      <Html position={[0, LOCKER_H * 2 + 0.6, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[12, 0]}>
+      <Html position={[0, LOCKER_H * 2 + 0.6, 0]} center className="pointer-events-none" zIndexRange={[12, 0]}>
         <span className="block whitespace-nowrap rounded-full bg-blue-600 px-2.5 py-0.5 text-[11px] font-semibold text-white shadow">
           Lockers
         </span>

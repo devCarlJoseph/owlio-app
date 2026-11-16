@@ -93,7 +93,7 @@ export function VerificationCodeForm({
           variant="ghost"
           disabled={resendCooldownSeconds > 0 || form.formState.isSubmitting}
           onClick={() => void resend()}
-          className="w-full text-sm text-slate-600"
+          className="w-full text-sm text-slate-600 surface-dark:text-muted-foreground"
         >
           {resendCooldownSeconds > 0 ? `Resend code in ${resendCooldownSeconds}s` : 'Resend code'}
         </Button>

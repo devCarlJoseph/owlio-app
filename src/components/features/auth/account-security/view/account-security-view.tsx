@@ -43,8 +43,8 @@ export function AccountSecurityView() {
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">
       <header>
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Account security</h2>
-        <p className="mt-1 text-sm text-slate-600">Manage how you sign in to Owlio.</p>
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">Account security</h2>
+        <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">Manage how you sign in to Owlio.</p>
       </header>
       <Card>
         <CardHeader>
@@ -56,9 +56,9 @@ export function AccountSecurityView() {
         <CardContent>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           {loading ? (
-            <p role="status" className="text-sm text-slate-500">Checking linked accounts…</p>
+            <p role="status" className="text-sm text-slate-500 surface-dark:text-muted-foreground">Checking linked accounts…</p>
           ) : googleStatus?.linked ? (
-            <p role="status" className="text-sm text-slate-700">
+            <p role="status" className="text-sm text-slate-700 surface-dark:text-foreground">
               Google is connected.
             </p>
           ) : (

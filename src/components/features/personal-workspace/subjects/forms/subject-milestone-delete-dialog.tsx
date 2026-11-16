@@ -27,10 +27,10 @@ export function SubjectMilestoneDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-900">
+          <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">
             Remove this milestone?
           </DialogTitle>
-          <DialogDescription className="text-slate-600">
+          <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
             {milestone
               ? `“${milestone.title}” will be removed from this subject.`
               : "This milestone will be removed."}{" "}

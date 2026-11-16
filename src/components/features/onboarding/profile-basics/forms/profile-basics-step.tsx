@@ -13,9 +13,9 @@ export function ProfileBasicsStep() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-4 sm:p-5">
+      <div className="flex items-center gap-4 rounded-2xl border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-4 sm:p-5">
         <div
-          className="flex size-14 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-lg font-semibold text-indigo-700 ring-4 ring-white"
+          className="flex size-14 shrink-0 items-center justify-center rounded-full bg-indigo-50 surface-dark:bg-surface-indigo-soft text-lg font-semibold text-indigo-700 surface-dark:text-indigo-300 ring-4 ring-white surface-dark:ring-border"
           aria-hidden="true"
         >
           {initial || <UserRound className="size-6" />}

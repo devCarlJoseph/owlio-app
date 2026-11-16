@@ -26,10 +26,10 @@ export function OthersDetailsStep() {
                 htmlFor={inputId}
                 className={`flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 has-[:focus-visible]:ring-offset-2 ${
                   checked
-                    ? "border-indigo-600 bg-indigo-50/80 text-indigo-900 ring-1 ring-indigo-600"
+                    ? "border-indigo-600 bg-indigo-50/80 surface-dark:bg-surface-indigo-soft/80 text-indigo-900 surface-dark:text-indigo-200 ring-1 ring-indigo-600"
                     : errors.othersSubtype
                       ? "border-destructive/60 bg-background hover:bg-muted/40"
-                      : "border-border bg-slate-50/60 hover:border-indigo-300 hover:bg-white"
+                      : "border-border bg-slate-50/60 surface-dark:bg-background/60 hover:border-indigo-300 surface-dark:hover:border-surface-indigo-border hover:bg-white surface-dark:hover:bg-card"
                 }`}
               >
                 <input
@@ -42,7 +42,7 @@ export function OthersDetailsStep() {
                 {label}
                 <span
                   className={`flex size-5 shrink-0 items-center justify-center rounded-full border ${
-                    checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
+                    checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card"
                   }`}
                   aria-hidden="true"
                 >

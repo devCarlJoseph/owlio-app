@@ -4,9 +4,9 @@ import type { LeaderboardEntry } from "../utils/quiz-timing"
 import { PersonAvatar } from "./classroom-ui"
 
 const podium = [
-  { label: "1st place", row: "bg-gradient-to-r from-amber-100 via-amber-50 to-transparent", icon: "text-amber-500" },
-  { label: "2nd place", row: "bg-gradient-to-r from-slate-200 via-slate-100 to-transparent", icon: "text-slate-400" },
-  { label: "3rd place", row: "bg-gradient-to-r from-orange-100 via-orange-50 to-transparent", icon: "text-orange-500" },
+  { label: "1st place", row: "bg-gradient-to-r from-amber-100 surface-dark:from-surface-amber-soft via-amber-50 surface-dark:via-surface-amber-soft to-transparent", icon: "text-amber-500" },
+  { label: "2nd place", row: "bg-gradient-to-r from-slate-200 surface-dark:from-muted via-slate-100 surface-dark:via-muted to-transparent", icon: "text-slate-400 surface-dark:text-muted-foreground" },
+  { label: "3rd place", row: "bg-gradient-to-r from-orange-100 surface-dark:from-surface-orange-soft via-orange-50 surface-dark:via-surface-orange-soft to-transparent", icon: "text-orange-500" },
 ]
 
 function ordinal(rank: number) {

@@ -18,7 +18,7 @@ export function GoogleAuthButton({
       variant="outline"
       disabled={disabled}
       onClick={onClick}
-      className="h-11 w-full justify-center rounded-lg border-slate-200 bg-white text-sm font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.06)] hover:bg-slate-50"
+      className="h-11 w-full justify-center rounded-lg border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card text-sm font-medium text-slate-700 surface-dark:text-foreground shadow-[0_1px_2px_rgba(15,23,42,0.06)] hover:bg-slate-50 surface-dark:hover:bg-background"
     >
       <StackIcon name="google" className="size-4" aria-hidden="true" />
       {label}

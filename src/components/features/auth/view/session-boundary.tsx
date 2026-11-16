@@ -7,7 +7,7 @@ export function SessionBoundary({ children }: { children: ReactNode }) {
   const { status, error, refreshCurrentUser } = useAuthSession()
 
   if (status === 'loading') {
-    return <div className="p-8 text-sm text-slate-600" role="status">Checking your Owlio session…</div>
+    return <div className="p-8 text-sm text-slate-600 surface-dark:text-muted-foreground" role="status">Checking your Owlio session…</div>
   }
   if (status === 'unavailable') {
     return (

@@ -17,8 +17,8 @@ export default function TutorAiAssistantView() {
       <div className="grid gap-4 md:grid-cols-3">
         {draftTypes.map(({ title, description, icon: Icon }) => (
           <TutorSection key={title} title={title}>
-            <Icon aria-hidden="true" className="size-5 text-blue-700" />
-            <p className="text-sm leading-6 text-slate-600">{description}</p>
+            <Icon aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
+            <p className="text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">{description}</p>
           </TutorSection>
         ))}
       </div>
@@ -26,7 +26,7 @@ export default function TutorAiAssistantView() {
         title="AI generation is not connected"
         description="No approved provider, privacy/retention contract, or tutor AI service is available. Do not enter private learner or session information."
       />
-      <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+      <p role="status" className="rounded-xl border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft p-4 text-sm leading-6 text-amber-900 surface-dark:text-amber-200">
         No AI output is being generated. Suggestions cannot assign work, evaluate learners, contact learners, or change records.
       </p>
     </TutorPage>

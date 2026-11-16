@@ -12,9 +12,9 @@ const noRaycast = () => null
 
 export function AreaSign({ position, label, tone }: { position: Vec3; label: string; tone: "table" | "nap" | "watch" }) {
   const toneClass =
-    tone === "nap" ? "bg-violet-100/95 text-violet-900" : tone === "watch" ? "bg-sky-100/95 text-sky-900" : "bg-amber-100/95 text-amber-900"
+    tone === "nap" ? "bg-violet-100/95 surface-dark:bg-surface-violet-soft/95 text-violet-900 surface-dark:text-violet-200" : tone === "watch" ? "bg-sky-100/95 surface-dark:bg-surface-sky-soft/95 text-sky-900 surface-dark:text-sky-200" : "bg-amber-100/95 surface-dark:bg-surface-amber-soft/95 text-amber-900 surface-dark:text-amber-200"
   return (
-    <Html position={position} center style={{ pointerEvents: "none" }} zIndexRange={[12, 0]}>
+    <Html position={position} center className="pointer-events-none" zIndexRange={[12, 0]}>
       <span className={`block whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide shadow ${toneClass}`}>
         {label}
       </span>

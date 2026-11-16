@@ -26,8 +26,8 @@ export const notificationsContent: Record<NotificationsRole, NotificationsConten
 
 export const notificationAppearance: Record<NotificationCategory, NotificationAppearance> = {
   classroom: { icon: GraduationCap, avatar: "bg-brand-soft text-brand-soft-foreground", badge: "bg-brand text-brand-foreground" },
-  activity: { icon: BookOpen, avatar: "bg-amber-50 text-amber-800", badge: "bg-amber-600 text-white" },
-  schedule: { icon: CalendarDays, avatar: "bg-sky-50 text-sky-800", badge: "bg-sky-600 text-white" },
-  feedback: { icon: MessageCircleMore, avatar: "bg-rose-50 text-rose-800", badge: "bg-rose-500 text-white" },
-  community: { icon: Users, avatar: "bg-teal-50 text-teal-800", badge: "bg-teal-600 text-white" },
+  activity: { icon: BookOpen, avatar: "bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300", badge: "bg-amber-600 text-white" },
+  schedule: { icon: CalendarDays, avatar: "bg-sky-50 surface-dark:bg-surface-sky-soft text-sky-800 surface-dark:text-sky-300", badge: "bg-sky-600 text-white" },
+  feedback: { icon: MessageCircleMore, avatar: "bg-rose-50 surface-dark:bg-surface-rose-soft text-rose-800 surface-dark:text-rose-300", badge: "bg-rose-500 text-white" },
+  community: { icon: Users, avatar: "bg-teal-50 surface-dark:bg-surface-teal-soft text-teal-800 surface-dark:text-teal-300", badge: "bg-teal-600 text-white" },
 }

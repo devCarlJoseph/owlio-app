@@ -6,13 +6,13 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function ProgressSummary() {
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+    <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
       <CardHeader>
         <CardTitle>
-          <h3 className="text-base font-semibold text-slate-900">Learning at a glance</h3>
+          <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Learning at a glance</h3>
         </CardTitle>
-        <CardDescription className="mt-1 text-slate-500">Overall completion across your workspace.</CardDescription>
-        <Badge variant="outline" className="mt-2 w-fit border-slate-200 bg-slate-50 text-slate-600">
+        <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">Overall completion across your workspace.</CardDescription>
+        <Badge variant="outline" className="mt-2 w-fit border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-600 surface-dark:text-muted-foreground">
           Not connected
         </Badge>
       </CardHeader>
@@ -32,7 +32,7 @@ export function ProgressSummary() {
             <Skeleton className="h-3 w-32 motion-reduce:animate-none" />
           </div>
         </div>
-        <p className="text-center text-sm leading-5 text-slate-500">
+        <p className="text-center text-sm leading-5 text-slate-500 surface-dark:text-muted-foreground">
           Study activity and completion totals are not connected yet.
         </p>
         <Button render={<Link to="/students/progress" />} variant="outline" size="sm" className="w-fit">

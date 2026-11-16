@@ -48,8 +48,8 @@ export function PasswordResetView() {
   return (
     <FormProvider {...form}>
       <AuthShowcaseLayout context="password-reset">
-        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">Choose a new password</h1>
-        <p className="mt-1.5 text-sm text-slate-500">{resetToken ? 'Set a new password for your Owlio account.' : 'Request a password-reset link to continue.'}</p>
+        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 surface-dark:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">Choose a new password</h1>
+        <p className="mt-1.5 text-sm text-slate-500 surface-dark:text-muted-foreground">{resetToken ? 'Set a new password for your Owlio account.' : 'Request a password-reset link to continue.'}</p>
         <div className="mt-7 space-y-4">
           {submitError && <AuthFeedback title="Password reset failed" tone="error">{submitError}</AuthFeedback>}
           {resetSuccess ? (
@@ -62,7 +62,7 @@ export function PasswordResetView() {
           ) : (
             <Button render={<Link to="/forgot-password" />} className={authPrimaryButtonClassName}>Request a new reset link</Button>
           )}
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-slate-500 surface-dark:text-muted-foreground">
             Remembered your password? <Link to="/login" className={authLinkClassName}>Log in</Link>
           </p>
         </div>

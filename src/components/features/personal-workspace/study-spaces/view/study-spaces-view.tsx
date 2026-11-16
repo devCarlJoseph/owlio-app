@@ -173,7 +173,7 @@ export function StudySpacesView() {
   }
 
   const overlay = view === "world"
-  const pill = overlay ? "bg-white/95 shadow-sm" : "bg-white shadow-sm"
+  const pill = overlay ? "bg-white/95 surface-dark:bg-card/95 shadow-sm" : "bg-white surface-dark:bg-card shadow-sm"
 
   const toolbar = (
     <div
@@ -189,7 +189,7 @@ export function StudySpacesView() {
         <Layers className="size-4" aria-hidden="true" />
         Study hall
       </h2>
-      <p className={cn("rounded-full px-3 py-2 text-xs font-medium text-slate-600", pill)}>
+      <p className={cn("rounded-full px-3 py-2 text-xs font-medium text-slate-600 surface-dark:text-muted-foreground", pill)}>
         {createdSpaces.length} yours · {joinedSpaces.length} joined · {lockedSpaces.length} locked
       </p>
       <div role="group" aria-label="Study hall view" className={cn("flex rounded-full p-1", pill)}>
@@ -218,7 +218,7 @@ export function StudySpacesView() {
       </div>
       <div className="relative min-w-48 flex-1 sm:max-w-xs">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 surface-dark:text-muted-foreground"
           aria-hidden="true"
         />
         <Input
@@ -284,13 +284,13 @@ export function StudySpacesView() {
             "overflow-hidden bg-[#e3f1fb]",
             expanded
               ? "fixed inset-0 z-40"
-              : "relative h-[calc(100svh-6rem)] min-h-[520px] rounded-3xl border border-slate-200 shadow-sm sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
+              : "relative h-[calc(100svh-6rem)] min-h-[520px] rounded-3xl border border-slate-200 surface-dark:border-border shadow-sm sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
           )}
         >
           {webgl ? (
             <Suspense
               fallback={
-                <div className="flex h-full items-center justify-center text-sm text-slate-600">
+                <div className="flex h-full items-center justify-center text-sm text-slate-600 surface-dark:text-muted-foreground">
                   Loading study hall…
                 </div>
               }
@@ -321,19 +321,19 @@ export function StudySpacesView() {
         <section aria-labelledby="study-hall-title" className="space-y-6">
           {toolbar}
 
-          <div className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
-            <Users className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
-            <p className="flex-1 text-sm leading-6 text-blue-800">{studySpacesGuidance}</p>
-            <p className="flex w-full items-start gap-2 border-t border-blue-100 pt-2 text-xs leading-5 text-blue-800 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
+          <div className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft px-4 py-3">
+            <Users className="mt-1 size-4 shrink-0 text-blue-700 surface-dark:text-blue-300" aria-hidden="true" />
+            <p className="flex-1 text-sm leading-6 text-blue-800 surface-dark:text-blue-300">{studySpacesGuidance}</p>
+            <p className="flex w-full items-start gap-2 border-t border-blue-100 surface-dark:border-surface-blue-border pt-2 text-xs leading-5 text-blue-800 surface-dark:text-blue-300 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
               <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
               {studySpacesStorageNotice}
             </p>
           </div>
 
           <div className="space-y-6">
-            <h3 className="flex items-baseline gap-2 text-2xl font-bold text-slate-900">
+            <h3 className="flex items-baseline gap-2 text-2xl font-bold text-slate-900 surface-dark:text-foreground">
               Spaces
-              <span className="text-sm font-semibold text-slate-500">{total}</span>
+              <span className="text-sm font-semibold text-slate-500 surface-dark:text-muted-foreground">{total}</span>
             </h3>
 
             <ListSection
@@ -351,17 +351,17 @@ export function StudySpacesView() {
             {lockedSpaces.length > 0 && (
               <div className="space-y-3">
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-900">
+                  <h4 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">
                     Preview spaces — locked ({lockedSpaces.length})
                   </h4>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">{studySpacesDiscoveryCaption}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{studySpacesDiscoveryCaption}</p>
                 </div>
                 <LockedSpaceGrid label="Preview spaces (locked)" spaces={lockedSpaces} onUnlock={openJoin} />
               </div>
             )}
           </div>
 
-          <p className="text-xs leading-5 text-slate-500">{studySpacesOpenHint}</p>
+          <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{studySpacesOpenHint}</p>
         </section>
       )}
 
@@ -390,10 +390,10 @@ function ListSection({
   return (
     <div className="space-y-3">
       <div>
-        <h4 className="text-sm font-semibold text-slate-900">
+        <h4 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">
           {title} ({spaces.length})
         </h4>
-        <p className="mt-1 text-xs leading-5 text-slate-500">
+        <p className="mt-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
           Peer spaces in this browser. Room previews reflect each space's layout.
         </p>
       </div>

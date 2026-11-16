@@ -49,8 +49,8 @@ export function StudentDetailsStep() {
         value={form.watch("studyGoals") ?? []}
         onChange={(value) => form.setValue("studyGoals", value, { shouldDirty: true })}
       />
-      <div className="flex gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-4 sm:p-5">
-        <span className="hidden size-10 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 ring-1 ring-slate-200 sm:flex" aria-hidden="true">
+      <div className="flex gap-4 rounded-2xl border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-4 sm:p-5">
+        <span className="hidden size-10 shrink-0 items-center justify-center rounded-xl bg-white surface-dark:bg-card text-indigo-600 surface-dark:text-indigo-300 ring-1 ring-slate-200 surface-dark:ring-border sm:flex" aria-hidden="true">
           <KeyRound className="size-5" />
         </span>
         <div className="min-w-0 flex-1 space-y-2">

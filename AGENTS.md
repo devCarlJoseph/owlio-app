@@ -71,6 +71,7 @@ Read only the context needed for the request. For substantive work, use the rele
 ## Implementation conventions
 
 - Use npm and `package-lock.json`. The app uses Vite, React Router, Tailwind, and local Base UI/shadcn wrappers.
+- Use Tailwind utilities for application styling. Do not add component stylesheets, CSS modules, or native CSS rules for layout and appearance. Keep `src/styles/global.css` for Tailwind imports/configuration, semantic theme tokens, base `@apply` defaults, and animation tokens/keyframes. Inline styles are reserved for runtime values such as calculated geometry, drawing coordinates, and user-selected colors.
 - Routes: `src/main.tsx`; navigation: `src/components/common/dashboard-navigation.ts`. Synchronize affected hrefs, active matching, titles, and navigation search.
 - Keep role-prefixed URLs (`/students`, `/educators`, `/tutors`, `/esl`). URL context is presentation, not authorization.
 - Keep new/refactored route adapters thin; put substantive behavior in `src/components/features/<domain>/`. Shared domain-neutral controls belong in `src/components/ui/`; inspect their actual APIs.

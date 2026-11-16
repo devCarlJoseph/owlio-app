@@ -66,13 +66,13 @@ export function NoteList({
       : emptyCopy.description
 
     return (
-      <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-8 sm:p-10">
+      <Empty className="border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-8 sm:p-10">
         <EmptyHeader>
-          <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+          <EmptyMedia variant="icon" className="bg-slate-100 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground">
             <Media aria-hidden="true" />
           </EmptyMedia>
-          <EmptyTitle className="text-base text-slate-900">{title}</EmptyTitle>
-          <EmptyDescription className="text-slate-600">{description}</EmptyDescription>
+          <EmptyTitle className="text-base text-slate-900 surface-dark:text-foreground">{title}</EmptyTitle>
+          <EmptyDescription className="text-slate-600 surface-dark:text-muted-foreground">{description}</EmptyDescription>
         </EmptyHeader>
 
         <EmptyContent>
@@ -82,7 +82,7 @@ export function NoteList({
               variant="outline"
               size="sm"
               onClick={onClearFilters}
-              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+              className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
             >
               Clear filters
             </Button>
@@ -92,7 +92,7 @@ export function NoteList({
               variant="outline"
               size="sm"
               onClick={onCreate}
-              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+              className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
             >
               Create a note
             </Button>
@@ -106,8 +106,8 @@ export function NoteList({
     <div className="space-y-3">
       {bucket === "trash" ? (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
-            <p className="text-xs leading-5 text-slate-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-300 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-4 py-3">
+            <p className="text-xs leading-5 text-slate-600 surface-dark:text-muted-foreground">
               Deleted notes stay in this browser until you empty the trash. Nothing is sent to a server.
             </p>
             <Button type="button" variant="outline" size="sm" onClick={onEmptyTrash}>
@@ -120,9 +120,9 @@ export function NoteList({
             {notes.map((note) => (
               <li
                 key={note.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-4 py-3"
               >
-                <p className="min-w-0 truncate text-sm font-medium text-slate-800">
+                <p className="min-w-0 truncate text-sm font-medium text-slate-800 surface-dark:text-foreground">
                   {getNoteTitle(note)}
                 </p>
                 <Button type="button" variant="outline" size="sm" onClick={() => onRestore(note)}>
@@ -150,7 +150,7 @@ export function NoteList({
       )}
 
       {isFiltered ? (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">
           Showing {notes.length} of {totalCount} notes.
         </p>
       ) : null}

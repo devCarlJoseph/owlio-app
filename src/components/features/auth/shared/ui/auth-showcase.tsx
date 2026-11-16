@@ -67,19 +67,19 @@ export function AuthShowcase({ context }: { context: AuthShowcaseContext }) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.16)_1px,transparent_0)] [background-size:22px_22px]" />
         {patternIcons.map(({ icon: Icon, className }) => <Icon key={className} strokeWidth={1.2} className={`absolute text-white/25 ${className}`} />)}
         <div className="absolute -bottom-16 -left-10 h-56 w-[70%] rounded-full bg-white/15 blur-2xl" />
-        <div className="absolute -bottom-10 right-0 h-48 w-[60%] rounded-full bg-sky-200/20 blur-2xl" />
-        <div className="absolute -right-20 -top-24 size-80 rounded-full bg-indigo-300/30 blur-3xl" />
+        <div className="absolute -bottom-10 right-0 h-48 w-[60%] rounded-full bg-sky-200/20 surface-dark:bg-surface-sky-strong/20 blur-2xl" />
+        <div className="absolute -right-20 -top-24 size-80 rounded-full bg-indigo-300/30 surface-dark:bg-surface-indigo-strong/30 blur-3xl" />
       </div>
 
       <div className="relative z-10 flex flex-1 flex-col items-center justify-end pt-2">
         <div className="relative -mb-1 flex w-[clamp(150px,calc((100svh-440px)*1.1),396px)] flex-col items-center">
             <div className="relative z-10 -mb-[5%] w-[83%]">
               <OwlioOwl className="w-full" />
-              <span key={feature.badge} className="absolute left-[86%] animate-in fade-in zoom-in-75 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none top-[10%] flex items-center gap-2 whitespace-nowrap rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-[0_12px_30px_-12px_rgba(15,23,42,0.5)]" aria-hidden="true">
-                <span className="flex size-7 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><FeatureIcon className="size-4" /></span>
+              <span key={feature.badge} className="absolute left-[86%] animate-in fade-in zoom-in-75 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none top-[10%] flex items-center gap-2 whitespace-nowrap rounded-2xl bg-white surface-dark:bg-card px-3 py-2 text-xs font-semibold text-slate-800 surface-dark:text-foreground shadow-[0_12px_30px_-12px_rgba(15,23,42,0.5)]" aria-hidden="true">
+                <span className="flex size-7 items-center justify-center rounded-xl bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-600 surface-dark:text-blue-300"><FeatureIcon className="size-4" /></span>
                 {feature.badge}
               </span>
-              {celebrating && <span className="absolute right-[86%] animate-in fade-in zoom-in-75 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none top-[6%] whitespace-nowrap rounded-full bg-emerald-400 px-3 py-1 text-xs font-bold text-emerald-950 shadow-lg" aria-hidden="true">+1 correct!</span>}
+              {celebrating && <span className="absolute right-[86%] animate-in fade-in zoom-in-75 slide-in-from-bottom-2 duration-300 motion-reduce:animate-none top-[6%] whitespace-nowrap rounded-full bg-emerald-400 px-3 py-1 text-xs font-bold text-emerald-950 surface-dark:text-emerald-200 shadow-lg" aria-hidden="true">+1 correct!</span>}
             </div>
             <svg viewBox="0 0 320 92" className="relative w-full drop-shadow-[0_10px_14px_rgba(23,37,84,0.28)]" aria-hidden="true">
               <rect x="22" y="62" width="276" height="28" rx="7" fill="#f59e0b" />
@@ -119,7 +119,7 @@ export function AuthShowcase({ context }: { context: AuthShowcaseContext }) {
                 onClick={() => setActiveFeature(index)}
                 aria-label={`Show ${item.eyebrow}`}
                 aria-current={index === activeFeature}
-                className={`h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${index === activeFeature ? "w-6 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70"}`}
+                className={`h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white surface-dark:focus-visible:ring-border ${index === activeFeature ? "w-6 bg-white surface-dark:bg-card" : "w-1.5 bg-white/45 surface-dark:bg-card/45 hover:bg-white/70 surface-dark:hover:bg-card/70"}`}
               />
             ))}
           </div>
@@ -127,15 +127,15 @@ export function AuthShowcase({ context }: { context: AuthShowcaseContext }) {
       </div>
 
       {question ? (
-        <section className="relative mt-3 shrink-0 rounded-2xl bg-white p-4 text-slate-800 shadow-[0_20px_40px_-24px_rgba(15,23,42,0.6)]" aria-labelledby="showcase-guide-title">
+        <section className="relative mt-3 shrink-0 rounded-2xl bg-white surface-dark:bg-card p-4 text-slate-800 surface-dark:text-foreground shadow-[0_20px_40px_-24px_rgba(15,23,42,0.6)]" aria-labelledby="showcase-guide-title">
           <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><GraduationCap className="size-5" aria-hidden="true" /></span>
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-600 surface-dark:text-blue-300"><GraduationCap className="size-5" aria-hidden="true" /></span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
                 <h2 id="showcase-guide-title" className="text-sm font-semibold">{content.questionTitle ?? "Warm-up question"}</h2>
-                <span className="text-[11px] font-medium text-slate-500">{correctCount} correct</span>
+                <span className="text-[11px] font-medium text-slate-500 surface-dark:text-muted-foreground">{correctCount} correct</span>
               </div>
-              <p className="mt-0.5 text-[13px] leading-5 text-slate-600">{question.prompt}</p>
+              <p className="mt-0.5 text-[13px] leading-5 text-slate-600 surface-dark:text-muted-foreground">{question.prompt}</p>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {question.options.map((option, index) => {
                   const state = !answered ? "idle" : index === question.answer ? "correct" : index === selected ? "wrong" : "muted"
@@ -147,10 +147,10 @@ export function AuthShowcase({ context }: { context: AuthShowcaseContext }) {
                       disabled={answered}
                       aria-pressed={selected === index}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                        state === "correct" ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                          : state === "wrong" ? "border-rose-400 bg-rose-50 text-rose-700"
-                            : state === "muted" ? "border-slate-200 text-slate-400"
-                              : "border-slate-300 text-slate-700 hover:border-blue-400 hover:bg-blue-50"
+                        state === "correct" ? "border-emerald-500 bg-emerald-50 surface-dark:bg-surface-emerald-soft text-emerald-700 surface-dark:text-emerald-300"
+                          : state === "wrong" ? "border-rose-400 bg-rose-50 surface-dark:bg-surface-rose-soft text-rose-700 surface-dark:text-rose-300"
+                            : state === "muted" ? "border-slate-200 surface-dark:border-border text-slate-400 surface-dark:text-muted-foreground"
+                              : "border-slate-300 surface-dark:border-border text-slate-700 surface-dark:text-foreground hover:border-blue-400 hover:bg-blue-50 surface-dark:hover:bg-surface-blue-soft"
                       }`}
                     >
                       {option}
@@ -161,11 +161,11 @@ export function AuthShowcase({ context }: { context: AuthShowcaseContext }) {
               <div className="mt-2 empty:hidden" aria-live="polite">
                 {answered && (
                   <div className="flex items-center justify-between gap-3">
-                    <p className={`flex items-start gap-1.5 text-xs leading-5 ${isCorrect ? "text-emerald-700" : "text-rose-700"}`}>
+                    <p className={`flex items-start gap-1.5 text-xs leading-5 ${isCorrect ? "text-emerald-700 surface-dark:text-emerald-300" : "text-rose-700 surface-dark:text-rose-300"}`}>
                       {isCorrect ? <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> : <XCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />}
                       <span><strong className="font-semibold">{isCorrect ? "Nice work!" : "Not quite."}</strong> {question.explanation}</span>
                     </p>
-                    <button type="button" onClick={nextQuestion} className="flex shrink-0 items-center gap-1 rounded text-xs font-semibold text-blue-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                    <button type="button" onClick={nextQuestion} className="flex shrink-0 items-center gap-1 rounded text-xs font-semibold text-blue-600 surface-dark:text-blue-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                       <RotateCcw className="size-3" aria-hidden="true" />Next
                     </button>
                   </div>
@@ -175,19 +175,19 @@ export function AuthShowcase({ context }: { context: AuthShowcaseContext }) {
           </div>
         </section>
       ) : content.guide ? (
-        <section className="relative mt-3 shrink-0 rounded-2xl bg-white p-4 text-slate-800 shadow-[0_20px_40px_-24px_rgba(15,23,42,0.6)]" aria-labelledby="showcase-guide-title">
+        <section className="relative mt-3 shrink-0 rounded-2xl bg-white surface-dark:bg-card p-4 text-slate-800 surface-dark:text-foreground shadow-[0_20px_40px_-24px_rgba(15,23,42,0.6)]" aria-labelledby="showcase-guide-title">
           <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600"><GuideIcon className="size-5" aria-hidden="true" /></span>
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-600 surface-dark:text-blue-300"><GuideIcon className="size-5" aria-hidden="true" /></span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
                 <h2 id="showcase-guide-title" className="text-sm font-semibold">{content.guide.title}</h2>
-                <span className="text-[11px] font-medium text-slate-500">{content.guide.steps.length} steps</span>
+                <span className="text-[11px] font-medium text-slate-500 surface-dark:text-muted-foreground">{content.guide.steps.length} steps</span>
               </div>
               <ol className="mt-2 space-y-1.5">
                 {content.guide.steps.map(({ title, description }, index) => (
                   <li key={title} className="flex items-start gap-2">
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[10px] font-semibold text-blue-700">{index + 1}</span>
-                    <span className="min-w-0 text-xs leading-5"><strong className="font-semibold">{title}.</strong> <span className="text-slate-600">{description}</span></span>
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue-50 surface-dark:bg-surface-blue-soft text-[10px] font-semibold text-blue-700 surface-dark:text-blue-300">{index + 1}</span>
+                    <span className="min-w-0 text-xs leading-5"><strong className="font-semibold">{title}.</strong> <span className="text-slate-600 surface-dark:text-muted-foreground">{description}</span></span>
                   </li>
                 ))}
               </ol>

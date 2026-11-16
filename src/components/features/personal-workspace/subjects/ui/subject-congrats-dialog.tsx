@@ -25,10 +25,10 @@ export function SubjectCongratsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="gap-7 px-6 py-10 text-center sm:max-w-lg sm:px-10">
         <DialogHeader className="items-center">
-          <span className="mb-3 inline-flex size-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <span className="mb-3 inline-flex size-16 items-center justify-center rounded-full bg-emerald-50 surface-dark:bg-surface-emerald-soft text-emerald-600 surface-dark:text-emerald-300">
             <CircleCheck aria-hidden="true" className="size-10" />
           </span>
-          <DialogTitle className="mt-2 text-lg font-semibold text-slate-900">
+          <DialogTitle className="mt-2 text-lg font-semibold text-slate-900 surface-dark:text-foreground">
             Congrats, you completed {subjectName}
           </DialogTitle>
           <DialogDescription className="text-sm leading-6 text-muted-foreground">Every milestone in your personal study plan is done. Your progress is kept in this browser, separate from classroom results.</DialogDescription>

@@ -31,23 +31,23 @@ export function SubjectListRow({ subject, href }: SubjectListRowProps) {
           <div className="min-w-0">
             <Link
               to={href}
-              className="block truncate rounded text-sm font-semibold text-slate-900 outline-none after:absolute after:inset-0 after:content-[''] hover:text-[#6842c5] dark:hover:text-brand hover:underline focus-visible:ring-2 focus-visible:ring-[#8a60f1] focus-visible:ring-offset-2"
+              className="block truncate rounded text-sm font-semibold text-slate-900 surface-dark:text-foreground outline-none after:absolute after:inset-0 after:content-[''] hover:text-[#6842c5] dark:hover:text-brand hover:underline focus-visible:ring-2 focus-visible:ring-[#8a60f1] focus-visible:ring-offset-2"
             >
               {subject.name}
             </Link>
             {subject.code ? (
-              <p className="truncate text-[11px] uppercase tracking-wide text-slate-500">
+              <p className="truncate text-[11px] uppercase tracking-wide text-slate-500 surface-dark:text-muted-foreground">
                 {subject.code}
               </p>
             ) : null}
           </div>
 
-          <p className="truncate text-sm text-slate-600">
+          <p className="truncate text-sm text-slate-600 surface-dark:text-muted-foreground">
             {subject.instructor || "No instructor set"}
           </p>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium tabular-nums text-slate-600">{progress}%</span>
+            <span className="text-xs font-medium tabular-nums text-slate-600 surface-dark:text-muted-foreground">{progress}%</span>
             <Progress
               aria-hidden="true"
               value={progress}

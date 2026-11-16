@@ -28,15 +28,15 @@ export function OnboardingLayout({
   mascotReplayKey = 0,
 }: OnboardingLayoutProps) {
   return (
-    <main className="min-h-screen bg-slate-50 sm:p-6 lg:p-8">
-      <div className="relative mx-auto grid min-h-screen w-full max-w-6xl bg-background sm:min-h-[calc(100vh-3rem)] sm:rounded-3xl sm:shadow-sm sm:ring-1 sm:ring-slate-200/80 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)] lg:gap-6 lg:p-6">
+    <main className="min-h-screen bg-slate-50 surface-dark:bg-background sm:p-6 lg:p-8">
+      <div className="relative mx-auto grid min-h-screen w-full max-w-6xl bg-background sm:min-h-[calc(100vh-3rem)] sm:rounded-3xl sm:shadow-sm sm:ring-1 sm:ring-slate-200/80 surface-dark:sm:ring-border/80 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)] lg:gap-6 lg:p-6">
         <div className="flex min-w-0 flex-col px-5 pt-5 sm:px-8 sm:pt-7 lg:px-4 lg:pt-2">
           <header className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5 font-semibold tracking-tight text-slate-950" aria-label="Owlio">
+            <div className="flex items-center gap-2.5 font-semibold tracking-tight text-slate-950 surface-dark:text-foreground" aria-label="Owlio">
               <span className="flex size-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-600/20">
                 <BookOpenCheck className="size-5" aria-hidden="true" />
               </span>
-              <span className="text-xl">owlio<span className="text-indigo-600">.</span></span>
+              <span className="text-xl">owlio<span className="text-indigo-600 surface-dark:text-indigo-300">.</span></span>
             </div>
             <p className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               <CircleHelp className="size-4" aria-hidden="true" />
@@ -49,12 +49,12 @@ export function OnboardingLayout({
 
           <OnboardingStepper activeStep={activeStep} />
 
-          <div className="mt-3 flex items-center gap-3 lg:absolute lg:inset-y-6 lg:right-6 lg:mt-0 lg:w-[calc(41.18%-2.5rem)] lg:flex-col lg:justify-center lg:gap-3 lg:rounded-2xl lg:bg-slate-50 lg:px-6 lg:py-8 lg:text-center lg:ring-1 lg:ring-slate-200/80">
+          <div className="mt-3 flex items-center gap-3 lg:absolute lg:inset-y-6 lg:right-6 lg:mt-0 lg:w-[calc(41.18%-2.5rem)] lg:flex-col lg:justify-center lg:gap-3 lg:rounded-2xl lg:bg-slate-50 surface-dark:lg:bg-background lg:px-6 lg:py-8 lg:text-center lg:ring-1 lg:ring-slate-200/80 surface-dark:lg:ring-border/80">
             <div className="w-24 shrink-0 sm:w-28 lg:w-full lg:max-w-72">
               <OwlioMascot state={mascotState} replayKey={mascotReplayKey} size="100%" />
             </div>
             <div className="max-w-56">
-              <p className="text-sm font-semibold text-slate-900 lg:text-lg">{activeStep ? "A little setup. A great start." : "You're ready to spread your wings."}</p>
+              <p className="text-sm font-semibold text-slate-900 surface-dark:text-foreground lg:text-lg">{activeStep ? "A little setup. A great start." : "You're ready to spread your wings."}</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground lg:mt-2 lg:text-sm">{activeStep ? "Make Owlio feel like your own, one step at a time." : "Here's to everything you'll learn and share."}</p>
             </div>
           </div>
@@ -65,14 +65,14 @@ export function OnboardingLayout({
               ref={headingRef}
               id="onboarding-step-heading"
               tabIndex={-1}
-              className="rounded-md text-3xl font-semibold tracking-tight text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-4 sm:text-4xl"
+              className="rounded-md text-3xl font-semibold tracking-tight text-slate-950 surface-dark:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-4 sm:text-4xl"
             >
               {title}
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
               {description}
             </p>
-            <div key={activeStep ?? "complete"} className="onboarding-content-enter mt-6 flex-1 pb-6">
+            <div key={activeStep ?? "complete"} className="animate-owlio-content-enter motion-reduce:animate-none mt-6 flex-1 pb-6">
               {children}
             </div>
             {actions && (

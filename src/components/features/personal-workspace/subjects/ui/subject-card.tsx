@@ -65,7 +65,7 @@ export function SubjectCard({ subject, href, onCustomize, onDelete }: SubjectCar
                 variant="ghost"
                 size="icon-xs"
                 aria-label={`Options for ${subject.name}`}
-                className="relative z-10 shrink-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                className="relative z-10 shrink-0 text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
               />
             }
           >

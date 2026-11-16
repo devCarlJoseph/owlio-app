@@ -114,7 +114,7 @@ export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; a
             <TabsTrigger value="leaderboard" className="px-4">Leaderboard</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">Demo workspace</Badge>
+            <Badge variant="outline" className="border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300">Demo workspace</Badge>
             <Button
               type="button"
               variant="outline"
@@ -149,10 +149,10 @@ export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; a
                   <QuestionNavigator questions={activity.questions} answers={answers} />
                   <QuizQuestions questions={activity.questions} answers={answers} disabled={locked} onAnswer={setAnswer} />
                   {locked && !submission && (
-                    <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-900">Time is up. Your answers are locked. Submit what you have.</p>
+                    <p role="alert" className="rounded-lg bg-rose-50 surface-dark:bg-surface-rose-soft px-3 py-2 text-sm text-rose-900 surface-dark:text-rose-200">Time is up. Your answers are locked. Submit what you have.</p>
                   )}
                   {confirming && (
-                    <div role="alertdialog" aria-label="Confirm submission" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                    <div role="alertdialog" aria-label="Confirm submission" className="rounded-xl border border-amber-300 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft p-4 text-sm text-amber-950 surface-dark:text-amber-200">
                       <p>You have {unanswered} unanswered {unanswered === 1 ? "question" : "questions"}. Submit anyway?</p>
                       <div className="mt-3 flex gap-2">
                         <Button type="button" size="sm" onClick={() => sendSubmission("Quiz submitted in this preview session only. It was not uploaded or saved.")}>Submit now</Button>
@@ -160,14 +160,14 @@ export function QuizWorkspace({ classroom, activity }: { classroom: Classroom; a
                       </div>
                     </div>
                   )}
-                  {status && <p role="status" className="text-sm text-amber-800">{status}</p>}
+                  {status && <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">{status}</p>}
                   {!confirming && <Button type="submit">{submission ? "Update demo response" : "Submit quiz"}</Button>}
                 </form>
               )}
 
-              {!questionsVisible && status && <p role="status" className="text-sm text-amber-800">{status}</p>}
+              {!questionsVisible && status && <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">{status}</p>}
               {phase === "submitted" && !status && autoSubmitted && (
-                <p role="status" className="text-sm text-amber-800">Time ran out and your answers were submitted automatically in this preview.</p>
+                <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">Time ran out and your answers were submitted automatically in this preview.</p>
               )}
             </div>
             {!focusMode && (

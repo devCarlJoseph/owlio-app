@@ -10,8 +10,8 @@ type NoteLabelChipsProps = {
 export function NoteLabelChips({ groups, activeLabel, onSelectLabel }: NoteLabelChipsProps) {
   if (groups.length === 0) {
     return (
-      <p className="text-xs leading-5 text-slate-500">
-        Add a label such as <span className="font-semibold text-blue-700">physics</span> to a note to
+      <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
+        Add a label such as <span className="font-semibold text-blue-700 surface-dark:text-blue-300">physics</span> to a note to
         group it here.
       </p>
     )
@@ -19,7 +19,7 @@ export function NoteLabelChips({ groups, activeLabel, onSelectLabel }: NoteLabel
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium text-slate-500">Labels</span>
+      <span className="text-xs font-medium text-slate-500 surface-dark:text-muted-foreground">Labels</span>
 
       <Button
         type="button"
@@ -30,7 +30,7 @@ export function NoteLabelChips({ groups, activeLabel, onSelectLabel }: NoteLabel
         className={
           activeLabel === null
             ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+            : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
         }
       >
         All
@@ -50,7 +50,7 @@ export function NoteLabelChips({ groups, activeLabel, onSelectLabel }: NoteLabel
             className={
               isActive
                 ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-                : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
             }
           >
             {group.label}

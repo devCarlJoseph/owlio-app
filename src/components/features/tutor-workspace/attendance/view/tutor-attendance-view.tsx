@@ -10,10 +10,10 @@ export default function TutorAttendanceView() {
     >
       <div className="grid gap-4 md:grid-cols-2">
         <TutorSection title="Session roll call" description="Select an authorized session and use only its eligible participants.">
-          <CalendarCheck aria-hidden="true" className="size-5 text-blue-700" />
+          <CalendarCheck aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
         </TutorSection>
         <TutorSection title="Learner history" description="Individual attendance history and corrections require service-defined rules.">
-          <Users aria-hidden="true" className="size-5 text-blue-700" />
+          <Users aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
         </TutorSection>
       </div>
       <TutorUnavailable

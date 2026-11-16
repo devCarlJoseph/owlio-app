@@ -134,8 +134,8 @@ function CharacterForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="text-lg font-semibold text-slate-900">{title}</DialogTitle>
-        <DialogDescription className="text-slate-600">
+        <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">{title}</DialogTitle>
+        <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
           Your Owlio owl only appears in this browser preview. It is not shown to other students.
           {hall ? " Rooms use it by default, and you can still customize it per room." : ""}
         </DialogDescription>
@@ -143,7 +143,7 @@ function CharacterForm({
 
       <div className="grid gap-4">
         <Field data-invalid={nameError !== null}>
-          <FieldLabel htmlFor="character-name" className="text-slate-700">
+          <FieldLabel htmlFor="character-name" className="text-slate-700 surface-dark:text-foreground">
             Display name
           </FieldLabel>
           <Input
@@ -153,13 +153,13 @@ function CharacterForm({
             aria-invalid={nameError !== null}
             aria-describedby={nameError ? "character-name-error" : undefined}
             placeholder="Alex"
-            className="border-slate-200 bg-slate-50"
+            className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <FieldError id="character-name-error">{nameError}</FieldError>
         </Field>
 
         <div role="radiogroup" aria-label="Owl feather color" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Feather color</span>
+          <span className="text-sm font-medium text-slate-700 surface-dark:text-foreground">Feather color</span>
           <div className="flex flex-wrap gap-2">
             {BODY_COLORS.map((color) => (
               <ColorSwatch
@@ -174,7 +174,7 @@ function CharacterForm({
         </div>
 
         <div role="radiogroup" aria-label="Owl ear tuft color" className="grid gap-2">
-          <span className="text-sm font-medium text-slate-700">Ear tuft color</span>
+          <span className="text-sm font-medium text-slate-700 surface-dark:text-foreground">Ear tuft color</span>
           <div className="flex flex-wrap gap-2">
             {ACCENT_COLORS.map((color) => (
               <ColorSwatch

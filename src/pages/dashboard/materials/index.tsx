@@ -31,7 +31,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Open notes",
       href: "/students/notes",
       icon: NotebookPen,
-      iconClassName: "bg-amber-100 text-amber-800",
+      iconClassName: "bg-amber-100 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300",
       eyebrow: "Personal",
     },
     {
@@ -40,7 +40,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Browse classrooms",
       href: "/students/classrooms",
       icon: GraduationCap,
-      iconClassName: "bg-sky-100 text-sky-800",
+      iconClassName: "bg-sky-100 surface-dark:bg-surface-sky-soft text-sky-800 surface-dark:text-sky-300",
       eyebrow: "Classroom",
     },
     {
@@ -49,7 +49,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Open study spaces",
       href: "/students/study-spaces",
       icon: Users,
-      iconClassName: "bg-emerald-100 text-emerald-800",
+      iconClassName: "bg-emerald-100 surface-dark:bg-surface-emerald-soft text-emerald-800 surface-dark:text-emerald-300",
       eyebrow: "Peer-shared",
     },
   ],
@@ -60,7 +60,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Browse classrooms",
       href: "/educators/classrooms",
       icon: GraduationCap,
-      iconClassName: "bg-sky-100 text-sky-800",
+      iconClassName: "bg-sky-100 surface-dark:bg-surface-sky-soft text-sky-800 surface-dark:text-sky-300",
       eyebrow: "Educator-published",
     },
   ],
@@ -71,7 +71,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Browse classrooms",
       href: "/tutors/classrooms",
       icon: GraduationCap,
-      iconClassName: "bg-sky-100 text-sky-800",
+      iconClassName: "bg-sky-100 surface-dark:bg-surface-sky-soft text-sky-800 surface-dark:text-sky-300",
       eyebrow: "Teaching",
     },
     {
@@ -80,7 +80,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "View sessions",
       href: "/tutors/sessions",
       icon: BookOpenText,
-      iconClassName: "bg-amber-100 text-amber-800",
+      iconClassName: "bg-amber-100 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300",
       eyebrow: "Tutoring",
     },
   ],
@@ -91,7 +91,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Explore classroom context",
       href: "/esl/materials/classrooms",
       icon: GraduationCap,
-      iconClassName: "bg-sky-100 text-sky-800",
+      iconClassName: "bg-sky-100 surface-dark:bg-surface-sky-soft text-sky-800 surface-dark:text-sky-300",
       eyebrow: "Teaching",
     },
     {
@@ -100,7 +100,7 @@ const materialContexts: Record<DashboardRole, MaterialContext[]> = {
       action: "Explore lesson context",
       href: "/esl/materials/lessons",
       icon: BookOpenText,
-      iconClassName: "bg-amber-100 text-amber-800",
+      iconClassName: "bg-amber-100 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300",
       eyebrow: "ESL",
     },
   ],
@@ -136,21 +136,21 @@ export default function MaterialsPage() {
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 surface-dark:text-muted-foreground">
               Resource boundaries
             </p>
             <ul className="mt-4 space-y-3 text-sm text-slate-200">
               <li className="flex items-center gap-3">
-                <span className="size-2 rounded-full bg-amber-300" aria-hidden="true" />
+                <span className="size-2 rounded-full bg-amber-300 surface-dark:bg-surface-amber-strong" aria-hidden="true" />
                 Teacher-owned materials stay private by default
               </li>
               <li className="flex items-center gap-3">
-                <span className="size-2 rounded-full bg-sky-300" aria-hidden="true" />
+                <span className="size-2 rounded-full bg-sky-300 surface-dark:bg-surface-sky-strong" aria-hidden="true" />
                 Classroom resources stay with their class context
               </li>
               {role === "students" && (
                 <li className="flex items-center gap-3">
-                  <span className="size-2 rounded-full bg-emerald-300" aria-hidden="true" />
+                  <span className="size-2 rounded-full bg-emerald-300 surface-dark:bg-surface-emerald-strong" aria-hidden="true" />
                   Peer resources stay with the study space
                 </li>
               )}
@@ -162,14 +162,14 @@ export default function MaterialsPage() {
       <section aria-labelledby="material-contexts-heading" className="space-y-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 surface-dark:text-muted-foreground">
               Start with the right context
             </p>
-            <h3 id="material-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900">
+            <h3 id="material-contexts-heading" className="mt-1 text-xl font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">
               Choose a resource context
             </h3>
           </div>
-          <p className="max-w-lg text-sm leading-6 text-slate-500">
+          <p className="max-w-lg text-sm leading-6 text-slate-500 surface-dark:text-muted-foreground">
             Choose a context to see its materials area. Sharing or attaching a resource requires an available service.
           </p>
         </div>
@@ -182,21 +182,21 @@ export default function MaterialsPage() {
               <Link
                 key={context.title}
                 to={context.href}
-                className="group flex min-h-52 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none sm:p-6"
+                className="group flex min-h-52 flex-col rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 surface-dark:hover:border-border hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none sm:p-6"
               >
                 <div className="flex items-start justify-between gap-4">
                   <span className={`inline-flex size-11 items-center justify-center rounded-xl ${context.iconClassName}`}>
                     <Icon aria-hidden="true" className="size-5" />
                   </span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  <span className="rounded-full bg-slate-100 surface-dark:bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 surface-dark:text-muted-foreground">
                     {context.eyebrow}
                   </span>
                 </div>
-                <h4 className="mt-5 text-lg font-semibold tracking-tight text-slate-900">
+                <h4 className="mt-5 text-lg font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">
                   {context.title}
                 </h4>
-                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">{context.description}</p>
-                <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-semibold text-slate-800">
+                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">{context.description}</p>
+                <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-semibold text-slate-800 surface-dark:text-foreground">
                   {context.action}
                   <ArrowRight
                     aria-hidden="true"
@@ -209,15 +209,15 @@ export default function MaterialsPage() {
         </div>
       </section>
 
-      <aside className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5 sm:p-6">
-        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+      <aside className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 surface-dark:border-border bg-white/70 surface-dark:bg-card/70 p-5 sm:p-6">
+        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground">
           <FolderOpen aria-hidden="true" className="size-4" />
         </span>
         <div className="flex gap-3">
-          <CircleHelp aria-hidden="true" className="mt-0.5 hidden size-4 shrink-0 text-slate-400 sm:block" />
+          <CircleHelp aria-hidden="true" className="mt-0.5 hidden size-4 shrink-0 text-slate-400 surface-dark:text-muted-foreground sm:block" />
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Your material library is not connected yet</h3>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <h3 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">Your material library is not connected yet</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">
               This page helps you find the right learning context. Resource browsing, uploads, and sharing
               will be available when the materials service is in place.
             </p>

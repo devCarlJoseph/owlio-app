@@ -10,7 +10,7 @@ export function NotificationsTrigger({ role }: { role: NotificationsRole }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="ghost" size="icon" className="relative size-10 rounded-full text-slate-600 hover:bg-slate-100" />} aria-label="Notifications" title="Notifications">
+      <DialogTrigger render={<Button variant="ghost" size="icon" className="relative size-10 rounded-full text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted" />} aria-label="Notifications" title="Notifications">
         <Bell aria-hidden="true" />
       </DialogTrigger>
       <NotificationsPanel role={role} onNavigate={() => setOpen(false)} />

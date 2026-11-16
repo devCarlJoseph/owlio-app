@@ -34,7 +34,7 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
   const rangeLabel = formatRange(selectedDate, view)
 
   return (
-    <div className="mx-auto w-full max-w-[100rem] overflow-hidden rounded-2xl border border-border bg-white text-foreground shadow-xs">
+    <div className="mx-auto w-full max-w-[100rem] overflow-hidden rounded-2xl border border-border bg-white surface-dark:bg-card text-foreground shadow-xs">
       <Tabs value={view} onValueChange={(value) => { if (views.includes(value as CalendarView)) setView(value as CalendarView) }} className="gap-0">
         <header className="flex flex-wrap items-start justify-between gap-4 px-4 pb-5 pt-6 sm:px-6">
           <div>
@@ -67,7 +67,7 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
 
         <div className="px-4 pb-5 sm:px-6"><ScheduleSummary content={content} examples={visibleExamples} showingExamples={showingExamples} /></div>
 
-        <div id="schedule-availability" className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-slate-50 px-4 py-3 sm:mx-6">
+        <div id="schedule-availability" className="mx-4 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-slate-50 surface-dark:bg-background px-4 py-3 sm:mx-6">
           <div className="flex items-start gap-2.5">
             <Info className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
             <div>
@@ -75,7 +75,7 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{showingExamples ? "Showing fictional examples for layout preview. No events are saved or linked to learners." : "Browse dates and views. Event records and scheduling are not connected yet."}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" aria-pressed={showingExamples} onClick={() => { setShowingExamples((current) => !current); setSelectedExample(null) }} className="h-9 gap-2 rounded-lg bg-white text-xs"><FlaskConical className="size-3.5" aria-hidden="true" />{showingExamples ? "Hide examples" : "Show examples"}</Button>
+          <Button variant="outline" size="sm" aria-pressed={showingExamples} onClick={() => { setShowingExamples((current) => !current); setSelectedExample(null) }} className="h-9 gap-2 rounded-lg bg-white surface-dark:bg-card text-xs"><FlaskConical className="size-3.5" aria-hidden="true" />{showingExamples ? "Hide examples" : "Show examples"}</Button>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border px-4 py-3 sm:px-6">
@@ -99,14 +99,14 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
             <DialogHeader className={`border-b border-border border-t-4 p-5 pr-12 ${scheduleColors[selectedExample.category.color].tile}`}>
               <p className="text-[10px] font-semibold uppercase tracking-widest">Example event</p>
               <DialogTitle className="text-lg leading-6">{selectedExample.title}</DialogTitle>
-              <DialogDescription className="text-xs text-slate-700">Fictional layout preview. This is not a saved appointment or learner record.</DialogDescription>
+              <DialogDescription className="text-xs text-slate-700 surface-dark:text-foreground">Fictional layout preview. This is not a saved appointment or learner record.</DialogDescription>
             </DialogHeader>
             <dl className="space-y-4 px-5 text-sm">
               <div><dt className="text-xs text-muted-foreground">Date and time · device timezone</dt><dd className="mt-1 font-medium">{formatDate(selectedExample.date)}</dd><dd className="mt-1 text-xs">{formatHour(selectedExample.hour)} – {formatHour(selectedExample.hour + selectedExample.duration)} · {timezone}</dd></div>
               <div><dt className="text-xs text-muted-foreground">Event type</dt><dd className="mt-1">{selectedExample.category.label}</dd></div>
               <div><dt className="text-xs text-muted-foreground">Learning context</dt><dd className="mt-1">{selectedExample.context}</dd></div>
             </dl>
-            <DialogFooter showCloseButton className="border-t border-border bg-slate-50 p-4" />
+            <DialogFooter showCloseButton className="border-t border-border bg-slate-50 surface-dark:bg-background p-4" />
           </>}
         </DialogContent>
       </Dialog>

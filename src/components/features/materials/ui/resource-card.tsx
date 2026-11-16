@@ -18,15 +18,15 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     <Card
       className={
         isAvailable
-          ? "group/resource relative h-full border border-slate-200 bg-white shadow-sm ring-0 transition hover:border-slate-300 hover:shadow-md motion-reduce:transition-none"
-          : "border border-dashed border-slate-300 bg-slate-50/60 shadow-none ring-0"
+          ? "group/resource relative h-full border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0 transition hover:border-slate-300 surface-dark:hover:border-border hover:shadow-md motion-reduce:transition-none"
+          : "border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 shadow-none ring-0"
       }
     >
       <CardContent className="gap-3">
         <div className="flex items-start gap-3">
           <span
             className={`inline-flex size-9 shrink-0 items-center justify-center rounded-lg ${
-              isAvailable ? sourceMeta.iconClassName : "bg-slate-200 text-slate-500"
+              isAvailable ? sourceMeta.iconClassName : "bg-slate-200 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground"
             }`}
           >
             {isAvailable ? (
@@ -37,11 +37,11 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           </span>
 
           <div className="min-w-0 flex-1">
-            <h4 className="text-sm font-semibold text-slate-900">
+            <h4 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">
               {isAvailable ? (
                 <Link
                   to={resource.contextHref}
-                  className="rounded outline-none after:absolute after:inset-0 after:content-[''] hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  className="rounded outline-none after:absolute after:inset-0 after:content-[''] hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   {resource.title}
                 </Link>
@@ -49,26 +49,26 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                 "Resource unavailable"
               )}
             </h4>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500 surface-dark:text-muted-foreground">
               {sourceMeta.shortLabel} · {resource.context}
             </p>
           </div>
 
           {isAvailable && (
-            <Badge variant="outline" className="shrink-0 border-slate-200 bg-slate-50 text-slate-600">
+            <Badge variant="outline" className="shrink-0 border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background text-slate-600 surface-dark:text-muted-foreground">
               {resource.kind}
             </Badge>
           )}
         </div>
 
-        <p className={`text-sm leading-6 ${isAvailable ? "text-slate-600" : "text-slate-500"}`}>
+        <p className={`text-sm leading-6 ${isAvailable ? "text-slate-600 surface-dark:text-muted-foreground" : "text-slate-500 surface-dark:text-muted-foreground"}`}>
           {isAvailable
             ? resource.summary
             : "This resource is not available in your account right now. Open the context that owns it to see what is shared with you."}
         </p>
 
-        <div className="border-t border-slate-100 pt-3">
-          <p className="text-xs text-slate-500">
+        <div className="border-t border-slate-100 surface-dark:border-border pt-3">
+          <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">
             {isAvailable
               ? `${resource.owner}${resource.updated ? ` · ${resource.updated}` : ""}`
               : "No details are shown for resources you cannot open."}

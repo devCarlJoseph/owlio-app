@@ -32,7 +32,7 @@ export function NotificationsInbox({ role, title, headerAction, className = "", 
         <p className="text-[11px] font-medium text-muted-foreground">{content.workspace}</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{content.description}</p>
       </div>
-      {showExamples && <p className="shrink-0 border-b border-amber-100 bg-amber-50 px-5 py-2.5 text-[11px] leading-5 text-amber-950" role="status">Example notifications · Fictional content. No items are saved or marked as read.</p>}
+      {showExamples && <p className="shrink-0 border-b border-amber-100 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-5 py-2.5 text-[11px] leading-5 text-amber-950 surface-dark:text-amber-200" role="status">Example notifications · Fictional content. No items are saved or marked as read.</p>}
       {(["all", "unread"] as const).map((value) => (
         <TabsContent key={value} value={value} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <ScrollArea className="min-h-0 flex-1" role="region" aria-label="Notification feed">

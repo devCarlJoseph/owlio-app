@@ -371,7 +371,7 @@ export function SpaceMap({ created, joined, locked, onUnlock, className }: Space
             zone.tiles.length === 0 ? (
               <p
                 key={`${zone.role}-empty`}
-                className="pointer-events-none absolute w-56 -translate-x-1/2 -translate-y-1/2 text-center text-sm leading-5 text-slate-600"
+                className="pointer-events-none absolute w-56 -translate-x-1/2 -translate-y-1/2 text-center text-sm leading-5 text-slate-600 surface-dark:text-muted-foreground"
                 style={{ left: zone.center.x - origin.x, top: zone.center.y - origin.y }}
               >
                 {zone.emptyMessage}
@@ -395,15 +395,15 @@ export function SpaceMap({ created, joined, locked, onUnlock, className }: Space
         </div>
       </div>
 
-      <p className="pointer-events-none absolute bottom-2 left-3 right-28 text-[11px] leading-4 text-slate-600">
+      <p className="pointer-events-none absolute bottom-2 left-3 right-28 text-[11px] leading-4 text-slate-600 surface-dark:text-muted-foreground">
         Drag to move, pinch or use the buttons to zoom · open a space or enter a code on a locked tile
       </p>
 
-      <div className="absolute bottom-3 right-3 flex flex-col items-center gap-1 rounded-lg border border-slate-200 bg-white/95 p-1 shadow-sm">
+      <div className="absolute bottom-3 right-3 flex flex-col items-center gap-1 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 p-1 shadow-sm">
         <Button type="button" variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => zoomBy(ZOOM_STEP)}>
           <Plus aria-hidden="true" />
         </Button>
-        <span aria-label="Zoom level" className="text-[10px] font-medium tabular-nums text-slate-600">
+        <span aria-label="Zoom level" className="text-[10px] font-medium tabular-nums text-slate-600 surface-dark:text-muted-foreground">
           {percent}%
         </span>
         <Button type="button" variant="ghost" size="icon-sm" aria-label="Zoom out" onClick={() => zoomBy(1 / ZOOM_STEP)}>
@@ -445,13 +445,13 @@ function MapTileView({
         className={isLocked ? "opacity-55 grayscale" : "motion-safe:transition-transform motion-safe:group-hover:-translate-y-1"}
       />
       {isLocked && (
-        <span className="absolute left-1/2 top-[88px] flex size-9 -translate-x-1/2 items-center justify-center rounded-full border border-slate-300 bg-white/95 text-slate-700 shadow-sm">
+        <span className="absolute left-1/2 top-[88px] flex size-9 -translate-x-1/2 items-center justify-center rounded-full border border-slate-300 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 text-slate-700 surface-dark:text-foreground shadow-sm">
           <Lock className="size-4" aria-hidden="true" />
         </span>
       )}
       <span className="absolute inset-x-0 top-[178px] flex flex-col items-center px-3 text-center">
-        <span className="max-w-full truncate text-[13px] font-semibold leading-4 text-slate-900">{space.name}</span>
-        <span className="mt-0.5 flex items-center gap-1.5 text-[11px] leading-4 text-slate-600">
+        <span className="max-w-full truncate text-[13px] font-semibold leading-4 text-slate-900 surface-dark:text-foreground">{space.name}</span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-[11px] leading-4 text-slate-600 surface-dark:text-muted-foreground">
           <span className="flex gap-0.5" aria-hidden="true">
             {Array.from({ length: space.capacity }, (_, index) => (
               <span key={index} className="size-1.5 rounded-[2px] bg-slate-500" />
@@ -459,7 +459,7 @@ function MapTileView({
           </span>
           {space.capacity} seats
         </span>
-        {isLocked && <span className="text-[11px] font-medium leading-4 text-slate-700">Needs a space code</span>}
+        {isLocked && <span className="text-[11px] font-medium leading-4 text-slate-700 surface-dark:text-foreground">Needs a space code</span>}
       </span>
     </>
   )
@@ -497,10 +497,10 @@ function MapTileView({
       <span
         className={`pointer-events-none absolute left-1 top-[58px] z-10 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-4 ${
           isLocked
-            ? "border-slate-300 bg-white/90 text-slate-700"
+            ? "border-slate-300 surface-dark:border-border bg-white/90 surface-dark:bg-card/90 text-slate-700 surface-dark:text-foreground"
             : role === "owner"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-blue-200 bg-blue-50 text-blue-800"
+              ? "border-emerald-200 surface-dark:border-surface-emerald-border bg-emerald-50 surface-dark:bg-surface-emerald-soft text-emerald-800 surface-dark:text-emerald-300"
+              : "border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-800 surface-dark:text-blue-300"
         }`}
       >
         {isLocked ? (
@@ -518,17 +518,17 @@ function MapTileView({
       <div
         id={tooltipId}
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-2 z-40 w-52 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left opacity-0 shadow-md transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+        className="pointer-events-none absolute left-1/2 top-2 z-40 w-52 rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-3 py-2 text-left opacity-0 shadow-md transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
         style={{ transform: `translateX(-50%) scale(${1 / zoom})`, transformOrigin: "50% 0" }}
       >
-        <p className="text-xs font-semibold text-slate-900">{space.name}</p>
-        <p className="text-[11px] leading-4 text-slate-600">
+        <p className="text-xs font-semibold text-slate-900 surface-dark:text-foreground">{space.name}</p>
+        <p className="text-[11px] leading-4 text-slate-600 surface-dark:text-muted-foreground">
           {kindLabel(space.kind)} · {space.capacity} seats
         </p>
-        <p className="text-[11px] font-medium leading-4 text-slate-800">
+        <p className="text-[11px] font-medium leading-4 text-slate-800 surface-dark:text-foreground">
           {isLocked ? studySpacesLockedTooltip : stateLabel(role)}
         </p>
-        <p className="text-[11px] leading-4 text-slate-500">
+        <p className="text-[11px] leading-4 text-slate-500 surface-dark:text-muted-foreground">
           {isLocked ? "Preview only — not opened" : `${metaLine(space)} · browser only`}
         </p>
       </div>

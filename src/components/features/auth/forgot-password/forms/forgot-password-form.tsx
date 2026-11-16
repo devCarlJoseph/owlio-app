@@ -25,7 +25,7 @@ export function ForgotPasswordForm({ onSubmit }: ForgotPasswordFormProps) {
         </div>
       </FieldGroup>
       <Button type="submit" disabled={form.formState.isSubmitting} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Sending…' : 'Send reset instructions'}</Button>
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-500 surface-dark:text-muted-foreground">
         Remembered your password? <Link to="/login" className={authLinkClassName}>Log in</Link>
       </p>
     </form>

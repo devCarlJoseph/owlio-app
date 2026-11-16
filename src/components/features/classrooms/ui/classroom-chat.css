@@ -1,8 +1,0 @@
-/* Inherit Owlio's semantic theme colors; only native controls need a scheme. */
-.classroom-chat {
-  color-scheme: light;
-}
-
-.dark .classroom-chat {
-  color-scheme: dark;
-}

@@ -31,7 +31,7 @@ export function ClassroomCreateDialog({ open, onOpenChange, onSubmit, pending, e
             <Label htmlFor="class-description">Description</Label>
             <Textarea id="class-description" name="class-description" maxLength={2000} placeholder="What will learners explore in this class?" />
           </div>
-          {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
+          {error && <p role="alert" className="text-sm text-rose-700 surface-dark:text-rose-300">{error}</p>}
         </form>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Discard</Button>
@@ -76,8 +76,8 @@ export function ClassroomJoinDialog({ open, onOpenChange, onSubmit, code, onCode
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "join-disclosure join-status" : "join-disclosure"}
           />
-          {error && <p id="join-status" role="alert" className="text-sm text-rose-700">{error}</p>}
-          <p id="join-disclosure" className="text-xs leading-5 text-slate-500">{disclosure}</p>
+          {error && <p id="join-status" role="alert" className="text-sm text-rose-700 surface-dark:text-rose-300">{error}</p>}
+          <p id="join-disclosure" className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{disclosure}</p>
         </form>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Discard</Button>

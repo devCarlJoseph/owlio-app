@@ -64,7 +64,7 @@ export function RegisterForm({ onSubmit, onGoogle, googlePending, googleOnly = f
           <AuthPasswordInput id="passwordConfirmation" label="Confirm password" placeholder="Confirm your password" autoComplete="new-password" registration={form.register("passwordConfirmation")} error={errors.passwordConfirmation?.message} />
         </>}
         <div className="space-y-1.5">
-          <label htmlFor="acceptTerms" className="flex cursor-pointer items-start gap-2 text-sm leading-5 text-slate-600">
+          <label htmlFor="acceptTerms" className="flex cursor-pointer items-start gap-2 text-sm leading-5 text-slate-600 surface-dark:text-muted-foreground">
             <input id="acceptTerms" type="checkbox" required className="mt-0.5 size-4 shrink-0 rounded accent-blue-600" aria-invalid={Boolean(errors.acceptTerms)} aria-describedby={errors.acceptTerms ? "acceptTerms-error" : undefined} {...form.register("acceptTerms")} />
             <span>I agree to the Terms of Service and Privacy Policy <span className="text-destructive">*</span></span>
           </label>
@@ -72,12 +72,12 @@ export function RegisterForm({ onSubmit, onGoogle, googlePending, googleOnly = f
         </div>
       </FieldGroup>
       <div className="space-y-5">
-        <p className="text-center text-xs text-slate-500">{googleOnly ? 'Choose your role and accept the terms, then continue with Google.' : 'Or continue without an Owlio password. Choose a role and accept the terms above.'}</p>
+        <p className="text-center text-xs text-slate-500 surface-dark:text-muted-foreground">{googleOnly ? 'Choose your role and accept the terms, then continue with Google.' : 'Or continue without an Owlio password. Choose a role and accept the terms above.'}</p>
         <GoogleAuthButton onClick={continueWithGoogle} disabled={googlePending || form.formState.isSubmitting} label={googlePending ? 'Connecting to Google…' : 'Sign up with Google'} />
       </div>
       {!googleOnly && <Button type="submit" disabled={form.formState.isSubmitting || googlePending} className={authPrimaryButtonClassName}>{form.formState.isSubmitting ? 'Creating account…' : 'Create account'}</Button>}
       {googleOnly && <Button type="button" variant="link" disabled={googlePending} onClick={onUseEmail}>Sign up with email instead</Button>}
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-500 surface-dark:text-muted-foreground">
         Already have an account? <Link to="/login" state={googleOnly ? { connectGoogle: true, oauthNotice: 'Log in with your Owlio password, then select Connect Google on the next screen.' } : undefined} className={authLinkClassName}>{googleOnly ? 'Log in to connect Google' : 'Log in'}</Link>
       </p>
     </form>

@@ -28,8 +28,8 @@ type SubjectMilestonesCardProps = {
 }
 
 const milestoneStatusMeta = {
-  completed: { label: "Completed", icon: CircleCheck, className: "text-emerald-600" },
-  "in-progress": { label: "In progress", icon: CircleDot, className: "text-blue-600" },
+  completed: { label: "Completed", icon: CircleCheck, className: "text-emerald-600 surface-dark:text-emerald-300" },
+  "in-progress": { label: "In progress", icon: CircleDot, className: "text-blue-600 surface-dark:text-blue-300" },
   "not-started": { label: "Not started", icon: Circle, className: "text-slate-300" },
 } as const
 
@@ -96,7 +96,7 @@ function MilestoneActions({
         size="icon-xs"
         aria-label={`Options for ${milestone.title}`}
         aria-expanded={open}
-        className="text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+        className="text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
       >
         <MoreVertical aria-hidden="true" />
       </Button>
@@ -105,7 +105,7 @@ function MilestoneActions({
         <div
           role="menu"
           aria-label={`Options for ${milestone.title}`}
-          className="absolute right-0 top-full z-20 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+          className="absolute right-0 top-full z-20 w-40 overflow-hidden rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-1 shadow-lg"
         >
           <button
             type="button"
@@ -114,7 +114,7 @@ function MilestoneActions({
               setOpen(false)
               onEdit(milestone)
             }}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-700 outline-none hover:bg-slate-100 focus-visible:bg-slate-100"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-700 surface-dark:text-foreground outline-none hover:bg-slate-100 surface-dark:hover:bg-muted focus-visible:bg-slate-100 surface-dark:focus-visible:bg-muted"
           >
             <Pencil aria-hidden="true" className="size-4" />
             Edit
@@ -123,7 +123,7 @@ function MilestoneActions({
             type="button"
             role="menuitem"
             onClick={() => { setOpen(false); onDelete(milestone) }}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-red-700 outline-none hover:bg-red-50 focus-visible:bg-red-50"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-red-700 surface-dark:text-red-300 outline-none hover:bg-red-50 surface-dark:hover:bg-surface-red-soft focus-visible:bg-red-50 surface-dark:focus-visible:bg-surface-red-soft"
           >
             <Trash aria-hidden="true" className="size-4" />
             Remove
@@ -153,22 +153,22 @@ export function SubjectMilestonesCard({
 
   if (state.total === 0) {
     return (
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+      <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
         <CardContent className="gap-4">
           <div>
-            <h3 className="text-base font-semibold text-slate-900">Your learning milestones</h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Your learning milestones</h3>
+            <p className="mt-1 text-sm text-slate-500 surface-dark:text-muted-foreground">
               Break {subject.name} into the steps you want to finish.
             </p>
           </div>
 
-          <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-8">
+          <Empty className="border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-8">
             <EmptyHeader>
-              <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+              <EmptyMedia variant="icon" className="bg-slate-100 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground">
                 <Flag aria-hidden="true" />
               </EmptyMedia>
-              <EmptyTitle className="text-base text-slate-900">No milestones yet</EmptyTitle>
-              <EmptyDescription className="text-slate-600">
+              <EmptyTitle className="text-base text-slate-900 surface-dark:text-foreground">No milestones yet</EmptyTitle>
+              <EmptyDescription className="text-slate-600 surface-dark:text-muted-foreground">
                 Add the first step, then start working through them one by one.
               </EmptyDescription>
             </EmptyHeader>
@@ -178,7 +178,7 @@ export function SubjectMilestonesCard({
                 variant="outline"
                 size="sm"
                 onClick={onAddMilestone}
-                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
               >
                 <Plus aria-hidden="true" />
                 Add milestone
@@ -190,7 +190,7 @@ export function SubjectMilestonesCard({
                   variant="ghost"
                   size="sm"
                   onClick={onUndoRemoval}
-                  className="text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  className="text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
                 >
                   {removalLabel}
                 </Button>
@@ -224,15 +224,15 @@ export function SubjectMilestonesCard({
     primaryAction !== null || subject.progressStarted || removalLabel !== null
 
   return (
-    <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+    <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
       <CardContent className="gap-4">
         <div>
-          <p className="text-sm text-slate-500">Learning progress</p>
+          <p className="text-sm text-slate-500 surface-dark:text-muted-foreground">Learning progress</p>
           <div className="mt-1 flex items-baseline justify-between gap-3">
             <p className={`text-2xl font-semibold ${theme.text}`}>
               {state.completed} of {state.total} topics
             </p>
-            <p className="text-2xl font-semibold tabular-nums text-slate-900">
+            <p className="text-2xl font-semibold tabular-nums text-slate-900 surface-dark:text-foreground">
               {state.progress}%
             </p>
           </div>
@@ -245,7 +245,7 @@ export function SubjectMilestonesCard({
         />
 
         {showActionRow ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 surface-dark:border-border pt-4">
             <div className="flex flex-wrap items-center gap-2">
               {subject.progressStarted ? (
                 <Button
@@ -254,7 +254,7 @@ export function SubjectMilestonesCard({
                   size="sm"
                   onClick={onUndoMilestones}
                   disabled={!canUndo}
-                  className="text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  className="text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
                 >
                   Undo milestones
                 </Button>
@@ -266,7 +266,7 @@ export function SubjectMilestonesCard({
                   variant="ghost"
                   size="sm"
                   onClick={onUndoRemoval}
-                  className="text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  className="text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
                 >
                   {removalLabel}
                 </Button>
@@ -286,16 +286,16 @@ export function SubjectMilestonesCard({
           </div>
         ) : null}
 
-        <div className="border-t border-slate-100 pt-4">
+        <div className="border-t border-slate-100 surface-dark:border-border pt-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-slate-900">Your learning milestones</h3>
+            <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Your learning milestones</h3>
             <div className="flex flex-wrap items-center gap-1">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={onRemoveAllMilestones}
-                className="text-slate-500 hover:bg-red-50 hover:text-red-700"
+                className="text-slate-500 surface-dark:text-muted-foreground hover:bg-red-50 surface-dark:hover:bg-surface-red-soft hover:text-red-700 surface-dark:hover:text-red-300"
               >
                 <Trash aria-hidden="true" />
                 Remove all
@@ -305,7 +305,7 @@ export function SubjectMilestonesCard({
                 variant="ghost"
                 size="sm"
                 onClick={onAddMilestone}
-                className={`text-slate-600 hover:bg-slate-100 ${theme.hoverText}`}
+                className={`text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted ${theme.hoverText}`}
               >
                 <Plus aria-hidden="true" />
                 Add milestone
@@ -327,8 +327,8 @@ export function SubjectMilestonesCard({
                     }`}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900">{item.title}</p>
-                    <p className="text-xs text-slate-500">{meta.label}</p>
+                    <p className="text-sm font-medium text-slate-900 surface-dark:text-foreground">{item.title}</p>
+                    <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">{meta.label}</p>
                   </div>
                   <MilestoneActions
                     milestone={item}

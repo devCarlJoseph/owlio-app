@@ -10,12 +10,12 @@ export default function TutorSessionNotesView() {
     >
       <div className="grid gap-4 md:grid-cols-2">
         <TutorSection title="Private tutor notes" description="Private notes require explicit tutor-only access and retention rules.">
-          <LockKeyhole aria-hidden="true" className="size-5 text-slate-700" />
-          <p className="text-sm text-slate-600">These notes must not appear in learner feeds, group discussions, notifications, or progress views.</p>
+          <LockKeyhole aria-hidden="true" className="size-5 text-slate-700 surface-dark:text-foreground" />
+          <p className="text-sm text-slate-600 surface-dark:text-muted-foreground">These notes must not appear in learner feeds, group discussions, notifications, or progress views.</p>
         </TutorSection>
         <TutorSection title="Learner-visible feedback" description="Publishing is a separate action with a confirmed audience.">
-          <MessageCircleMore aria-hidden="true" className="size-5 text-blue-700" />
-          <p className="text-sm text-slate-600">A private note never becomes feedback automatically.</p>
+          <MessageCircleMore aria-hidden="true" className="size-5 text-blue-700 surface-dark:text-blue-300" />
+          <p className="text-sm text-slate-600 surface-dark:text-muted-foreground">A private note never becomes feedback automatically.</p>
         </TutorSection>
       </div>
       <TutorUnavailable

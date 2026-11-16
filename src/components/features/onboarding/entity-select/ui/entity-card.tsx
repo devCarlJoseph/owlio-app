@@ -25,8 +25,8 @@ export function EntityCard({ entity, title, description, icon, checked, onChange
       htmlFor={inputId}
       className={`group relative flex min-h-44 cursor-pointer flex-col rounded-2xl border p-5 text-left transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 has-[:focus-visible]:ring-offset-2 ${
         checked
-          ? "border-indigo-600 bg-indigo-50/80 shadow-md shadow-indigo-600/10 ring-1 ring-indigo-600"
-          : "border-border bg-slate-50/60 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-white hover:shadow-sm"
+          ? "border-indigo-600 bg-indigo-50/80 surface-dark:bg-surface-indigo-soft/80 shadow-md shadow-indigo-600/10 ring-1 ring-indigo-600"
+          : "border-border bg-slate-50/60 surface-dark:bg-background/60 hover:-translate-y-0.5 hover:border-indigo-300 surface-dark:hover:border-surface-indigo-border hover:bg-white surface-dark:hover:bg-card hover:shadow-sm"
       }`}
     >
       <input
@@ -41,7 +41,7 @@ export function EntityCard({ entity, title, description, icon, checked, onChange
       />
       <span
         className={`absolute top-4 right-4 flex size-5 items-center justify-center rounded-full border transition-colors ${
-          checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white"
+          checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card"
         }`}
         aria-hidden="true"
       >
@@ -49,7 +49,7 @@ export function EntityCard({ entity, title, description, icon, checked, onChange
       </span>
       <span
         className={`mb-6 flex size-12 items-center justify-center rounded-xl transition-colors ${
-          checked ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
+          checked ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/20" : "bg-white surface-dark:bg-card text-slate-700 surface-dark:text-foreground ring-1 ring-slate-200 surface-dark:ring-border"
         }`}
         aria-hidden="true"
       >
@@ -57,7 +57,7 @@ export function EntityCard({ entity, title, description, icon, checked, onChange
       </span>
       <span className="mt-auto text-base font-semibold text-foreground">{title}</span>
       <span className="mt-1 text-sm leading-5 text-muted-foreground">{description}</span>
-      <span className={`mt-3 text-xs font-medium ${checked ? "text-indigo-700" : "text-transparent"}`} aria-hidden="true">
+      <span className={`mt-3 text-xs font-medium ${checked ? "text-indigo-700 surface-dark:text-indigo-300" : "text-transparent"}`} aria-hidden="true">
         Selected
       </span>
     </label>

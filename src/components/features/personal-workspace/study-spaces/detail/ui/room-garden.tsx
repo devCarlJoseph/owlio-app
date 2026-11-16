@@ -102,7 +102,7 @@ export function RoomGarden({
           </mesh>
         ))}
         {hovered ? (
-          <Html position={[0, 1.15, 0]} center style={{ pointerEvents: "none" }} zIndexRange={[15, 0]}>
+          <Html position={[0, 1.15, 0]} center className="pointer-events-none" zIndexRange={[15, 0]}>
             <span className="block whitespace-nowrap rounded-md bg-slate-900/90 px-2 py-1 text-[11px] font-medium text-white shadow">
               {soundOn ? "Stop garden sounds" : "Play garden sounds (Forest Breeze)"}
             </span>
@@ -122,8 +122,8 @@ export function RoomGarden({
         {lamps > 0 ? <pointLight position={[0, 1.5, 0]} intensity={4 * lamps} distance={5} color="#fde68a" /> : null}
       </group>
 
-      <Html position={[0, 0.5, 1.35]} center style={{ pointerEvents: "none" }} zIndexRange={[12, 0]}>
-        <span className="block whitespace-nowrap rounded-full bg-emerald-100/95 px-3 py-1 text-[11px] font-semibold tracking-wide text-emerald-900 shadow">
+      <Html position={[0, 0.5, 1.35]} center className="pointer-events-none" zIndexRange={[12, 0]}>
+        <span className="block whitespace-nowrap rounded-full bg-emerald-100/95 surface-dark:bg-surface-emerald-soft/95 px-3 py-1 text-[11px] font-semibold tracking-wide text-emerald-900 surface-dark:text-emerald-200 shadow">
           Garden corner
         </span>
       </Html>

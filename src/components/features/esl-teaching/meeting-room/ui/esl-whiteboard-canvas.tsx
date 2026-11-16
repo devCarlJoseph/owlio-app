@@ -245,7 +245,7 @@ export default function EslWhiteboardCanvas({
         <g {...common} key={item.id} transform={`translate(${item.x} ${item.y})`}>
           <rect width={STICKY_SIZE.w} height={STICKY_SIZE.h} rx={4} fill="#fde68a" filter="url(#esl-wb-shadow)" />
           <foreignObject width={STICKY_SIZE.w} height={STICKY_SIZE.h}>
-            <div className="size-full break-words p-3 text-base leading-snug whitespace-pre-wrap text-slate-700">{item.text}</div>
+            <div className="size-full break-words p-3 text-base leading-snug whitespace-pre-wrap text-slate-700 surface-dark:text-foreground">{item.text}</div>
           </foreignObject>
         </g>
       )
@@ -345,7 +345,7 @@ export default function EslWhiteboardCanvas({
             fontSize: editing.kind === "text" ? editing.size : 16,
             color: editing.kind === "text" ? editing.color : "#334155",
           }}
-          className={`absolute z-10 resize-none rounded-md border-2 border-blue-500 p-2 font-semibold leading-snug outline-none ${editing.kind === "sticky" ? "bg-amber-200 shadow-lg" : "bg-white/90"}`}
+          className={`absolute z-10 resize-none rounded-md border-2 border-blue-500 p-2 font-semibold leading-snug outline-none ${editing.kind === "sticky" ? "bg-amber-200 surface-dark:bg-surface-amber-strong shadow-lg" : "bg-white/90 surface-dark:bg-card/90"}`}
         />
       )}
     </div>

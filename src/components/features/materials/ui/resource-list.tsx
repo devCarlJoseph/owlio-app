@@ -29,13 +29,13 @@ export function ResourceList({
 }: ResourceListProps) {
   if (resources.length === 0) {
     return (
-      <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-8 sm:p-10">
+      <Empty className="border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-8 sm:p-10">
         <EmptyHeader>
-          <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+          <EmptyMedia variant="icon" className="bg-slate-100 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground">
             <FileQuestion aria-hidden="true" />
           </EmptyMedia>
-          <EmptyTitle className="text-base text-slate-900">{emptyTitle}</EmptyTitle>
-          <EmptyDescription className="text-slate-600">{emptyDescription}</EmptyDescription>
+          <EmptyTitle className="text-base text-slate-900 surface-dark:text-foreground">{emptyTitle}</EmptyTitle>
+          <EmptyDescription className="text-slate-600 surface-dark:text-muted-foreground">{emptyDescription}</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           {isFiltered ? (
@@ -44,7 +44,7 @@ export function ResourceList({
               variant="outline"
               size="sm"
               onClick={onClearFilters}
-              className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+              className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
             >
               Clear filters
             </Button>
@@ -55,7 +55,7 @@ export function ResourceList({
                 size="sm"
                 nativeButton={false}
                 render={<Link to={emptyActionHref} />}
-                className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
               >
                 {emptyActionLabel}
               </Button>

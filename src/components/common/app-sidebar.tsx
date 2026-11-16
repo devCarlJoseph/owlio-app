@@ -41,7 +41,7 @@ function useIsDesktop() {
 
 function CountBadge({ count, showLabels }: { count?: number; showLabels: boolean }) {
   if (!count) return null
-  if (!showLabels) return <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-full bg-brand ring-2 ring-white" />
+  if (!showLabels) return <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-full bg-brand ring-2 ring-white surface-dark:ring-border" />
   return (
     <span aria-label={`${count} unread`} className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-semibold leading-5 text-brand-foreground">
       {count}
@@ -65,7 +65,7 @@ function SidebarNavigationGroup({
   return (
     <section className="py-2 not-first:border-t not-first:border-slate-200">
       {group.showLabel !== false && (
-        <p className={cn("mb-1 px-3 pt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500", !showLabels && "sr-only")}>
+        <p className={cn("mb-1 px-3 pt-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500 surface-dark:text-muted-foreground", !showLabels && "sr-only")}>
           {group.label}
         </p>
       )}
@@ -78,8 +78,8 @@ function SidebarNavigationGroup({
             active
               ? "bg-brand-soft font-medium text-brand-soft-foreground"
               : href
-                ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                : "cursor-not-allowed text-slate-400"
+                ? "text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted hover:text-slate-900 surface-dark:hover:text-foreground"
+                : "cursor-not-allowed text-slate-400 surface-dark:text-muted-foreground"
           )
           const content = (
             <>
@@ -87,7 +87,7 @@ function SidebarNavigationGroup({
               {showLabels && <span className="min-w-0 flex-1 text-left break-words">{label}</span>}
               {href && <CountBadge count={badges?.[href]} showLabels={showLabels} />}
               {!href && showLabels && (
-                <span aria-hidden="true" className="ml-auto shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                <span aria-hidden="true" className="ml-auto shrink-0 rounded-md bg-slate-100 surface-dark:bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500 surface-dark:text-muted-foreground">
                   Planned
                 </span>
               )}
@@ -189,7 +189,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
           ref={asideRef}
           aria-label="Workspace sidebar"
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-80 max-w-[calc(100vw-1rem)] flex-col border-r border-slate-200 bg-white px-3 pt-3 transition-transform duration-200 motion-reduce:transition-none",
+            "fixed inset-y-0 left-0 z-40 flex w-80 max-w-[calc(100vw-1rem)] flex-col border-r border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-3 pt-3 transition-transform duration-200 motion-reduce:transition-none",
             mobileOpen ? "translate-x-0" : "-translate-x-full",
             "overflow-hidden md:relative md:h-full md:min-h-0 md:translate-x-0 md:transition-[width]",
             showLabels ? "md:w-80" : "md:w-20",
@@ -204,7 +204,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
                 aria-label="Home"
                 title={showLabels ? undefined : "Home"}
                 className={cn(
-                  "flex h-12 items-center justify-center gap-2 rounded-xl border-0 md:border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand",
+                  "flex h-12 items-center justify-center gap-2 rounded-xl border-0 md:border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card text-sm font-medium text-slate-700 surface-dark:text-foreground outline-none transition-colors hover:bg-slate-50 surface-dark:hover:bg-background focus-visible:ring-2 focus-visible:ring-brand",
                   showLabels ? "flex-1" : "mx-auto w-12"
                 )}
               >
@@ -217,22 +217,22 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
               type="button"
               onClick={onMobileClose}
               aria-label="Close navigation"
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl text-slate-500 outline-none hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-brand md:hidden"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl text-slate-500 surface-dark:text-muted-foreground outline-none hover:bg-slate-100 surface-dark:hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand md:hidden"
             >
               <X className="size-5" aria-hidden="true" />
             </button>
           </div>
 
           {workspace && WorkspaceIcon && (
-            <div className={cn("mt-3 flex shrink-0 items-center rounded-xl border border-slate-200 bg-slate-50", showLabels ? "h-12 gap-3 px-2" : "mx-auto size-12 justify-center")} title={showLabels ? undefined : workspace.label}>
+            <div className={cn("mt-3 flex shrink-0 items-center rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background", showLabels ? "h-12 gap-3 px-2" : "mx-auto size-12 justify-center")} title={showLabels ? undefined : workspace.label}>
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground">
                 <WorkspaceIcon className="size-4.5" aria-hidden="true" />
               </span>
-              {showLabels ? <span className="truncate text-sm font-medium text-slate-700">{workspace.label}</span> : <span className="sr-only">{workspace.label}</span>}
+              {showLabels ? <span className="truncate text-sm font-medium text-slate-700 surface-dark:text-foreground">{workspace.label}</span> : <span className="sr-only">{workspace.label}</span>}
             </div>
           )}
 
-          <ScrollArea className="mt-3 h-0 min-h-0 flex-1 overflow-hidden border-t border-slate-200">
+          <ScrollArea className="mt-3 h-0 min-h-0 flex-1 overflow-hidden border-t border-slate-200 surface-dark:border-border">
             <nav aria-label="Workspace navigation" className={cn("overflow-x-hidden pt-2", showLabels && "pr-3")}>
               {mainGroups.map((group) => (
                 <SidebarNavigationGroup key={group.label} group={group} showLabels={showLabels} activeHref={activeHref} badges={badges} onNavigate={handleNavigate} />
@@ -240,7 +240,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
             </nav>
           </ScrollArea>
 
-          <div className="shrink-0 border-t border-slate-200 py-2">
+          <div className="shrink-0 border-t border-slate-200 surface-dark:border-border py-2">
             {footerGroups.length > 0 && (
               <nav aria-label="Account navigation">
                 {footerGroups.map((group) => (
@@ -257,7 +257,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
               aria-label={toggleLabel}
               title={toggleLabel}
               className={cn(
-                "hidden items-center rounded-lg text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-brand md:flex",
+                "hidden items-center rounded-lg text-sm font-medium text-slate-700 surface-dark:text-foreground outline-none transition-colors hover:bg-slate-100 surface-dark:hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand md:flex",
                 showLabels ? "h-10 w-full gap-3 px-3" : "mx-auto size-11 justify-center"
               )}
             >

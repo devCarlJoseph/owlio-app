@@ -73,7 +73,7 @@ export function ClassroomListHeader({ role }: { role: WorkspaceRole }) {
   const [first, second] = role === "students" ? ["Educator", "Next session"] : ["Learners", "Next session"]
 
   return (
-    <div role="row" className={cn("hidden gap-4 border-b border-slate-200 px-4 py-2 text-xs font-medium text-slate-500 md:grid", listColumns)}>
+    <div role="row" className={cn("hidden gap-4 border-b border-slate-200 surface-dark:border-border px-4 py-2 text-xs font-medium text-slate-500 surface-dark:text-muted-foreground md:grid", listColumns)}>
       <div role="columnheader">Class</div>
       <div role="columnheader">{first}</div>
       <div role="columnheader">{second}</div>
@@ -87,7 +87,7 @@ export function ClassroomListRow({ classroom, href, role }: ClassroomCardProps) 
   const { cells, status } = getClassroomMeta(classroom, role)
 
   return (
-    <div role="row" className={cn("grid gap-3 border-b border-slate-100 px-4 py-3 last:border-b-0 md:items-center md:gap-4", listColumns)}>
+    <div role="row" className={cn("grid gap-3 border-b border-slate-100 surface-dark:border-border px-4 py-3 last:border-b-0 md:items-center md:gap-4", listColumns)}>
       <div role="cell" className="flex min-w-0 items-center gap-3">
         <img
           src={getClassroomCoverUrl(classroom.id)}
@@ -96,22 +96,22 @@ export function ClassroomListRow({ classroom, href, role }: ClassroomCardProps) 
           className="size-12 shrink-0 rounded-lg object-cover"
         />
         <div className="min-w-0">
-          <Link to={href} className="block truncate rounded text-sm font-semibold text-slate-900 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand">
+          <Link to={href} className="block truncate rounded text-sm font-semibold text-slate-900 surface-dark:text-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand">
             {classroom.name}
           </Link>
           {classroom.subject ? (
-            <span className="mt-0.5 inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{classroom.subject}</span>
+            <span className="mt-0.5 inline-block max-w-full truncate rounded-md bg-slate-100 surface-dark:bg-muted px-2 py-0.5 text-xs text-slate-700 surface-dark:text-foreground">{classroom.subject}</span>
           ) : null}
         </div>
       </div>
       {cells.map((cell) => (
-        <div key={cell.label} role="cell" className="min-w-0 truncate text-sm text-slate-700">
-          <span className="mr-1 text-xs text-slate-500 md:sr-only">{cell.label}:</span>
+        <div key={cell.label} role="cell" className="min-w-0 truncate text-sm text-slate-700 surface-dark:text-foreground">
+          <span className="mr-1 text-xs text-slate-500 surface-dark:text-muted-foreground md:sr-only">{cell.label}:</span>
           {cell.value}
         </div>
       ))}
       <div role="cell">
-        <span className="mr-1 text-xs text-slate-500 md:sr-only">Status:</span>
+        <span className="mr-1 text-xs text-slate-500 surface-dark:text-muted-foreground md:sr-only">Status:</span>
         <StatusChip status={status} />
       </div>
       <div role="cell" className="flex items-center justify-between gap-1 md:justify-end">

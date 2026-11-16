@@ -96,8 +96,8 @@ export default function PlatformLayout() {
   }
 
   return (
-    <div data-dashboard-shell data-immersive={immersive || undefined} className="flex min-h-0 flex-1 flex-col overflow-clip bg-slate-50">
-      {!immersive && <header className="z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-6">
+    <div data-dashboard-shell data-immersive={immersive || undefined} className="flex min-h-0 flex-1 flex-col overflow-clip bg-slate-50 surface-dark:bg-background">
+      {!immersive && <header className="z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-4 sm:gap-4 sm:px-6">
           <Button
             type="button"
             variant="ghost"
@@ -123,7 +123,7 @@ export default function PlatformLayout() {
               }
             }}
           >
-            <Search aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-500 surface-dark:text-muted-foreground" />
             <Input
               ref={searchInputRef}
               type="search"
@@ -136,16 +136,16 @@ export default function PlatformLayout() {
               aria-keyshortcuts={searchShortcut}
               autoComplete="off"
               placeholder="Search pages…"
-              className="h-10 rounded-full border-transparent bg-slate-100 pl-10 pr-20 focus-visible:border-brand focus-visible:bg-white focus-visible:ring-brand/30"
+              className="h-10 rounded-full border-transparent bg-slate-100 surface-dark:bg-muted pl-10 pr-20 focus-visible:border-brand focus-visible:bg-white surface-dark:focus-visible:bg-card focus-visible:ring-brand/30"
             />
             {!searchQuery && (
               <KbdGroup aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Kbd className="border border-slate-200 bg-white text-[10px]">{searchShortcutLabel}</Kbd>
-                <Kbd className="border border-slate-200 bg-white text-[10px]">K</Kbd>
+                <Kbd className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card text-[10px]">{searchShortcutLabel}</Kbd>
+                <Kbd className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card text-[10px]">K</Kbd>
               </KbdGroup>
             )}
             {searchQuery.trim() && (
-              <div id="dashboard-search-results" className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 max-h-72 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
+              <div id="dashboard-search-results" className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 max-h-72 overflow-y-auto rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-1 shadow-lg">
                 {matchingPages.length > 0 ? (
                   <ul aria-label="Matching workspace pages" className="space-y-0.5">
                     {matchingPages.map(({ label, href, group }) => (
@@ -153,16 +153,16 @@ export default function PlatformLayout() {
                         <Link
                           to={href}
                           onClick={() => setSearchQuery("")}
-                          className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none hover:bg-slate-50 focus-visible:bg-slate-50"
+                          className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 surface-dark:text-foreground outline-none hover:bg-slate-50 surface-dark:hover:bg-background focus-visible:bg-slate-50 surface-dark:focus-visible:bg-background"
                         >
                           <span>{label}</span>
-                          <span className="text-xs text-slate-500">{group}</span>
+                          <span className="text-xs text-slate-500 surface-dark:text-muted-foreground">{group}</span>
                         </Link>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p role="status" className="px-3 py-2 text-sm text-slate-500">No matching pages.</p>
+                  <p role="status" className="px-3 py-2 text-sm text-slate-500 surface-dark:text-muted-foreground">No matching pages.</p>
                 )}
               </div>
             )}
@@ -180,8 +180,8 @@ export default function PlatformLayout() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="w-72 rounded-xl p-0">
                 <div className="space-y-1.5 px-4 py-3">
-                  <p className="truncate text-sm font-semibold text-slate-900">{user?.name}</p>
-                  <p className="truncate text-sm text-slate-600">{user?.email}</p>
+                  <p className="truncate text-sm font-semibold text-slate-900 surface-dark:text-foreground">{user?.name}</p>
+                  <p className="truncate text-sm text-slate-600 surface-dark:text-muted-foreground">{user?.email}</p>
                   <div className="flex flex-wrap gap-1.5 pt-0.5">
                     <Badge variant="secondary" className="rounded-md">{userRoleLabel}</Badge>
                     {workspaceLabel && <Badge variant="secondary" className="rounded-md">{workspaceLabel}</Badge>}
@@ -200,7 +200,7 @@ export default function PlatformLayout() {
                         >
                           <Icon className="size-4.5" aria-hidden="true" />
                           {label}
-                          {!href && <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-slate-500">Planned</span>}
+                          {!href && <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-slate-500 surface-dark:text-muted-foreground">Planned</span>}
                         </DropdownMenuItem>
                       ))}
                     </div>

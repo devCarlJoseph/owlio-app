@@ -180,45 +180,45 @@ export default function EslWhiteboardPreview() {
   const counts = people.map((person) => ({ person, count: items.filter((item) => item.authorId === person.id).length }))
 
   return (
-    <section aria-label="ESL whiteboard preview" onKeyDown={handleKeyDown} className="relative flex h-[calc(100dvh-12rem)] min-h-128 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-slate-100 text-slate-900">
-      <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-2 sm:px-4">
+    <section aria-label="ESL whiteboard preview" onKeyDown={handleKeyDown} className="relative flex h-[calc(100dvh-12rem)] min-h-128 min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-slate-100 surface-dark:bg-muted text-slate-900 surface-dark:text-foreground">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-2 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <Link to="/esl/classrooms/meeting-room" aria-label="Back to Meeting Room" className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+          <Link to="/esl/classrooms/meeting-room" aria-label="Back to Meeting Room" className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
             <ArrowLeft aria-hidden="true" className="size-4" />
           </Link>
           <div className="min-w-0">
             <h1 className="truncate text-sm font-semibold">ESL Meeting Room</h1>
-            <p className="truncate text-[11px] text-slate-500">Interactive whiteboard</p>
+            <p className="truncate text-[11px] text-slate-500 surface-dark:text-muted-foreground">Interactive whiteboard</p>
           </div>
-          <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 md:inline-flex">
+          <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-2.5 py-1 text-[11px] font-semibold text-amber-800 surface-dark:text-amber-300 md:inline-flex">
             <span className="size-1.5 rounded-full bg-amber-500" />Preview only - not live
           </span>
         </div>
 
-        <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-1 py-1 shadow-sm" role="group" aria-label="Pages">
-          <button type="button" onClick={() => goToPage(pageIndex - 1)} disabled={pageIndex === 0} aria-label="Previous page" className="flex size-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+        <div className="flex items-center gap-1 rounded-full border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-1 py-1 shadow-sm" role="group" aria-label="Pages">
+          <button type="button" onClick={() => goToPage(pageIndex - 1)} disabled={pageIndex === 0} aria-label="Previous page" className="flex size-8 items-center justify-center rounded-full text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
             <ChevronLeft aria-hidden="true" className="size-4" />
           </button>
           <span className="min-w-16 text-center text-xs font-semibold tabular-nums" aria-live="polite">{pageIndex + 1} / {pages.length}</span>
-          <button type="button" onClick={() => goToPage(pageIndex + 1)} disabled={pageIndex >= pages.length - 1} aria-label="Next page" className="flex size-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+          <button type="button" onClick={() => goToPage(pageIndex + 1)} disabled={pageIndex >= pages.length - 1} aria-label="Next page" className="flex size-8 items-center justify-center rounded-full text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
             <ChevronRight aria-hidden="true" className="size-4" />
           </button>
           {isTeacher && (
-            <button type="button" onClick={addPage} aria-label="Add page" title="Add page" className="flex size-8 items-center justify-center rounded-full text-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <button type="button" onClick={addPage} aria-label="Add page" title="Add page" className="flex size-8 items-center justify-center rounded-full text-blue-700 surface-dark:text-blue-300 hover:bg-blue-50 surface-dark:hover:bg-surface-blue-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
               <Plus aria-hidden="true" className="size-4" />
             </button>
           )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-0.5" role="group" aria-label="Preview as">
+          <div className="inline-flex rounded-full border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-0.5" role="group" aria-label="Preview as">
             {(["teacher", "learner"] as const).map((option) => (
-              <button key={option} type="button" aria-pressed={role === option} onClick={() => changeRole(option)} className={`min-h-8 rounded-full px-3 text-xs font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${role === option ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
+              <button key={option} type="button" aria-pressed={role === option} onClick={() => changeRole(option)} className={`min-h-8 rounded-full px-3 text-xs font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${role === option ? "bg-white surface-dark:bg-card text-blue-700 surface-dark:text-blue-300 shadow-sm" : "text-slate-500 surface-dark:text-muted-foreground hover:text-slate-800 surface-dark:hover:text-foreground"}`}>
                 {option}
               </button>
             ))}
           </div>
-          <span className="hidden items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 sm:inline-flex">
+          <span className="hidden items-center gap-1.5 rounded-full border border-slate-200 surface-dark:border-border px-3 py-1.5 text-xs font-medium text-slate-600 surface-dark:text-muted-foreground sm:inline-flex">
             <Users aria-hidden="true" className="size-3.5" />{people.length}
           </span>
         </div>
@@ -227,12 +227,12 @@ export default function EslWhiteboardPreview() {
       <div className="relative flex min-h-0 flex-1">
         {isTeacher && (
           <>
-            <nav aria-label="Board library" className="z-30 flex w-16 shrink-0 flex-col items-center gap-1 border-r border-slate-200 bg-white py-3">
+            <nav aria-label="Board library" className="z-30 flex w-16 shrink-0 flex-col items-center gap-1 border-r border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card py-3">
               {libraryTabs.map(({ id, label }) => {
                 const Icon = tabIcons[id]
                 const active = libraryTab === id
                 return (
-                  <button key={id} type="button" aria-pressed={active} onClick={() => setLibraryTab(active ? null : id)} className={`flex w-14 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${active ? "bg-amber-100 text-amber-900" : "text-slate-500 hover:bg-slate-100"}`}>
+                  <button key={id} type="button" aria-pressed={active} onClick={() => setLibraryTab(active ? null : id)} className={`flex w-14 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${active ? "bg-amber-100 surface-dark:bg-surface-amber-soft text-amber-900 surface-dark:text-amber-200" : "text-slate-500 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted"}`}>
                     <Icon aria-hidden="true" className="size-5" />{label}
                   </button>
                 )
@@ -240,17 +240,17 @@ export default function EslWhiteboardPreview() {
             </nav>
 
             {libraryTab && (
-              <aside aria-label="Library" className="absolute inset-y-0 left-16 z-20 flex w-72 flex-col border-r border-slate-200 bg-white shadow-xl md:static md:shadow-none">
+              <aside aria-label="Library" className="absolute inset-y-0 left-16 z-20 flex w-72 flex-col border-r border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-xl md:static md:shadow-none">
                 <div className="flex h-14 shrink-0 items-center justify-between px-4">
                   <h2 className="text-lg font-semibold">Library</h2>
-                  <button type="button" onClick={() => setLibraryTab(null)} aria-label="Close library" className="flex size-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                  <button type="button" onClick={() => setLibraryTab(null)} aria-label="Close library" className="flex size-8 items-center justify-center rounded-full text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                     <X aria-hidden="true" className="size-4" />
                   </button>
                 </div>
                 <div className="px-4 pb-3">
                   <label htmlFor="library-search" className="sr-only">Search library</label>
-                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 focus-within:ring-2 focus-within:ring-blue-500">
-                    <Search aria-hidden="true" className="size-4 text-slate-400" />
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-3 focus-within:ring-2 focus-within:ring-blue-500">
+                    <Search aria-hidden="true" className="size-4 text-slate-400 surface-dark:text-muted-foreground" />
                     <input id="library-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search" className="min-h-10 min-w-0 flex-1 bg-transparent text-sm outline-none" />
                   </div>
                 </div>
@@ -258,9 +258,9 @@ export default function EslWhiteboardPreview() {
                   {libraryTab === "clipart" && (
                     <div className="grid grid-cols-2 gap-3">
                       {clipart.filter(({ label }) => matches(label)).map(({ glyph, label, src }) => (
-                        <button key={label} type="button" aria-label={`Add ${label} clipart`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "clipart", x, y, glyph, src, label }), `${label} added. Drag it, or use arrow keys to move it.`)} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white p-2 hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                        <button key={label} type="button" aria-label={`Add ${label} clipart`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "clipart", x, y, glyph, src, label }), `${label} added. Drag it, or use arrow keys to move it.`)} className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-2 hover:border-blue-300 surface-dark:hover:border-surface-blue-border hover:bg-blue-50/40 surface-dark:hover:bg-surface-blue-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                           {src ? <img src={src} alt="" className="size-14 object-contain" /> : <span aria-hidden="true" className="text-5xl leading-none">{glyph}</span>}
-                          <span className="max-w-full truncate text-[10px] text-slate-500">{label}</span>
+                          <span className="max-w-full truncate text-[10px] text-slate-500 surface-dark:text-muted-foreground">{label}</span>
                         </button>
                       ))}
                     </div>
@@ -268,9 +268,9 @@ export default function EslWhiteboardPreview() {
                   {libraryTab === "shapes" && (
                     <div className="grid grid-cols-2 gap-3">
                       {shapeLibrary.filter(({ label }) => matches(label)).map(({ shape, label }) => (
-                        <button key={shape} type="button" aria-label={`Add ${label} shape`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "shape", x, y, shape, color: shapeColors[shape], label: `${shape} shape` }), `${label} added.`)} className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                        <button key={shape} type="button" aria-label={`Add ${label} shape`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "shape", x, y, shape, color: shapeColors[shape], label: `${shape} shape` }), `${label} added.`)} className="flex aspect-square flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 surface-dark:border-border hover:border-blue-300 surface-dark:hover:border-surface-blue-border hover:bg-blue-50/40 surface-dark:hover:bg-surface-blue-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                           <Shapes aria-hidden="true" className="size-9" style={{ color: shapeColors[shape] }} />
-                          <span className="text-[11px] text-slate-600">{label}</span>
+                          <span className="text-[11px] text-slate-600 surface-dark:text-muted-foreground">{label}</span>
                         </button>
                       ))}
                     </div>
@@ -279,7 +279,7 @@ export default function EslWhiteboardPreview() {
                     <ul className="grid grid-cols-2 gap-2">
                       {words.filter(matches).map((word) => (
                         <li key={word}>
-                          <button type="button" aria-label={`Add word ${word}`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "sticky", x, y, text: word }), `Word card "${word}" added.`)} className="min-h-12 w-full rounded-lg bg-amber-100 px-3 text-sm font-semibold text-amber-900 hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{word}</button>
+                          <button type="button" aria-label={`Add word ${word}`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "sticky", x, y, text: word }), `Word card "${word}" added.`)} className="min-h-12 w-full rounded-lg bg-amber-100 surface-dark:bg-surface-amber-soft px-3 text-sm font-semibold text-amber-900 surface-dark:text-amber-200 hover:bg-amber-200 surface-dark:hover:bg-surface-amber-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{word}</button>
                         </li>
                       ))}
                     </ul>
@@ -288,19 +288,19 @@ export default function EslWhiteboardPreview() {
                     <ul className="space-y-2">
                       {prompts.filter(matches).map((prompt) => (
                         <li key={prompt}>
-                          <button type="button" aria-label={`Add prompt ${prompt}`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "text", x, y, text: prompt, color: "#1e3a8a", size: 36 }), "Prompt added to the board.")} className="min-h-12 w-full rounded-lg border border-slate-200 px-3 text-left text-sm font-medium hover:border-blue-300 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{prompt}</button>
+                          <button type="button" aria-label={`Add prompt ${prompt}`} onClick={() => addItem((x, y) => ({ id: newId(), authorId: me.id, kind: "text", x, y, text: prompt, color: "#1e3a8a", size: 36 }), "Prompt added to the board.")} className="min-h-12 w-full rounded-lg border border-slate-200 surface-dark:border-border px-3 text-left text-sm font-medium hover:border-blue-300 surface-dark:hover:border-surface-blue-border hover:bg-blue-50/40 surface-dark:hover:bg-surface-blue-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{prompt}</button>
                         </li>
                       ))}
                     </ul>
                   )}
-                  <p className="mt-4 text-[10px] leading-4 text-slate-400">Built-in teaching content only. File uploads are not part of this preview.</p>
+                  <p className="mt-4 text-[10px] leading-4 text-slate-400 surface-dark:text-muted-foreground">Built-in teaching content only. File uploads are not part of this preview.</p>
                 </div>
               </aside>
             )}
           </>
         )}
 
-        <section data-theme-content aria-label="Whiteboard" className="relative min-w-0 flex-1 bg-white text-slate-900 [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px]">
+        <section data-theme-content aria-label="Whiteboard" className="relative min-w-0 flex-1 bg-white surface-dark:bg-card text-slate-900 surface-dark:text-foreground [background-image:radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px]">
           <div className="absolute inset-0 overflow-auto">
             <EslWhiteboardCanvas
               items={items}
@@ -320,9 +320,9 @@ export default function EslWhiteboardPreview() {
           </div>
 
           {showProps && (
-            <div role="group" aria-label="Tool options" className="absolute left-3 top-3 z-10 w-44 space-y-3 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+            <div role="group" aria-label="Tool options" className="absolute left-3 top-3 z-10 w-44 space-y-3 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-3 shadow-lg">
               <div>
-                <p className="mb-1.5 text-[11px] font-semibold text-slate-500">Color</p>
+                <p className="mb-1.5 text-[11px] font-semibold text-slate-500 surface-dark:text-muted-foreground">Color</p>
                 <div className="flex flex-wrap gap-1.5">
                   {palette.map(({ value, name }) => (
                     <button key={value} type="button" aria-label={name} aria-pressed={color === value} onClick={() => setColor(value)} style={{ backgroundColor: value }} className={`size-7 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${color === value ? "ring-2 ring-slate-900 ring-offset-1" : ""}`} />
@@ -331,10 +331,10 @@ export default function EslWhiteboardPreview() {
               </div>
               {tool !== "text" && (
                 <div>
-                  <p className="mb-1.5 text-[11px] font-semibold text-slate-500">Stroke</p>
+                  <p className="mb-1.5 text-[11px] font-semibold text-slate-500 surface-dark:text-muted-foreground">Stroke</p>
                   <div className="flex gap-1.5">
                     {strokeWidths.map(({ value, name }) => (
-                      <button key={value} type="button" aria-label={`${name} stroke`} aria-pressed={width === value} onClick={() => setWidth(value)} className={`flex h-8 flex-1 items-center justify-center rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${width === value ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:bg-slate-50"}`}>
+                      <button key={value} type="button" aria-label={`${name} stroke`} aria-pressed={width === value} onClick={() => setWidth(value)} className={`flex h-8 flex-1 items-center justify-center rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${width === value ? "border-blue-500 bg-blue-50 surface-dark:bg-surface-blue-soft" : "border-slate-200 surface-dark:border-border hover:bg-slate-50 surface-dark:hover:bg-background"}`}>
                         <span className="w-6 rounded-full bg-slate-700" style={{ height: value / 2 + 1 }} />
                       </button>
                     ))}
@@ -346,31 +346,31 @@ export default function EslWhiteboardPreview() {
 
           <p role="status" className="pointer-events-none absolute bottom-20 left-3 z-10 max-w-[18rem] rounded-lg bg-slate-900/85 px-3 py-2 text-[11px] leading-4 text-white sm:bottom-4">{status}</p>
 
-          <div role="toolbar" aria-label="Whiteboard tools" className="absolute bottom-4 left-1/2 z-10 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl">
+          <div role="toolbar" aria-label="Whiteboard tools" className="absolute bottom-4 left-1/2 z-10 flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-1.5 shadow-xl">
             <ToolButton icon={Undo2} label="Undo (Ctrl+Z)" onClick={undo} disabled={!past.length} />
             <ToolButton icon={Redo2} label="Redo (Ctrl+Y)" onClick={redo} disabled={!future.length} />
-            <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-slate-200" />
+            <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-slate-200 surface-dark:bg-muted" />
             {allowedTools.map((id) => (
               <ToolButton key={id} icon={toolIcons[id]} label={`${toolLabels[id].label} (${toolLabels[id].key})`} active={tool === id} onClick={() => { setTool(id); setStatus(`${toolLabels[id].label} tool selected.`) }} accent={id === "sticky"} />
             ))}
             {isTeacher && (
               <>
-                <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-slate-200" />
+                <span aria-hidden="true" className="mx-1 h-6 w-px shrink-0 bg-slate-200 surface-dark:bg-muted" />
                 <ToolButton icon={Trash2} label="Clear page" onClick={clearPage} disabled={!items.length} />
               </>
             )}
           </div>
         </section>
 
-        <aside aria-label="Room participants" className="hidden w-60 shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-200 bg-slate-50 p-3 lg:flex">
+        <aside aria-label="Room participants" className="hidden w-60 shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-3 lg:flex">
           {people.map((person) => {
             const you = person.id === me.id
             return (
-              <article key={person.id} className="relative flex aspect-video items-end overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-200 to-slate-100">
+              <article key={person.id} className="relative flex aspect-video items-end overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-gradient-to-br from-slate-200 surface-dark:from-muted to-slate-100 surface-dark:to-muted">
                 <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex size-12 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-lg font-semibold text-blue-700">{person.name.slice(0, 1)}</span>
+                  <span className="flex size-12 items-center justify-center rounded-full border border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-lg font-semibold text-blue-700 surface-dark:text-blue-300">{person.name.slice(0, 1)}</span>
                 </span>
-                <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[9px] font-semibold text-slate-500">Demo</span>
+                <span className="absolute right-2 top-2 rounded-full bg-white/90 surface-dark:bg-card/90 px-2 py-0.5 text-[9px] font-semibold text-slate-500 surface-dark:text-muted-foreground">Demo</span>
                 <span className="relative flex w-full items-center justify-between bg-gradient-to-t from-black/70 to-transparent px-2.5 py-2 text-[11px] font-medium text-white">
                   <span className="truncate">{person.name}{you ? " (you)" : ""}</span>
                   {person.id === "teacher" ? <Mic aria-label="Microphone on" className="size-3.5" /> : <MicOff aria-label="Microphone off" className="size-3.5" />}
@@ -379,23 +379,23 @@ export default function EslWhiteboardPreview() {
             )
           })}
 
-          <section aria-label="Authors on this page" className="rounded-xl border border-slate-200 bg-white p-3">
+          <section aria-label="Authors on this page" className="rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card p-3">
             <h2 className="text-xs font-semibold">Marks on this page</h2>
             <ul className="mt-2 space-y-1.5">
               {counts.map(({ person, count }) => (
-                <li key={person.id} className="flex items-center justify-between text-[11px] text-slate-600">
+                <li key={person.id} className="flex items-center justify-between text-[11px] text-slate-600 surface-dark:text-muted-foreground">
                   <span>{person.name}{person.id === me.id ? " (you)" : ""}</span>
-                  <span className="tabular-nums text-slate-500">{count}</span>
+                  <span className="tabular-nums text-slate-500 surface-dark:text-muted-foreground">{count}</span>
                 </li>
               ))}
             </ul>
-            <label className="mt-3 flex items-center gap-2 text-[11px] text-slate-600">
+            <label className="mt-3 flex items-center gap-2 text-[11px] text-slate-600 surface-dark:text-muted-foreground">
               <input type="checkbox" checked={showAuthors} onChange={(event) => setShowAuthors(event.target.checked)} className="size-3.5 accent-blue-600" />
               Show learner names on marks
             </label>
           </section>
 
-          <p className="text-[10px] leading-4 text-slate-500">
+          <p className="text-[10px] leading-4 text-slate-500 surface-dark:text-muted-foreground">
             {isTeacher
               ? `${getPerson("teacher").name} controls prompts and can clear the page. Learners can only change their own marks.`
               : "Library and sticky notes are teacher-only. You can draw, write, and erase your own marks."}
@@ -430,7 +430,7 @@ function ToolButton({
       aria-label={label}
       aria-pressed={active}
       title={label}
-      className={`flex size-10 shrink-0 items-center justify-center rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-35 ${active ? (accent ? "bg-amber-400 text-white" : "bg-blue-100 text-blue-700") : "text-slate-600 hover:bg-slate-100"}`}
+      className={`flex size-10 shrink-0 items-center justify-center rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-35 ${active ? (accent ? "bg-amber-400 text-white" : "bg-blue-100 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300") : "text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-100 surface-dark:hover:bg-muted"}`}
     >
       <Icon aria-hidden="true" className="size-[18px]" />
     </button>

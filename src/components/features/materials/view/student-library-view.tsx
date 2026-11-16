@@ -18,7 +18,6 @@ import {
   type LibraryFilter,
 } from "../utils/library-records"
 import type { LibraryResourceKind, LibrarySource } from "../types/library-types"
-import styles from '../ui/library-theme.module.css'
 
 const collections: Record<LibrarySource, { title: string; description: string }> = {
   personal: { title: "Made for your next study session", description: "Your personal notes, references, and a little head start." },
@@ -66,7 +65,7 @@ export function StudentLibraryView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 rounded-2xl border border-border/70 bg-card p-4 sm:p-6 lg:p-7">
-      <section aria-labelledby="study-library-heading" className={`${styles.banner} relative isolate overflow-hidden rounded-xl border border-border/40 px-5 py-6 sm:px-8 sm:py-7`}>
+      <section aria-labelledby="study-library-heading" className={`bg-[linear-gradient(to_right,#fff7ed,#fafaf9,#ecfdf5)] dark:bg-[linear-gradient(to_right,#30374a,#273449,#263f43)] relative isolate overflow-hidden rounded-xl border border-border/40 px-5 py-6 sm:px-8 sm:py-7`}>
         <LibraryBannerPaper side="left" />
         <LibraryBannerPaper side="right" />
         <div className="relative mx-auto max-w-xl text-center">

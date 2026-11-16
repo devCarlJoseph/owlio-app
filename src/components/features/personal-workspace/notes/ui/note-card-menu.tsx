@@ -34,7 +34,7 @@ export function NoteCardMenu({
             variant="ghost"
             size="icon-xs"
             aria-label={`Options for ${getNoteTitle(note)}`}
-            className="relative z-10 shrink-0 text-slate-500 hover:bg-black/5 hover:text-slate-900"
+            className="relative z-10 shrink-0 text-slate-500 surface-dark:text-muted-foreground hover:bg-black/5 hover:text-slate-900 surface-dark:hover:text-foreground"
           />
         }
       >

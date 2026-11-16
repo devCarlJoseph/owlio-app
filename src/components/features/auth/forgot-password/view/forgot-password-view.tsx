@@ -44,8 +44,8 @@ export function ForgotPasswordView() {
   return (
     <FormProvider {...form}>
       <AuthShowcaseLayout context="forgot-password">
-        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-ring">Reset your password</h1>
-        <p className="mt-1.5 text-sm text-slate-500">Enter the email address associated with your Owlio account.</p>
+        <h1 ref={headingRef} tabIndex={-1} className="text-[28px] font-semibold tracking-tight text-slate-900 surface-dark:text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring">Reset your password</h1>
+        <p className="mt-1.5 text-sm text-slate-500 surface-dark:text-muted-foreground">Enter the email address associated with your Owlio account.</p>
         <div className="mt-7 space-y-4">
           {submitError && <AuthFeedback title="Could not request a reset" tone="error">{submitError}</AuthFeedback>}
           {requestSent && <AuthFeedback title="Check your inbox" tone="success">If an active account exists, password-reset instructions will be sent.</AuthFeedback>}

@@ -342,7 +342,7 @@ export function SubjectDetailView() {
       <div ref={pageRef} className="mx-auto w-full max-w-3xl space-y-4">
         <Link
           to="/students/subjects"
-          className="inline-flex items-center gap-1 rounded-md text-sm font-medium text-slate-600 outline-none hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="inline-flex items-center gap-1 rounded-md text-sm font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:text-blue-700 surface-dark:hover:text-blue-300 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <ArrowLeft aria-hidden="true" className="size-4" />
           My subjects
@@ -350,15 +350,15 @@ export function SubjectDetailView() {
 
         <Card className="border-dashed">
           <CardContent className="py-10 text-center">
-            <h2 className="text-base font-semibold text-slate-900">Subject not found</h2>
-            <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-600">
+            <h2 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Subject not found</h2>
+            <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">
               This subject is no longer in your workspace. It may have been deleted in another tab.
             </p>
             <Link
               to="/students/subjects"
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
-                "mt-4 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800",
+                "mt-4 border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300",
               )}
             >
               Back to my subjects
@@ -379,11 +379,11 @@ export function SubjectDetailView() {
     <div ref={pageRef} className="mx-auto w-full max-w-7xl space-y-6">
       {!reading ? <>
       <nav aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-500 surface-dark:text-muted-foreground">
           <li>
             <Link
               to="/students/subjects"
-              className="inline-flex items-center gap-1 rounded-md font-medium text-slate-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-1 rounded-md font-medium text-slate-600 surface-dark:text-muted-foreground outline-none hover:underline focus-visible:ring-2 focus-visible:ring-offset-2"
               style={{ color: appearance.accent }}
             >
               <ArrowLeft aria-hidden="true" className="size-4" />
@@ -393,7 +393,7 @@ export function SubjectDetailView() {
           <li aria-hidden="true" className="text-slate-300">
             /
           </li>
-          <li aria-current="page" className="font-medium text-slate-900">
+          <li aria-current="page" className="font-medium text-slate-900 surface-dark:text-foreground">
             {subject.name}
           </li>
         </ol>
@@ -405,20 +405,20 @@ export function SubjectDetailView() {
       >
         <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
           <div className="relative z-10 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-600 surface-dark:text-muted-foreground">
               <span className="rounded-md bg-background px-2.5 py-1 font-medium text-brand">Personal subject</span>
-              {subject.code ? <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.code}</span> : null}
-              <span className="rounded-md border border-slate-200/80 bg-white/80 px-2.5 py-1">{subject.milestones.length} study topics</span>
+              {subject.code ? <span className="rounded-md border border-slate-200/80 surface-dark:border-border/80 bg-white/80 surface-dark:bg-card/80 px-2.5 py-1">{subject.code}</span> : null}
+              <span className="rounded-md border border-slate-200/80 surface-dark:border-border/80 bg-white/80 surface-dark:bg-card/80 px-2.5 py-1">{subject.milestones.length} study topics</span>
             </div>
             <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.035em] text-[#1b1a21] dark:text-foreground sm:text-4xl">
               {subject.name}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 surface-dark:text-muted-foreground">
               Keep your notes, personal study topics, and learning progress together in one place.
             </p>
             {subject.instructor ? (
-              <p className="mt-4 flex items-center gap-2 text-sm text-slate-700">
-                <NotebookPen aria-hidden="true" className="size-4 text-slate-500" />
+              <p className="mt-4 flex items-center gap-2 text-sm text-slate-700 surface-dark:text-foreground">
+                <NotebookPen aria-hidden="true" className="size-4 text-slate-500 surface-dark:text-muted-foreground" />
                 Instructor reference: <span className="font-medium underline decoration-slate-300 underline-offset-2">{subject.instructor}</span>
               </p>
             ) : null}
@@ -426,9 +426,9 @@ export function SubjectDetailView() {
               <div className="mt-5 max-w-lg">
                 <div className="mb-2 flex items-center justify-between gap-3 text-xs">
                   <span className="font-medium text-[#1b1a21] dark:text-foreground">{progress.active?.title ?? (progress.allDone ? "All topics complete" : "Ready for your next topic")}</span>
-                  <span className="shrink-0 text-slate-500">{progress.completed} of {progress.total} complete</span>
+                  <span className="shrink-0 text-slate-500 surface-dark:text-muted-foreground">{progress.completed} of {progress.total} complete</span>
                 </div>
-                <div role="progressbar" aria-label={`${subject.name} topic progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.progress} className="h-2.5 overflow-hidden rounded-full bg-white/80 shadow-inner" style={{ boxShadow: `inset 0 0 0 1px ${appearance.border}` }}>
+                <div role="progressbar" aria-label={`${subject.name} topic progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.progress} className="h-2.5 overflow-hidden rounded-full bg-white/80 surface-dark:bg-card/80 shadow-inner" style={{ boxShadow: `inset 0 0 0 1px ${appearance.border}` }}>
                   <div className="h-full rounded-full transition-[width]" style={{ width: `${progress.progress}%`, backgroundColor: appearance.accent }} />
                 </div>
               </div>
@@ -440,7 +440,7 @@ export function SubjectDetailView() {
               >
                 {progress.allDone ? "Review topics" : "Continue studying"} <ArrowRight aria-hidden="true" />
               </Link>
-              <span className="text-xs text-slate-500">Added {formatSubjectDate(subject.createdAt)}</span>
+              <span className="text-xs text-slate-500 surface-dark:text-muted-foreground">Added {formatSubjectDate(subject.createdAt)}</span>
             </div>
           </div>
 
@@ -503,24 +503,24 @@ export function SubjectDetailView() {
 
       <section
         aria-label="Subject guidance"
-        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3"
+        className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft px-4 py-3"
       >
-        <NotebookPen className="mt-1 size-4 shrink-0 text-blue-700" aria-hidden="true" />
-        <p className="flex-1 text-sm leading-6 text-blue-800">{subjectsGuidance}</p>
-        <p className="flex w-full items-start gap-2 border-t border-blue-100 pt-2 text-xs leading-5 text-blue-800 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
+        <NotebookPen className="mt-1 size-4 shrink-0 text-blue-700 surface-dark:text-blue-300" aria-hidden="true" />
+        <p className="flex-1 text-sm leading-6 text-blue-800 surface-dark:text-blue-300">{subjectsGuidance}</p>
+        <p className="flex w-full items-start gap-2 border-t border-blue-100 surface-dark:border-surface-blue-border pt-2 text-xs leading-5 text-blue-800 surface-dark:text-blue-300 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
           {subjectsStorageNotice}
         </p>
       </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+        <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
           <CardHeader>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <CardTitle>
-                  <h3 className="text-base font-semibold text-slate-900">Your notes</h3>
+                  <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Your notes</h3>
                 </CardTitle>
-                <CardDescription className="mt-1 text-slate-500">
+                <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">
                   Notes you tagged for {subject.name}.
                 </CardDescription>
               </div>
@@ -550,23 +550,23 @@ export function SubjectDetailView() {
                 {subjectNotes.map((note) => (
                   <li
                     key={note.id}
-                    className="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3"
+                    className="rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 px-4 py-3"
                   >
-                    <p className="truncate text-sm font-semibold text-slate-900">{note.title}</p>
-                    <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-slate-500">
+                    <p className="truncate text-sm font-semibold text-slate-900 surface-dark:text-foreground">{note.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
                       {note.body}
                     </p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-6">
+              <Empty className="border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-6">
                 <EmptyHeader>
-                  <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+                  <EmptyMedia variant="icon" className="bg-slate-100 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground">
                     <NotebookPen aria-hidden="true" />
                   </EmptyMedia>
-                  <EmptyTitle className="text-sm text-slate-900">No notes yet</EmptyTitle>
-                  <EmptyDescription className="text-slate-600">
+                  <EmptyTitle className="text-sm text-slate-900 surface-dark:text-foreground">No notes yet</EmptyTitle>
+                  <EmptyDescription className="text-slate-600 surface-dark:text-muted-foreground">
                     Add a note and tag it with a matching hashtag to see it here.
                   </EmptyDescription>
                 </EmptyHeader>
@@ -583,14 +583,14 @@ export function SubjectDetailView() {
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+        <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
           <CardHeader>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <CardTitle>
-                  <h3 className="text-base font-semibold text-slate-900">Your tasks</h3>
+                  <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Your tasks</h3>
                 </CardTitle>
-                <CardDescription className="mt-1 text-slate-500">
+                <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">
                   Personal tasks assigned to {subject.name}.
                 </CardDescription>
               </div>
@@ -620,25 +620,25 @@ export function SubjectDetailView() {
                 {subjectTasks.map((task) => (
                   <li
                     key={task.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 px-4 py-3"
                   >
-                    <p className="min-w-0 truncate text-sm font-semibold text-slate-900">
+                    <p className="min-w-0 truncate text-sm font-semibold text-slate-900 surface-dark:text-foreground">
                       {task.title}
                     </p>
-                    <Badge variant="outline" className="border-slate-200 bg-white text-slate-600">
+                    <Badge variant="outline" className="border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card text-slate-600 surface-dark:text-muted-foreground">
                       {task.status}
                     </Badge>
                   </li>
                 ))}
               </ul>
             ) : (
-              <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-6">
+              <Empty className="border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-6">
                 <EmptyHeader>
-                  <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+                  <EmptyMedia variant="icon" className="bg-slate-100 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground">
                     <ClipboardList aria-hidden="true" />
                   </EmptyMedia>
-                  <EmptyTitle className="text-sm text-slate-900">No tasks yet</EmptyTitle>
-                  <EmptyDescription className="text-slate-600">
+                  <EmptyTitle className="text-sm text-slate-900 surface-dark:text-foreground">No tasks yet</EmptyTitle>
+                  <EmptyDescription className="text-slate-600 surface-dark:text-muted-foreground">
                     Plan personal study work for this subject on the tasks page.
                   </EmptyDescription>
                 </EmptyHeader>
@@ -656,14 +656,14 @@ export function SubjectDetailView() {
         </Card>
       </div>
 
-      <Card className="border border-slate-200 bg-white shadow-sm ring-0">
+      <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle>
-                <h3 className="text-base font-semibold text-slate-900">Study resources</h3>
+                <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Study resources</h3>
               </CardTitle>
-              <CardDescription className="mt-1 text-slate-500">
+              <CardDescription className="mt-1 text-slate-500 surface-dark:text-muted-foreground">
                 Resources you have collected for {subject.name}.
               </CardDescription>
             </div>
@@ -686,13 +686,13 @@ export function SubjectDetailView() {
           </div>
         </CardHeader>
         <CardContent className="gap-2">
-          <Empty className="border border-dashed border-slate-300 bg-slate-50/60 p-6">
+          <Empty className="border border-dashed border-slate-300 surface-dark:border-border bg-slate-50/60 surface-dark:bg-background/60 p-6">
             <EmptyHeader>
-              <EmptyMedia variant="icon" className="bg-slate-100 text-slate-500">
+              <EmptyMedia variant="icon" className="bg-slate-100 surface-dark:bg-muted text-slate-500 surface-dark:text-muted-foreground">
                 <FolderOpen aria-hidden="true" />
               </EmptyMedia>
-              <EmptyTitle className="text-sm text-slate-900">No resources yet</EmptyTitle>
-              <EmptyDescription className="text-slate-600">
+              <EmptyTitle className="text-sm text-slate-900 surface-dark:text-foreground">No resources yet</EmptyTitle>
+              <EmptyDescription className="text-slate-600 surface-dark:text-muted-foreground">
                 Nothing is linked to {subject.name} so far. Browse the study library to find something
                 for this subject.
               </EmptyDescription>

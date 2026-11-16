@@ -28,13 +28,13 @@ export function OnboardingCompleted({ entity, values, headingRef }: OnboardingCo
       mascotState="complete"
       eyebrow={(
         <div className="mb-6 flex items-center" aria-hidden="true">
-          <span className="flex size-14 -rotate-6 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 ring-4 ring-white">
+          <span className="flex size-14 -rotate-6 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/20 ring-4 ring-white surface-dark:ring-border">
             <Icon className="size-7" />
           </span>
-          <span className="-ml-3 flex size-12 rotate-6 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200">
+          <span className="-ml-3 flex size-12 rotate-6 items-center justify-center rounded-2xl bg-white surface-dark:bg-card text-indigo-600 surface-dark:text-indigo-300 shadow-sm ring-1 ring-slate-200 surface-dark:ring-border">
             <BookOpenCheck className="size-6" />
           </span>
-          <span className="-ml-3 flex size-9 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 ring-4 ring-white">
+          <span className="-ml-3 flex size-9 items-center justify-center rounded-full bg-indigo-50 surface-dark:bg-surface-indigo-soft text-indigo-700 surface-dark:text-indigo-300 ring-4 ring-white surface-dark:ring-border">
             <Check className="size-4" strokeWidth={3} />
           </span>
         </div>

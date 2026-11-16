@@ -22,8 +22,8 @@ export function TaskDeleteDialog({ open, task, onOpenChange, onConfirm }: TaskDe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-900">Delete this task?</DialogTitle>
-          <DialogDescription className="text-slate-600">
+          <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Delete this task?</DialogTitle>
+          <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
             {task
               ? `“${task.title}” will be removed from this browser.`
               : "This task will be removed."}{" "}

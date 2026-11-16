@@ -22,8 +22,8 @@ export function NoteDeleteDialog({ open, note, onOpenChange, onConfirm }: NoteDe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-slate-900">Move this note to trash?</DialogTitle>
-          <DialogDescription className="text-slate-600">
+          <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Move this note to trash?</DialogTitle>
+          <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
             {note ? `“${note.title || "Untitled note"}”` : "This note"} will be moved to the trash in this
             browser. You can restore it from the trash afterwards.
           </DialogDescription>

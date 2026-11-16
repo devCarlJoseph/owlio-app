@@ -13,7 +13,7 @@ export function LibrarySearchField({ value, onValueChange, label, placeholder }:
     <div className="relative w-full sm:w-72">
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 surface-dark:text-muted-foreground"
       />
       <Input
         type="search"
@@ -22,7 +22,7 @@ export function LibrarySearchField({ value, onValueChange, label, placeholder }:
         aria-label={label}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-9 rounded-lg border-slate-200 bg-slate-50 pl-9"
+        className="h-9 rounded-lg border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background pl-9"
       />
     </div>
   )

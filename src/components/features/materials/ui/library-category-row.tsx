@@ -19,9 +19,9 @@ export function LibraryCategoryRow({
   onLayoutChange,
 }: LibraryCategoryRowProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 surface-dark:border-border pt-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium text-slate-500">Categories</span>
+        <span className="text-xs font-medium text-slate-500 surface-dark:text-muted-foreground">Categories</span>
 
         <Button
           type="button"
@@ -32,7 +32,7 @@ export function LibraryCategoryRow({
           className={
             selectedKinds.length === 0
               ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-              : "border-slate-200 text-slate-600 hover:bg-slate-50"
+              : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
           }
         >
           All
@@ -52,7 +52,7 @@ export function LibraryCategoryRow({
               className={
                 isActive
                   ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
-                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
               }
             >
               {kind}
@@ -64,7 +64,7 @@ export function LibraryCategoryRow({
       <div
         role="group"
         aria-label="Resource layout"
-        className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1"
+        className="inline-flex rounded-lg border border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background p-1"
       >
         {(
           [
@@ -85,7 +85,7 @@ export function LibraryCategoryRow({
               className={`inline-flex size-8 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${
                 isActive
                   ? "bg-sky-600 text-white shadow-sm"
-                  : "text-slate-500 hover:bg-white hover:text-slate-900"
+                  : "text-slate-500 surface-dark:text-muted-foreground hover:bg-white surface-dark:hover:bg-card hover:text-slate-900 surface-dark:hover:text-foreground"
               }`}
             >
               <OptionIcon aria-hidden="true" className="size-4" />

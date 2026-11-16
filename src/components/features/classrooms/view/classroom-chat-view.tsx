@@ -11,7 +11,6 @@ import { ChatHeader } from '../ui/chat-header'
 import { ChatMessageBubble } from '../ui/chat-message-bubble'
 import { chatDateLabel, chatDay } from '../utils/chat-format'
 import { getInitials } from '../utils/classroom-utils'
-import '../ui/classroom-chat.css'
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { user } = useAuthSession()
@@ -83,7 +82,7 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     return sent
   }
 
-  return <div className={`classroom-chat grid h-[clamp(20rem,calc(100dvh-15rem),48rem)] min-h-0 min-w-0 grid-rows-[minmax(0,1fr)] gap-3 rounded-xl bg-background p-2 text-foreground ${detailsOpen ? 'xl:grid-cols-[minmax(0,1fr)_18rem]' : ''}`} onKeyDown={event => {
+  return <div className={`scheme-light dark:scheme-dark grid h-[clamp(20rem,calc(100dvh-15rem),48rem)] min-h-0 min-w-0 grid-rows-[minmax(0,1fr)] gap-3 rounded-xl bg-background p-2 text-foreground ${detailsOpen ? 'xl:grid-cols-[minmax(0,1fr)_18rem]' : ''}`} onKeyDown={event => {
     if (event.key === 'Escape' && detailsOpen && !event.defaultPrevented) { event.preventDefault(); closeDetails() }
   }}>
     <section aria-label={`${classroom.name} group chat`} className={`${detailsOpen ? 'hidden xl:flex' : 'flex'} min-h-0 min-w-0 flex-col overflow-hidden rounded-xl bg-card`}>

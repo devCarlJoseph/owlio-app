@@ -21,7 +21,6 @@ Owlio is a client-rendered React/TypeScript SPA with Vite, npm, React Router, Ta
 | `src/context/` | App-wide theme context and provider composition; auth remains feature-owned |
 | `src/hooks/` | Cross-domain hooks, including `useTheme` |
 | [global.css](../../src/styles/global.css) | Tailwind entry point, font, semantic theme tokens |
-| [dark-surfaces.css](../../src/styles/dark-surfaces.css) | Compatibility styles for existing palette-based surfaces |
 
 Use the `@/*` alias for `src/*`. Features use responsibility folders as needed within existing domain/subfeature boundaries. See [feature composition](feature-composition.md) for the current structure and global provider lifecycle. The [page adapter guide](../components/page-adapters.md) identifies page ownership and inline-page exceptions.
 
@@ -49,7 +48,7 @@ Inter, the owl/wordmark, semantic tokens, and Auth Showcase are existing default
 
 The original auth showcase includes rotating feature artwork, a practice question, and contextual guidance. These illustrations and examples are separate from authenticated account activity. Preserve the real forms, validation, and session flow when changing its layout.
 
-Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile update. When adding palette utilities covered by the existing dark compatibility mechanism, inspect/run `node scripts/sync-dark-utilities.mjs` and review the generated CSS. New UI can use semantic tokens or scoped reference-specific styles. Authored presentation surfaces and the ESL drawing canvas use `data-theme-content` to preserve content colors.
+Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile update. Implement component styling with Tailwind utilities rather than standalone stylesheets or CSS modules. Prefer semantic color tokens; explicit `surface-dark:` variants preserve the existing dark palette while excluding authored content marked with `data-theme-content`. The Tailwind entry file owns imports, theme tokens, base `@apply` defaults, and animation tokens/keyframes. Keep inline styles only for runtime values such as drawing coordinates, user-selected colors, and calculated geometry.
 
 ## Data and persistence
 

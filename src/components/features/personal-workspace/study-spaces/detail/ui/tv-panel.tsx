@@ -32,11 +32,11 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
-      className="absolute inset-x-3 top-3 z-20 mx-auto flex w-[720px] max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+      className="absolute inset-x-3 top-3 z-20 mx-auto flex w-[720px] max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2">
-        <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
-          <Tv className="size-4 text-emerald-800" aria-hidden="true" />
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 surface-dark:border-border px-3 py-2">
+        <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">
+          <Tv className="size-4 text-emerald-800 surface-dark:text-emerald-300" aria-hidden="true" />
           Room TV
         </p>
         <Button type="button" variant="ghost" size="icon-xs" onClick={onClose} aria-label="Close room TV">
@@ -65,13 +65,13 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
       )}
 
       <form
-        className="space-y-2 border-t border-slate-100 p-3"
+        className="space-y-2 border-t border-slate-100 surface-dark:border-border p-3"
         onSubmit={(event) => {
           event.preventDefault()
           submit()
         }}
       >
-        <label htmlFor="tv-url" className="text-xs font-medium text-slate-600">
+        <label htmlFor="tv-url" className="text-xs font-medium text-slate-600 surface-dark:text-muted-foreground">
           {isLeader ? "Video for the group (leader)" : "Your video (only you see this)"}
         </label>
         <div className="flex gap-2">
@@ -102,11 +102,11 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
           ) : null}
         </div>
         {error ? (
-          <p role="alert" className="text-xs text-red-700">
+          <p role="alert" className="text-xs text-red-700 surface-dark:text-red-300">
             {error}
           </p>
         ) : null}
-        <p className="text-xs leading-5 text-slate-500">{roomTvNotice} Only https YouTube links are accepted.</p>
+        <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{roomTvNotice} Only https YouTube links are accepted.</p>
       </form>
     </div>
   )

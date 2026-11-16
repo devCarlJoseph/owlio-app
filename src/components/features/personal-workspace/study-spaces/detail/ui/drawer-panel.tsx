@@ -110,13 +110,13 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
-      className="absolute inset-y-3 left-3 z-20 flex w-80 max-w-[92%] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg motion-safe:animate-in motion-safe:slide-in-from-left-4"
+      className="absolute inset-y-3 left-3 z-20 flex w-80 max-w-[92%] flex-col overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg motion-safe:animate-in motion-safe:slide-in-from-left-4"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2">
-        <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
-          <FileText className="size-4 text-emerald-800" aria-hidden="true" />
+      <div className="flex items-center justify-between gap-2 border-b border-slate-100 surface-dark:border-border px-3 py-2">
+        <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">
+          <FileText className="size-4 text-emerald-800 surface-dark:text-emerald-300" aria-hidden="true" />
           My drawer
-          <span className="text-xs font-normal text-slate-500">
+          <span className="text-xs font-normal text-slate-500 surface-dark:text-muted-foreground">
             {files.length}/{drawerMaxFiles}
           </span>
         </p>
@@ -125,7 +125,7 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
         </Button>
       </div>
 
-      <p className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+      <p className="border-b border-slate-100 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-3 py-2 text-xs leading-5 text-slate-600 surface-dark:text-muted-foreground">
         {drawerNotice} This is your locker; study-mates&apos; lockers open only with their code.
       </p>
 
@@ -142,7 +142,7 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
             void addFiles(event.dataTransfer.files)
           }}
           className={`m-3 flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs ${
-            dragging ? "border-emerald-600 bg-emerald-50" : "border-slate-300"
+            dragging ? "border-emerald-600 bg-emerald-50 surface-dark:bg-surface-emerald-soft" : "border-slate-300 surface-dark:border-border"
           }`}
         >
           <input
@@ -161,29 +161,29 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
             <Upload aria-hidden="true" />
             Add files
           </Button>
-          <span className="text-slate-500">or drop here · pdf, images, txt, docx · 10 MB max</span>
+          <span className="text-slate-500 surface-dark:text-muted-foreground">or drop here · pdf, images, txt, docx · 10 MB max</span>
         </div>
       ) : (
-        <p className="m-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <p className="m-3 rounded-lg bg-amber-50 surface-dark:bg-surface-amber-soft px-3 py-2 text-xs text-amber-800 surface-dark:text-amber-300">
           This browser cannot store files locally, so the drawer is unavailable.
         </p>
       )}
 
       {error ? (
-        <p role="alert" className="mx-3 mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+        <p role="alert" className="mx-3 mb-2 rounded-lg bg-red-50 surface-dark:bg-surface-red-soft px-3 py-2 text-xs text-red-700 surface-dark:text-red-300">
           {error}
         </p>
       ) : null}
 
       <ul aria-label="Files in my drawer" className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
-        {loading ? <li className="text-xs text-slate-500">Opening your drawer…</li> : null}
+        {loading ? <li className="text-xs text-slate-500 surface-dark:text-muted-foreground">Opening your drawer…</li> : null}
         {!loading && available && files.length === 0 ? (
-          <li className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-xs text-slate-500">
+          <li className="rounded-lg border border-dashed border-slate-200 surface-dark:border-border p-4 text-center text-xs text-slate-500 surface-dark:text-muted-foreground">
             Your drawer is empty. Add the files you work on in this space.
           </li>
         ) : null}
         {files.map((file) => (
-          <li key={file.id} className="rounded-lg border border-slate-200 p-2">
+          <li key={file.id} className="rounded-lg border border-slate-200 surface-dark:border-border p-2">
             {renamingId === file.id ? (
               <form
                 className="flex items-center gap-1"
@@ -206,8 +206,8 @@ export function DrawerPanel({ spaceId, onClose }: DrawerPanelProps) {
             ) : (
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-800">{file.name}</p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="truncate text-sm font-medium text-slate-800 surface-dark:text-foreground">{file.name}</p>
+                  <p className="text-[11px] text-slate-500 surface-dark:text-muted-foreground">
                     {formatFileSize(file.size)} · added {new Date(file.addedAt).toLocaleDateString()}
                   </p>
                 </div>
