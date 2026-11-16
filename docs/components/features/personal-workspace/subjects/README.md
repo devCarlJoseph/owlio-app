@@ -1,5 +1,7 @@
 # Personal subjects
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 Target: `src/components/features/personal-workspace/subjects/`. All destinations below are proposals.
 
 | Proposed destination | Current files |

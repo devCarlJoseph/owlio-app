@@ -1,10 +1,9 @@
-import { useSyncExternalStore } from 'react'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getTheme, setTheme, subscribeTheme } from '@/lib/theme'
+import { useTheme } from '@/hooks/use-theme'
 
 export function ThemeSelector({ expanded }: { expanded: boolean }) {
-  const theme = useSyncExternalStore(subscribeTheme, getTheme, () => 'system' as const)
+  const { theme, setTheme } = useTheme()
   return <fieldset className="mb-2 min-w-0 px-1">
     <legend className={expanded ? 'mb-2 px-2 text-xs font-medium text-muted-foreground' : 'sr-only'}>Theme</legend>
     <div className={expanded ? 'grid grid-cols-3 gap-1 rounded-xl bg-muted p-1' : 'flex flex-col items-center gap-1'}>

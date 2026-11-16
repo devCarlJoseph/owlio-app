@@ -1,5 +1,7 @@
 # activities
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 This directory mirrors `src/components/features/esl-teaching/activities/`. For the current files, proposed component folders, and manual migration checks, use the [esl-teaching guide](../README.md) and its [source index](../SOURCE_INDEX.md). These copies are documentation only; application code has not moved.
 
 <!-- BEGIN GENERATED CURRENT SOURCE -->

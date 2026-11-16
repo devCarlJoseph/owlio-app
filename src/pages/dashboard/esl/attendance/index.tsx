@@ -1,4 +1,4 @@
-import EslAttendanceView from "@/components/features/esl-teaching/attendance/esl-attendance-view"
+import EslAttendanceView from "@/components/features/esl-teaching/attendance/view/esl-attendance-view"
 
 export default function EslAttendancePage() {
   return <EslAttendanceView />

@@ -4,7 +4,7 @@
 
 The **Members** tab and **Chat → Conversation details → Chat members** use `GET /api/v1/classrooms/:classroomId/members`. This additive API is implemented in `owlio-api` for the owner and currently enrolled students. It returns paginated display identities (`id`, `name`, `role: owner | student`) only, with UUID cursors and the existing authenticated envelope. The frontend validates the response, cancels stale reads, deduplicates page overlaps, and reports denied/failed reads without mock fallbacks. The owner-only `/students` roster and its permissions remain unchanged. This requires releasing the matching API endpoint; no migration or dependency change is needed. UI checks use fixtures and do not establish production deployment or live database access.
 
-Classroom chat uses a Messenger-inspired conversation layout with grouped bubbles, actual message dates/times, search, server-backed replies, a bounded shadcn message viewport, and a collapsible details/member panel. On narrow screens details replace the conversation temporarily; closing restores focus and the draft. Existing message routes, cookie/CSRF handling, five-second refresh, request-ID retry behavior, and archived/denied restrictions are unchanged. The unsupported local preview reactions were removed from classroom chat; emoji message content still uses the existing server-backed send flow. There are no fabricated typing, online, read-receipt, file-sharing, or encryption indicators.
+Classroom chat uses a Messenger-inspired conversation layout with grouped bubbles, actual message dates/times, search, server-backed replies, a bounded shadcn message viewport, and a collapsible details/member panel. Its dark conversation surfaces, purple outgoing bubbles, and rounded composer are scoped to the Chat tab. Classroom invite and meeting-code cards are omitted on this tab and remain available on the other classroom tabs. On narrow screens details replace the conversation temporarily; closing restores focus and the draft. Existing message routes, cookie/CSRF handling, five-second refresh, request-ID retry behavior, and archived/denied restrictions are unchanged. The unsupported local preview reactions were removed from classroom chat; emoji message content still uses the existing server-backed send flow. There are no fabricated typing, online, read-receipt, file-sharing, or encryption indicators.
 
 ## Classroom chat and reusable meeting codes — 15 November 2026
 
@@ -62,26 +62,26 @@ Manually verify: educator/ESL/tutor creates a class, saves the one-time code, st
 Frontend:
 
 - `docs/CLASSROOM_API_INTEGRATION.md`
-- `src/components/features/classrooms/classroom-activity-view.tsx`
-- `src/components/features/classrooms/classroom-chat.test.tsx`
-- `src/components/features/classrooms/classroom-classwork-view.tsx`
-- `src/components/features/classrooms/classroom-detail-tabs.test.tsx`
-- `src/components/features/classrooms/classroom-detail-view.tsx`
-- `src/components/features/classrooms/classroom-discussion.test.tsx`
-- `src/components/features/classrooms/classroom-form-dialogs.tsx`
-- `src/components/features/classrooms/classroom-members-view.test.tsx`
-- `src/components/features/classrooms/classroom-members-view.tsx`
+- `src/components/features/classrooms/view/classroom-activity-view.tsx`
+- `src/components/features/classrooms/tests/classroom-chat.test.tsx`
+- `src/components/features/classrooms/view/classroom-classwork-view.tsx`
+- `src/components/features/classrooms/tests/classroom-detail-tabs.test.tsx`
+- `src/components/features/classrooms/view/classroom-detail-view.tsx`
+- `src/components/features/classrooms/tests/classroom-discussion.test.tsx`
+- `src/components/features/classrooms/forms/classroom-form-dialogs.tsx`
+- `src/components/features/classrooms/tests/classroom-members-view.test.tsx`
+- `src/components/features/classrooms/view/classroom-members-view.tsx`
 - `src/components/features/classrooms/classroom-mock-data.ts`
-- `src/components/features/classrooms/classroom-prototype-provider.tsx`
-- `src/components/features/classrooms/classroom-quiz.test.tsx`
-- `src/components/features/classrooms/classroom-records-view.tsx`
-- `src/components/features/classrooms/classroom-test-data.ts`
-- `src/components/features/classrooms/classroom-test-fixtures.tsx`
-- `src/components/features/classrooms/classroom-types.ts`
-- `src/components/features/classrooms/classrooms-view-accessibility.test.tsx`
-- `src/components/features/classrooms/classrooms-view.test.tsx`
-- `src/components/features/classrooms/classrooms-view.tsx`
-- `src/components/features/classrooms/quiz-workspace.tsx`
+- `src/components/features/classrooms/context/classroom-prototype-provider.tsx`
+- `src/components/features/classrooms/tests/classroom-quiz.test.tsx`
+- `src/components/features/classrooms/view/classroom-records-view.tsx`
+- `src/components/features/classrooms/tests/classroom-test-data.ts`
+- `src/components/features/classrooms/tests/classroom-test-fixtures.tsx`
+- `src/components/features/classrooms/types/classroom-types.ts`
+- `src/components/features/classrooms/tests/classrooms-view-accessibility.test.tsx`
+- `src/components/features/classrooms/tests/classrooms-view.test.tsx`
+- `src/components/features/classrooms/view/classrooms-view.tsx`
+- `src/components/features/classrooms/view/quiz-workspace.tsx`
 - `src/services/api/classroom.service.test.ts`
 - `src/services/api/classroom.service.ts`
 

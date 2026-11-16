@@ -1,5 +1,7 @@
 # Personal notes
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 Target: `src/components/features/personal-workspace/notes/`. This already follows the requested folder shape; use this list to debug or selectively improve it, **not** to duplicate the files.
 
 | Existing folder | Current files |

@@ -1,0 +1,20 @@
+/* The reference's dark conversation surfaces are local to the Chat tab. */
+.classroom-chat {
+  color-scheme: dark;
+  --background: #181818;
+  --foreground: #e4e6eb;
+  --card: #202020;
+  --card-foreground: #e4e6eb;
+  --muted: #353535;
+  --muted-foreground: #b0b3b8;
+  --border: #303030;
+  --input: #454545;
+  --ring: #a879ff;
+  --brand: #b87aff;
+  --brand-soft: #3a2854;
+  --primary: #9d5cff;
+  --primary-foreground: #ffffff;
+  --accent: #353535;
+  --accent-foreground: #e4e6eb;
+  --destructive: #ff9494;
+}

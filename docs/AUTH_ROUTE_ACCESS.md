@@ -56,10 +56,10 @@ An existing password account must explicitly connect Google. The setup screen of
 ## Main files
 
 - src/main.tsx: guest and role route wiring.
-- src/components/features/auth/require-auth.tsx: signed-out route protection.
-- src/components/features/auth/require-guest.tsx: signed-in auth-page protection.
-- src/components/features/auth/require-role.tsx: role restrictions before mounting the dashboard shell.
-- src/components/features/auth/auth-session-provider.tsx: API-backed session lifecycle.
+- src/components/features/auth/view/require-auth.tsx: signed-out route protection.
+- src/components/features/auth/view/require-guest.tsx: signed-in auth-page protection.
+- src/components/features/auth/view/require-role.tsx: role restrictions before mounting the dashboard shell.
+- src/components/features/auth/context/auth-session-provider.tsx: API-backed session lifecycle.
 - src/lib/workspace-path.ts: allowed workspace and login return navigation.
 - src/services/api/auth.service.ts and api.types.ts: cookie/CSRF contract and types.
 

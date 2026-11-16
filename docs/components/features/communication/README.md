@@ -1,5 +1,7 @@
 # Communication
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 `src/components/features/communication/` currently has no TypeScript or CSS feature code to reorganize. Find the actual discussion or notification owner before moving code here.
 
 [Feature guide index](../README.md)

@@ -1,5 +1,5 @@
 import { RequireOnboarding } from "@/components/common/require-onboarding"
-import { OnboardingView } from "@/components/features/onboarding/onboarding-view"
+import { OnboardingView } from "@/components/features/onboarding/view/onboarding-view"
 
 export default function OnboardingPage() {
   return (

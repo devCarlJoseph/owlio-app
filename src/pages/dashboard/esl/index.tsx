@@ -1,4 +1,4 @@
-import EslOverviewView from "@/components/features/esl-teaching/overview/esl-overview-view"
+import EslOverviewView from "@/components/features/esl-teaching/overview/view/esl-overview-view"
 
 export default function EslPage() {
   return <EslOverviewView />

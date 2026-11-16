@@ -1,4 +1,4 @@
-import type { Classroom, ClassroomActivity } from '@/components/features/classrooms/classroom-types'
+import type { Classroom, ClassroomActivity } from '@/components/features/classrooms/types/classroom-types'
 import { listClasswork } from './academic.service'
 import { collectOperation, requestOperation } from './contract-client'
 

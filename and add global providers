@@ -1,0 +1,500 @@
+ docs/API_CONNECTION.md                             |  6 [32m+[m[31m-[m
+ docs/AUTH_ROUTE_ACCESS.md                          |  8 [32m+[m[31m-[m
+ docs/CLASSROOM_API_INTEGRATION.md                  | 38 [32m++++[m[31m-----[m
+ docs/architecture/feature-composition.md           | 51 [32m++++++++++++[m
+ docs/architecture/frontend.md                      |  4 [32m+[m[31m-[m
+ docs/component-breakdowns.md                       |  2 [32m+[m
+ docs/components/features/README.md                 |  2 [32m+[m
+ docs/components/features/attendance/README.md      |  2 [32m+[m
+ docs/components/features/auth/README.md            |  2 [32m+[m
+ .../features/auth/account-security/README.md       |  2 [32m+[m
+ .../features/auth/email-verification/README.md     |  2 [32m+[m
+ .../features/auth/forgot-password/README.md        |  2 [32m+[m
+ docs/components/features/auth/google/README.md     |  2 [32m+[m
+ docs/components/features/auth/login/README.md      |  2 [32m+[m
+ .../features/auth/password-reset/README.md         |  2 [32m+[m
+ docs/components/features/auth/register/README.md   |  2 [32m+[m
+ docs/components/features/auth/shared/README.md     |  2 [32m+[m
+ docs/components/features/classrooms/README.md      |  2 [32m+[m
+ docs/components/features/classwork/README.md       |  2 [32m+[m
+ docs/components/features/communication/README.md   |  2 [32m+[m
+ .../features/dashboard-overview/README.md          |  2 [32m+[m
+ .../features/educator-overview/README.md           |  2 [32m+[m
+ docs/components/features/esl-teaching/README.md    |  2 [32m+[m
+ .../features/esl-teaching/activities/README.md     |  2 [32m+[m
+ .../features/esl-teaching/attendance/README.md     |  2 [32m+[m
+ .../features/esl-teaching/learners/README.md       |  2 [32m+[m
+ .../features/esl-teaching/lesson-plans/README.md   |  2 [32m+[m
+ .../features/esl-teaching/materials/README.md      |  2 [32m+[m
+ .../features/esl-teaching/meeting-room/README.md   |  2 [32m+[m
+ .../features/esl-teaching/overview/README.md       |  2 [32m+[m
+ docs/components/features/grades/README.md          |  2 [32m+[m
+ docs/components/features/materials/README.md       |  2 [32m+[m
+ .../features/materials/workspace/README.md         |  2 [32m+[m
+ docs/components/features/meeting-room/README.md    |  2 [32m+[m
+ docs/components/features/notifications/README.md   |  2 [32m+[m
+ docs/components/features/onboarding/README.md      |  2 [32m+[m
+ .../features/onboarding/completed/README.md        |  2 [32m+[m
+ .../features/onboarding/educator/README.md         |  2 [32m+[m
+ .../features/onboarding/entity-select/README.md    |  2 [32m+[m
+ .../features/onboarding/others/README.md           |  2 [32m+[m
+ .../features/onboarding/profile-basics/README.md   |  2 [32m+[m
+ .../features/onboarding/review/README.md           |  2 [32m+[m
+ .../features/onboarding/shared/README.md           |  2 [32m+[m
+ .../features/onboarding/student/README.md          |  2 [32m+[m
+ .../features/personal-workspace/README.md          |  2 [32m+[m
+ .../personal-workspace/classwork/README.md         |  2 [32m+[m
+ .../features/personal-workspace/notes/README.md    |  2 [32m+[m
+ .../personal-workspace/notes/contents/README.md    |  2 [32m+[m
+ .../personal-workspace/notes/forms/README.md       |  2 [32m+[m
+ .../features/personal-workspace/notes/ui/README.md |  2 [32m+[m
+ .../personal-workspace/notes/utils/README.md       |  2 [32m+[m
+ .../personal-workspace/notes/view/README.md        |  2 [32m+[m
+ .../personal-workspace/student-overview/README.md  |  2 [32m+[m
+ .../personal-workspace/study-spaces/README.md      |  2 [32m+[m
+ .../study-spaces/contents/README.md                |  2 [32m+[m
+ .../study-spaces/detail/README.md                  |  2 [32m+[m
+ .../study-spaces/forms/README.md                   |  2 [32m+[m
+ .../personal-workspace/study-spaces/ui/README.md   |  2 [32m+[m
+ .../personal-workspace/study-spaces/view/README.md |  2 [32m+[m
+ .../features/personal-workspace/subjects/README.md |  2 [32m+[m
+ .../features/personal-workspace/tasks/README.md    |  2 [32m+[m
+ docs/components/features/progress/README.md        |  2 [32m+[m
+ docs/components/features/schedule/README.md        |  2 [32m+[m
+ docs/components/features/study-spaces/README.md    |  2 [32m+[m
+ docs/components/features/submissions/README.md     |  2 [32m+[m
+ .../features/teaching-activities/README.md         |  2 [32m+[m
+ docs/components/features/tutor-workspace/README.md |  2 [32m+[m
+ .../features/tutor-workspace/activities/README.md  |  2 [32m+[m
+ .../features/tutor-workspace/ai/README.md          |  2 [32m+[m
+ .../features/tutor-workspace/attendance/README.md  |  2 [32m+[m
+ .../tutor-workspace/communication/README.md        |  2 [32m+[m
+ .../features/tutor-workspace/learners/README.md    |  2 [32m+[m
+ .../tutor-workspace/learning-plans/README.md       |  2 [32m+[m
+ .../features/tutor-workspace/materials/README.md   |  2 [32m+[m
+ .../features/tutor-workspace/notes/README.md       |  2 [32m+[m
+ .../tutor-workspace/notifications/README.md        |  2 [32m+[m
+ .../features/tutor-workspace/overview/README.md    |  2 [32m+[m
+ .../features/tutor-workspace/progress/README.md    |  2 [32m+[m
+ .../features/tutor-workspace/sessions/README.md    |  2 [32m+[m
+ .../features/tutor-workspace/settings/README.md    |  2 [32m+[m
+ docs/components/page-adapters.md                   |  6 [32m+[m[31m-[m
+ docs/index.md                                      |  4 [32m+[m[31m-[m
+ docs/sops/component-decomposition.md               |  2 [32m+[m
+ src/components/common/theme-controller.tsx         |  7 [31m--[m
+ src/components/common/theme-selector.tsx           |  5 [32m+[m[31m-[m
+ src/components/features/README.md                  | 18 [32m++++[m
+ .../{ => view}/account-security-view.tsx           |  0
+ .../auth/{ => context}/auth-session-context.ts     |  0
+ .../auth/{ => context}/auth-session-provider.tsx   |  0
+ .../{ => forms}/resend-verification-form.tsx       |  4 [32m+[m[31m-[m
+ .../{ => forms}/verification-code-form.tsx         |  4 [32m+[m[31m-[m
+ .../{ => schemas}/email-verification.schema.ts     |  0
+ .../{ => tests}/email-verification.schema.test.ts  |  2 [32m+[m[31m-[m
+ .../{ => view}/email-verification-view.tsx         | 10 [32m+[m[31m--[m
+ .../{ => forms}/forgot-password-form.tsx           |  4 [32m+[m[31m-[m
+ .../{ => schemas}/forgot-password.schema.ts        |  0
+ .../{ => view}/forgot-password-view.tsx            | 10 [32m+[m[31m--[m
+ .../google-oauth-callback-view.test.tsx            |  6 [32m+[m[31m-[m
+ .../{ => view}/google-oauth-callback-view.tsx      |  8 [32m+[m[31m-[m
+ .../features/auth/login/{ => forms}/login-form.tsx |  8 [32m+[m[31m-[m
+ .../auth/login/{ => schemas}/login.schema.ts       |  0
+ .../features/auth/login/{ => view}/login-view.tsx  | 10 [32m+[m[31m--[m
+ .../{ => forms}/password-reset-form.tsx            |  8 [32m+[m[31m-[m
+ .../{ => schemas}/password-reset.schema.ts         |  2 [32m+[m[31m-[m
+ .../{ => view}/password-reset-view.tsx             | 10 [32m+[m[31m--[m
+ .../auth/register/{ => forms}/register-form.tsx    | 12 [32m+[m[31m--[m
+ .../auth/register/{ => schemas}/register.schema.ts |  2 [32m+[m[31m-[m
+ .../register/{ => tests}/register-view.test.tsx    |  4 [32m+[m[31m-[m
+ .../register/{ => ui}/account-type-selector.tsx    |  2 [32m+[m[31m-[m
+ .../auth/register/{ => view}/register-view.tsx     |  8 [32m+[m[31m-[m
+ .../shared/{ => contents}/auth-showcase-content.ts |  0
+ .../shared/{ => tests}/google-auth-button.test.tsx |  2 [32m+[m[31m-[m
+ .../auth/shared/{ => ui}/auth-brand-panel.tsx      |  0
+ .../auth/shared/{ => ui}/auth-feedback.tsx         |  0
+ .../auth/shared/{ => ui}/auth-form-actions.tsx     |  0
+ .../features/auth/shared/{ => ui}/auth-layout.tsx  |  0
+ .../auth/shared/{ => ui}/auth-password-input.tsx   |  2 [32m+[m[31m-[m
+ .../auth/shared/{ => ui}/auth-preview-controls.tsx |  0
+ .../auth/shared/{ => ui}/auth-showcase-layout.tsx  |  2 [32m+[m[31m-[m
+ .../auth/shared/{ => ui}/auth-showcase.tsx         |  2 [32m+[m[31m-[m
+ .../auth/shared/{ => ui}/auth-split-layout.tsx     |  0
+ .../auth/shared/{ => ui}/auth-status-page.tsx      |  0
+ .../auth/shared/{ => ui}/google-auth-button.tsx    |  0
+ .../features/auth/shared/{ => ui}/owlio-owl.tsx    |  0
+ .../auth/shared/{ => ui}/password-field.tsx        |  2 [32m+[m[31m-[m
+ .../auth/shared/{ => ui}/password-guidance.tsx     |  0
+ .../auth/shared/{ => ui}/session-expired-state.tsx |  0
+ .../auth/shared/{ => utils}/auth-input-styles.ts   |  0
+ .../shared/{ => utils}/development-action-path.ts  |  0
+ .../auth/shared/{ => utils}/password-rules.ts      |  0
+ .../{ => tests}/auth-session-provider.test.tsx     |  6 [32m+[m[31m-[m
+ .../auth/{ => tests}/preview-route-access.test.tsx |  8 [32m+[m[31m-[m
+ .../auth/{ => tests}/route-guards.test.tsx         | 10 [32m+[m[31m--[m
+ .../features/auth/{ => view}/no-workspace-view.tsx |  2 [32m+[m[31m-[m
+ .../features/auth/{ => view}/require-auth.tsx      |  2 [32m+[m[31m-[m
+ .../features/auth/{ => view}/require-guest.tsx     |  2 [32m+[m[31m-[m
+ .../features/auth/{ => view}/require-role.tsx      |  2 [32m+[m[31m-[m
+ .../features/auth/{ => view}/session-boundary.tsx  |  4 [32m+[m[31m-[m
+ .../features/classrooms/classrooms-view.tsx        | 96 [31m----------------------[m
+ .../{ => contents}/classroom-preview-data.ts       |  2 [32m+[m[31m-[m
+ .../{ => contents}/discussion-reaction-data.ts     |  0
+ .../{ => context}/classroom-preview-provider.tsx   |  4 [32m+[m[31m-[m
+ .../{ => context}/classroom-preview-store.ts       |  4 [32m+[m[31m-[m
+ .../{ => context}/classroom-prototype-context.ts   |  2 [32m+[m[31m-[m
+ .../{ => context}/classroom-prototype-provider.tsx |  4 [32m+[m[31m-[m
+ .../classrooms/{ => forms}/chat-composer.tsx       |  4 [32m+[m[31m-[m
+ .../{ => forms}/classroom-form-dialogs.tsx         |  0
+ .../classrooms/{ => forms}/discussion-composer.tsx |  4 [32m+[m[31m-[m
+ .../classrooms/{ => forms}/quiz-timer-settings.tsx |  2 [32m+[m[31m-[m
+ .../classrooms/{ => hooks}/use-classroom-chat.ts   |  0
+ .../features/classrooms/hooks/use-classrooms.ts    | 65 [32m+++++++++++++++[m
+ .../features/classrooms/{ => hooks}/use-now.ts     |  0
+ .../classrooms/{ => tests}/classroom-chat.test.tsx |  2 [32m+[m[31m-[m
+ .../{ => tests}/classroom-detail-tabs.test.tsx     |  2 [32m+[m[31m-[m
+ .../{ => tests}/classroom-discussion.test.tsx      |  2 [32m+[m[31m-[m
+ .../{ => tests}/classroom-members-view.test.tsx    |  4 [32m+[m[31m-[m
+ .../{ => tests}/classroom-preview.test.tsx         |  6 [32m+[m[31m-[m
+ .../classrooms/{ => tests}/classroom-quiz.test.tsx |  2 [32m+[m[31m-[m
+ .../classrooms/{ => tests}/classroom-test-data.ts  |  0
+ .../{ => tests}/classroom-test-fixtures.tsx        |  4 [32m+[m[31m-[m
+ .../classrooms-view-accessibility.test.tsx         |  2 [32m+[m[31m-[m
+ .../{ => tests}/classrooms-view.test.tsx           |  2 [32m+[m[31m-[m
+ .../classrooms/{ => tests}/quiz-timing.test.ts     |  4 [32m+[m[31m-[m
+ .../classrooms/{ => types}/classroom-types.ts      |  0
+ .../features/classrooms/{ => ui}/chat-header.tsx   |  4 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/chat-message-bubble.tsx    |  4 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/classroom-card.tsx         |  6 [32m+[m[31m-[m
+ .../classrooms/ui/classroom-list-toolbar.tsx       | 24 [32m++++++[m
+ .../classrooms/{ => ui}/classroom-list-ui.tsx      |  2 [32m+[m[31m-[m
+ .../{ => ui}/classroom-preview-notice.tsx          |  4 [32m+[m[31m-[m
+ .../features/classrooms/{ => ui}/classroom-ui.tsx  |  2 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/discussion-post.tsx        |  6 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/discussion-reactions.tsx   |  2 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/discussion-text.tsx        |  0
+ .../classrooms/{ => ui}/quiz-countdown.tsx         |  4 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/quiz-leaderboard.tsx       |  2 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/quiz-questions.tsx         |  4 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/quiz-result-card.tsx       |  4 [32m+[m[31m-[m
+ .../classrooms/{ => ui}/quiz-timing-badges.tsx     |  4 [32m+[m[31m-[m
+ .../features/classrooms/{ => utils}/chat-format.ts |  0
+ .../classrooms/{ => utils}/classroom-covers.ts     |  0
+ .../classrooms/{ => utils}/classroom-list-meta.ts  |  2 [32m+[m[31m-[m
+ .../classrooms/{ => utils}/classroom-utils.ts      |  0
+ .../classrooms/{ => utils}/quiz-answers.ts         |  0
+ .../features/classrooms/{ => utils}/quiz-timing.ts |  2 [32m+[m[31m-[m
+ .../{ => view}/classroom-activity-view.tsx         |  2 [32m+[m[31m-[m
+ .../classrooms/{ => view}/classroom-chat-view.tsx  | 16 [32m++[m[31m--[m
+ .../{ => view}/classroom-classwork-view.tsx        | 10 [32m+[m[31m--[m
+ .../{ => view}/classroom-detail-view.tsx           |  8 [32m+[m[31m-[m
+ .../classrooms/{ => view}/classroom-feed-view.tsx  | 12 [32m+[m[31m--[m
+ .../{ => view}/classroom-members-view.tsx          |  6 [32m+[m[31m-[m
+ .../{ => view}/classroom-records-view.tsx          |  4 [32m+[m[31m-[m
+ .../features/classrooms/view/classrooms-view.tsx   | 43 [32m++++++++++[m
+ .../classrooms/{ => view}/quiz-workspace.tsx       | 18 [32m++[m[31m--[m
+ .../{ => hooks}/use-account-records.ts             |  0
+ .../{ => hooks}/use-connected-library.ts           |  2 [32m+[m[31m-[m
+ .../{ => hooks}/use-room-discussion.ts             |  4 [32m+[m[31m-[m
+ .../{ => tests}/connected-workspace.test.tsx       |  8 [32m+[m[31m-[m
+ .../{ => view}/account-notifications.tsx           |  2 [32m+[m[31m-[m
+ .../{ => view}/api-workspace-content.tsx           |  4 [32m+[m[31m-[m
+ .../{ => view}/classroom-sessions.tsx              |  6 [32m+[m[31m-[m
+ .../{ => view}/personal-workspace.tsx              |  2 [32m+[m[31m-[m
+ .../{ => tests}/dashboard-overview.test.tsx        |  8 [32m+[m[31m-[m
+ .../{ => types}/overview-types.ts                  |  0
+ .../{ => ui}/overview-identity-card.tsx            |  2 [32m+[m[31m-[m
+ .../{ => ui}/overview-sidebar.tsx                  |  2 [32m+[m[31m-[m
+ .../{ => ui}/overview-summary.tsx                  |  2 [32m+[m[31m-[m
+ .../{ => ui}/overview-workspaces.tsx               |  2 [32m+[m[31m-[m
+ .../{ => view}/dashboard-overview.tsx              | 10 [32m+[m[31m--[m
+ .../{ => contents}/educator-overview-content.ts    |  2 [32m+[m[31m-[m
+ .../{ => view}/educator-overview-view.tsx          |  4 [32m+[m[31m-[m
+ .../activities/{ => view}/esl-activities-view.tsx  |  2 [32m+[m[31m-[m
+ .../attendance/{ => view}/esl-attendance-view.tsx  |  0
+ .../learners/{ => view}/esl-learners-view.tsx      |  0
+ .../{ => view}/esl-lesson-plans-view.tsx           |  0
+ .../{ => view}/esl-material-context-view.tsx       |  0
+ .../{ => tests}/esl-whiteboard-preview.test.tsx    |  4 [32m+[m[31m-[m
+ .../{ => ui}/esl-whiteboard-canvas.tsx             |  2 [32m+[m[31m-[m
+ .../{ => utils}/esl-whiteboard-model.ts            |  0
+ .../{ => utils}/esl-whiteboard-preview-route.ts    |  0
+ .../{ => view}/esl-whiteboard-preview.tsx          |  4 [32m+[m[31m-[m
+ .../{ => contents}/esl-overview-content.ts         |  2 [32m+[m[31m-[m
+ .../overview/{ => view}/esl-overview-view.tsx      |  4 [32m+[m[31m-[m
+ .../student-library-subject-view.test.tsx          |  6 [32m+[m[31m-[m
+ .../{ => tests}/student-library-view.test.tsx      |  8 [32m+[m[31m-[m
+ .../materials/{ => types}/library-types.ts         |  0
+ .../materials/{ => ui}/library-category-row.tsx    |  4 [32m+[m[31m-[m
+ .../materials/{ => ui}/library-context-cards.tsx   |  2 [32m+[m[31m-[m
+ .../materials/{ => ui}/library-gallery-card.tsx    |  4 [32m+[m[31m-[m
+ .../materials/{ => ui}/library-search-field.tsx    |  0
+ .../materials/{ => ui}/library-theme.module.css    |  0
+ .../features/materials/{ => ui}/resource-card.tsx  |  4 [32m+[m[31m-[m
+ .../materials/{ => ui}/resource-list-row.tsx       |  4 [32m+[m[31m-[m
+ .../features/materials/{ => ui}/resource-list.tsx  |  2 [32m+[m[31m-[m
+ .../materials/{ => ui}/resource-source-filter.tsx  |  4 [32m+[m[31m-[m
+ .../materials/{ => utils}/library-records.ts       |  2 [32m+[m[31m-[m
+ .../{ => view}/student-library-source-view.tsx     | 12 [32m+[m[31m--[m
+ .../{ => view}/student-library-subject-view.tsx    |  6 [32m+[m[31m-[m
+ .../materials/{ => view}/student-library-view.tsx  | 20 [32m++[m[31m---[m
+ .../workspace/{ => forms}/document-editor.tsx      |  2 [32m+[m[31m-[m
+ .../workspace/{ => forms}/presentation-editor.tsx  |  2 [32m+[m[31m-[m
+ .../{ => tests}/library-workspace.test.tsx         |  8 [32m+[m[31m-[m
+ .../workspace/{ => ui}/personal-library-work.tsx   |  4 [32m+[m[31m-[m
+ .../materials/workspace/{ => utils}/work-drafts.ts |  0
+ .../workspace/{ => utils}/work-records.ts          |  0
+ .../{ => view}/library-workspace-view.tsx          | 10 [32m+[m[31m--[m
+ .../{ => hooks}/use-native-meeting-data.ts         |  0
+ .../{ => hooks}/use-participant-video.ts           |  0
+ .../{ => hooks}/use-prejoin-devices.ts             |  0
+ .../{ => tests}/meeting-devices.test.tsx           |  8 [32m+[m[31m-[m
+ .../{ => tests}/meeting-room-hub.test.tsx          |  6 [32m+[m[31m-[m
+ .../{ => tests}/meeting-room-screen.test.tsx       |  4 [32m+[m[31m-[m
+ .../{ => tests}/meeting-scroll-area.test.tsx       |  2 [32m+[m[31m-[m
+ .../{ => tests}/use-native-meeting-data.test.ts    |  4 [32m+[m[31m-[m
+ .../meeting-room/{ => types}/meeting-room-types.ts |  0
+ .../features/meeting-room/{ => ui}/audio-track.tsx |  0
+ .../{ => ui}/coaching-meeting-parts.tsx            |  4 [32m+[m[31m-[m
+ .../meeting-room/{ => ui}/meeting-room-panels.tsx  |  2 [32m+[m[31m-[m
+ .../meeting-room/{ => ui}/meeting-room-shell.tsx   |  0
+ .../meeting-room/{ => ui}/meeting-whiteboard.tsx   |  2 [32m+[m[31m-[m
+ .../meeting-room/{ => ui}/participant-strip.tsx    |  0
+ .../meeting-room/{ => ui}/participant-tile.tsx     |  2 [32m+[m[31m-[m
+ .../{ => ui}/prejoin-device-preview.tsx            |  0
+ .../{ => utils}/classroom-meeting-preview.ts       |  0
+ .../{ => utils}/coaching-meeting-preview.ts        |  2 [32m+[m[31m-[m
+ .../meeting-room/{ => utils}/meeting-grid.ts       |  0
+ .../{ => utils}/meeting-whiteboard-model.ts        |  0
+ .../{ => view}/classroom-meeting-screen.tsx        | 16 [32m++[m[31m--[m
+ .../{ => view}/coaching-meeting-screen.tsx         | 16 [32m++[m[31m--[m
+ .../meeting-room/{ => view}/meeting-room-hub.tsx   |  2 [32m+[m[31m-[m
+ .../{ => view}/meeting-room-screen.tsx             |  2 [32m+[m[31m-[m
+ .../meeting-room/{ => view}/meeting-room-view.tsx  | 16 [32m++[m[31m--[m
+ .../{ => contents}/notifications-content.ts        |  2 [32m+[m[31m-[m
+ .../{ => contents}/notifications-examples.ts       |  2 [32m+[m[31m-[m
+ .../{ => tests}/notifications.test.tsx             | 10 [32m+[m[31m--[m
+ .../{ => types}/notifications.types.ts             |  0
+ .../{ => ui}/notification-filters.tsx              |  0
+ .../notifications/{ => ui}/notification-item.tsx   |  4 [32m+[m[31m-[m
+ .../notifications/{ => ui}/notification-list.tsx   |  2 [32m+[m[31m-[m
+ .../notifications/{ => ui}/notifications-inbox.tsx |  6 [32m+[m[31m-[m
+ .../notifications/{ => ui}/notifications-panel.tsx |  2 [32m+[m[31m-[m
+ .../notifications/{ => ui}/notifications-state.tsx |  2 [32m+[m[31m-[m
+ .../{ => ui}/notifications-trigger.tsx             |  2 [32m+[m[31m-[m
+ .../{ => view}/notifications-view.tsx              |  6 [32m+[m[31m-[m
+ .../completed/{ => view}/onboarding-completed.tsx  |  4 [32m+[m[31m-[m
+ .../{ => contents}/onboarding.constants.ts         |  0
+ .../educator/{ => forms}/educator-details-step.tsx | 10 [32m+[m[31m--[m
+ .../{ => forms}/entity-select-step.tsx             |  8 [32m+[m[31m-[m
+ .../entity-select/{ => ui}/entity-card.tsx         |  2 [32m+[m[31m-[m
+ .../others/{ => forms}/others-details-step.tsx     | 10 [32m+[m[31m--[m
+ .../{ => forms}/profile-basics-step.tsx            |  6 [32m+[m[31m-[m
+ .../onboarding/review/{ => forms}/review-step.tsx  |  4 [32m+[m[31m-[m
+ .../onboarding/{ => schemas}/onboarding.schema.ts  |  2 [32m+[m[31m-[m
+ .../shared/{ => ui}/choice-checkbox-group.tsx      |  0
+ .../onboarding/shared/{ => ui}/field-error.tsx     |  0
+ .../shared/{ => ui}/onboarding-layout.tsx          |  2 [32m+[m[31m-[m
+ .../shared/{ => ui}/onboarding-stepper.tsx         |  4 [32m+[m[31m-[m
+ .../onboarding/shared/{ => ui}/optional-badge.tsx  |  0
+ .../onboarding/shared/{ => ui}/step-actions.tsx    |  0
+ .../onboarding/shared/{ => ui}/tag-input.tsx       |  0
+ .../student/{ => forms}/student-details-step.tsx   | 12 [32m+[m[31m--[m
+ .../{ => tests}/onboarding-view.test.tsx           |  4 [32m+[m[31m-[m
+ .../onboarding/{ => types}/onboarding.types.ts     |  2 [32m+[m[31m-[m
+ .../onboarding/{ => view}/onboarding-view.tsx      | 24 [32m+++[m[31m---[m
+ .../classwork/{ => contents}/sample-classwork.ts   |  0
+ .../classwork/{ => ui}/classwork-card.tsx          |  2 [32m+[m[31m-[m
+ .../classwork/{ => view}/classwork-view.tsx        |  4 [32m+[m[31m-[m
+ .../notes/{view => tests}/notes-view.test.tsx      |  2 [32m+[m[31m-[m
+ .../{ => contents}/student-overview-content.ts     |  2 [32m+[m[31m-[m
+ .../{ => contents}/student-overview-copy.ts        |  0
+ .../{ => ui}/classwork-highlight.tsx               |  0
+ .../{ => ui}/overview-tip-banner.tsx               |  2 [32m+[m[31m-[m
+ .../student-overview/{ => ui}/personal-metrics.tsx |  2 [32m+[m[31m-[m
+ .../student-overview/{ => ui}/progress-summary.tsx |  0
+ .../student-overview/{ => ui}/quick-links.tsx      |  2 [32m+[m[31m-[m
+ .../{ => ui}/study-consistency.tsx                 |  2 [32m+[m[31m-[m
+ .../student-overview/{ => ui}/subjects-table.tsx   |  0
+ .../student-overview/{ => ui}/upcoming-items.tsx   |  2 [32m+[m[31m-[m
+ .../student-overview/{ => utils}/time-greeting.ts  |  0
+ .../{ => view}/student-overview-view.tsx           |  6 [32m+[m[31m-[m
+ .../detail/{ => forms}/character-dialog.tsx        |  2 [32m+[m[31m-[m
+ .../detail/{ => hooks}/use-focus-music.ts          |  4 [32m+[m[31m-[m
+ .../detail/{ => hooks}/use-pomodoro.ts             |  0
+ .../detail/{ => tests}/study-space-detail.test.tsx | 14 [32m++[m[31m--[m
+ .../detail/{ => ui}/character-figure.tsx           |  0
+ .../study-spaces/detail/{ => ui}/drawer-panel.tsx  |  2 [32m+[m[31m-[m
+ .../detail/{ => ui}/focus-music-panel.tsx          |  2 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => ui}/locker-panel.tsx  |  2 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => ui}/nap-banner.tsx    |  0
+ .../study-spaces/detail/{ => ui}/pomodoro-chip.tsx |  2 [32m+[m[31m-[m
+ .../detail/{ => ui}/room-chat-panel.tsx            |  2 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => ui}/room-extras.tsx   |  2 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => ui}/room-garden.tsx   |  0
+ .../study-spaces/detail/{ => ui}/room-zones.tsx    |  4 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => ui}/seat-panel.tsx    |  2 [32m+[m[31m-[m
+ .../detail/{ => ui}/space-room-scene.tsx           | 12 [32m+[m[31m--[m
+ .../detail/{ => ui}/task-board-panel.tsx           |  4 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => ui}/tv-panel.tsx      |  2 [32m+[m[31m-[m
+ .../detail/{ => utils}/drawer-storage.ts           |  0
+ .../study-spaces/detail/{ => utils}/focus-music.ts |  0
+ .../detail/{ => utils}/room-ambience.ts            |  0
+ .../detail/{ => utils}/room-lockers.ts             |  2 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => utils}/room-tasks.ts  |  2 [32m+[m[31m-[m
+ .../study-spaces/detail/{ => utils}/room-tv.ts     |  0
+ .../detail/{ => utils}/study-space-seats.ts        |  2 [32m+[m[31m-[m
+ .../detail/{ => view}/study-space-detail-view.tsx  | 44 [32m+++++[m[31m-----[m
+ .../{ => forms}/create-space-dialog.tsx            |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => forms}/join-space-dialog.tsx |  2 [32m+[m[31m-[m
+ .../study-spaces/{ => hooks}/use-walk-keys.ts      |  0
+ .../study-spaces/{ => tests}/city-layout.test.ts   |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => tests}/space-map.test.tsx    |  4 [32m+[m[31m-[m
+ .../{ => tests}/study-space-room-features.test.ts  | 12 [32m+[m[31m--[m
+ .../{ => tests}/study-spaces-flow.test.tsx         |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => tests}/traffic-paths.test.ts |  6 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/city-buildings.tsx       |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/city-plaza.tsx           |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/city-traffic.tsx         |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/room-plan-preview.tsx    |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/space-card-grid.tsx      |  4 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/space-map-art.tsx        |  6 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/space-map.tsx            |  6 [32m+[m[31m-[m
+ .../study-spaces/{ => ui}/study-hall-world.tsx     | 14 [32m++[m[31m--[m
+ .../study-spaces/{ => utils}/city-layout.ts        |  0
+ .../study-spaces/{ => utils}/space-format.ts       |  0
+ .../study-spaces/{ => utils}/space-map-layout.ts   |  0
+ .../study-spaces/{ => utils}/space-roster.ts       |  0
+ .../{ => utils}/study-spaces-records.ts            |  0
+ .../study-spaces/{ => utils}/traffic-paths.ts      |  0
+ .../study-spaces/{ => view}/study-spaces-view.tsx  | 12 [32m+[m[31m--[m
+ .../{ => forms}/subject-composer-dialog.tsx        |  2 [32m+[m[31m-[m
+ .../subjects/{ => forms}/subject-delete-dialog.tsx |  2 [32m+[m[31m-[m
+ .../subject-milestone-delete-dialog.tsx            |  2 [32m+[m[31m-[m
+ .../{ => forms}/subject-milestone-dialog.tsx       |  2 [32m+[m[31m-[m
+ .../subjects/{ => tests}/subjects-view.test.tsx    |  8 [32m+[m[31m-[m
+ .../subjects/{ => ui}/continue-learning.tsx        |  2 [32m+[m[31m-[m
+ .../subjects/{ => ui}/sample-data-notice.tsx       |  0
+ .../subjects/{ => ui}/subject-action-button.tsx    |  0
+ .../subjects/{ => ui}/subject-card.tsx             |  2 [32m+[m[31m-[m
+ .../subjects/{ => ui}/subject-congrats-dialog.tsx  |  0
+ .../subjects/{ => ui}/subject-list-row.tsx         |  2 [32m+[m[31m-[m
+ .../subjects/{ => ui}/subject-milestones-card.tsx  |  2 [32m+[m[31m-[m
+ .../subjects/{ => ui}/subject-study-content.tsx    |  2 [32m+[m[31m-[m
+ .../subjects/{ => ui}/subjects-hero.tsx            |  2 [32m+[m[31m-[m
+ .../subjects/{ => utils}/subject-appearance.ts     |  0
+ .../subjects/{ => utils}/subject-records.ts        |  0
+ .../subjects/{ => view}/subject-detail-view.tsx    | 24 [32m+++[m[31m---[m
+ .../subjects/{ => view}/subjects-view.tsx          | 16 [32m++[m[31m--[m
+ .../tasks/{ => forms}/task-composer-dialog.tsx     |  4 [32m+[m[31m-[m
+ .../tasks/{ => forms}/task-delete-dialog.tsx       |  2 [32m+[m[31m-[m
+ .../tasks/{ => tests}/tasks-view.test.tsx          |  6 [32m+[m[31m-[m
+ .../tasks/{ => ui}/task-board.tsx                  |  2 [32m+[m[31m-[m
+ .../tasks/{ => ui}/task-detail-dialog.tsx          |  4 [32m+[m[31m-[m
+ .../tasks/{ => ui}/task-list.tsx                   |  2 [32m+[m[31m-[m
+ .../tasks/{ => ui}/task-subject-groups.tsx         |  2 [32m+[m[31m-[m
+ .../tasks/{ => utils}/task-records.ts              |  0
+ .../tasks/{ => view}/tasks-view.tsx                | 14 [32m++[m[31m--[m
+ .../{ => tests}/student-progress-view.test.tsx     |  4 [32m+[m[31m-[m
+ .../{ => ui}/classroom-results-section.tsx         |  0
+ .../{ => ui}/personal-progress-section.tsx         |  2 [32m+[m[31m-[m
+ .../progress/{ => view}/student-progress-view.tsx  |  4 [32m+[m[31m-[m
+ .../schedule/{ => contents}/schedule-content.ts    |  2 [32m+[m[31m-[m
+ .../schedule/{ => tests}/calendar-dates.test.ts    |  2 [32m+[m[31m-[m
+ .../{ => tests}/schedule-workspace-view.test.tsx   |  4 [32m+[m[31m-[m
+ .../schedule/{ => types}/schedule-types.ts         |  0
+ .../features/schedule/{ => ui}/calendar-month.tsx  |  6 [32m+[m[31m-[m
+ .../schedule/{ => ui}/calendar-timeline.tsx        |  6 [32m+[m[31m-[m
+ .../schedule/{ => ui}/schedule-day-agenda.tsx      |  6 [32m+[m[31m-[m
+ .../schedule/{ => ui}/schedule-summary.tsx         |  4 [32m+[m[31m-[m
+ .../schedule/{ => utils}/calendar-dates.ts         |  2 [32m+[m[31m-[m
+ .../schedule/{ => utils}/schedule-colors.ts        |  0
+ .../schedule/{ => view}/role-schedule-view.tsx     |  2 [32m+[m[31m-[m
+ .../{ => view}/schedule-workspace-view.tsx         | 14 [32m++[m[31m--[m
+ .../{ => forms}/activity-composer.tsx              |  8 [32m+[m[31m-[m
+ .../{ => tests}/teaching-activities.test.tsx       | 16 [32m++[m[31m--[m
+ .../{ => ui}/activity-collection.tsx               |  2 [32m+[m[31m-[m
+ .../{ => ui}/activity-details.tsx                  |  4 [32m+[m[31m-[m
+ .../{ => utils}/activity-workspace-model.ts        |  2 [32m+[m[31m-[m
+ .../{ => view}/teaching-activities-view.tsx        | 10 [32m+[m[31m--[m
+ .../{ => view}/tutor-activities-view.tsx           |  2 [32m+[m[31m-[m
+ .../ai/{ => view}/tutor-ai-assistant-view.tsx      |  2 [32m+[m[31m-[m
+ .../{ => view}/tutor-attendance-view.tsx           |  2 [32m+[m[31m-[m
+ .../{ => view}/tutor-announcements-view.tsx        |  2 [32m+[m[31m-[m
+ .../{ => view}/tutor-discussions-view.tsx          |  2 [32m+[m[31m-[m
+ .../{ => view}/tutor-learner-detail-view.tsx       |  2 [32m+[m[31m-[m
+ .../learners/{ => view}/tutor-learners-view.tsx    |  2 [32m+[m[31m-[m
+ .../{ => view}/learning-plans-view.tsx             |  2 [32m+[m[31m-[m
+ .../materials/{ => view}/tutor-materials-view.tsx  |  2 [32m+[m[31m-[m
+ .../notes/{ => view}/tutor-session-notes-view.tsx  |  2 [32m+[m[31m-[m
+ .../{ => view}/tutor-notifications-view.tsx        |  2 [32m+[m[31m-[m
+ .../{ => contents}/tutor-overview-content.ts       |  2 [32m+[m[31m-[m
+ .../overview/{ => view}/tutor-overview-view.tsx    |  4 [32m+[m[31m-[m
+ .../{ => view}/tutor-student-progress-view.tsx     |  2 [32m+[m[31m-[m
+ .../sessions/{ => view}/tutor-sessions-view.tsx    |  4 [32m+[m[31m-[m
+ .../settings/{ => view}/tutor-settings-view.tsx    |  2 [32m+[m[31m-[m
+ .../{ => tests}/tutor-workspace.test.tsx           | 30 [32m+++[m[31m----[m
+ .../{ => ui}/tutor-workspace-ui.tsx                |  0
+ src/context/app-providers.tsx                      | 13 [32m+++[m
+ src/context/tests/theme-provider.test.tsx          | 71 [32m++++++++++++++++[m
+ src/context/theme-context.ts                       |  9 [32m++[m
+ src/context/theme-provider.tsx                     | 13 [32m+++[m
+ src/hooks/use-theme.ts                             |  8 [32m++[m
+ src/main.tsx                                       | 16 [32m++[m[31m--[m
+ src/pages/auth/email-verification/index.tsx        |  2 [32m+[m[31m-[m
+ src/pages/auth/forgot-password/index.tsx           |  2 [32m+[m[31m-[m
+ src/pages/auth/google-oauth-callback/index.tsx     |  2 [32m+[m[31m-[m
+ src/pages/auth/login/index.tsx                     |  2 [32m+[m[31m-[m
+ src/pages/auth/password-reset/index.tsx            |  2 [32m+[m[31m-[m
+ src/pages/auth/register/index.tsx                  |  2 [32m+[m[31m-[m
+ src/pages/dashboard/account-security/index.tsx     |  2 [32m+[m[31m-[m
+ src/pages/dashboard/classroom/activity.tsx         |  2 [32m+[m[31m-[m
+ src/pages/dashboard/classroom/detail.tsx           |  2 [32m+[m[31m-[m
+ src/pages/dashboard/classroom/index.tsx            |  2 [32m+[m[31m-[m
+ src/pages/dashboard/classroom/meeting-room.tsx     |  2 [32m+[m[31m-[m
+ src/pages/dashboard/educators/classwork/index.tsx  |  2 [32m+[m[31m-[m
+ src/pages/dashboard/educators/index.tsx            |  2 [32m+[m[31m-[m
+ src/pages/dashboard/esl/attendance/index.tsx       |  2 [32m+[m[31m-[m
+ src/pages/dashboard/esl/classwork/index.tsx        |  2 [32m+[m[31m-[m
+ src/pages/dashboard/esl/index.tsx                  |  2 [32m+[m[31m-[m
+ src/pages/dashboard/esl/learners/index.tsx         |  2 [32m+[m[31m-[m
+ src/pages/dashboard/esl/lessons/index.tsx          |  2 [32m+[m[31m-[m
+ src/pages/dashboard/esl/materials/index.tsx        |  2 [32m+[m[31m-[m
+ src/pages/dashboard/layout.tsx                     |  8 [32m+[m[31m-[m
+ src/pages/dashboard/notifications/index.tsx        |  2 [32m+[m[31m-[m
+ src/pages/dashboard/schedule/index.tsx             |  2 [32m+[m[31m-[m
+ src/pages/dashboard/students/classwork/index.tsx   |  2 [32m+[m[31m-[m
+ src/pages/dashboard/students/index.tsx             |  2 [32m+[m[31m-[m
+ .../students/materials/classroom/index.tsx         |  2 [32m+[m[31m-[m
+ .../students/materials/classroom/subject/index.tsx |  2 [32m+[m[31m-[m
+ src/pages/dashboard/students/materials/index.tsx   |  2 [32m+[m[31m-[m
+ .../students/materials/personal/index.tsx          |  2 [32m+[m[31m-[m
+ .../students/materials/personal/subject/index.tsx  |  2 [32m+[m[31m-[m
+ .../students/materials/study-spaces/index.tsx      |  2 [32m+[m[31m-[m
+ .../materials/study-spaces/subject/index.tsx       |  2 [32m+[m[31m-[m
+ .../students/materials/workspace/index.tsx         |  2 [32m+[m[31m-[m
+ src/pages/dashboard/students/progress/index.tsx    |  2 [32m+[m[31m-[m
+ .../students/study-spaces/detail/index.tsx         |  2 [32m+[m[31m-[m
+ .../dashboard/students/study-spaces/index.tsx      |  2 [32m+[m[31m-[m
+ .../dashboard/students/subjects/detail/index.tsx   |  2 [32m+[m[31m-[m
+ src/pages/dashboard/students/subjects/index.tsx    |  2 [32m+[m[31m-[m
+ src/pages/dashboard/students/tasks/index.tsx       |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/ai-assistant/index.tsx  |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/announcements/index.tsx |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/attendance/index.tsx    |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/classwork/index.tsx     |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/communication/index.tsx |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/index.tsx               |  2 [32m+[m[31m-[m
+ .../dashboard/tutors/learners/detail/index.tsx     |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/learners/index.tsx      |  2 [32m+[m[31m-[m
+ .../dashboard/tutors/learning-plans/index.tsx      |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/materials/index.tsx     |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/notifications/index.tsx |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/progress/index.tsx      |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/session-notes/index.tsx |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/sessions/index.tsx      |  2 [32m+[m[31m-[m
+ src/pages/dashboard/tutors/settings/index.tsx      |  2 [32m+[m[31m-[m
+ src/pages/onboarding/index.tsx                     |  2 [32m+[m[31m-[m
+ src/services/api/study-space.service.ts            |  2 [32m+[m[31m-[m
+ src/services/api/teaching-overview.service.test.ts |  2 [32m+[m[31m-[m
+ src/services/api/teaching-overview.service.ts      |  2 [32m+[m[31m-[m
+ 499 files changed, 1191 insertions(+), 828 deletions(-)

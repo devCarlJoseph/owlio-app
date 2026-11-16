@@ -1,5 +1,7 @@
 # Feature component guides
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 This directory mirrors **every directory** in `src/components/features/` by name. Each matching `README.md` contains the complete current code of the files directly in that source directory, organized under their original filenames, plus links to child guides. Feature roots also explain the proposed breakdown. The `SOURCE_INDEX.md` and `source/` trees retain byte-for-byte `.txt` copies organized by *proposed* destination. Empty source domains explain that no implementation exists. Personal workspace also has detailed subfeature plans.
 
 Every feature root README also identifies the `src/pages/` files that render its views, including route-only props or lazy wrappers where needed. Follow the [thin page-adapter guide](../page-adapters.md) before adding an `index.tsx`.

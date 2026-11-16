@@ -1,5 +1,7 @@
 # Study Spaces component breakdown
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 Target: `src/components/features/personal-workspace/study-spaces/`. Keep the existing `detail/` subfeature. These are **proposed** destinations; a move must not change stored spaces, avatar data, 3D interactions, audio cleanup, or fallbacks. Follow the [general guide](../../../../sops/component-decomposition.md).
 
 ## Explore/list root

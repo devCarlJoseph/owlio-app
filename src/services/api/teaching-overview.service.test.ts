@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Classroom } from '@/components/features/classrooms/classroom-types'
+import type { Classroom } from '@/components/features/classrooms/types/classroom-types'
 import { listClasswork } from './academic.service'
 import { collectOperation, requestOperation } from './contract-client'
 import { loadTeachingOverview } from './teaching-overview.service'

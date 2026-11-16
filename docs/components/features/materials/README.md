@@ -1,5 +1,7 @@
 # Materials component breakdown
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 [Browse the organized source copies](SOURCE_INDEX.md). These `.ts.txt`/`.tsx.txt`/`.css.txt` files are byte-for-byte reference copies, not runnable modules.
 
 Suggested commit: `docs(materials): add organized materials source copies`

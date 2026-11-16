@@ -1,0 +1,6 @@
+src/components/features/classrooms/forms/chat-composer.tsx
+src/components/features/classrooms/ui/chat-header.tsx
+src/components/features/classrooms/ui/chat-message-bubble.tsx
+src/components/features/classrooms/view/classroom-chat-view.tsx
+src/components/features/classrooms/view/classroom-detail-view.tsx
+docs/CLASSROOM_API_INTEGRATION.md

@@ -1,4 +1,4 @@
-import { EslLessonPlansView } from "@/components/features/esl-teaching/lesson-plans/esl-lesson-plans-view"
+import { EslLessonPlansView } from "@/components/features/esl-teaching/lesson-plans/view/esl-lesson-plans-view"
 
 export default function EslLessonsPage() {
   return <EslLessonPlansView />

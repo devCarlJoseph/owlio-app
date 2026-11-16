@@ -18,10 +18,12 @@ Owlio is a client-rendered React/TypeScript SPA with Vite, npm, React Router, Ta
 | `src/services/api/` | Typed HTTP contracts, adapters, and error handling |
 | `src/components/features/connected-workspace/` | Routed API-only overview, subjects, tasks, notes, notifications, scheduling, and unavailable-feature boundary |
 | `src/lib/` | Shared utilities and configuration |
+| `src/context/` | App-wide theme context and provider composition; auth remains feature-owned |
+| `src/hooks/` | Cross-domain hooks, including `useTheme` |
 | [global.css](../../src/styles/global.css) | Tailwind entry point, font, semantic theme tokens |
 | [dark-surfaces.css](../../src/styles/dark-surfaces.css) | Compatibility styles for existing palette-based surfaces |
 
-Use the `@/*` alias for `src/*`. Keep existing migration exceptions local to the requested change. Feature work does not require a repository-wide directory rewrite. The [page adapter guide](../components/page-adapters.md) lists the existing page files for each feature and identifies inline-page exceptions.
+Use the `@/*` alias for `src/*`. Features use responsibility folders as needed within existing domain/subfeature boundaries. See [feature composition](feature-composition.md) for the current structure and global provider lifecycle. The [page adapter guide](../components/page-adapters.md) identifies page ownership and inline-page exceptions; its mirrored guides retain historical code snapshots.
 
 ## Navigation and workspaces
 

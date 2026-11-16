@@ -1,4 +1,4 @@
-import type { StudySpaceRecord } from '@/components/features/personal-workspace/study-spaces/study-spaces-records'
+import type { StudySpaceRecord } from '@/components/features/personal-workspace/study-spaces/utils/study-spaces-records'
 import { collectOperation, requestOperation } from './contract-client'
 import type { OperationData } from './generated-contract'
 

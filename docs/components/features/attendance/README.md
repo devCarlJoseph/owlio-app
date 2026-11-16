@@ -1,5 +1,7 @@
 # Attendance
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 `src/components/features/attendance/` currently has no TypeScript or CSS feature code to reorganize. Attendance UI lives in other feature domains; inspect the actual owner before adding guidance here.
 
 [Feature guide index](../README.md)

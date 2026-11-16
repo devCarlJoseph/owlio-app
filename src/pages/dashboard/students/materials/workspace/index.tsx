@@ -1,5 +1,5 @@
 import { useParams } from "react-router"
-import { LibraryWorkspaceView } from "@/components/features/materials/workspace/library-workspace-view"
+import { LibraryWorkspaceView } from "@/components/features/materials/workspace/view/library-workspace-view"
 
 export default function StudentLibraryWorkspacePage() {
   const { resourceId = "" } = useParams()

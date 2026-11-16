@@ -1,5 +1,7 @@
 # Classwork
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 `src/components/features/classwork/` currently has no TypeScript or CSS feature code to reorganize. Related screens are owned by `classrooms/` and `personal-workspace/classwork/`; keep their data boundaries separate.
 
 [Feature guide index](../README.md)

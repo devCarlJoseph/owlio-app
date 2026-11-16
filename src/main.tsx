@@ -64,20 +64,18 @@ import NotificationsPage from "@/pages/dashboard/notifications";
 import ProgressPage from "@/pages/dashboard/progress";
 import AiAssistantPage from "@/pages/dashboard/ai-assistant";
 import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
-import { AuthSessionProvider } from "@/components/features/auth/auth-session-provider";
-import { RequireAuth } from "@/components/features/auth/require-auth";
-import { RequireGuest } from "@/components/features/auth/require-guest";
-import { RequireRole } from "@/components/features/auth/require-role";
-import { NoWorkspaceView } from "@/components/features/auth/no-workspace-view";
+import { AppProviders } from "@/context/app-providers";
+import { RequireAuth } from "@/components/features/auth/view/require-auth";
+import { RequireGuest } from "@/components/features/auth/view/require-guest";
+import { RequireRole } from "@/components/features/auth/view/require-role";
+import { NoWorkspaceView } from "@/components/features/auth/view/no-workspace-view";
 import { initializeTheme } from '@/lib/theme';
-import { ThemeController } from '@/components/common/theme-controller';
 
 initializeTheme();
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
-    <ThemeController />
-    <AuthSessionProvider>
+    <AppProviders>
       <Routes>
         <Route element={<RequireGuest />}>
           <Route path="/onboarding" element={<Navigate to="/register" replace />} />
@@ -280,6 +278,6 @@ createRoot(document.getElementById("root")!).render(
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </AuthSessionProvider>
+    </AppProviders>
   </BrowserRouter>,
 );

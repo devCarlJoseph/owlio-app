@@ -1,13 +1,13 @@
 # Page adapters for feature views
 
-`src/main.tsx` registers URLs and auth/role boundaries; `src/pages/` contains route adapters; `src/components/features/` owns view composition, UI, forms, context, and behavior. A folder under `features/` does **not** automatically need its own page. Use the [mirrored feature guides](features/README.md): each domain README has a **Page adapters** section naming the exact current `src/pages/...` files and showing their complete, short adapter code. Shared pages are listed once under their owning feature, even when multiple roles use the route.
+`src/main.tsx` registers URLs and auth/role boundaries; `src/pages/` contains route adapters; `src/components/features/` owns view composition, UI, forms, context, and behavior. A folder under `features/` does **not** automatically need its own page. See [current feature composition](../architecture/feature-composition.md) for module locations. The [mirrored feature guides](features/README.md) retain pre-migration adapter examples and ownership references; inspect live `src/pages/` adapters for current imports. Shared pages can serve multiple role-prefixed routes.
 
 ## What belongs in a page
 
 For a basic route, add only a view import and default page export, as in the existing `src/pages/dashboard/classroom/index.tsx`:
 
 ```tsx
-import { ClassroomsView } from "@/components/features/classrooms/classrooms-view"
+import { ClassroomsView } from "@/components/features/classrooms/view/classrooms-view"
 
 export default function ClassroomsPage() {
   return <ClassroomsView />
@@ -22,7 +22,7 @@ There is no need to invent an `index.tsx` for every subfeature. The existing `sr
 
 - `src/pages/dashboard/classroom/meeting-room.lazy.tsx` and `src/pages/dashboard/students/study-spaces/detail/lazy.tsx` preserve lazy-loading boundaries. Their paired entry adapters render or re-export the feature view; `src/main.tsx` owns the Suspense fallback. Do not replace a lazy entry with a direct import just to make the adapter shorter.
 - `src/pages/onboarding/index.tsx` keeps `RequireOnboarding` around `OnboardingView`. `src/pages/dashboard/layout.tsx` is the shared shell/provider boundary, **not** a one-view adapter.
-- Reorganizing a feature under `view/` requires updating its actual page import and tests in the same future runtime change. The source paths shown in the per-feature guide are **current** paths, not proof that proposed destinations exist.
+- Feature responsibility folders are now implemented; page imports and tests use the new paths. See [current feature composition](../architecture/feature-composition.md). The mirrored per-feature guides retain pre-migration code snapshots; inspect live adapters for current imports.
 
 ## Inline-page exceptions
 

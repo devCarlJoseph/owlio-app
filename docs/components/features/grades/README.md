@@ -1,5 +1,7 @@
 # Grades
 
+> Historical planning snapshot: runtime modules have been reorganized. See [current feature composition](../../../architecture/feature-composition.md). Code copies and proposed layouts below describe the pre-migration source.
+
 `src/components/features/grades/` currently has no TypeScript or CSS feature code to reorganize. Do not confuse personal progress or meeting presence with official grades.
 
 [Feature guide index](../README.md)

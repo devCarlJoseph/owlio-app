@@ -18,10 +18,10 @@ import {
   getDashboardSidebarNavigation,
   getDashboardWorkspace,
 } from "@/components/common/dashboard-navigation"
-import { ClassroomPrototypeProvider } from "@/components/features/classrooms/classroom-prototype-provider"
-import { ApiWorkspaceContent } from "@/components/features/connected-workspace/api-workspace-content"
-import { NotificationsTrigger } from "@/components/features/notifications/notifications-trigger"
-import { useAuthSession } from "@/components/features/auth/auth-session-context"
+import { ClassroomPrototypeProvider } from "@/components/features/classrooms/context/classroom-prototype-provider"
+import { ApiWorkspaceContent } from "@/components/features/connected-workspace/view/api-workspace-content"
+import { NotificationsTrigger } from "@/components/features/notifications/ui/notifications-trigger"
+import { useAuthSession } from "@/components/features/auth/context/auth-session-context"
 import { getAccountLabel } from "@/lib/workspace-path"
 import { getApiErrorMessage } from "@/services/api/api-error"
 
