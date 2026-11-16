@@ -6,6 +6,9 @@ import { useAccountRecords } from '@/components/features/connected-workspace/hoo
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import { getClassroomSessions, scheduleClassroomSession, type ScheduledSession } from '@/services/api/meeting.service'
 import type { Classroom } from '../types/classroom-types'
@@ -69,6 +72,7 @@ export function ClassroomScheduleView({ classroom }: { classroom: Classroom }) {
 function ScheduleComposer({ classroomId, open, onOpenChange, onSaved }: { classroomId: string; open: boolean; onOpenChange: (open: boolean) => void; onSaved: (item: ScheduledSession) => void }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [mode, setMode] = useState<ScheduledSession['mode']>('IN_PERSON')
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (busy) return
@@ -79,10 +83,31 @@ function ScheduleComposer({ classroomId, open, onOpenChange, onSaved }: { classr
     if (!title || !Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) { setError('Enter a title and an end time after the start time.'); return }
     setBusy(true); setError('')
     try {
-      const item = await scheduleClassroomSession(classroomId, { title, startsAt: start.toISOString(), endsAt: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, mode: String(form.get('mode')) as ScheduledSession['mode'] })
+      const item = await scheduleClassroomSession(classroomId, { title, startsAt: start.toISOString(), endsAt: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, mode })
       onOpenChange(false); onSaved(item)
     } catch (cause) { setError(getApiErrorMessage(cause, 'Could not save the schedule. Your draft is still here.')) }
     finally { setBusy(false) }
   }
-  return <Dialog open={open} onOpenChange={next => { if (!busy) { setError(''); onOpenChange(next) } }}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>Add schedule</DialogTitle><DialogDescription>Share an exam, meeting, or activity with everyone in this classroom.</DialogDescription></DialogHeader><form onSubmit={event => void save(event)} className="space-y-4"><fieldset disabled={busy} className="space-y-4"><label className="block space-y-2"><span className="text-sm font-medium">Title</span><Input name="title" required maxLength={120} placeholder="e.g. Prelim exam" /></label><label className="block space-y-2"><span className="text-sm font-medium">Starts</span><Input name="start" type="datetime-local" required /></label><label className="block space-y-2"><span className="text-sm font-medium">Ends</span><Input name="end" type="datetime-local" required /></label><p className="text-xs text-muted-foreground">Times in {Intl.DateTimeFormat().resolvedOptions().timeZone}</p><label className="block space-y-2"><span className="text-sm font-medium">Mode</span><select name="mode" defaultValue="IN_PERSON" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="IN_PERSON">In person</option><option value="ONLINE">Online</option><option value="HYBRID">Hybrid</option></select></label></fieldset>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<Button type="submit" disabled={busy} className="w-full bg-brand text-brand-foreground hover:bg-brand/90">{busy ? 'Saving…' : 'Save schedule'}</Button></form></DialogContent></Dialog>
+  return <Dialog open={open} onOpenChange={next => { if (!busy) { setError(''); onOpenChange(next) } }}>
+    <DialogContent className="max-h-[90dvh] overflow-y-auto">
+      <DialogHeader><DialogTitle>Add schedule</DialogTitle><DialogDescription>Share an exam, meeting, or activity with everyone in this classroom.</DialogDescription></DialogHeader>
+      <form onSubmit={event => void save(event)} className="space-y-4">
+        <fieldset disabled={busy} className="space-y-4">
+          <label className="block space-y-2"><span className="text-sm font-medium">Title</span><Input name="title" required maxLength={120} placeholder="e.g. Prelim exam" /></label>
+          <div className="space-y-2"><Label htmlFor="schedule-start">Starts</Label><DateTimePicker name="start" label="Starts" id="schedule-start" describedBy="schedule-timezone" disabled={busy} /></div>
+          <div className="space-y-2"><Label htmlFor="schedule-end">Ends</Label><DateTimePicker name="end" label="Ends" id="schedule-end" describedBy="schedule-timezone" defaultTime="10:00" disabled={busy} /></div>
+          <p id="schedule-timezone" className="text-xs text-muted-foreground">Times in {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+          <div className="space-y-2">
+            <Label htmlFor="schedule-mode">Mode</Label>
+            <Select value={mode} onValueChange={value => { if (value) setMode(value) }} disabled={busy} items={Object.entries(modeLabels).map(([value, label]) => ({ value, label }))}>
+              <SelectTrigger id="schedule-mode" className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>{Object.entries(modeLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </fieldset>
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" disabled={busy} className="w-full bg-brand text-brand-foreground hover:bg-brand/90">{busy ? 'Saving…' : 'Save schedule'}</Button>
+      </form>
+    </DialogContent>
+  </Dialog>
 }

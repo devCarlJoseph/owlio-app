@@ -44,6 +44,8 @@ Classroom chat uses a [Messenger-inspired conversation design](https://about.fb.
 
 Read the local component API before using it; Base UI wrappers do not imply Radix `asChild` support. Reuse behavior and accessibility while adapting variants, dimensions, and composition to the requested design.
 
+Use the shared `src/components/ui/date-time-picker.tsx` for custom local-date/time selection and the existing shadcn/Base UI Select for menus. The Schedule composer uses these for Starts, Ends, and Mode; Classwork's deadline adapter reuses the same picker while retaining its closing-time defaults and form field. The picker supports keyboard day navigation, month changes, AM/PM, clearing, disabled states, and hidden local datetime form values. Browser-native date/time pickers and select menus are excluded from new or changed UI under AGENTS.md; semantic HTML remains appropriate for structure and component internals.
+
 Inter, the owl/wordmark, semantic tokens, and Auth Showcase are existing defaults. Unchanged areas retain their design. An explicit reference implementation/redesign may change the requested area's appearance without separate permission for each styling choice. Scope new styles so shared screens do not drift accidentally.
 
 The original auth showcase includes rotating feature artwork, a practice question, and contextual guidance. These illustrations and examples are separate from authenticated account activity. Preserve the real forms, validation, and session flow when changing its layout.

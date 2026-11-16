@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ClassroomScheduleView } from '../view/classroom-schedule-view'
@@ -42,17 +42,28 @@ describe('classroom schedule', () => {
   it('validates event times and saves an owner schedule through the existing service', async () => {
     auth.user = { id: 'teacher', roles: ['EDUCATOR'] }
     vi.mocked(scheduleClassroomSession).mockResolvedValue(exam)
-    render(<ClassroomScheduleView classroom={{ ...classroom, access: 'owner' }} />)
+    const { container } = render(<ClassroomScheduleView classroom={{ ...classroom, access: 'owner' }} />)
     await userEvent.click(screen.getByRole('button', { name: 'Add schedule' }))
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Prelim exam' } })
-    fireEvent.change(screen.getByLabelText('Starts'), { target: { value: '2026-12-15T09:00' } })
-    fireEvent.change(screen.getByLabelText('Ends'), { target: { value: '2026-12-15T08:00' } })
+    expect(container.querySelector('input[type="datetime-local"], input[type="date"], input[type="time"], select:not([aria-hidden="true"])')).toBeNull()
+    await userEvent.click(screen.getByLabelText('Starts'))
+    const dayLabel = new Intl.DateTimeFormat(undefined, { dateStyle: 'full' }).format(start)
+    await userEvent.click(within(screen.getByRole('region', { name: 'Starts date and time picker' })).getByRole('button', { name: dayLabel }))
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+    await userEvent.click(screen.getByLabelText('Ends'))
+    await userEvent.click(within(screen.getByRole('region', { name: 'Ends date and time picker' })).getByRole('button', { name: dayLabel }))
+    fireEvent.change(screen.getByLabelText('Ends hour'), { target: { value: '08' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save schedule' }))
     expect(await screen.findByRole('alert')).toHaveProperty('textContent', expect.stringContaining('end time after'))
     expect(scheduleClassroomSession).not.toHaveBeenCalled()
-    fireEvent.change(screen.getByLabelText('Ends'), { target: { value: '2026-12-15T11:00' } })
+    await userEvent.click(screen.getByLabelText('Ends'))
+    fireEvent.change(screen.getByLabelText('Ends hour'), { target: { value: '11' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Mode' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Hybrid' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save schedule' }))
-    await waitFor(() => expect(scheduleClassroomSession).toHaveBeenCalledWith('class-id', expect.objectContaining({ title: 'Prelim exam', startsAt: new Date('2026-12-15T09:00').toISOString(), mode: 'IN_PERSON' })))
+    await waitFor(() => expect(scheduleClassroomSession).toHaveBeenCalledWith('class-id', expect.objectContaining({ title: 'Prelim exam', startsAt: start.toISOString(), endsAt: end.toISOString(), mode: 'HYBRID' })))
     expect(await screen.findByText('Schedule saved and available to classroom members.')).toBeTruthy()
   })
   it('shows multi-day events on each occupied day without including an exclusive midnight end', () => {
