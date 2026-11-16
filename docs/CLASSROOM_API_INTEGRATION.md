@@ -1,5 +1,9 @@
 # Classroom API integration
 
+## Classwork theme alignment — 17 November 2026
+
+Student and educator Classwork surfaces use semantic brand/brand-soft colors for badges, activity icons, selected answers, finish/submit actions, timeline markers, active activity buttons, progress fills, and correct-answer checks. Lime/green decorative accents from the original reference were removed at the user's request. Error and missing states retain destructive colors and text labels. This is a scoped presentation change with no API, grading, deadline, or data changes. Browser rendering remains unverified because the available browser cannot reach the local server.
+
 ## Educator student work and grading — 17 November 2026
 
 Published activity details now have **Quiz form / Assessment form** and **Student work** tabs. The existing progress card also opens Student work. An activity-scoped React context owns the active panel and selected submission; both tab panels remain mounted so switching tabs preserves the selected student, entered grade/feedback, and form state without replacing the classroom shell. Changing activity/account resets that context. Learners never receive the educator tabs or grading reads.

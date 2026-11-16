@@ -28,7 +28,7 @@ export function ClassworkProgressPanel({ items, active, owned, loading, error, n
   return <aside aria-label="Classwork deadlines and progress" className="min-w-0 space-y-3 xl:sticky xl:top-5">
     <section className="rounded-2xl border border-border bg-card p-4">
       <header className="flex items-center justify-between gap-2"><h3 className="text-sm font-semibold">Classwork progress</h3><Info aria-label="Progress reflects saved work and confirmed submissions, not grades." className="size-3.5 shrink-0 text-muted-foreground" /></header>
-      {!owned && !loading && !error && <div className="mt-4 space-y-2"><p className="text-xs text-muted-foreground">{completed} of {published.length} activities submitted</p><progress aria-label="Activities submitted" value={completed} max={Math.max(1, published.length)} className="h-1.5 w-full overflow-hidden rounded-full accent-lime-500" /></div>}
+      {!owned && !loading && !error && <div className="mt-4 space-y-2"><p className="text-xs text-muted-foreground">{completed} of {published.length} activities submitted</p><progress aria-label="Activities submitted" value={completed} max={Math.max(1, published.length)} className="h-1.5 w-full overflow-hidden rounded-full appearance-none accent-brand [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-brand [&::-moz-progress-bar]:bg-brand" /></div>}
       {loading ? <p role="status" className="mt-5 text-xs text-muted-foreground">Loading deadlines…</p> : error ? <p className="mt-5 text-xs text-muted-foreground">Deadlines could not be loaded. Retry classwork to refresh.</p> : timeline.length === 0 ? <p className="mt-5 text-xs leading-5 text-muted-foreground">Assigned work and closing times will appear here.</p> : <ol className="mt-5 space-y-0">{timeline.map((item, index) => {
         const selected = active?.work.id === item.work.id
         const submitted = item.submission?.status === 'SUBMITTED'
@@ -36,9 +36,9 @@ export function ClassworkProgressPanel({ items, active, owned, loading, error, n
         const status = owned ? item.work.status === 'DRAFT' ? 'Draft' : closed ? 'Closed' : 'Published' : classworkStatus(item.work, item.submission, now)
         return <li key={item.work.id} className="relative flex gap-2.5 pb-5 last:pb-0">
           {index < timeline.length - 1 && <span aria-hidden="true" className="absolute bottom-0 left-2.5 top-6 w-px bg-border" />}
-          <span aria-hidden="true" className={`relative mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border ${submitted ? 'border-emerald-500 bg-emerald-500 text-white' : selected ? 'border-2 border-emerald-500 bg-card' : 'border-border bg-card'}`}>{submitted && <Check className="size-3" />}</span>
+          <span aria-hidden="true" className={`relative mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border ${submitted ? 'border-brand bg-brand text-brand-foreground' : selected ? 'border-2 border-brand bg-card' : 'border-border bg-card'}`}>{submitted && <Check className="size-3" />}</span>
           <div className="min-w-0 flex-1"><p className={`break-words text-xs leading-5 ${selected ? 'font-semibold' : 'font-medium'}`}>{item.work.title}</p><p className="mt-0.5 text-[11px] leading-5 text-muted-foreground">{formatClassworkDate(item.work.dueAt)}</p><p className={`mt-0.5 text-[11px] ${status === 'Missing' ? 'text-destructive' : 'text-muted-foreground'}`}>{status}{item.work.status === 'PUBLISHED' && !submitted ? ` · ${timeRemaining(item.work.dueAt, now)}` : ''}</p>
-            <Button size="sm" variant="outline" className={`mt-2 h-6 rounded-lg px-2 text-[10px] ${selected ? 'border-lime-300 bg-lime-200 text-slate-900 hover:bg-lime-300' : ''}`} aria-current={selected ? 'step' : undefined} aria-label={`View progress for ${item.work.title}`} onClick={() => onSelect(item.work.id)}>{selected ? 'Viewing activity' : 'View activity'}</Button>
+            <Button size="sm" variant="outline" className={`mt-2 h-6 rounded-lg px-2 text-[10px] ${selected ? 'border-brand/30 bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/80' : ''}`} aria-current={selected ? 'step' : undefined} aria-label={`View progress for ${item.work.title}`} onClick={() => onSelect(item.work.id)}>{selected ? 'Viewing activity' : 'View activity'}</Button>
           </div>
         </li>
       })}</ol>}
@@ -72,7 +72,7 @@ function ClassSubmissionProgress({ classroomId, classworkId, closed }: { classro
     return () => controller.abort()
   }, [classroomId, classworkId, revision])
   return <div className="space-y-2 text-xs text-muted-foreground">
-    {error ? <p role="alert">{error}</p> : !counts ? <p role="status">Loading student progress…</p> : <><p>{counts.submitted} of {counts.total} students submitted</p><progress aria-label="Students submitted" value={counts.submitted} max={Math.max(1, counts.total)} className="h-1.5 w-full accent-lime-500" /><p>{counts.total - counts.submitted} {closed ? 'missing' : 'not submitted'}</p></>}
+    {error ? <p role="alert">{error}</p> : !counts ? <p role="status">Loading student progress…</p> : <><p>{counts.submitted} of {counts.total} students submitted</p><progress aria-label="Students submitted" value={counts.submitted} max={Math.max(1, counts.total)} className="h-1.5 w-full appearance-none accent-brand [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-brand [&::-moz-progress-bar]:bg-brand" /><p>{counts.total - counts.submitted} {closed ? 'missing' : 'not submitted'}</p></>}
     <Button size="sm" variant="ghost" className="h-7 px-0 text-[11px]" onClick={() => { setCounts(null); setError(''); setRevision(value => value + 1) }}>Refresh progress</Button>
   </div>
 }
