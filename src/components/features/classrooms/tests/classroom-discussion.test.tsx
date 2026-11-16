@@ -30,7 +30,8 @@ it('opens the connected Discussion deep link and lets a student comment and reac
   expect(screen.getByRole('tab', { selected: true }).textContent).toBe('Discussion')
   expect(screen.queryByRole('button', { name: 'Post to class' })).toBeNull()
   expect(screen.getByRole('link', { name: 'https://example.test/lesson' }).getAttribute('rel')).toContain('noopener')
-  await user.click(screen.getByRole('button', { name: /1 class comment/ }))
+  expect(screen.getByRole('heading', { name: '1 class comment' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /1 class comment/ })).toBeNull()
   expect(await screen.findByText(comment.body)).toBeTruthy()
   const input = screen.getByRole('textbox', { name: 'Write a class comment' })
   await user.type(input, 'My answer'); await user.click(screen.getByRole('button', { name: 'Comment' }))
@@ -56,7 +57,6 @@ it('allows the owner to publish and clears only a confirmed draft', async () => 
 it('preserves failed comments and reuses the request ID on retry', async () => {
   vi.mocked(api.addClassComment).mockRejectedValueOnce(new Error('Offline'))
   const user = userEvent.setup(); open()
-  await user.click(await screen.findByRole('button', { name: /1 class comment/ }))
   const input = await screen.findByRole('textbox', { name: 'Write a class comment' })
   await waitFor(() => expect((input as HTMLTextAreaElement).disabled).toBe(false))
   await user.type(input, 'My answer'); await user.click(screen.getByRole('button', { name: 'Comment' }))
