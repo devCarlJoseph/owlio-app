@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { ChevronDown, ChevronRight, MessageCircle, Users, X } from 'lucide-react'
 import { useAuthSession } from '@/components/features/auth/context/auth-session-context'
 import { Button } from '@/components/ui/button'
@@ -11,10 +12,15 @@ import { ChatHeader } from '../ui/chat-header'
 import { ChatMessageBubble } from '../ui/chat-message-bubble'
 import { chatDateLabel, chatDay } from '../utils/chat-format'
 import { getInitials } from '../utils/classroom-utils'
+import type { ChatMentions } from '@/services/api/classroom-chat.service'
 
 export function ClassroomChatView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
   const { user } = useAuthSession()
   const chat = useClassroomChat(classroom.id)
+  const { loading, denied, findUnread, markRead } = chat
+  const [params] = useSearchParams()
+  const linkedMessage = params.get('message')
+  const handledLink = useRef<string | null>(null)
   const [status, setStatus] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -30,16 +36,18 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
   const membersId = useId()
   const normalizedQuery = query.trim().toLowerCase()
   const newestMessageId = chat.messages.at(-1)?.id
+  const atBottom = useRef(true)
+  const hasUnread = (chat.unread?.unreadCount ?? 0) > 0
 
   const messages = useMemo(() => normalizedQuery
     ? chat.messages.filter(message => `${message.body} ${message.authorName}`.toLowerCase().includes(normalizedQuery))
     : chat.messages, [chat.messages, normalizedQuery])
 
   useEffect(() => {
-    if (normalizedQuery) return
+    if (normalizedQuery || !chat.unread || hasUnread || !atBottom.current) return
     const list = listRef.current
     if (list?.getClientRects().length) list.scrollTo?.({ top: list.scrollHeight, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-  }, [newestMessageId, normalizedQuery])
+  }, [newestMessageId, normalizedQuery, chat.unread, hasUnread])
 
   useEffect(() => {
     if (detailsOpen) closeDetailsRef.current?.focus({ preventScroll: true })
@@ -66,18 +74,27 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     setReplyingTo({ messageId: message.id, authorName: message.authorName, excerpt: message.body.replace(/\s+/g, ' ').trim().slice(0, 120) })
   }
 
-  const jumpToMessage = (messageId: string) => {
+  const jumpToMessage = useCallback((messageId: string) => {
+    atBottom.current = false
     if (normalizedQuery) { setQuery(''); setSearchOpen(false) }
     requestAnimationFrame(() => {
-      document.getElementById(`chat-message-${messageId}`)?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+      document.getElementById(`chat-message-${messageId}`)?.scrollIntoView?.({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
     })
     setHighlightedId(messageId)
     window.setTimeout(() => setHighlightedId(current => current === messageId ? null : current), 1600)
-  }
+  }, [normalizedQuery])
 
-  const handleSend = async (body: string) => {
+  useEffect(() => {
+    if (!linkedMessage || loading || denied || handledLink.current === linkedMessage) return
+    handledLink.current = linkedMessage
+    void findUnread(linkedMessage).then(id => {
+      if (id) { jumpToMessage(id); void markRead(id) }
+    })
+  }, [linkedMessage, loading, denied, findUnread, markRead, jumpToMessage])
+
+  const handleSend = async (body: string, mentions?: ChatMentions) => {
     setQuery('')
-    const sent = await chat.send(body, replyingTo?.messageId ?? null)
+    const sent = await chat.send(body, replyingTo?.messageId ?? null, mentions)
     if (sent) { setReplyingTo(null); setStatus('Message sent to this classroom.') }
     return sent
   }
@@ -87,20 +104,31 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
   }}>
     <section aria-label={`${classroom.name} group chat`} className={`${detailsOpen ? 'hidden xl:flex' : 'flex'} min-h-0 min-w-0 flex-col overflow-hidden rounded-xl bg-card`}>
       <ChatHeader classroom={classroom} role={role} searchOpen={searchOpen} query={query} onToggleSearch={() => { setSearchOpen(current => !current); setQuery('') }} onQueryChange={setQuery} detailsOpen={detailsOpen} detailsId={detailsId} onToggleDetails={toggleDetails} detailsToggleRef={detailsToggleRef} />
-      <ScrollArea viewportRef={listRef} role="log" aria-live="polite" aria-relevant="additions" aria-label={`${classroom.name} group chat messages`} className="min-h-0 min-w-0 flex-1 basis-0" viewportClassName="overscroll-contain overflow-x-hidden!" contentClassName="flex min-h-full min-w-0! w-full flex-col px-3 py-5 sm:px-5">
+      {chat.unread && <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-2 text-xs"><span className="text-muted-foreground">{chat.unread.total} {chat.unread.total === 1 ? 'message' : 'messages'}</span><span role="status" className="font-medium text-brand">{chat.unread.unreadCount} unread{chat.unread.mentionCount > 0 ? ` · ${chat.unread.mentionCount} mentions` : ''}</span>{hasUnread && <><Button variant="link" size="sm" className="h-auto p-0 text-xs" disabled={chat.findingUnread} onClick={async () => {
+        const id = await chat.findUnread()
+        if (id) { jumpToMessage(id); void chat.markRead(id); setStatus('Showing the first unread message.') }
+      }}>{chat.findingUnread ? 'Finding unread messages…' : 'View all unread messages'}</Button><Button variant="ghost" size="sm" className="ml-auto h-auto px-1 py-0 text-xs" disabled={chat.markingRead || !newestMessageId || chat.findingUnread} onClick={() => { if (newestMessageId) void chat.markRead(newestMessageId) }}>Mark all as read</Button></>}</div>}
+      {chat.unreadError && <p role="alert" className="px-4 py-1 text-xs text-destructive">{chat.unreadError}</p>}
+      <ScrollArea viewportRef={listRef} onScrollCapture={() => {
+        const list = listRef.current
+        if (list) {
+          atBottom.current = list.scrollHeight - list.scrollTop - list.clientHeight < 32
+          if (atBottom.current && list.clientHeight > 0 && hasUnread && newestMessageId && !normalizedQuery && !detailsOpen && !chat.findingUnread && document.visibilityState === 'visible' && document.hasFocus()) void chat.markRead(newestMessageId)
+        }
+      }} role="log" aria-live="polite" aria-relevant="additions" aria-label={`${classroom.name} group chat messages`} className="min-h-0 min-w-0 flex-1 basis-0" viewportClassName="overscroll-contain overflow-x-hidden!" contentClassName="flex min-h-full min-w-0! w-full flex-col px-3 py-5 sm:px-5">
         {chat.next && <Button variant="ghost" className="mx-auto mb-4 shrink-0 text-xs text-muted-foreground" disabled={chat.loadingOlder} onClick={() => void chat.loadOlder()}>{chat.loadingOlder ? 'Loading older messages…' : 'Load older messages'}</Button>}
         {chat.loading ? <p role="status" className="m-auto text-sm text-muted-foreground">Loading classroom messages…</p> : messages.length === 0 ? <div className="m-auto flex max-w-sm flex-col items-center gap-3 py-8 text-center"><span className="grid size-16 place-items-center rounded-full bg-brand-soft text-brand"><MessageCircle aria-hidden="true" className="size-7" /></span><h4 className="font-semibold">{normalizedQuery ? 'No matching messages' : classroom.name}</h4><p className="text-sm leading-6 text-muted-foreground">{normalizedQuery ? 'No messages match your search.' : 'No messages yet. Start the class-only conversation.'}</p></div> : <ol className="flex min-w-0 flex-col gap-1">
           {messages.map((message, index) => {
             const previous = messages[index - 1]
             const newDay = !previous || chatDay(previous.createdAt) !== chatDay(message.createdAt)
             const showHeader = !previous || previous.authorId !== message.authorId || newDay
-            return <Fragment key={message.id}>{newDay && <li className="my-4 self-center rounded-full px-3 text-center text-[11px] font-medium text-muted-foreground">{chatDateLabel(message.createdAt)}</li>}<ChatMessageBubble message={{ ...message, replyTo: message.replyTo ?? undefined }} mine={message.authorId === user?.id} showHeader={showHeader} highlighted={highlightedId === message.id} onReply={() => startReply(message)} onJumpToMessage={jumpToMessage} /></Fragment>
+            return <Fragment key={message.id}>{newDay && <li className="my-4 self-center rounded-full px-3 text-center text-[11px] font-medium text-muted-foreground">{chatDateLabel(message.createdAt)}</li>}<ChatMessageBubble mentioned={message.authorId !== user?.id && (message.mentionUserIds?.includes(user?.id ?? "") || Boolean(message.mentionStudents && classroom.ownerId !== user?.id))} message={{ ...message, replyTo: message.replyTo ?? undefined }} mine={message.authorId === user?.id} showHeader={showHeader} highlighted={highlightedId === message.id} onReply={() => startReply(message)} onJumpToMessage={jumpToMessage} /></Fragment>
           })}
         </ol>}
       </ScrollArea>
       <p role="status" className="shrink-0 px-4 py-1 text-xs text-muted-foreground empty:hidden">{status}</p>
       {chat.error && <p role="alert" className="shrink-0 px-4 py-1 text-xs text-destructive [overflow-wrap:anywhere]">{chat.error}</p>}
-      <ChatComposer disabled={chat.busy || chat.loading || chat.denied} onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
+      <ChatComposer classroomId={classroom.id} userId={user?.id} canMentionStudents={classroom.ownerId === user?.id && classroom.access === 'owner'} disabled={chat.busy || chat.loading || chat.denied} onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
     </section>
     {detailsOpen && <aside id={detailsId} aria-label="Conversation details" className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl bg-card">
       <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3"><h3 className="text-xs font-medium text-muted-foreground">Conversation details</h3><Button ref={closeDetailsRef} variant="ghost" size="icon" aria-label="Close conversation details" onClick={closeDetails}><X aria-hidden="true" className="size-4" /></Button></header>

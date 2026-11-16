@@ -52,6 +52,8 @@ Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile 
 
 ## Data and persistence
 
+Classroom chat read positions are account/classroom API records, not browser storage. Chat exposes server total/unread/mention counts and cursor-paginated navigation to unread or notification-linked messages. Scoped member mentions and owner-only `@students` create durable in-app alerts. The notification bell/panel/inbox displays authorized classroom mentions; other notification categories retain their separate account-record view and explicit examples. Migration/release requirements and unread acknowledgment behavior are recorded in the [classroom integration contract](../CLASSROOM_API_INTEGRATION.md).
+
 Read [capability status](capability-status.md) before changing data behavior. Distinguish account-backed API records, browser-local records, tab-memory previews, and transient live-room events. A component/provider name containing `prototype` does not establish its current data mode.
 
 Authentication, My Classes, account-record views, and live meetings use the API. Original browser-local editors are routed again and retain their existing storage keys and notices. Device and account records stay separate: there is no automatic import, deletion, or account assignment. Other restored pages retain their existing example/unavailable disclosures; their appearance does not establish API integration.

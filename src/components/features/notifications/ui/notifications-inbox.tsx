@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from "react"
+import { useContext, useState, type ReactNode } from "react"
+import { AuthSessionContext } from '@/components/features/auth/context/auth-session-context'
+import { ClassroomMentionNotifications } from './classroom-mention-notifications'
 import { FlaskConical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -18,6 +20,7 @@ export function NotificationsInbox({ role, title, headerAction, className = "", 
 }) {
   const [filter, setFilter] = useState<NotificationFilter>("all")
   const [showExamples, setShowExamples] = useState(false)
+  const session = useContext(AuthSessionContext)
   const content = notificationsContent[role]
   const state: NotificationsListState = showExamples ? { status: "ready", items: getNotificationExamples(role) } : { status: "unavailable" }
 
@@ -36,7 +39,7 @@ export function NotificationsInbox({ role, title, headerAction, className = "", 
       {(["all", "unread"] as const).map((value) => (
         <TabsContent key={value} value={value} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <ScrollArea className="min-h-0 flex-1" role="region" aria-label="Notification feed">
-            <NotificationList state={state} filter={value} onNavigate={onNavigate} />
+            {!showExamples && session?.user ? <ClassroomMentionNotifications key={session.user.id} role={role} filter={value} onNavigate={onNavigate} /> : <NotificationList state={state} filter={value} onNavigate={onNavigate} />}
             {!showExamples && <div className="flex flex-wrap justify-center gap-2 px-5 pb-7" aria-label="Workspace notification contexts">{content.categories.map((category) => <span key={category} className="rounded-full border border-border/70 px-2.5 py-1 text-[10px] text-muted-foreground">{category}</span>)}</div>}
           </ScrollArea>
         </TabsContent>

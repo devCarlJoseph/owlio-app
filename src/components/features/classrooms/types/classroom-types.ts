@@ -45,6 +45,8 @@ export type ClassroomChatReplyRef = {
 }
 
 export type ClassroomChatMessage = {
+  mentionUserIds?: string[]
+  mentionStudents?: boolean
   id: string
   authorId: string
   authorName: string
