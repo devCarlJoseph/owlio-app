@@ -12,7 +12,7 @@ export function useAccountRecords<T>(load: (signal?: AbortSignal) => Promise<T[]
     const controller = new AbortController()
     const request = ++generation.current
     load(controller.signal).then(items => {
-      if (!controller.signal.aborted && request === generation.current) setRecords(items)
+      if (!controller.signal.aborted && request === generation.current) { setRecords(items); setError('') }
     }).catch(cause => {
       if (!controller.signal.aborted && request === generation.current) {
         setRecords([])
