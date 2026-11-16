@@ -6,12 +6,15 @@ import { getClassrooms, getClassroomMembers } from '@/services/api/classroom.ser
 import { ClassroomDetailView } from '../view/classroom-detail-view'
 import { TestSession } from './classroom-test-fixtures'
 import { classroom, teacher, student } from './classroom-test-data'
+import { listClassroomWork } from '@/services/api/classwork-workspace.service'
+vi.mock('@/services/api/classwork-workspace.service', () => ({ listClassroomWork: vi.fn() }))
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), getClassroomMembers: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 afterEach(cleanup)
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getClassrooms).mockResolvedValue([classroom])
   vi.mocked(getClassroomMembers).mockResolvedValue({ items: [], nextCursor: null })
+  vi.mocked(listClassroomWork).mockResolvedValue([])
 })
 
 function LocationProbe() {
@@ -22,7 +25,8 @@ describe('connected classroom details', () => {
     render(<TestSession path={'/students/classrooms/class-id?tab=' + tab}><Routes><Route path="/students/classrooms/:classroomId" element={<ClassroomDetailView />} /></Routes></TestSession>)
     await screen.findByText(classroom.name)
     expect(screen.getByRole('tab', { selected: true }).textContent).toBe({ classwork: 'Classwork', materials: 'Materials', chat: 'Chat', feed: 'Discussion' }[tab])
-    expect(screen.getByText('This section is under development.')).toBeTruthy()
+    if (tab === 'classwork') expect(await screen.findByText('No classwork yet')).toBeTruthy()
+    else expect(screen.getByText('This section is under development.')).toBeTruthy()
   })
   it('defaults unknown tabs to real classroom details', async () => {
     render(<TestSession path="/students/classrooms/class-id?tab=unknown"><Routes><Route path="/students/classrooms/:classroomId" element={<ClassroomDetailView />} /></Routes></TestSession>)

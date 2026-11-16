@@ -1,5 +1,17 @@
 # Classroom API integration
 
+## Classwork and fixed closing times — 17 November 2026
+
+The classroom **Classwork** tab and existing `/:workspace/classrooms/:classroomId/classwork/:activityId` links now use the mounted classwork/question/submission APIs. Classroom owners can create drafts, edit draft instructions and a required future closing time, add/remove single-choice questions with answer keys, review, and publish. A question-based item is presented as a Quiz; an item without questions is a written Assessment. This is derived from the existing content model, not a new stored type. Drafts are owner-only; students see only published work in classrooms available to their account. Failed reads remain errors with retry, and a saved draft whose initial question fails is opened with an explicit partial-success notice instead of being recreated.
+
+Students can select answers or write a response (up to the existing 6,000-character API limit), explicitly save a draft, reload saved work, and finalize. Saving a draft is not submission. Saves and finalization send the observed version; failed writes retain entered content. Published instructions and submitted work remain read-only. Owners can refresh the paginated roster/submission collection and review submitted responses. There is no new grading, automatic score release, file-upload UI, meeting UI, lesson plan, or per-student countdown.
+
+The owner chooses one absolute closing date and time for everyone; the form and detail display the browser's time zone. At and after that time, the client locks unsubmitted work and derives **Missing** from publication, deadline, and the learner's submission state. Existing accepted submissions stay Submitted. Missing is not a new stored submission status or a grade. The frontend uses the existing cookie/CSRF helpers, cancellation and keyed account/classroom cleanup. No global API-mode or dependency changes were made.
+
+The adjacent `owlio-api` checkout adds a finalization check using the database clock inside the scoped submission transaction: `POST /classwork/:classworkId/submissions/me/submit` rejects new finalizations at or after `dueAt` with `409 CLASSWORK_CLOSED`. It preserves successful retries after closing and historical accepted late records. Null-deadline legacy work is unchanged. Draft/file APIs remain unchanged; the deadline blocks submission. **Release both changes together**; a browser clock alone cannot enforce the policy. No schema migration was added or applied. See backend `docs/CLASSWORK_DEADLINES.md` for the policy.
+
+The supplied reference screenshot guides only the Classwork content: instructions, numbered questions, two-column choices, lime selections, and finish action. Meeting controls, lesson timeline, and unrelated tabs were excluded. Behavioral tests use mocked API data and backend fake PostgreSQL queries. The attempted in-app browser render timed out connecting to the local server; screenshot fidelity and narrow-screen rendering remain unverified. No live classwork records, database writes, or deployment were performed.
+
 ## Message status and reader lists — 17 November 2026
 
 Classroom chat no longer displays the composer/mention keyboard guidelines or the standalone “Message sent to this classroom.” banner. Outgoing persisted messages show a check icon and **Sent** beside their timestamp. The message API adds `seenCount`, a count for the authenticated sender's own messages and null for other messages. Positive counts display **Seen by N** beside the time; selecting that status opens a paginated reader dialog with names and initial avatars. Counts refresh with the existing five-second newest-page poll. History retains the receipt snapshot from when its page was loaded. Sent means the server saved the message; no device-delivery, online presence, or exact reading-time claim is made.
@@ -77,7 +89,7 @@ The provider starts empty, replaces data on successful loads, and clears it on l
 
 Create/list/join/detail and teacher roster are connected. Empty, loading, error/retry, confirmed-success and permission-denied states replace demo fallbacks. The existing grid/list toggle, classroom cards, route prefixes, tabs and keyboard-accessible dialogs are retained.
 
-Classroom discussion is integrated as described above. Classwork, quizzes/submissions, materials, attendance, progress, and membership edits are not integrated into these frontend tabs. Current backend source contains additional modules; unavailable frontend tabs do not imply missing backend endpoints. Schedule and Meeting Room now have separate connected screens using classroom sessions and native-meeting contracts. Decorative classroom cover artwork is presentation. Missing subject/instructor metadata is not invented.
+Classroom discussion and Classwork are integrated as described above. Materials, attendance, progress, and membership edits are not integrated into these frontend tabs. Current backend source contains additional modules; unavailable frontend tabs do not imply missing backend endpoints. Schedule and Meeting Room have separate connected screens using classroom sessions and native-meeting contracts. Decorative classroom cover artwork is presentation. Missing subject/instructor metadata is not invented.
 
 ## Setup and verification
 

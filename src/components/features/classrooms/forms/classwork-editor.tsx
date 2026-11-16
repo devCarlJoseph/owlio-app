@@ -1,0 +1,72 @@
+import { useState, type FormEvent } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { getApiErrorMessage } from '@/services/api/api-error'
+import type { Classwork } from '@/services/api/academic.service'
+import { addClassworkQuestion, createClassroomWork, type QuestionInput } from '@/services/api/classwork-workspace.service'
+import { localClassworkDate, readClassworkFields } from '../utils/classwork-deadline'
+
+export function ClassworkFields({ work, disabled }: { work?: Classwork; disabled?: boolean }) {
+  return <div className="space-y-4">
+    <div className="space-y-2"><Label htmlFor="work-title">Title</Label><Input id="work-title" name="title" required maxLength={200} defaultValue={work?.title} disabled={disabled} placeholder="e.g. Introduction to sensors" /></div>
+    <div className="space-y-2"><Label htmlFor="work-instructions">Instructions</Label><Textarea id="work-instructions" name="instructions" required maxLength={10000} defaultValue={work?.instructions} disabled={disabled} placeholder="Explain what students need to complete." className="min-h-28" /></div>
+    <div className="space-y-2"><Label htmlFor="work-closing">Closing date and time</Label><Input id="work-closing" name="dueAt" type="datetime-local" required defaultValue={localClassworkDate(work?.dueAt ?? null)} disabled={disabled} aria-describedby="closing-help" /><p id="closing-help" className="text-xs leading-5 text-muted-foreground">Your time zone: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Submissions close for everyone at this time. Unsubmitted work is marked Missing.</p></div>
+  </div>
+}
+
+export function QuestionEditor({ position, disabled, onSave }: { position: number; disabled: boolean; onSave: (input: QuestionInput) => Promise<boolean> }) {
+  const [options, setOptions] = useState(['', '', '', ''])
+  const [correct, setCorrect] = useState(0)
+  const [error, setError] = useState('')
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const prompt = String(new FormData(form).get('prompt') ?? '').trim()
+    const values = options.map(value => value.trim())
+    if (!prompt || values.some(value => !value) || new Set(values).size !== values.length) { setError('Add a question and distinct, nonempty answer choices.'); return }
+    setError('')
+    if (await onSave({ position, prompt, options: values, answerIndex: correct })) { form.reset(); setOptions(['', '', '', '']); setCorrect(0) }
+  }
+  return <form onSubmit={save} className="space-y-4 rounded-xl border border-dashed border-border p-4">
+    <h4 className="text-sm font-semibold">Add a multiple-choice question</h4>
+    <div className="space-y-2"><Label htmlFor="question-prompt">Question</Label><Textarea id="question-prompt" name="prompt" maxLength={1000} required disabled={disabled} /></div>
+    <fieldset disabled={disabled} className="space-y-3"><legend className="mb-2 text-xs text-muted-foreground">Select the correct answer. Students will not see the answer key.</legend>
+      {options.map((option, index) => <div key={index} className="flex items-center gap-2"><input type="radio" name="correct" aria-label={`Mark choice ${index + 1} as correct`} checked={correct === index} onChange={() => setCorrect(index)} className="size-4 accent-lime-600" /><Input aria-label={`Choice ${index + 1}`} maxLength={200} required value={option} onChange={event => setOptions(current => current.map((value, i) => i === index ? event.target.value : value))} /><Button type="button" size="icon" variant="ghost" aria-label={`Remove choice ${index + 1}`} disabled={options.length <= 2} onClick={() => { setOptions(current => current.filter((_, i) => i !== index)); setCorrect(0) }}><Trash2 className="size-4" /></Button></div>)}
+      {options.length < 8 && <Button type="button" variant="ghost" size="sm" onClick={() => setOptions(current => [...current, ''])}><Plus />Add choice</Button>}
+    </fieldset>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    <Button type="submit" variant="outline" disabled={disabled}>Save question</Button>
+  </form>
+}
+
+export function ClassworkCreator({ classroomId, onCreated, onCancel }: { classroomId: string; onCreated: (id: string, notice?: string) => void; onCancel: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  // Questions define a quiz; written assessments use the API's text response.
+  const [kind, setKind] = useState('assessment')
+  const [firstQuestion, setFirstQuestion] = useState<QuestionInput | null>(null)
+  async function create(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (busy) return
+    try {
+      const input = readClassworkFields(new FormData(event.currentTarget))
+      if (kind === 'quiz' && !firstQuestion) throw new Error('Save the first quiz question before creating the draft.')
+      setBusy(true); setError('')
+      const draft = await createClassroomWork(classroomId, input)
+      if (kind === 'quiz' && firstQuestion) {
+        try { await addClassworkQuestion(draft.id, draft.version ?? 0, firstQuestion) }
+        catch (cause) { onCreated(draft.id, 'The draft was saved, but adding its first question could not be confirmed. Review the saved questions below before publishing. ' + getApiErrorMessage(cause, 'Try again.')); return }
+      }
+      onCreated(draft.id)
+    } catch (cause) { setError(getApiErrorMessage(cause, 'Could not create classwork.')); setBusy(false) }
+  }
+  return <section className="space-y-5 rounded-xl border border-border bg-card p-5 sm:p-7" aria-labelledby="create-work-heading">
+    <header><h3 id="create-work-heading" className="font-semibold">Create classwork</h3><p className="mt-1 text-sm text-muted-foreground">Save a draft, review it, then publish to this class.</p></header>
+    <div className="space-y-2"><Label htmlFor="classwork-kind">Classwork type</Label><select id="classwork-kind" value={kind} disabled={busy} onChange={event => setKind(event.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="assessment">Assessment — written response</option><option value="quiz">Quiz — multiple choice</option></select></div>
+    {kind === 'quiz' && <div className="space-y-3">{firstQuestion ? <div className="rounded-lg bg-muted p-3 text-sm"><p className="font-medium">First question: {firstQuestion.prompt}</p><Button variant="ghost" size="sm" disabled={busy} onClick={() => setFirstQuestion(null)}>Change first question</Button></div> : <QuestionEditor position={1} disabled={busy} onSave={async input => { setFirstQuestion(input); return true }} />}</div>}
+    <form onSubmit={create} className="space-y-5"><ClassworkFields disabled={busy} />{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<div className="flex flex-wrap gap-2"><Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Create draft'}</Button><Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button></div></form>
+  </section>
+}

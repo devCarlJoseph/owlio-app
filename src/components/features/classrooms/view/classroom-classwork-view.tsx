@@ -1,314 +1,38 @@
-import { useState, type FormEvent } from "react"
-import { ArrowRight, BookOpen, ClipboardCheck, FileText, FlaskConical, Mic, MessagesSquare, Paperclip, Plus, Presentation, TriangleAlert, Wrench, FolderKanban, type LucideIcon } from "lucide-react"
-import { Link, useLocation } from "react-router"
-import { getDashboardRole } from "@/components/common/dashboard-navigation"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useClassroomPrototype } from "../context/classroom-prototype-context"
-import type { ActivityTiming, ActivityType, Classroom, QuestionType, WorkspaceRole } from "../types/classroom-types"
-import { QuizTimerSettings } from "../forms/quiz-timer-settings"
-import { QuizTimingBadges } from "../ui/quiz-timing-badges"
-import { parseTimingFields, type TimingFormResult } from "../utils/quiz-timing"
+import { useEffect, useState } from 'react'
+import { ArrowRight, BookOpenCheck, Clock3, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { getApiErrorMessage } from '@/services/api/api-error'
+import { listClassroomWork, type ClassworkEntry } from '@/services/api/classwork-workspace.service'
+import type { Classroom, WorkspaceRole } from '../types/classroom-types'
+import { ClassworkCreator } from '../forms/classwork-editor'
+import { useClassworkClock } from '../hooks/use-classwork-clock'
+import { classworkClosed, classworkStatus, formatClassworkDate } from '../utils/classwork-deadline'
+import { ClassworkDetail } from './classwork-detail'
 
-const activityTypes: ActivityType[] = [
-  "Quiz",
-  "Test",
-  "Assignment",
-  "File submission",
-  "Project",
-  "Presentation",
-  "Lab work",
-  "Practical activity",
-  "Discussion activity",
-  "Reading activity",
-  "Speaking practice",
-]
-
-const activityIcons: Record<ActivityType, LucideIcon> = {
-  Quiz: ClipboardCheck,
-  Test: ClipboardCheck,
-  Assignment: FileText,
-  "File submission": Paperclip,
-  Project: FolderKanban,
-  Presentation,
-  "Lab work": FlaskConical,
-  "Practical activity": Wrench,
-  "Discussion activity": MessagesSquare,
-  "Reading activity": BookOpen,
-  "Speaking practice": Mic,
-}
-
-const questionTypes: QuestionType[] = [
-  "Multiple choice",
-  "Multiple select",
-  "True or false",
-  "Identification",
-  "Short answer",
-  "Essay",
-]
-
-export function ClassroomClassworkView({ classroom, role }: { classroom: Classroom; role: WorkspaceRole }) {
-  const { pathname } = useLocation()
-  const workspace = getDashboardRole(pathname) ?? "students"
-  const { createActivity, currentLearnerId } = useClassroomPrototype()
-  const isStudent = role === "students"
-  const [showCreate, setShowCreate] = useState(false)
-  const [activityType, setActivityType] = useState<ActivityType>("Assignment")
-  const [questionType, setQuestionType] = useState<QuestionType>("Multiple choice")
-  const [status, setStatus] = useState("")
-  const [timingErrors, setTimingErrors] = useState<TimingFormResult["errors"]>({})
-  const isFormBased = activityType === "Quiz" || activityType === "Test"
-  const mySubmitted = classroom.activities.filter((activity) => activity.submissions.some((item) => item.learnerId === currentLearnerId)).length
-  const toReview = classroom.activities.reduce((total, activity) => total + activity.submissions.filter((item) => item.status === "In review").length, 0)
-  const nextDue = classroom.activities.map((activity) => activity.dueDate).filter(Boolean).sort()[0]
-  const stats = [
-    { label: "Total classwork", value: String(classroom.activities.length), tone: "bg-white surface-dark:bg-card" },
-    { label: "Next due", value: nextDue || "None", tone: "bg-white surface-dark:bg-card" },
-    isStudent
-      ? { label: "Submitted by you", value: `${mySubmitted} of ${classroom.activities.length}`, tone: "bg-indigo-50 surface-dark:bg-surface-indigo-soft" }
-      : { label: "Awaiting review", value: String(toReview), tone: "bg-indigo-50 surface-dark:bg-surface-indigo-soft" },
-    { label: "Status", value: classroom.activities.length ? "Published" : "No classwork", tone: "bg-blue-50 surface-dark:bg-surface-blue-soft" },
-  ]
-
-  const visibleActivities = isStudent ? classroom.activities.filter((activity) => activity.status === "Published") : classroom.activities
-  const sections = [
-    { title: "Assigned", items: visibleActivities.filter((activity) => activity.status === "Published") },
-    { title: "Drafts", items: visibleActivities.filter((activity) => activity.status === "Draft") },
-  ].filter((section) => section.items.length > 0)
-
-  const handleCreate = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const prompt = String(form.get("question-prompt") ?? "").trim()
-    const options = String(form.get("question-options") ?? "")
-      .split(",")
-      .map((option) => option.trim())
-      .filter(Boolean)
-
-    let timing: ActivityTiming | undefined
-    if (isFormBased || form.get("timer-active")) {
-      const parsed = parseTimingFields({
-        duration: String(form.get("timer-duration") ?? ""),
-        opensAt: String(form.get("timer-opens") ?? ""),
-        closesAt: String(form.get("timer-closes") ?? ""),
-        autoSubmit: form.get("timer-auto-submit") === "on",
-      })
-      setTimingErrors(parsed.errors)
-      if (!parsed.timing) {
-        setStatus("Fix the timer settings before publishing.")
-        return
-      }
-      timing = parsed.timing
-    } else {
-      setTimingErrors({})
-    }
-
-    if (isFormBased && !prompt) {
-      setStatus("Add a question prompt before publishing this demo activity.")
-      return
-    }
-    if (isFormBased && ["Multiple choice", "Multiple select"].includes(questionType) && options.length < 2) {
-      setStatus("Add at least two comma-separated options for this demo question.")
-      return
-    }
-
-    createActivity(classroom.id, {
-      title: String(form.get("activity-title") ?? ""),
-      type: activityType,
-      instructions: String(form.get("activity-instructions") ?? ""),
-      dueDate: String(form.get("activity-due-date") ?? ""),
-      scoringNote: String(form.get("activity-evaluation") ?? ""),
-      responseType: isFormBased ? "Quiz" : String(form.get("response-type") ?? "Text") as "Text" | "File" | "Link",
-      questions: isFormBased ? [{
-        id: `question-${crypto.randomUUID()}`,
-        type: questionType,
-        prompt,
-        options,
-      }] : [],
-      timing,
-      showLeaderboard: isFormBased ? form.get("show-leaderboard") === "on" : undefined,
-    })
-    event.currentTarget.reset()
-    setActivityType("Assignment")
-    setQuestionType("Multiple choice")
-    setTimingErrors({})
-    setShowCreate(false)
-    setStatus("Demo classwork was published in this session only. It was not saved.")
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">Classwork</h3>
-          <p className="mt-1 text-sm text-slate-600 surface-dark:text-muted-foreground">Activities and assignment work for {classroom.name}.</p>
-        </div>
-        {!isStudent && (
-          <Button type="button" onClick={() => setShowCreate((current) => !current)}>
-            <Plus aria-hidden="true" /> {showCreate ? "Close editor" : "Create classwork"}
-          </Button>
-        )}
-      </div>
-
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map(({ label, value, tone }) => (
-          <div key={label} className={`min-w-0 rounded-2xl border border-slate-200 surface-dark:border-border p-3 sm:p-4 ${tone}`}>
-            <dt className="text-xs text-slate-500 surface-dark:text-muted-foreground">{label}</dt>
-            <dd className="mt-1 break-words text-base font-semibold text-slate-900 surface-dark:text-foreground sm:text-lg">{value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <Alert className="border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-900 surface-dark:text-amber-200">
-        <TriangleAlert aria-hidden="true" />
-        <AlertTitle>Prototype classwork</AlertTitle>
-        <AlertDescription className="text-amber-800 surface-dark:text-amber-300">Activity content, responses, evaluation, and feedback are mock data. Nothing is submitted or saved to a classroom service.</AlertDescription>
-      </Alert>
-
-      {status && <p role="status" className="text-sm text-amber-800 surface-dark:text-amber-300">{status}</p>}
-
-      {showCreate && !isStudent && (
-        <Card className="border-blue-200 surface-dark:border-surface-blue-border">
-          <CardHeader>
-            <CardTitle>Create classwork preview</CardTitle>
-            <CardDescription>Publish a demo activity to this classroom's in-memory workspace.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreate} className="grid gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="activity-title">Activity title</Label>
-                  <Input id="activity-title" name="activity-title" required maxLength={100} placeholder="e.g. Ecosystem reflection" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="activity-type">Activity type</Label>
-                  <select
-                    id="activity-type"
-                    value={activityType}
-                    onChange={(event) => setActivityType(event.currentTarget.value as ActivityType)}
-                    className="h-10 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                  >
-                    {activityTypes.map((type) => <option key={type} value={type}>{type}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="activity-instructions">Instructions</Label>
-                <Textarea id="activity-instructions" name="activity-instructions" required maxLength={2000} placeholder="Explain what learners should do…" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="activity-due-date">Due date <span className="font-normal text-slate-500 surface-dark:text-muted-foreground">(optional)</span></Label>
-                  <Input id="activity-due-date" name="activity-due-date" type="date" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="activity-evaluation">Evaluation note <span className="font-normal text-slate-500 surface-dark:text-muted-foreground">(optional)</span></Label>
-                  <Input id="activity-evaluation" name="activity-evaluation" maxLength={200} placeholder="e.g. Feedback-based review" />
-                </div>
-              </div>
-              {isFormBased ? (
-                <fieldset className="grid gap-4 rounded-xl border border-slate-200 surface-dark:border-border p-4">
-                  <legend className="px-1 text-sm font-semibold text-slate-800 surface-dark:text-foreground">Question preview</legend>
-                  <div className="grid gap-2">
-                    <Label htmlFor="question-type">Question type</Label>
-                    <select
-                      id="question-type"
-                      value={questionType}
-                      onChange={(event) => setQuestionType(event.currentTarget.value as QuestionType)}
-                      className="h-10 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                    >
-                      {questionTypes.map((type) => <option key={type} value={type}>{type}</option>)}
-                    </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="question-prompt">Question prompt</Label>
-                    <Textarea id="question-prompt" name="question-prompt" required maxLength={1000} placeholder="Write a question…" />
-                  </div>
-                  {["Multiple choice", "Multiple select"].includes(questionType) && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="question-options">Answer options</Label>
-                      <Input id="question-options" name="question-options" required placeholder="Separate options with commas" />
-                    </div>
-                  )}
-                  <p className="text-xs text-slate-500 surface-dark:text-muted-foreground">The prototype captures one example question; quiz scoring and answer-key behavior are not connected.</p>
-                </fieldset>
-              ) : (
-                <div className="grid gap-2 sm:max-w-sm">
-                  <Label htmlFor="response-type">Student response preview</Label>
-                  <select
-                    id="response-type"
-                    name="response-type"
-                    defaultValue="Text"
-                    className="h-10 rounded-md border border-slate-300 surface-dark:border-border bg-white surface-dark:bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                  >
-                    <option value="Text">Written response</option>
-                    <option value="File">File name preview</option>
-                    <option value="Link">Link response</option>
-                  </select>
-                </div>
-              )}
-              <QuizTimerSettings required={isFormBased} isQuizOrTest={isFormBased} errors={timingErrors} />
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit">Publish demo activity</Button>
-                <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {sections.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-8 text-sm text-slate-600 surface-dark:text-muted-foreground">{isStudent ? "No demo classwork is available yet." : "Create a demo activity to preview learner classwork."}</CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-5">
-          {sections.map((section) => (
-            <section key={section.title} aria-label={`${section.title} classwork`} className="overflow-hidden rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card">
-              <h4 className="border-b border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-4 py-2.5 text-sm font-semibold text-slate-900 surface-dark:text-foreground">
-                {section.title} <span className="font-normal text-slate-500 surface-dark:text-muted-foreground">· {section.items.length}</span>
-              </h4>
-              <ul className="divide-y divide-slate-100 surface-dark:border-border">
-                {section.items.map((activity) => {
-                  const submission = activity.submissions.find((item) => item.learnerId === currentLearnerId)
-                  const Icon = activityIcons[activity.type]
-                  const statusLabel = isStudent ? submission?.status ?? "Not started" : activity.status === "Draft" ? "Draft" : "Assigned"
-                  return (
-                    <li key={activity.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                      <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-soft-foreground">
-                        <Icon className="size-5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h5 className="font-semibold text-slate-900 surface-dark:text-foreground">{activity.title}</h5>
-                          <Badge variant="outline" className="border-amber-200 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300">Demo</Badge>
-                          <QuizTimingBadges activity={activity} />
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-sm text-slate-600 surface-dark:text-muted-foreground">{activity.instructions}</p>
-                        <p className="mt-1 text-xs text-slate-500 surface-dark:text-muted-foreground">
-                          {activity.type} · {activity.dueDate ? `Due ${activity.dueDate}` : "No due date"}{isStudent ? "" : ` · ${activity.submissions.length} demo submissions`}
-                        </p>
-                      </div>
-                      <Badge variant="secondary">{statusLabel}</Badge>
-                      <Link
-                        to={`/${workspace}/classrooms/${classroom.id}/classwork/${activity.id}`}
-                        className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-brand-soft-foreground outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
-                      >
-                        {isStudent ? "Open workspace" : "Review activity"} <ArrowRight aria-hidden="true" className="size-4" />
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+export function ClassroomClassworkView({ classroom, initialId }: { classroom: Classroom; role?: WorkspaceRole; initialId?: string }) {
+  const owned = classroom.access === 'owner'
+  const [items, setItems] = useState<ClassworkEntry[] | null>(null)
+  const [selected, setSelected] = useState(initialId ?? '')
+  const [creating, setCreating] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
+  const [revision, setRevision] = useState(0)
+  const now = useClassworkClock()
+  useEffect(() => {
+    if (selected || creating) return
+    const controller = new AbortController()
+    listClassroomWork(classroom.id, owned, controller.signal).then(value => { if (!controller.signal.aborted) { setItems(value); setError('') } }).catch(cause => { if (!controller.signal.aborted) setError(getApiErrorMessage(cause, 'Could not load classwork.')) })
+    return () => controller.abort()
+  }, [classroom.id, owned, revision, selected, creating])
+  if (selected) return <ClassworkDetail key={selected} classroomId={classroom.id} id={selected} owned={owned} notice={notice} onBack={() => { setSelected(''); setItems(null); setNotice(''); setRevision(value => value + 1) }} />
+  if (creating && owned) return <ClassworkCreator classroomId={classroom.id} onCancel={() => setCreating(false)} onCreated={(id, message) => { setCreating(false); setNotice(message ?? 'Draft saved. Review it before publishing.'); setSelected(id) }} />
+  return <section aria-labelledby="classwork-heading" className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-7"><div><h3 id="classwork-heading" className="text-sm font-semibold">Classwork</h3><p className="mt-1 text-xs text-muted-foreground">{owned ? 'Prepare quizzes and assessments for your class.' : 'Your educator’s quizzes and assessments, all in one place.'}</p></div>{owned && <Button size="sm" className="bg-lime-200 text-slate-900 hover:bg-lime-300" onClick={() => setCreating(true)}><Plus />Create classwork</Button>}</header>
+    {error ? <div role="alert" className="space-y-3 p-6 text-sm"><p>{error}</p><Button variant="outline" onClick={() => { setError(''); setItems(null); setRevision(value => value + 1) }}>Retry classwork</Button></div> : !items ? <p role="status" className="p-6 text-sm text-muted-foreground">Loading classwork…</p> : !items.length ? <div className="flex min-h-60 flex-col items-center justify-center gap-3 px-5 py-12 text-center"><BookOpenCheck aria-hidden="true" className="size-8 text-muted-foreground" /><h4 className="text-sm font-medium">No classwork yet</h4><p className="max-w-xs text-sm leading-6 text-muted-foreground">{owned ? 'Create a quiz or written assessment, set its closing time, and publish it to your students.' : 'Published classwork will appear here when your educator assigns it.'}</p></div> : <ul className="divide-y divide-border">{items.map(({ work, questions, submission }) => {
+      const quiz = questions.questions.length > 0
+      const state = owned ? work.status === 'DRAFT' ? 'Draft' : classworkClosed(work.dueAt, now) ? 'Closed' : 'Published' : classworkStatus(work, submission, now)
+      return <li key={work.id}><button type="button" onClick={() => setSelected(work.id)} className="flex w-full min-w-0 items-center gap-4 px-5 py-5 text-left outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-7"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-lime-100 text-slate-900"><BookOpenCheck aria-hidden="true" className="size-5" /></span><span className="min-w-0 flex-1 space-y-2"><span className="block break-words text-sm font-semibold">{work.title}</span><span className="flex flex-wrap items-center gap-2"><Badge variant="outline">{quiz ? 'Quiz' : 'Assessment'}</Badge><span className={state === 'Missing' ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>{state}</span></span><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Clock3 aria-hidden="true" className="size-3.5 shrink-0" />{work.dueAt ? `Closes ${formatClassworkDate(work.dueAt)}` : 'No deadline'}</span></span><ArrowRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" /></button></li>
+    })}</ul>}
+  </section>
 }
