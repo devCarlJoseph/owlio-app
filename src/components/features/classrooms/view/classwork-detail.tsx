@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft, Check, Clock3, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useClassworkReview } from '../context/classwork-review-context'
 import { Textarea } from '@/components/ui/textarea'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import type { Submission } from '@/services/api/academic.service'
@@ -31,6 +33,7 @@ export function ClassworkDetail({ classroomId, id, owned, notice, onBack, onEntr
 }
 
 function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEntry; owned: boolean; onEntryChange?: (entry: ClassworkEntry) => void }) {
+  const review = useClassworkReview()
   const [work, setWork] = useState(entry.work)
   const [questions, setQuestions] = useState(entry.questions)
   const [submission, setSubmission] = useState(entry.submission)
@@ -98,12 +101,13 @@ function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEnt
   }
 
   const state = owned ? draft ? 'Draft' : closed ? 'Closed' : 'Published' : closed && !submitted ? 'Missing' : classworkStatus(work, submission, now)
-  return <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="classwork-title">
+  return <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="classwork-title"><Tabs value={owned ? review.panel : 'form'} onValueChange={value => review.setPanel(value === 'student-work' ? 'student-work' : 'form')} className="gap-0">
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-7">
       <div className="flex min-w-0 items-center gap-2"><Badge className="bg-lime-200 text-slate-900">{quiz ? 'Quiz' : 'Assessment'}</Badge><span className="text-xs text-muted-foreground">{state}</span></div>
       {owned ? <div className="flex flex-wrap gap-2">{draft && <><Button size="sm" variant="outline" disabled={busy || editing} onClick={() => setEditing(true)}>Edit details</Button><Button size="sm" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={busy || editing || !work.dueAt || closed} onClick={() => void run(async () => { if (!work.dueAt || classworkClosed(work.dueAt)) throw new Error('Set a future closing date before publishing.'); await publishClassroomWork(work.id); setWork(current => ({ ...current, status: 'PUBLISHED' })); setNotice('Classwork published to this classroom.') })}>Publish to class</Button></>}</div> : <Button size="sm" className={finishClass} disabled={locked} onClick={() => void saveResponse(true)}>{submitted ? <><Check />Submitted</> : quiz ? 'Finish quiz' : 'Submit assessment'}</Button>}
     </header>
-    <div className="space-y-6 px-5 py-6 sm:px-7">
+    {owned && <TabsList aria-label="Activity workspace" variant="line" className="mx-5 mt-4 border-b border-border sm:mx-7"><TabsTrigger value="form">{quiz ? 'Quiz form' : 'Assessment form'}</TabsTrigger><TabsTrigger value="student-work" disabled={draft}>Student work</TabsTrigger></TabsList>}
+    <TabsContent value="form" keepMounted className="space-y-6 px-5 py-6 sm:px-7">
       <div><h3 id="classwork-title" className="break-words text-xl font-semibold tracking-tight">{work.title}</h3><p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Clock3 aria-hidden="true" className="size-4" />{work.dueAt ? `Closes ${formatClassworkDate(work.dueAt)}` : 'No deadline set'}<span>({Intl.DateTimeFormat().resolvedOptions().timeZone})</span></p></div>
       <div aria-live="polite" className="space-y-2">{error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}{notice && <p role="status" className="rounded-lg bg-muted p-3 text-sm">{notice}</p>}</div>
       {closed && !draft && <p role="status" className="rounded-lg border border-border bg-muted/60 p-3 text-sm">{submitted ? 'This activity is closed. Your submitted work is available below.' : owned ? 'This activity is closed. Further submissions are not accepted.' : 'Missing activity. The deadline has passed and submissions are no longer accepted. Your saved work is available below.'}</p>}
@@ -116,7 +120,7 @@ function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEnt
       {!owned && !quiz && <div className="space-y-3"><label htmlFor="assessment-answer" className="text-sm font-semibold">Your response</label><Textarea id="assessment-answer" value={text} onChange={event => setText(event.target.value)} disabled={locked} maxLength={6000} className="min-h-48" placeholder="Write your assessment response…" /></div>}
       {!owned && !submitted && !closed && <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><p className="max-w-xs text-xs leading-5 text-muted-foreground">Drafts are not submissions. Finish and submit before the closing time.</p><Button variant="outline" disabled={busy} onClick={() => void saveResponse(false)}>{busy ? 'Saving…' : 'Save draft'}</Button></footer>}
       {submitted && <p className="text-xs text-muted-foreground">Submitted {formatClassworkDate(submission.submittedAt)}{submission.isLate ? ' · Previously accepted late' : ''}</p>}
-      {owned && !draft && <ClassworkReview classroomId={work.classroomId} classworkId={work.id} questions={questions.questions} closed={closed} />}
-    </div>
+
+    </TabsContent>{owned && !draft && <TabsContent value="student-work" keepMounted className="px-5 py-6 sm:px-7"><ClassworkReview work={work} questions={questions.questions} closed={closed} /></TabsContent>}</Tabs>
   </section>
 }

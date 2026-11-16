@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import { listClassworkLearners, listClassworkSubmissions, type ClassworkEntry } from '@/services/api/classwork-workspace.service'
 import { classworkClosed, classworkStatus, formatClassworkDate } from '../utils/classwork-deadline'
+import { useContext } from 'react'
+import { ClassworkReviewContext } from '../context/classwork-review-context'
 
 function timeRemaining(dueAt: string | null, now: number) {
   if (!dueAt) return 'No closing time'
@@ -19,6 +21,7 @@ export function ClassworkProgressPanel({ items, active, owned, loading, error, n
   items: ClassworkEntry[]; active: ClassworkEntry | null; owned: boolean
   loading: boolean; error: boolean; now: number; onSelect: (id: string) => void
 }) {
+  const review = useContext(ClassworkReviewContext)
   const published = items.filter(item => item.work.status === 'PUBLISHED')
   const completed = published.filter(item => item.submission?.status === 'SUBMITTED').length
   const timeline = [...items].sort((a, b) => (a.work.dueAt ? Date.parse(a.work.dueAt) : Infinity) - (b.work.dueAt ? Date.parse(b.work.dueAt) : Infinity))
@@ -43,6 +46,7 @@ export function ClassworkProgressPanel({ items, active, owned, loading, error, n
     {active && <section className="space-y-3 rounded-2xl border border-border bg-card p-4" aria-label="Selected activity progress">
       <div className="flex items-center gap-2">{active.questions.questions.length ? <ClipboardCheck aria-hidden="true" className="size-4 text-brand" /> : <FileText aria-hidden="true" className="size-4 text-brand" />}<h3 className="text-xs font-semibold">{active.questions.questions.length ? 'Quiz' : 'Assessment'}</h3></div>
       <p className="break-words text-xs leading-5">{active.work.title}</p>
+      {owned && active.work.status === 'PUBLISHED' && review && <Button size="sm" className="w-full bg-brand text-brand-foreground hover:bg-brand/90" onClick={() => review.setPanel('student-work')}>Student work</Button>}
       {owned ? active.work.status === 'DRAFT' ? <p className="text-xs text-muted-foreground">Private draft. Publish to assign it to your students.</p> : <ClassSubmissionProgress key={active.work.id} classroomId={active.work.classroomId} classworkId={active.work.id} closed={classworkClosed(active.work.dueAt, now)} /> : <div className="space-y-2 text-xs text-muted-foreground">
         <p>{classworkStatus(active.work, active.submission, now)}</p>
         {active.questions.questions.length > 0 && <p>{active.submission?.choiceAnswers.length ?? 0} of {active.questions.questions.length} answers saved</p>}

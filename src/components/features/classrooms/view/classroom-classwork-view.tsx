@@ -9,6 +9,7 @@ import { ClassworkCreator } from '../forms/classwork-editor'
 import { useClassworkClock } from '../hooks/use-classwork-clock'
 import { classworkClosed, classworkStatus, formatClassworkDate } from '../utils/classwork-deadline'
 import { ClassworkDetail } from './classwork-detail'
+import { ClassworkReviewProvider } from '../context/classwork-review-provider'
 import { ClassworkProgressPanel } from '../ui/classwork-progress-panel'
 
 export function ClassroomClassworkView({ classroom, initialId }: { classroom: Classroom; role?: WorkspaceRole; initialId?: string }) {
@@ -40,8 +41,8 @@ export function ClassroomClassworkView({ classroom, initialId }: { classroom: Cl
   </section>
   const activeEntry = active?.work.id === selected ? active : null
   const progressItems = activeEntry ? [...(items ?? []).filter(item => item.work.id !== activeEntry.work.id), activeEntry] : items ?? []
-  return <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_17rem]">
+  return <ClassworkReviewProvider key={selected || 'collection'}><div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_17rem]">
     <div className="min-w-0">{content}</div>
     <ClassworkProgressPanel items={progressItems} active={activeEntry} owned={owned} loading={items === null && !error} error={Boolean(error)} now={now} onSelect={id => { setCreating(false); setNotice(''); setSelected(id) }} />
-  </div>
+  </div></ClassworkReviewProvider>
 }

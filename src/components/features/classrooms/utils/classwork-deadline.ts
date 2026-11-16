@@ -28,5 +28,8 @@ export function readClassworkFields(form: FormData) {
   const dueAt = new Date(closing)
   if (!title || !instructions) throw new Error('Add a title and instructions.')
   if (!closing || !Number.isFinite(dueAt.getTime()) || dueAt.getTime() <= Date.now()) throw new Error('Choose a closing date and time in the future.')
-  return { title, instructions, dueAt: dueAt.toISOString() }
+  const points = String(form.get('maxPoints') ?? '').trim()
+  const maxPoints = points === '' ? null : Number(points)
+  if (maxPoints !== null && (!Number.isInteger(maxPoints) || maxPoints < 1 || maxPoints > 10000)) throw new Error('Maximum points must be a whole number from 1 to 10,000.')
+  return { title, instructions, dueAt: dueAt.toISOString(), maxPoints }
 }
