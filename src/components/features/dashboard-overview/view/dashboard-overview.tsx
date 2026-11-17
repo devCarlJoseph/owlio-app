@@ -7,7 +7,7 @@ import type { OverviewContent } from "../types/overview-types"
 
 export function DashboardOverview({ content }: { content: OverviewContent }) {
   return (
-    <div className="mx-auto w-full max-w-7xl rounded-[2rem] bg-gradient-to-br from-slate-100 surface-dark:from-muted via-cyan-50/60 surface-dark:via-surface-cyan-soft/60 to-brand-soft/60 p-3 text-foreground sm:p-5 lg:p-6">
+    <div className="mx-auto w-full max-w-7xl rounded-[2rem] p-3 text-foreground sm:p-5 lg:p-6">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3 px-1">
         <div>
           <p className="text-xs font-medium text-muted-foreground">{content.workspace}</p>
