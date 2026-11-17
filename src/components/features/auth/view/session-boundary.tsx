@@ -16,8 +16,8 @@ export function SessionBoundary({ children }: { children: ReactNode }) {
       <OwlioPageState
         tone="error"
         title="Could not check your session"
-        description={<><p>We couldn’t connect to your Owlio session. Please try again.</p><p className="mt-3 rounded-xl bg-slate-100 px-4 py-3 text-xs surface-dark:bg-slate-800">{error || 'Check your connection and try again.'}</p></>}
-        action={<Button type="button" className="h-11 rounded-xl bg-indigo-600 px-6 text-white shadow-md shadow-indigo-600/20 hover:bg-indigo-700 focus-visible:ring-indigo-500" onClick={() => void refreshCurrentUser()}><RefreshCw aria-hidden="true" />Try again</Button>}
+        description={<><p>We couldn’t connect to your Owlio session. Please try again.</p>{error && <p className="mt-2 text-xs">{error}</p>}</>}
+        action={<Button type="button" className="h-10 rounded-lg bg-brand px-5 text-brand-foreground hover:bg-brand/90 focus-visible:ring-brand/50" onClick={() => void refreshCurrentUser()}><RefreshCw aria-hidden="true" />Try again</Button>}
       />
     )
   }

@@ -28,9 +28,15 @@ export function OwlioMascotArtwork({ id }: OwlioMascotArtworkProps) {
       <path d="M231 376C211 366 191 377 169 397C149 415 126 423 104 429C94 432 100 448 116 459C134 472 152 474 170 469C145 481 145 497 163 502C184 508 208 493 220 479C210 499 225 503 237 489C268 454 269 398 231 376Z" fill="#3039B7"/>
       <path d="M226 373C200 370 180 389 163 405C150 418 137 423 126 427C140 447 160 452 183 443C171 454 177 471 194 471C212 471 228 456 231 442C230 460 245 460 251 443C262 413 251 383 226 373Z" fill={`url(#${id}-wing-blue)`}/>
     </g>
-    <g id={`${id}-wing-right`} data-part="wing-right" className="[transform-origin:418px_389px] [transform:rotate(42deg)] group-data-[state=flying]/scene:[transform:rotate(-12deg)] group-data-[state=flying]/scene:animate-owlio-fly-right group-data-[state=welcome]/scene:animate-owlio-wave group-data-[state=next]/scene:animate-owlio-hop-right group-data-[state=complete]/scene:animate-owlio-celebrate-right">
+    <g id={`${id}-wing-right`} data-part="wing-right" className="[transform-origin:418px_389px] [transform:rotate(42deg)] group-data-[state=flying]/scene:hidden group-data-[state=welcome]/scene:animate-owlio-wave group-data-[state=next]/scene:animate-owlio-hop-right group-data-[state=complete]/scene:animate-owlio-celebrate-right">
       <path d="M415 383C442 367 464 338 481 307C495 281 512 291 514 314C517 339 504 363 493 377C520 357 531 363 524 385C517 410 491 435 472 446C494 440 495 452 478 464C457 479 432 483 411 467C391 452 393 405 415 383Z" fill="#3039B7"/>
       <path d="M427 383C451 365 472 338 486 314C494 299 502 308 501 325C500 352 485 373 470 387C490 377 505 372 510 375C508 395 480 422 457 432C475 429 483 431 481 437C464 451 439 463 423 452C407 441 410 400 427 383Z" fill={`url(#${id}-wing-blue)`}/>
+    </g>
+    <g transform="translate(644 0) scale(-1 1)" className="hidden group-data-[state=flying]/scene:block">
+      <g data-part="wing-flight-right" className="[transform-origin:226px_390px] [transform:rotate(35deg)] group-data-[state=flying]/scene:animate-owlio-fly-left">
+      <path d="M231 376C211 366 191 377 169 397C149 415 126 423 104 429C94 432 100 448 116 459C134 472 152 474 170 469C145 481 145 497 163 502C184 508 208 493 220 479C210 499 225 503 237 489C268 454 269 398 231 376Z" fill="#3039B7"/>
+      <path d="M226 373C200 370 180 389 163 405C150 418 137 423 126 427C140 447 160 452 183 443C171 454 177 471 194 471C212 471 228 456 231 442C230 460 245 460 251 443C262 413 251 383 226 373Z" fill={`url(#${id}-wing-blue)`}/>
+      </g>
     </g>
     <g data-part="head-interaction" className="[transform-origin:320px_310px] group-data-[state=selection]/scene:animate-owlio-nod"><g id={`${id}-head`} data-part="head" className="[transform-origin:320px_310px] group-data-[state=idle]/scene:animate-owlio-tilt">
       <path id={`${id}-head-base`} data-part="head-base" d="M178 163C166 148 153 122 164 111C195 137 231 133 264 120C311 100 356 103 392 113C417 102 433 82 441 65C449 53 468 79 471 109C484 132 474 153 469 164C502 201 515 256 496 304C474 357 414 389 329 391C246 393 177 365 156 310C136 260 144 200 178 163Z" fill="#3038B6"/>

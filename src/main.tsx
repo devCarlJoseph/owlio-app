@@ -2,6 +2,7 @@ import "@/styles/global.css";
 
 import { createRoot } from "react-dom/client";
 import { Suspense } from "react";
+import { NotFoundPage } from "@/components/common/not-found-page";
 import { MeetingRoomRouteSkeleton } from "@/components/features/meeting-room/ui/meeting-room-route-skeleton";
 import { StudySpaceSkeleton } from "@/components/features/personal-workspace/study-spaces/ui/study-space-skeleton";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
@@ -268,7 +269,7 @@ createRoot(document.getElementById("root")!).render(
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppProviders>
   </BrowserRouter>,

@@ -31,7 +31,7 @@ export function NoWorkspaceView() {
         <OwlioPageState
           title="No workspace available"
           description={<><p>Your account does not have a role for a learning or teaching workspace. Contact your administrator if you need access.</p>{error && <p className="mt-3 text-destructive" role="alert">{error}</p>}</>}
-          action={<Button className="h-11 rounded-xl bg-indigo-600 px-6 text-white hover:bg-indigo-700" disabled={pending} onClick={() => void handleSignOut()}>{pending ? 'Signing out…' : 'Sign out'}</Button>}
+          action={<Button className="h-10 rounded-lg bg-brand px-5 text-brand-foreground hover:bg-brand/90 focus-visible:ring-brand/50" disabled={pending} onClick={() => void handleSignOut()}>{pending ? 'Signing out…' : 'Sign out'}</Button>}
         />
       )}
     </RequireAuth>

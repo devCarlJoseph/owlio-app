@@ -178,6 +178,11 @@
 
 /* Animation definitions consumed by Tailwind animate-* utilities. */
 @theme {
+  --animate-owlio-loading-stripes: owlio-loading-stripes 900ms linear infinite;
+  @keyframes owlio-loading-stripes {
+    from { background-position: 0 0; }
+    to { background-position: 32px 0; }
+  }
   --animate-owlio-fly: owlio-fly 1.6s ease-in-out infinite;
   --animate-owlio-fly-left: owlio-fly-left 800ms ease-in-out infinite;
   --animate-owlio-fly-right: owlio-fly-right 800ms ease-in-out infinite;
