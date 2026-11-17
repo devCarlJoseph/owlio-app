@@ -14,6 +14,7 @@ import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teachi
 import { MeetingRoomHub } from './meeting-room-hub'
 import { MeetingRoomScreen } from './meeting-room-screen'
 import { MeetingRoomShell } from '../ui/meeting-room-shell'
+import { MeetingAttendance } from '../ui/meeting-attendance'
 import { useNativeMeetingData } from '../hooks/use-native-meeting-data'
 import { usePrejoinDevices } from '../hooks/use-prejoin-devices'
 import type { MeetingCategory, MeetingPanel, RoomStatus } from '../types/meeting-room-types'
@@ -255,6 +256,7 @@ function MeetingRoomSession() {
   return <MeetingRoomShell connected={Boolean(room)}>
     {!room && <p className="text-sm text-muted-foreground">Use your classroom meeting code or a scheduled-session invite. Teachers can open their classroom room before joining. <Link className="underline" to={'/' + role + '/schedule?source=account'}>View sessions</Link></p>}
     {room && <p className="shrink-0 text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
+    {room && data.state?.isHost && canManage && <MeetingAttendance sessionId={activeSessionId} role={role} />}
     <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
       status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}
       message={message} error={error || devices.error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}

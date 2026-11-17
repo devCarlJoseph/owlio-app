@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router'
 import { Button } from '@/components/ui/button'
+import { OwlioPageState } from '@/components/common/owlio-page-state'
 import { getWorkspacePath } from '@/lib/workspace-path'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import { useAuthSession } from '../context/auth-session-context'
@@ -27,12 +28,11 @@ export function NoWorkspaceView() {
   return (
     <RequireAuth>
       {workspace !== '/access-denied' ? <Navigate to={workspace} replace /> : (
-        <main className="mx-auto max-w-lg space-y-4 p-8">
-          <h1 className="text-2xl font-semibold">No workspace available</h1>
-          <p>Your account does not have a role for a learning or teaching workspace. Contact your administrator if you need access.</p>
-          {error && <p role="alert">{error}</p>}
-          <Button disabled={pending} onClick={() => void handleSignOut()}>{pending ? 'Signing out…' : 'Sign out'}</Button>
-        </main>
+        <OwlioPageState
+          title="No workspace available"
+          description={<><p>Your account does not have a role for a learning or teaching workspace. Contact your administrator if you need access.</p>{error && <p className="mt-3 text-destructive" role="alert">{error}</p>}</>}
+          action={<Button className="h-11 rounded-xl bg-indigo-600 px-6 text-white hover:bg-indigo-700" disabled={pending} onClick={() => void handleSignOut()}>{pending ? 'Signing out…' : 'Sign out'}</Button>}
+        />
       )}
     </RequireAuth>
   )
