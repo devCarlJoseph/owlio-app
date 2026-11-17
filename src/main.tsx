@@ -3,6 +3,8 @@ import "@/styles/global.css";
 import { createRoot } from "react-dom/client";
 import { Suspense } from "react";
 import { NotFoundPage } from "@/components/common/not-found-page";
+import { UnderDevelopmentPage } from "@/components/common/under-development-page";
+import { getPlannedDashboardPages } from "@/components/common/dashboard-navigation";
 import { MeetingRoomRouteSkeleton } from "@/components/features/meeting-room/ui/meeting-room-route-skeleton";
 import { StudySpaceSkeleton } from "@/components/features/personal-workspace/study-spaces/ui/study-space-skeleton";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
@@ -103,6 +105,8 @@ createRoot(document.getElementById("root")!).render(
         >
           <Route path="/students" element={<RequireRole role="STUDENT"><PlatformLayout /></RequireRole>}>
             <Route index element={<StudentsPage />} />
+            {getPlannedDashboardPages("/students").map(page => <Route key={page.href} path={page.href.replace("/students/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
             <Route path="subjects" element={<StudentSubjectsPage />} />
             <Route path="subjects/:subjectId" element={<StudentSubjectDetailPage />} />
             <Route path="tasks" element={<StudentTasksPage />} />
@@ -159,6 +163,8 @@ createRoot(document.getElementById("root")!).render(
           </Route>
           <Route path="/educators" element={<RequireRole role="EDUCATOR"><PlatformLayout /></RequireRole>}>
             <Route index element={<EducatorsPage />} />
+            {getPlannedDashboardPages("/educators").map(page => <Route key={page.href} path={page.href.replace("/educators/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
             <Route path="classwork" element={<EducatorClassworkPage />} />
             <Route path="attendance" element={<EducatorAttendancePage />} />
             <Route path="learners" element={<EducatorLearnersPage />} />
@@ -193,6 +199,8 @@ createRoot(document.getElementById("root")!).render(
           </Route>
           <Route path="/tutors" element={<RequireRole role="TUTOR"><PlatformLayout /></RequireRole>}>
             <Route index element={<TutorsPage />} />
+            {getPlannedDashboardPages("/tutors").map(page => <Route key={page.href} path={page.href.replace("/tutors/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
             <Route path="sessions" element={<TutorSessionsPage />} />
             <Route path="classwork" element={<TutorClassworkPage />} />
             <Route path="attendance" element={<TutorAttendancePage />} />
@@ -233,6 +241,8 @@ createRoot(document.getElementById("root")!).render(
           </Route>
           <Route path="/esl" element={<RequireRole role="ESL"><PlatformLayout /></RequireRole>}>
             <Route index element={<EslPage />} />
+            {getPlannedDashboardPages("/esl").map(page => <Route key={page.href} path={page.href.replace("/esl/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
             <Route path="lessons" element={<EslLessonsPage />} />
             <Route path="classwork" element={<EslClassworkPage />} />
             <Route path="attendance" element={<EslAttendancePage />} />

@@ -12,6 +12,7 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   getDashboardNavigation,
+  getDashboardProfileNavigation,
   getDashboardNotificationHref,
   getDashboardPageTitle,
   getDashboardRole,
@@ -49,14 +50,15 @@ export default function PlatformLayout() {
   const notificationHref = getDashboardNotificationHref(pathname)
   const menuItems = getDashboardSidebarNavigation(pathname).flatMap(({ items }) => items)
   const findHref = (...labels: string[]) => menuItems.find(({ label, href }) => href && labels.includes(label))?.href
-  const profileHref = findHref("Profile & Settings")
+  const profileLinks = getDashboardProfileNavigation(pathname)
+  const profileHref = profileLinks.find(item => item.label === 'My Profile')?.href
   const accountEntries: MenuEntry[] = [
-    { label: profileHref ? "Profile & Settings" : "My Profile", href: profileHref, icon: UserRound },
-    ...(profileHref ? [] : [{ label: "Settings", icon: Settings }]),
+    { label: "My Profile", href: profileHref, icon: UserRound },
+    { label: "Settings", href: profileLinks.find(item => item.label === 'Settings')?.href, icon: Settings },
     { label: "Account security", href: findHref("Account security"), icon: ShieldCheck },
     { label: "Notifications", href: notificationHref, icon: Bell },
   ]
-  const supportEntries: MenuEntry[] = [{ label: "Help & support", href: findHref("Help & Support", "Help & support"), icon: CircleHelp }]
+  const supportEntries: MenuEntry[] = [{ label: "Help & support", href: profileLinks.find(item => item.label === 'Help & support')?.href, icon: CircleHelp }]
   const workspaceLabel = getDashboardWorkspace(pathname)?.label
   const userInitials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'OW'
   const userRoleLabel = getAccountLabel(user?.roles ?? [])

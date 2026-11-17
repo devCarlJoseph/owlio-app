@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest"
-import { getActiveDashboardHref, getDashboardNavigation, getDashboardNotificationHref, getDashboardPageTitle } from "./dashboard-navigation"
+import { getActiveDashboardHref, getDashboardNavigation, getDashboardNotificationHref, getDashboardPageTitle, getDashboardSidebarNavigation, getPlannedDashboardPages } from "./dashboard-navigation"
 
 const classroomRoles = ["students", "educators", "esl", "tutors"] as const
+
+it.each(classroomRoles)('gives every %s sidebar destination a searchable, role-prefixed link', role => {
+  const items = getDashboardSidebarNavigation('/' + role).flatMap(group => group.items)
+  const searchable = getDashboardNavigation('/' + role).flatMap(group => group.items)
+  for (const item of items) {
+    expect(item.href).toMatch(new RegExp(`^/${role}(?:/|$)`))
+    expect(item.href).not.toContain('undefined')
+    expect(searchable.some(result => result.href === item.href)).toBe(true)
+    expect(getActiveDashboardHref(item.href!)).toBe(item.href)
+  }
+})
+
+it.each(classroomRoles)('keeps planned %s pages titled and excludes implemented tutor settings', role => {
+  const pages = getPlannedDashboardPages('/' + role)
+  expect(pages.some(page => page.href === `/${role}/profile`)).toBe(true)
+  expect(pages.some(page => page.href === `/${role}/settings`)).toBe(role !== 'tutors')
+  for (const page of pages) expect(getDashboardPageTitle(page.href)).toBe(page.label)
+})
 
 describe("My Classes sidebar item", () => {
   it.each(classroomRoles)("is available for %s", (role) => {

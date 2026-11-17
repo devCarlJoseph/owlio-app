@@ -46,6 +46,35 @@ const workspaceLabels: Record<DashboardRole, string> = {
   esl: "ESL",
 }
 
+const plannedPaths: Record<string, string> = {
+  'AI Assistant': 'ai-assistant',
+  'Help and Support': 'help',
+  'Grade Book': 'grade-book',
+  Announcements: 'announcements',
+  'Lesson Planner': 'lesson-planner',
+  'My Learning': 'learning',
+  'Feedback and Notes': 'feedback-notes',
+}
+
+export function getDashboardProfileNavigation(pathname: string) {
+  const role = getDashboardRole(pathname)
+  return role ? [
+    { label: 'My Profile', href: `/${role}/profile`, icon: UserRound },
+    { label: 'Settings', href: `/${role}/settings`, icon: ShieldCheck },
+    { label: 'Help & support', href: `/${role}/help`, icon: CircleHelp },
+  ] : []
+}
+
+export function getPlannedDashboardPages(pathname: string) {
+  const role = getDashboardRole(pathname)
+  if (!role) return []
+  return [
+    ...roleNavigation[role].flatMap(group => group.items).filter(item => !item.href)
+      .map(item => ({ label: item.label, href: `/${role}/${plannedPaths[item.label]}` })),
+    ...getDashboardProfileNavigation(pathname).filter(item => !(role === 'tutors' && item.label === 'Settings')),
+  ].filter((item, index, items) => items.findIndex(other => other.href === item.href) === index)
+}
+
 const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
   students: [
     {
@@ -243,14 +272,16 @@ export function getActiveDashboardHref(pathname: string): string | undefined {
 export function getDashboardSidebarNavigation(pathname: string): DashboardNavigationGroup[] {
   const role = getDashboardRole(pathname)
 
-  return role ? [...roleNavigation[role], {
+  return role ? [...roleNavigation[role].map(group => ({ ...group, items: group.items.map(item => ({
+    ...item, href: item.href ?? `/${role}/${plannedPaths[item.label]}`,
+  })) })), {
     label: "Account",
     items: [{ label: "Account security", href: "/" + role + "/account/security", icon: ShieldCheck }],
   }] : []
 }
 
 export function getDashboardNavigation(pathname: string): NavigableDashboardNavigationGroup[] {
-  return getDashboardSidebarNavigation(pathname)
+  return [...getDashboardSidebarNavigation(pathname), { label: 'Profile', items: getDashboardProfileNavigation(pathname) }]
     .map((group) => ({ ...group, items: group.items.filter(isNavigableItem) }))
     .filter(({ items }) => items.length > 0)
 }
