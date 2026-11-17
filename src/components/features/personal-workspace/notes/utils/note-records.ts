@@ -1,3 +1,4 @@
+import { isLegacyDemoRecord, preserveLegacyDemoRecords } from '@/lib/local-demo-records'
 import {
   noteColors,
   notesStorageKey,
@@ -176,7 +177,7 @@ export function loadNotes(): NoteRecord[] {
     const parsed: unknown = JSON.parse(stored)
     if (!Array.isArray(parsed)) return sampleNotes
 
-    return parsed.filter(isNoteRecord).map(normalizeNote)
+    return parsed.filter(isNoteRecord).filter(record => !isLegacyDemoRecord(record)).map(normalizeNote)
   } catch {
     return sampleNotes
   }
@@ -186,6 +187,7 @@ export function saveNotes(notes: NoteRecord[]): void {
   if (typeof window === "undefined") return
 
   try {
+    preserveLegacyDemoRecords(notesStorageKey)
     window.localStorage.setItem(notesStorageKey, JSON.stringify(notes))
   } catch {
     return

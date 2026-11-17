@@ -1,3 +1,4 @@
+import { isLegacyDemoRecord, preserveLegacyDemoRecords } from '@/lib/local-demo-records'
 export type StudySpaceRole = "owner" | "member"
 
 export type StudySpaceKind = "focused" | "collaborative" | "lounge"
@@ -54,7 +55,7 @@ export const studySpacesGuidance =
   "A study space is for peer collaboration, not an official classroom. It never carries official grades, attendance, or educator feedback."
 
 export const studySpacesStorageNotice =
-  "Sample spaces are for layout preview only. Creating and joining a study space is not connected to a service, so new spaces are kept in this browser."
+  "No demo spaces are included. Spaces created here stay in this browser until the API is connected."
 
 export const studySpacesJoinHint =
   "Joining by code or invitation is not connected yet. The code you enter is not verified by a service, and the space stays in this browser."
@@ -68,56 +69,9 @@ export const studySpaceRoomPreviewNotice =
 export const studySpaceChatLocalNotice =
   "Messages stay on this device for this visit and are not sent to other students."
 
-export const sampleCreatedSpaces: StudySpaceRecord[] = [
-  {
-    id: "sample-space-physics",
-    name: "Physics Group",
-    about: "Weekly problem sets and past paper review.",
-    role: "owner",
-    kind: "collaborative",
-    capacity: 6,
-    createdAt: "2026-09-28T09:00:00.000Z",
-  },
-  {
-    id: "sample-space-essay",
-    name: "Essay Writers",
-    about: "Peer review of argument outlines.",
-    role: "owner",
-    kind: "lounge",
-    capacity: 4,
-    createdAt: "2026-10-02T17:30:00.000Z",
-  },
-  {
-    id: "sample-space-maths",
-    name: "Maths Club",
-    about: "Calculus drills before Friday.",
-    role: "owner",
-    kind: "focused",
-    capacity: 6,
-    createdAt: "2026-10-09T13:10:00.000Z",
-  },
-]
+export const sampleCreatedSpaces: StudySpaceRecord[] = []
 
-export const sampleJoinedSpaces: StudySpaceRecord[] = [
-  {
-    id: "sample-space-history",
-    name: "History Circle",
-    about: "Source analysis discussion.",
-    role: "member",
-    kind: "lounge",
-    capacity: 8,
-    createdAt: "2026-09-20T08:00:00.000Z",
-  },
-  {
-    id: "sample-space-language",
-    name: "Language Exchange",
-    about: "Conversation practice twice a week.",
-    role: "member",
-    kind: "collaborative",
-    capacity: 4,
-    createdAt: "2026-10-05T19:45:00.000Z",
-  },
-]
+export const sampleJoinedSpaces: StudySpaceRecord[] = []
 
 export const studySpaceJoinedDiscoveryStorageKey = "owlio.study-space-joined-discovery.v1"
 
@@ -128,62 +82,7 @@ export const studySpacesLockedTooltip = "Locked — preview space, needs a space
 
 // Sample preview spaces for the locked wing. They are not saved spaces until joined locally,
 // and they carry no members, owners, or activity.
-export const sampleDiscoverySpaces: StudySpaceRecord[] = [
-  {
-    id: "discovery-reading-room",
-    name: "Reading Room",
-    about: "Quiet reading and review.",
-    role: "member",
-    kind: "lounge",
-    capacity: 6,
-    createdAt: "2026-08-12T09:00:00.000Z",
-  },
-  {
-    id: "discovery-calculus-circle",
-    name: "Calculus Circle",
-    about: "Problem sets and worked examples.",
-    role: "member",
-    kind: "focused",
-    capacity: 8,
-    createdAt: "2026-08-20T09:00:00.000Z",
-  },
-  {
-    id: "discovery-thesis-sprint",
-    name: "Thesis Sprint",
-    about: "Writing sprints and outline swaps.",
-    role: "member",
-    kind: "collaborative",
-    capacity: 4,
-    createdAt: "2026-09-03T09:00:00.000Z",
-  },
-  {
-    id: "discovery-language-corner",
-    name: "Language Corner",
-    about: "Relaxed conversation practice.",
-    role: "member",
-    kind: "lounge",
-    capacity: 4,
-    createdAt: "2026-09-10T09:00:00.000Z",
-  },
-  {
-    id: "discovery-quiet-floor",
-    name: "Quiet Floor",
-    about: "Silent independent study.",
-    role: "member",
-    kind: "focused",
-    capacity: 8,
-    createdAt: "2026-09-15T09:00:00.000Z",
-  },
-  {
-    id: "discovery-design-crit",
-    name: "Design Crit",
-    about: "Peer critique sessions.",
-    role: "member",
-    kind: "collaborative",
-    capacity: 6,
-    createdAt: "2026-09-22T09:00:00.000Z",
-  },
-]
+export const sampleDiscoverySpaces: StudySpaceRecord[] = []
 
 export function loadJoinedDiscoveryIds(): string[] {
   if (typeof window === "undefined") return []
@@ -259,7 +158,7 @@ export function loadStudySpaces(): StudySpaceRecord[] {
     const parsed: unknown = JSON.parse(stored)
     if (!Array.isArray(parsed)) return [...sampleCreatedSpaces, ...sampleJoinedSpaces]
 
-    return parsed.filter(isStudySpaceRecord).map(normalizeStudySpace)
+    return parsed.filter(isStudySpaceRecord).filter(record => !isLegacyDemoRecord(record)).map(normalizeStudySpace)
   } catch {
     return [...sampleCreatedSpaces, ...sampleJoinedSpaces]
   }
@@ -269,6 +168,7 @@ export function saveStudySpaces(spaces: StudySpaceRecord[]): void {
   if (typeof window === "undefined") return
 
   try {
+    preserveLegacyDemoRecords(studySpacesStorageKey)
     window.localStorage.setItem(studySpacesStorageKey, JSON.stringify(spaces))
   } catch {
     return

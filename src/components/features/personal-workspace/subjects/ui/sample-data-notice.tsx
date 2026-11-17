@@ -1,6 +1,7 @@
 import { Info } from "lucide-react"
 
 export function SampleDataNotice({ hasExamples = true }: { hasExamples?: boolean }) {
+  void hasExamples
   return (
     <section
       aria-label="Sample data notice"
@@ -8,7 +9,7 @@ export function SampleDataNotice({ hasExamples = true }: { hasExamples?: boolean
     >
       <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
       <div>
-        <p className="text-xs leading-5"><span className="font-medium text-foreground">Browser preview.</span> {hasExamples ? "Includes example subjects. " : ""}Your subjects and topic progress stay in this browser, separate from classroom records.</p>
+        <p className="text-xs leading-5"><span className="font-medium text-foreground">Device storage.</span> Your subjects and topic progress stay in this browser, separate from classroom records.</p>
       </div>
     </section>
   )

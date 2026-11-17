@@ -26,7 +26,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
   const inCall = state.hasRoom || state.preview
   const enabled = state.hasRoom && state.status === 'connected' && !state.preview
   const [boardOpen, setBoardOpen] = useState(false)
-  const [board, setBoard] = useState<BoardState>(() => createBoardSeed(kind, sample.people[0].identity, sample.people[2].identity))
+  const [board, setBoard] = useState<BoardState>(() => createBoardSeed(kind, sample.people[0]?.identity ?? '', sample.people[2]?.identity ?? ''))
   useImmersiveDashboard(inCall)
 
   const people: CallPerson[] = state.preview
@@ -88,7 +88,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
       <div className="w-0 min-w-0 flex-1">
         <h2 className="truncate text-sm font-semibold sm:text-base">{title}</h2>
         <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-          <span className="truncate">{state.meetingCode || (state.preview ? 'Sample people and board · nothing here is live or saved' : 'Live session')}</span>
+          <span className="truncate">{state.meetingCode || (state.preview ? 'Room layout · no meeting connected' : 'Live session')}</span>
           {state.roomId && <Button variant="ghost" size="icon-xs" onClick={state.onCopy} aria-label="Copy meeting invite" title="Copy meeting invite"><Copy aria-hidden="true" /></Button>}
         </div>
       </div>
@@ -100,7 +100,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
 
     <div className="relative flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden">
       <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3', strip.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
-        {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0].identity, name: sample.people[0].name }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1].identity, name: sample.people[1].name }} names={names} learnerOnly={learnerView} onClose={() => setBoardOpen(false)} />
+        {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0]?.identity ?? '', name: sample.people[0]?.name ?? 'Teacher' }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1]?.identity ?? '', name: sample.people[1]?.name ?? 'Learner' }} names={names} learnerOnly={learnerView} onClose={() => setBoardOpen(false)} />
           : pinned ? <CallTile person={pinned} featured updateKey={state.revision} className="min-h-0 flex-1" />
             : people.length === 0 ? <div className={cn('flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl text-center', stageSurface)}><span className="grid size-16 place-items-center rounded-full bg-card text-brand shadow-sm"><VideoOff aria-hidden="true" className="size-7" /></span><p className="text-sm font-medium">Waiting for participants</p></div>
               : <div className={grid.container}>

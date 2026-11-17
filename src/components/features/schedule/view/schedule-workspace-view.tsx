@@ -1,11 +1,11 @@
 import { useState } from "react"
-import { CalendarDays, ChevronLeft, ChevronRight, FlaskConical, Info, Plus } from "lucide-react"
+import { CalendarDays, ChevronLeft, ChevronRight, Info, Plus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { addDays, dateKey, formatDate, formatHour, formatRange, getVisibleDates, moveDate, startOfWeek } from "../utils/calendar-dates"
+import { dateKey, formatDate, formatHour, formatRange, getVisibleDates, moveDate } from "../utils/calendar-dates"
 import { CalendarMonth } from "../ui/calendar-month"
 import { CalendarTimeline } from "../ui/calendar-timeline"
 import { ScheduleDayAgenda } from "../ui/schedule-day-agenda"
@@ -20,15 +20,10 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
   const [selectedDate, setSelectedDate] = useState(today)
   const [view, setView] = useState<CalendarView>("week")
   const [category, setCategory] = useState("all")
-  const [showingExamples, setShowingExamples] = useState(false)
+  const showingExamples = false
   const [selectedExample, setSelectedExample] = useState<ScheduleExample | null>(null)
   const dates = getVisibleDates(selectedDate, view)
-  const weekStart = startOfWeek(selectedDate)
-  const examples: ScheduleExample[] = showingExamples ? content.examples.flatMap((example, index) => {
-    const source = content.categories.find(({ id }) => id === example.category)
-    if (!source || (category !== "all" && source.id !== category)) return []
-    return [{ ...example, id: `${content.role}-${index}`, category: source, date: addDays(weekStart, example.day) }]
-  }) : []
+  const examples: ScheduleExample[] = []
   const visibleExamples = examples.filter((event) => dates.some((date) => dateKey(date) === dateKey(event.date)))
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const rangeLabel = formatRange(selectedDate, view)
@@ -42,7 +37,7 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
             <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{content.title}</h2>
             <p className="mt-2 max-w-2xl text-xs leading-5 text-muted-foreground">{content.description}</p>
           </div>
-          <Badge variant="outline" className="gap-1.5 rounded-full px-2.5 py-1 text-muted-foreground"><CalendarDays className="size-3" aria-hidden="true" />Calendar preview</Badge>
+          <Badge variant="outline" className="gap-1.5 rounded-full px-2.5 py-1 text-muted-foreground"><CalendarDays className="size-3" aria-hidden="true" />Calendar</Badge>
         </header>
 
         <div className="flex flex-wrap items-center gap-3 px-4 pb-5 sm:px-6">
@@ -75,7 +70,6 @@ export function ScheduleWorkspaceView({ content }: { content: ScheduleContent })
               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">{showingExamples ? "Showing fictional examples for layout preview. No events are saved or linked to learners." : "Browse dates and views. Event records and scheduling are not connected yet."}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" aria-pressed={showingExamples} onClick={() => { setShowingExamples((current) => !current); setSelectedExample(null) }} className="h-9 gap-2 rounded-lg bg-white surface-dark:bg-card text-xs"><FlaskConical className="size-3.5" aria-hidden="true" />{showingExamples ? "Hide examples" : "Show examples"}</Button>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border px-4 py-3 sm:px-6">

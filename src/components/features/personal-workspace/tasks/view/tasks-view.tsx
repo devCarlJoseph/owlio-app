@@ -9,13 +9,13 @@ import { TaskDeleteDialog } from "../forms/task-delete-dialog"
 import { TaskDetailDialog } from "../ui/task-detail-dialog"
 import { TaskList } from "../ui/task-list"
 import { TaskSubjectGroups } from "../ui/task-subject-groups"
-import { createTaskId, loadPersonalTasks, sampleTasks, saveTasks, sortTasks, taskStatusOptions, type TaskDraft, type TaskRecord, type TaskStatus } from "../utils/task-records"
+import { createTaskId, loadPersonalTasks, saveTasks, sortTasks, taskStatusOptions, type TaskDraft, type TaskRecord, type TaskStatus } from "../utils/task-records"
 
 const selectClass = "h-9 min-w-0 rounded-lg border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
 export function TasksView() {
   const [collection, setCollection] = useState(loadPersonalTasks)
-  const [preview, setPreview] = useState(() => collection.tasks.length === 0 && !collection.error)
+  const preview = false
   const [saveFailed, setSaveFailed] = useState(false)
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all")
@@ -26,7 +26,7 @@ export function TasksView() {
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null)
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<TaskRecord | null>(null)
-  const tasks = preview ? sampleTasks : collection.tasks
+  const tasks = collection.tasks
   const subjects = [...new Set(tasks.map(task => task.subject).filter(Boolean))].sort()
   const editingTask = collection.tasks.find(task => task.id === editingTaskId) ?? null
   const detailTask = tasks.find(task => task.id === detailTaskId) ?? null
@@ -63,13 +63,12 @@ export function TasksView() {
       ? collection.tasks.map(task => task.id === editingTaskId ? { ...task, ...draft } : task)
       : [...collection.tasks, { id: createTaskId(), ...draft, createdAt: new Date().toISOString() }]
     updateTasks(next)
-    setPreview(false); clearFilters(); setComposerOpen(false); setEditingTaskId(null)
+    clearFilters(); setComposerOpen(false); setEditingTaskId(null)
   }
   function changeStatus(task: TaskRecord, status: TaskStatus) {
     if (preview || collection.error) return
     updateTasks(collection.tasks.map(item => item.id === task.id ? { ...item, status } : item))
   }
-  function switchPreview() { setPreview(!preview); clearFilters(); setDetailTaskId(null) }
 
   return <div className="mx-auto w-full max-w-7xl rounded-2xl border border-border bg-card p-4 sm:p-6">
     <header className="space-y-5">
@@ -87,7 +86,7 @@ export function TasksView() {
       <div role="group" aria-label="Task view" className="flex flex-wrap items-center gap-1">
         {([{ value: "board", label: "Board", icon: Columns3 }, { value: "list", label: "List", icon: List }, { value: "subject", label: "By subject", icon: Folder }] as const).map(item => <Button key={item.value} variant="ghost" size="sm" aria-pressed={view === item.value} onClick={() => setView(item.value)} className={view === item.value ? "bg-muted text-foreground" : "text-muted-foreground"}><item.icon aria-hidden="true" className="size-3.5" />{item.label}</Button>)}
       </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><CheckCheck aria-hidden="true" className="size-3.5" /><span>{completed} of {tasks.length} {preview ? "examples" : "tasks"} completed</span><span aria-hidden="true" className="mx-1 h-3 border-l border-border" /><button type="button" onClick={switchPreview} className="rounded underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-ring">{preview ? "Show my tasks" : "View example board"}</button></div>
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><CheckCheck aria-hidden="true" className="size-3.5" /><span>{completed} of {tasks.length} {preview ? "examples" : "tasks"} completed</span></div>
     </div>
 
     <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -101,10 +100,10 @@ export function TasksView() {
       <p className="flex max-w-2xl items-start gap-1.5"><Info aria-hidden="true" className="mt-1 size-3 shrink-0" />{preview ? "Example board · Sample tasks for exploring the layout. Examples aren’t added to your personal tasks." : "Personal tasks stay in this browser. Clearing browser data removes them; they aren’t synced to an account or sent to educators."}</p>
       <p role="status" className={saveFailed ? "font-medium text-destructive" : ""}>{collection.error ? "Local storage unavailable" : saveFailed ? "Latest changes aren’t saved" : preview ? "Preview only" : `${visibleTasks.length} ${visibleTasks.length === 1 ? "task" : "tasks"} shown · Browser local`}</p>
     </div>
-    {collection.error && <div role="alert" className="mb-4 rounded-xl border border-destructive/30 p-4 text-sm"><p>Your saved tasks couldn’t be read. Retry before editing so the saved data isn’t replaced.</p><Button className="mt-3" variant="outline" size="sm" onClick={() => { const next = loadPersonalTasks(); setCollection(next); setPreview(false) }}>Retry loading tasks</Button></div>}
+    {collection.error && <div role="alert" className="mb-4 rounded-xl border border-destructive/30 p-4 text-sm"><p>Your saved tasks couldn’t be read. Retry before editing so the saved data isn’t replaced.</p><Button className="mt-3" variant="outline" size="sm" onClick={() => { const next = loadPersonalTasks(); setCollection(next) }}>Retry loading tasks</Button></div>}
     {saveFailed && <div role="alert" className="mb-4 rounded-xl border border-destructive/30 p-4 text-sm"><p>Your latest changes are still on this page. Keep it open and retry saving after checking browser storage.</p><Button className="mt-3" variant="outline" size="sm" onClick={() => setSaveFailed(!saveTasks(collection.tasks))}>Retry save</Button></div>}
 
-    {visibleTasks.length === 0 ? <div className="rounded-xl border border-dashed border-border bg-muted/30 px-5 py-14 text-center"><CheckCheck aria-hidden="true" className="mx-auto mb-3 size-7 text-muted-foreground" /><h3 className="text-base font-medium">{isFiltered ? "No tasks match this view" : "Make room for your next goal"}</h3><p className="mt-2 text-sm text-muted-foreground">{isFiltered ? "Try another search, status, or subject." : "Create a personal task to start planning your study work."}</p><Button className="mt-4" variant="outline" disabled={!isFiltered && collection.error} onClick={() => isFiltered ? clearFilters() : create()}>{isFiltered ? "Reset filters" : "Create a task"}</Button></div>
+    {visibleTasks.length === 0 && view !== "board" ? <div className="rounded-xl border border-dashed border-border bg-muted/30 px-5 py-14 text-center"><CheckCheck aria-hidden="true" className="mx-auto mb-3 size-7 text-muted-foreground" /><h3 className="text-base font-medium">{isFiltered ? "No tasks match this view" : "Make room for your next goal"}</h3><p className="mt-2 text-sm text-muted-foreground">{isFiltered ? "Try another search, status, or subject." : "Create a personal task to start planning your study work."}</p><Button className="mt-4" variant="outline" disabled={!isFiltered && collection.error} onClick={() => isFiltered ? clearFilters() : create()}>{isFiltered ? "Reset filters" : "Create a task"}</Button></div>
       : view === "board" ? <TaskBoard tasks={visibleTasks} preview={preview} onOpen={task => setDetailTaskId(task.id)} onCreate={create} onStatusChange={changeStatus} canCreate={!collection.error} />
       : view === "list" ? <TaskList tasks={visibleTasks} onOpen={task => setDetailTaskId(task.id)} />
       : <TaskSubjectGroups tasks={visibleTasks} onOpen={task => setDetailTaskId(task.id)} />}

@@ -3,8 +3,10 @@ import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { TasksView } from "../view/tasks-view"
-import { loadPersonalTasks, sampleTasks, tasksStorageKey, type TaskRecord } from "../utils/task-records"
+import { loadPersonalTasks, tasksStorageKey, type TaskRecord } from "../utils/task-records"
 import { createWork, saveWork, workHref } from "@/components/features/materials/workspace/utils/work-records"
+
+import { sampleTasks } from '@/test/legacy-demo-fixtures'
 
 const first: TaskRecord = { id: "my-physics-task", title: "Outline my physics report", subject: "Physics", notes: "Compare two experiments", status: "todo", priority: "high", dueDate: "2030-11-10", createdAt: "2026-10-30T09:00:00.000Z" }
 const second: TaskRecord = { ...first, id: "my-biology-task", title: "Review cell structure", subject: "Biology", status: "in-progress", notes: "Draw a cell diagram" }
@@ -18,16 +20,12 @@ beforeEach(() => localStorage.clear())
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe("reference-aligned personal tasks", () => {
-  it("keeps the example board read-only and does not persist samples on page load", async () => {
-    const user = userEvent.setup()
-    const writes = vi.spyOn(Storage.prototype, "setItem")
+  it('starts with an empty board without generating or saving examples', () => {
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
     show()
-    expect(screen.getByRole("status").textContent).toBe("Preview only")
-    await user.click(screen.getByRole("button", { name: `Open task ${sampleTasks[0].title}` }))
-    const detail = within(screen.getByRole("dialog"))
-    expect(detail.getByText("Example task")).toBeTruthy()
-    expect(detail.queryByRole("button", { name: "Edit task" })).toBeNull()
-    expect(detail.queryByRole("combobox", { name: "Status" })).toBeNull()
+    expect(screen.getByRole('status').textContent).toContain('0 tasks shown')
+    expect(screen.queryByRole('button', { name: 'View example board' })).toBeNull()
+    expect(screen.queryByText(sampleTasks[0].title)).toBeNull()
     expect(writes).not.toHaveBeenCalled()
   })
 
@@ -101,7 +99,7 @@ describe("reference-aligned personal tasks", () => {
     expect(stored()).toHaveLength(1)
     await user.click(screen.getByRole("button", { name: "Delete task" }))
     expect(stored()).toHaveLength(0)
-    expect(screen.getByRole("heading", { name: "Make room for your next goal" })).toBeTruthy()
+    expect(screen.getByRole("region", { name: "To do tasks" })).toBeTruthy()
   })
 
   it("shows only study files linked to the selected personal task", async () => {

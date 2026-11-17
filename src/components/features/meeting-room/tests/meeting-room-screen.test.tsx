@@ -247,3 +247,8 @@ describe('role-specific meeting layouts', () => {
     expect(screen.getByRole('button', { name: 'End meeting for everyone' })).toBeTruthy()
   })
 })
+
+// Layout interaction tests supply synthetic participants and an authored board explicitly.
+vi.mock('../utils/coaching-meeting-preview', () => import('@/test/coaching-meeting-fixture'))
+vi.mock('../utils/classroom-meeting-preview', () => import('@/test/classroom-meeting-fixture'))
+vi.mock('../utils/meeting-whiteboard-model', () => import('@/test/meeting-whiteboard-fixture'))

@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router"
 import { afterEach, describe, expect, it } from "vitest"
@@ -99,3 +100,5 @@ describe("ESL whiteboard preview", () => {
     expect(container.querySelector('g[data-item-kind="stroke"][data-author="teacher"]:last-of-type')).toBeTruthy()
   })
 })
+
+vi.mock('../utils/esl-whiteboard-model', () => import('@/test/esl-whiteboard-fixture'))

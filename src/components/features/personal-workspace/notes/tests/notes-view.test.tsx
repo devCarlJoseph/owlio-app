@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
@@ -162,4 +163,11 @@ describe("NotesView", () => {
     const menu = await screen.findByRole("menu")
     expect(within(menu).getByRole("menuitem", { name: /Unpin from top/ })).toBeTruthy()
   })
+})
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../utils/note-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/note-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, loadNotes: () => JSON.parse(localStorage.getItem('owlio.student-notes.v1') ?? JSON.stringify(fixtures.sampleNotes)) }
 })

@@ -159,3 +159,11 @@ describe("study space map", () => {
     expect(names().slice(0, 3)).toEqual(["Essay Writers", "Maths Club", "Physics Group"])
   })
 })
+
+// Explicit fixtures exercise map filtering and joining without production seed records.
+vi.mock('../utils/study-spaces-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/study-spaces-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, sampleDiscoverySpaces: fixtures.sampleDiscoverySpaces,
+    loadStudySpaces: () => JSON.parse(localStorage.getItem(actual.studySpacesStorageKey) ?? JSON.stringify([...fixtures.sampleCreatedSpaces, ...fixtures.sampleJoinedSpaces])) }
+})

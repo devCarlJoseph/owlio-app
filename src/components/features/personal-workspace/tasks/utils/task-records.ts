@@ -1,3 +1,4 @@
+import { isLegacyDemoRecord, preserveLegacyDemoRecords } from '@/lib/local-demo-records'
 import type { LucideIcon } from "lucide-react"
 import { Circle, CircleCheck, Clock } from "lucide-react"
 
@@ -38,7 +39,7 @@ export const tasksGuidance =
   "Personal tasks are yours alone. Educator-assigned work lives in the classroom page, not on this page."
 
 export const tasksStorageNotice =
-  "Sample tasks are for layout preview only. Your tasks are kept in this browser and are never sent to a server."
+  "Your tasks are kept in this browser until account sync is connected. No demo tasks are included."
 
 export const taskPriorityOptions: TaskOption<TaskPriority>[] = [
   { value: "low", label: "Low", badge: "bg-slate-100 surface-dark:bg-muted text-slate-600 surface-dark:text-muted-foreground" },
@@ -83,58 +84,7 @@ export function formatTaskDueDate(task: TaskRecord): string {
   return `Due ${dueDateFormatter.format(due)}`
 }
 
-export const sampleTasks: TaskRecord[] = [
-  {
-    id: "sample-task-wave-problem-set",
-    title: "Finish wave problem set",
-    subject: "Physics I",
-    dueDate: "2026-10-16",
-    priority: "high",
-    status: "in-progress",
-    notes: "Questions 4 to 9 first, then review the interference diagram.",
-    createdAt: "2026-10-10T09:00:00.000Z",
-  },
-  {
-    id: "sample-task-chem-review",
-    title: "Review bonding flashcards",
-    subject: "Chemistry I",
-    dueDate: "2026-10-15",
-    priority: "medium",
-    status: "todo",
-    notes: "Focus on electron affinity trends.",
-    createdAt: "2026-10-11T14:20:00.000Z",
-  },
-  {
-    id: "sample-task-calculus-timed-paper",
-    title: "Timed past paper",
-    subject: "Mathematics",
-    dueDate: "2026-10-18",
-    priority: "high",
-    status: "todo",
-    notes: "Forty-five minutes, no notes allowed.",
-    createdAt: "2026-10-12T18:05:00.000Z",
-  },
-  {
-    id: "sample-task-essay-draft",
-    title: "Draft counter-argument paragraph",
-    subject: "English",
-    dueDate: "2026-10-14",
-    priority: "medium",
-    status: "done",
-    notes: "Drafted from the notes tagged #task.",
-    createdAt: "2026-10-08T12:00:00.000Z",
-  },
-  {
-    id: "sample-task-read-chapter",
-    title: "Read chapter 6 summary",
-    subject: "History",
-    dueDate: "",
-    priority: "low",
-    status: "todo",
-    notes: "",
-    createdAt: "2026-10-09T08:45:00.000Z",
-  },
-]
+export const sampleTasks: TaskRecord[] = []
 
 function isTaskRecord(value: unknown): value is TaskRecord {
   if (typeof value !== "object" || value === null) return false
@@ -188,15 +138,14 @@ export function loadTasks(): TaskRecord[] {
     const parsed: unknown = JSON.parse(stored)
     if (!Array.isArray(parsed)) return sampleTasks
 
-    return parsed.filter(isTaskRecord)
+    return parsed.filter(isTaskRecord).filter(record => !isLegacyDemoRecord(record))
   } catch {
     return sampleTasks
   }
 }
 
 export function isExampleTask(task: TaskRecord): boolean {
-  const sample = sampleTasks.find(item => item.id === task.id)
-  return sample !== undefined && (Object.keys(sample) as (keyof TaskRecord)[]).every(key => sample[key] === task[key])
+  return isLegacyDemoRecord(task)
 }
 
 export function loadPersonalTasks(): { tasks: TaskRecord[]; error: boolean } {
@@ -213,6 +162,7 @@ export function saveTasks(tasks: TaskRecord[]): boolean {
   if (typeof window === "undefined") return false
 
   try {
+    preserveLegacyDemoRecords(tasksStorageKey)
     window.localStorage.setItem(tasksStorageKey, JSON.stringify(tasks))
     return true
   } catch {

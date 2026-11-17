@@ -1,14 +1,11 @@
 import { useContext, useState, type ReactNode } from "react"
 import { AuthSessionContext } from '@/components/features/auth/context/auth-session-context'
 import { ClassroomMentionNotifications } from './classroom-mention-notifications'
-import { FlaskConical } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { NotificationFilters } from "./notification-filters"
 import { NotificationList } from "./notification-list"
 import { notificationsContent } from "../contents/notifications-content"
-import { getNotificationExamples } from "../contents/notifications-examples"
 import type { NotificationFilter, NotificationsListState, NotificationsRole } from "../types/notifications.types"
 
 export function NotificationsInbox({ role, title, headerAction, className = "", onNavigate }: {
@@ -19,10 +16,9 @@ export function NotificationsInbox({ role, title, headerAction, className = "", 
   onNavigate?: () => void
 }) {
   const [filter, setFilter] = useState<NotificationFilter>("all")
-  const [showExamples, setShowExamples] = useState(false)
   const session = useContext(AuthSessionContext)
   const content = notificationsContent[role]
-  const state: NotificationsListState = showExamples ? { status: "ready", items: getNotificationExamples(role) } : { status: "unavailable" }
+  const state: NotificationsListState = { status: "unavailable" }
 
   return (
     <Tabs value={filter} onValueChange={(value) => { if (value === "all" || value === "unread") setFilter(value) }} className={`flex min-h-0 flex-1 flex-col gap-0 ${className}`}>
@@ -35,19 +31,14 @@ export function NotificationsInbox({ role, title, headerAction, className = "", 
         <p className="text-[11px] font-medium text-muted-foreground">{content.workspace}</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{content.description}</p>
       </div>
-      {showExamples && <p className="shrink-0 border-b border-amber-100 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft px-5 py-2.5 text-[11px] leading-5 text-amber-950 surface-dark:text-amber-200" role="status">Example notifications · Fictional content. No items are saved or marked as read.</p>}
       {(["all", "unread"] as const).map((value) => (
         <TabsContent key={value} value={value} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <ScrollArea className="min-h-0 flex-1" role="region" aria-label="Notification feed">
-            {!showExamples && session?.user ? <ClassroomMentionNotifications key={session.user.id} role={role} filter={value} onNavigate={onNavigate} /> : <NotificationList state={state} filter={value} onNavigate={onNavigate} />}
-            {!showExamples && <div className="flex flex-wrap justify-center gap-2 px-5 pb-7" aria-label="Workspace notification contexts">{content.categories.map((category) => <span key={category} className="rounded-full border border-border/70 px-2.5 py-1 text-[10px] text-muted-foreground">{category}</span>)}</div>}
+            {session?.user ? <ClassroomMentionNotifications key={session.user.id} role={role} filter={value} onNavigate={onNavigate} /> : <NotificationList state={state} filter={value} onNavigate={onNavigate} />}
+            {<div className="flex flex-wrap justify-center gap-2 px-5 pb-7" aria-label="Workspace notification contexts">{content.categories.map((category) => <span key={category} className="rounded-full border border-border/70 px-2.5 py-1 text-[10px] text-muted-foreground">{category}</span>)}</div>}
           </ScrollArea>
         </TabsContent>
       ))}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border/70 bg-muted/15 px-5 py-3">
-        <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground"><FlaskConical className="size-3" aria-hidden="true" />{showExamples ? "Example mode" : "Preview the layout"}</span>
-        <Button variant="outline" size="sm" aria-pressed={showExamples} onClick={() => setShowExamples((current) => !current)} className="h-9 rounded-lg bg-card px-3 text-xs">{showExamples ? "Hide examples" : "Show examples"}</Button>
-      </div>
     </Tabs>
   )
 }

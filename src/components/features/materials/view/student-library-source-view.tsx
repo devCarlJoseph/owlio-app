@@ -163,7 +163,7 @@ export function StudentLibrarySourceView({ source }: StudentLibrarySourceViewPro
         <CardContent className="gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Sample resources in this library</h3>
+              <h3 className="text-base font-semibold text-slate-900 surface-dark:text-foreground">Resources in this library</h3>
               <p className="mt-1 text-sm text-slate-500 surface-dark:text-muted-foreground">
                 Example resources link to their owning context. External files and account sync aren’t connected.
               </p>

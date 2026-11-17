@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
@@ -45,14 +46,14 @@ describe("student Study Library", () => {
     expect(resourceCard?.textContent).not.toContain("Open in Notes")
   })
 
-  it("labels the collection as examples without offering file operations", () => {
+  it("keeps the collection notice without offering unavailable file operations", () => {
     const { text } = renderPage(<StudentMaterialsPage />)
 
     expect(text).not.toContain("Three learning spaces")
     expect(text).not.toContain("Peer-shared resources")
 
-    expect(text).toContain("Sample collection.")
-    expect(text).toContain("Illustrative covers and example resources")
+    expect(text).toContain("Your collection.")
+    expect(text).toContain("No demo resources are included")
     expect(text).toContain("Files, uploads, and sync aren’t connected")
     expect(screen.queryByRole("button", { name: /upload|download/i })).toBeNull()
   })
@@ -302,4 +303,11 @@ describe("student Study Library", () => {
     expect(physics?.querySelectorAll("li").length).toBe(4)
     expect(physics?.textContent).toContain("5 resources")
   })
+})
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../utils/library-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/library-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, previewLibraryResources: fixtures.previewLibraryResources }
 })

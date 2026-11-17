@@ -1,3 +1,4 @@
+import { isLegacyDemoRecord, preserveLegacyDemoRecords } from '@/lib/local-demo-records'
 import {
   ChartNoAxesCombined,
   Circle,
@@ -111,7 +112,7 @@ export const subjectsGuidance =
   "Your subjects are personal, not an educator's official course."
 
 export const subjectsStorageNotice =
-  "Your subjects are kept in this browser for preview. Nothing is sent to a server, and no subject is shared with any classroom."
+  "Your subjects are kept in this browser until account sync is connected. Personal subjects remain separate from classroom records."
 
 export const subjectCoverColors: SubjectCoverMeta[] = [
   {
@@ -281,120 +282,7 @@ export const subjectShortcutLinks = [
   },
 ] as const
 
-function milestone(
-  id: string,
-  title: string,
-  status: SubjectMilestoneStatus = "not-started"
-): SubjectMilestone {
-  return { id, title, status }
-}
-
-export const sampleSubjects: SubjectRecord[] = [
-  {
-    id: "physics-1",
-    name: "Physics I",
-    code: "SCI-PHY1",
-    instructor: "Ramon Diaz",
-    coverColor: "blue",
-    coverImage: "/subject-covers/orbit.svg",
-    milestones: [
-      milestone("physics-m1", "Motion and displacement", "completed"),
-      milestone("physics-m2", "Velocity and acceleration", "completed"),
-      milestone("physics-m3", "Newton's laws of motion"),
-      milestone("physics-m4", "Work and energy"),
-      milestone("physics-m5", "Waves"),
-    ],
-    progressStarted: true,
-    createdAt: "2026-09-01T09:00:00.000Z",
-    updatedAt: "2026-10-12T09:15:00.000Z",
-    seeded: true,
-  },
-  {
-    id: "chemistry-1",
-    name: "Chemistry I",
-    code: "SCI-CHM1",
-    instructor: "Amara Osei",
-    coverColor: "emerald",
-    coverImage: "/subject-covers/flask.svg",
-    milestones: [
-      milestone("chemistry-m1", "Atomic structure", "completed"),
-      milestone("chemistry-m2", "Chemical bonding", "completed"),
-      milestone("chemistry-m3", "Reactions and moles"),
-      milestone("chemistry-m4", "Lab safety and technique"),
-    ],
-    progressStarted: true,
-    createdAt: "2026-09-01T09:10:00.000Z",
-    updatedAt: "2026-10-11T16:40:00.000Z",
-    seeded: true,
-  },
-  {
-    id: "mathematics",
-    name: "Mathematics",
-    code: "SCI-MTH2",
-    instructor: "Alex Rivera",
-    coverColor: "violet",
-    coverImage: "/subject-covers/graph.svg",
-    milestones: [
-      milestone("math-m1", "Algebra and functions", "completed"),
-      milestone("math-m2", "Geometry and trigonometry", "completed"),
-      milestone("math-m3", "Sequences and series", "completed"),
-      milestone("math-m4", "Limits and derivatives", "completed"),
-      milestone("math-m5", "Integration", "completed"),
-    ],
-    progressStarted: true,
-    createdAt: "2026-09-02T10:00:00.000Z",
-    updatedAt: "2026-10-10T11:05:00.000Z",
-    seeded: true,
-  },
-  {
-    id: "computer-science",
-    name: "Computer Science",
-    code: "SCI-CS1",
-    instructor: "Priya Nair",
-    coverColor: "slate",
-    coverImage: "/subject-covers/atom.svg",
-    milestones: [],
-    progressStarted: false,
-    createdAt: "2026-09-02T10:20:00.000Z",
-    updatedAt: "2026-09-02T10:20:00.000Z",
-    seeded: true,
-  },
-  {
-    id: "english",
-    name: "English",
-    code: "LAN-ENG1",
-    instructor: "Irene Eda",
-    coverColor: "rose",
-    coverImage: "/subject-covers/books.svg",
-    milestones: [
-      milestone("english-m1", "Reading comprehension", "completed"),
-      milestone("english-m2", "Essay structure", "completed"),
-      milestone("english-m3", "Speaking practice"),
-      milestone("english-m4", "Vocabulary building"),
-    ],
-    progressStarted: true,
-    createdAt: "2026-09-03T08:30:00.000Z",
-    updatedAt: "2026-10-08T08:20:00.000Z",
-    seeded: true,
-  },
-  {
-    id: "history",
-    name: "History",
-    code: "HUM-HIS1",
-    instructor: "Samuel Ortiz",
-    coverColor: "amber",
-    coverImage: "/subject-covers/globe.svg",
-    milestones: [
-      milestone("history-m1", "Source analysis", "completed"),
-      milestone("history-m2", "Modern history", "completed"),
-      milestone("history-m3", "Essay writing"),
-    ],
-    progressStarted: true,
-    createdAt: "2026-09-03T08:45:00.000Z",
-    updatedAt: "2026-10-09T19:30:00.000Z",
-    seeded: true,
-  },
-]
+export const sampleSubjects: SubjectRecord[] = []
 
 function isSubjectRecord(value: unknown): value is SubjectRecord {
   if (typeof value !== "object" || value === null) return false
@@ -618,7 +506,7 @@ export function loadSubjects(): SubjectRecord[] {
     const parsed: unknown = JSON.parse(stored)
     if (!Array.isArray(parsed)) return sampleSubjects
 
-    return parsed.filter(isSubjectRecord).map(normalizeSubject)
+    return parsed.filter(isSubjectRecord).filter(record => !isLegacyDemoRecord(record)).map(normalizeSubject)
   } catch {
     return sampleSubjects
   }
@@ -628,6 +516,7 @@ export function saveSubjects(subjects: SubjectRecord[]): void {
   if (typeof window === "undefined") return
 
   try {
+    preserveLegacyDemoRecords(subjectsStorageKey)
     window.localStorage.setItem(subjectsStorageKey, JSON.stringify(subjects))
   } catch {
     return

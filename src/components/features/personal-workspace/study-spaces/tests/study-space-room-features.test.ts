@@ -1,5 +1,6 @@
+import { vi } from 'vitest'
 import { describe, expect, it } from "vitest"
-import { getSampleNappers, getSampleRoster, SAMPLE_NAMES } from "../utils/space-roster"
+import { getSampleNappers, getSampleRoster } from "../utils/space-roster"
 import { buildRoomSpots, buildSeats, discussionTable, napArea, roomPlan, watchRoom } from "../detail/utils/study-space-seats"
 import { sampleCreatedSpaces, sampleJoinedSpaces, type StudySpaceRecord } from "../utils/study-spaces-records"
 import { canManageTasks, canTickTask, createRoomTask, moveRoomTask, toggleRoomTask } from "../detail/utils/room-tasks"
@@ -15,11 +16,10 @@ describe("sample roster", () => {
       const roster = getSampleRoster(space, seats.length)
 
       expect(roster).toEqual(getSampleRoster(space, seats.length))
-      expect(roster.length).toBeGreaterThan(0)
+      expect(roster).toEqual([])
       expect(roster.length).toBeLessThan(seats.length)
       expect(new Set(roster.map((person) => person.seatIndex)).size).toBe(roster.length)
       expect(new Set(roster.map((person) => person.name)).size).toBe(roster.length)
-      roster.forEach((person) => expect(SAMPLE_NAMES).toContain(person.name))
     }
   })
 
@@ -143,4 +143,11 @@ describe("drawer file rules", () => {
     expect(validateDrawerFile({ name: "big.pdf", size: drawerMaxFileBytes + 1 }, 0)).toContain("10 MB")
     expect(validateDrawerFile({ name: "one-more.txt", size: 10 }, drawerMaxFiles)).toContain("full")
   })
+})
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../utils/study-spaces-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/study-spaces-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, sampleCreatedSpaces: fixtures.sampleCreatedSpaces, sampleJoinedSpaces: fixtures.sampleJoinedSpaces, sampleDiscoverySpaces: fixtures.sampleDiscoverySpaces, loadStudySpaces: () => JSON.parse(localStorage.getItem(actual.studySpacesStorageKey) ?? JSON.stringify([...fixtures.sampleCreatedSpaces, ...fixtures.sampleJoinedSpaces])) }
 })

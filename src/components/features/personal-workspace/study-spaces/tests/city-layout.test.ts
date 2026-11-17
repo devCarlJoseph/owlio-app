@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { constrainWalker, layoutCity, nearestDoor, ROAD, streetAt } from "../utils/city-layout"
-import { sampleCreatedSpaces, sampleDiscoverySpaces, sampleJoinedSpaces } from "../utils/study-spaces-records"
+import { sampleCreatedSpaces, sampleDiscoverySpaces, sampleJoinedSpaces } from "@/test/legacy-demo-fixtures"
 
 function sampleCity() {
   return layoutCity([

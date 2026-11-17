@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, useLocation } from "react-router"
 import { NotificationsTrigger } from "../ui/notifications-trigger"
-import { NotificationsView, RoleNotificationsView } from "../view/notifications-view"
+import { RoleNotificationsView } from "../view/notifications-view"
 import { NotificationList } from "../ui/notification-list"
-import { getNotificationExamples } from "../contents/notifications-examples"
+import { getNotificationExamples } from "./notification-fixtures"
 import type { NotificationsRole } from "../types/notifications.types"
 
 afterEach(cleanup)
@@ -77,58 +77,20 @@ describe("shared notifications panel", () => {
     expect(screen.getByLabelText("Current path").textContent).toBe(`/${role}/notifications`)
   })
 
-  it("filters examples with keyboard tabs and does not mutate read status", async () => {
+  it('does not offer fictional notifications', async () => {
     const user = userEvent.setup()
     renderTrigger()
-    await user.click(screen.getByRole("button", { name: "Notifications" }))
-    const dialog = await screen.findByRole("dialog")
-    await user.click(within(dialog).getByRole("button", { name: "Show examples" }))
-    expect(within(dialog).getByText(/Fictional content/)).toBeTruthy()
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(5)
-    within(dialog).getByRole("tab", { name: "All" }).focus()
-    await user.keyboard("{ArrowRight}")
-    await waitFor(() => expect(within(dialog).getByRole("tab", { name: "Unread" }).getAttribute("aria-selected")).toBe("true"))
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3)
-    await user.keyboard("{ArrowLeft}")
-    await waitFor(() => expect(within(dialog).getAllByRole("listitem")).toHaveLength(5))
-    await user.click(within(dialog).getByRole("button", { name: "Hide examples" }))
-    expect(within(dialog).queryByRole("list", { name: "Notifications" })).toBeNull()
-  })
-
-  it("closes when opening an example's workspace without claiming an event was read", async () => {
-    const user = userEvent.setup()
-    renderTrigger("esl")
-    await user.click(screen.getByRole("button", { name: "Notifications" }))
-    const dialog = await screen.findByRole("dialog")
-    await user.click(within(dialog).getByRole("button", { name: "Show examples" }))
-    const link = within(dialog).getAllByRole("link", { name: /Open lesson schedule workspace/ })[0]
-    await user.click(link)
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-    expect(screen.getByLabelText("Current path").textContent).toBe("/esl/schedule")
-    expect(getNotificationExamples("esl").filter((item) => item.unread)).toHaveLength(3)
+    await user.click(screen.getByRole('button', { name: 'Notifications' }))
+    expect(screen.queryByRole('button', { name: 'Show examples' })).toBeNull()
+    expect(screen.queryByText(/Fictional content/)).toBeNull()
   })
 })
 
-describe("role notification pages", () => {
-  it.each(roles)("reuses the inbox for the %s route and keeps examples role-scoped", async (role) => {
-    const user = userEvent.setup()
-    render(<MemoryRouter initialEntries={[`/${role}/notifications`]}><RoleNotificationsView /></MemoryRouter>)
-    expect(screen.getByRole("heading", { name: "Notifications" })).toBeTruthy()
-    expect(screen.getByRole("region", { name: "Notification inbox" })).toBeTruthy()
-    expect(screen.getByRole("region", { name: "Notification feed" })).toBeTruthy()
-    await user.click(screen.getByRole("button", { name: "Show examples" }))
-    expect(screen.getAllByRole("listitem")).toHaveLength(5)
-    expect(screen.getAllByRole("link").every((link) => link.getAttribute("href")?.startsWith(`/${role}/`))).toBe(true)
-    expect(screen.queryByRole("button", { name: /accept|decline|mark.*read/i })).toBeNull()
-  })
-
-  it("does not carry example mode across workspaces", async () => {
-    const user = userEvent.setup()
-    const { rerender } = render(<MemoryRouter><NotificationsView role="students" /></MemoryRouter>)
-    await user.click(screen.getByRole("button", { name: "Show examples" }))
-    rerender(<MemoryRouter><NotificationsView role="tutors" /></MemoryRouter>)
-    expect(screen.queryByRole("list", { name: "Notifications" })).toBeNull()
-    expect(screen.getByRole("heading", { name: "Notification inbox is unavailable" })).toBeTruthy()
+describe('role notification pages', () => {
+  it.each(roles)('does not offer examples on the %s page', role => {
+    render(<MemoryRouter initialEntries={['/' + role + '/notifications']}><RoleNotificationsView /></MemoryRouter>)
+    expect(screen.queryByRole('button', { name: 'Show examples' })).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Notification inbox is unavailable' })).toBeTruthy()
   })
 })
 

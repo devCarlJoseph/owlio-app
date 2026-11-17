@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter, Route, Routes } from "react-router"
@@ -443,4 +444,11 @@ describe("SubjectDetailView", () => {
     expect(getSubjectTheme(imageCovered)).toBe(subjectThemes.blue)
     expect(getSubjectTheme(colourCovered)).toBe(subjectThemes.emerald)
   })
+})
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../utils/subject-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/subject-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, sampleSubjects: fixtures.sampleSubjects, loadSubjects: () => JSON.parse(localStorage.getItem(actual.subjectsStorageKey) ?? JSON.stringify(fixtures.sampleSubjects)) }
 })

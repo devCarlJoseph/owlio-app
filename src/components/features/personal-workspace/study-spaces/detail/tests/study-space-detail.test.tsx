@@ -34,6 +34,7 @@ afterEach(cleanup)
 
 beforeEach(() => {
   window.localStorage.clear()
+  window.localStorage.setItem("owlio.study-space-tasks.v1.sample-space-history", JSON.stringify(roomTasks.map(task => ({ ...task, sample: false }))))
 })
 
 function renderAt(spaceId: string) {
@@ -45,6 +46,8 @@ function renderAt(spaceId: string) {
     </MemoryRouter>
   )
 }
+
+import { roomTasks } from '@/test/room-task-fixtures'
 
 const sampleSpaceId = "sample-space-physics"
 
@@ -398,3 +401,14 @@ describe("study space detail room", () => {
     expect(panel.textContent).toContain("Quiet Piano Arpeggio")
   })
 })
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../../utils/study-spaces-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../utils/study-spaces-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, sampleCreatedSpaces: fixtures.sampleCreatedSpaces, sampleJoinedSpaces: fixtures.sampleJoinedSpaces, sampleDiscoverySpaces: fixtures.sampleDiscoverySpaces, loadStudySpaces: () => JSON.parse(localStorage.getItem(actual.studySpacesStorageKey) ?? JSON.stringify([...fixtures.sampleCreatedSpaces, ...fixtures.sampleJoinedSpaces])) }
+})
+
+// Occupied-seat and locker interactions use explicit test occupants, not app defaults.
+vi.mock('../../utils/space-roster', () => import('@/test/room-roster-fixture'))
+vi.mock('../utils/room-lockers', () => import('@/test/room-locker-fixture'))

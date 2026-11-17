@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { cleanup, render, screen } from "@testing-library/react"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { afterEach, describe, expect, it } from "vitest"
@@ -65,4 +66,11 @@ describe("study space subject resources page", () => {
     expect(screen.getByText("Interference problems")).toBeTruthy()
     expect(screen.getByRole("link", { name: "Study space resources" })).toBeTruthy()
   })
+})
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../utils/library-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/library-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, previewLibraryResources: fixtures.previewLibraryResources }
 })

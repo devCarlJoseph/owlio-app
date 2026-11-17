@@ -82,3 +82,10 @@ describe("study spaces create flow", () => {
     expect(records.some((record) => record.id === "sample-space-physics")).toBe(false)
   })
 })
+
+// Supply explicit test data instead of relying on production demo seeds.
+vi.mock('../utils/study-spaces-records', async importOriginal => {
+  const actual = await importOriginal<typeof import('../utils/study-spaces-records')>()
+  const fixtures = await import('@/test/legacy-demo-fixtures')
+  return { ...actual, sampleCreatedSpaces: fixtures.sampleCreatedSpaces, sampleJoinedSpaces: fixtures.sampleJoinedSpaces, sampleDiscoverySpaces: fixtures.sampleDiscoverySpaces, loadStudySpaces: () => JSON.parse(localStorage.getItem(actual.studySpacesStorageKey) ?? JSON.stringify([...fixtures.sampleCreatedSpaces, ...fixtures.sampleJoinedSpaces])) }
+})

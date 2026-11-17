@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { layoutCity } from "../utils/city-layout"
-import { sampleCreatedSpaces, sampleDiscoverySpaces, sampleJoinedSpaces } from "../utils/study-spaces-records"
+import { sampleCreatedSpaces, sampleDiscoverySpaces, sampleJoinedSpaces } from "@/test/legacy-demo-fixtures"
 import {
   buildLoop,
   cityLoops,

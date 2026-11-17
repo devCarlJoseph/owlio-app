@@ -1,3 +1,4 @@
+import { isLegacyDemoRecord, preserveLegacyDemoRecords } from '@/lib/local-demo-records'
 import { createStudySpaceId, type StudySpaceRecord } from "../../utils/study-spaces-records"
 
 export type RoomTaskAssignee = "everyone" | "me" | string
@@ -17,26 +18,7 @@ export const roomTasksNotice =
 
 export const roomTasksStoragePrefix = "owlio.study-space-tasks.v1."
 
-const sampleTasks: RoomTask[] = [
-  {
-    id: "sample-task-everyone",
-    title: "Skim this week's reading",
-    notes: "Sample task from the space leader.",
-    due: null,
-    assignee: "everyone",
-    done: false,
-    sample: true,
-  },
-  {
-    id: "sample-task-me",
-    title: "Bring one question to the group",
-    notes: "Sample task from the space leader.",
-    due: null,
-    assignee: "me",
-    done: false,
-    sample: true,
-  },
-]
+const sampleTasks: RoomTask[] = []
 
 function isRoomTask(value: unknown): value is RoomTask {
   if (typeof value !== "object" || value === null) return false
@@ -59,7 +41,7 @@ export function loadRoomTasks(space: StudySpaceRecord): RoomTask[] {
     const stored = window.localStorage.getItem(`${roomTasksStoragePrefix}${space.id}`)
     if (!stored) return fallback
     const parsed: unknown = JSON.parse(stored)
-    return Array.isArray(parsed) ? parsed.filter(isRoomTask) : fallback
+    return Array.isArray(parsed) ? parsed.filter(isRoomTask).filter(task => !isLegacyDemoRecord(task)) : fallback
   } catch {
     return fallback
   }
@@ -69,6 +51,7 @@ export function saveRoomTasks(spaceId: string, tasks: RoomTask[]): void {
   if (typeof window === "undefined") return
 
   try {
+    preserveLegacyDemoRecords(`${roomTasksStoragePrefix}${spaceId}`)
     window.localStorage.setItem(`${roomTasksStoragePrefix}${spaceId}`, JSON.stringify(tasks))
   } catch {
     return

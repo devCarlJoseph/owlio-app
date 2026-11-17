@@ -1,8 +1,9 @@
+import { sampleTasks } from '@/test/legacy-demo-fixtures'
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter, useLocation } from "react-router"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { sampleTasks, tasksStorageKey, type TaskRecord } from "@/components/features/personal-workspace/tasks/utils/task-records"
+import { tasksStorageKey, type TaskRecord } from "@/components/features/personal-workspace/tasks/utils/task-records"
 import { StudentProgressView } from "../view/student-progress-view"
 
 const personal: TaskRecord = { id: "personal-review", title: "Review my vocabulary", subject: "English", notes: "Focus on verbs", status: "done", priority: "medium", dueDate: "", createdAt: "2026-10-30T09:00:00.000Z" }

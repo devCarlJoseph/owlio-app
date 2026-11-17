@@ -18,13 +18,7 @@ export const scheduleContent: Record<ScheduleRole, ScheduleContent> = {
       { label: "Personal tasks", href: "/students/tasks", icon: ClipboardList },
       { label: "My classes", href: "/students/classrooms", icon: School },
     ],
-    examples: [
-      { title: "Independent reading", context: "Personal study block", category: "personal", day: 0, hour: 9, duration: 1 },
-      { title: "Class lesson", context: "Educator-led learning", category: "classes", day: 1, hour: 10, duration: 1.5 },
-      { title: "Review my notes", context: "Personal study block", category: "personal", day: 2, hour: 14, duration: 1 },
-      { title: "Classwork due", context: "Educator-assigned deadline", category: "deadlines", day: 3, hour: 11, duration: 0.5 },
-      { title: "Weekly study review", context: "Personal study block", category: "personal", day: 4, hour: 15, duration: 1 },
-    ],
+    examples: [],
   },
   educators: {
     role: "educators", workspace: "Educator workspace", title: "Calendar and Schedule",
@@ -42,13 +36,7 @@ export const scheduleContent: Record<ScheduleRole, ScheduleContent> = {
       { label: "Classwork & assessments", href: "/educators/classwork", icon: ClipboardList },
       { label: "Teaching materials", href: "/educators/materials", icon: FolderOpen },
     ],
-    examples: [
-      { title: "Class lesson", context: "Authorized classroom", category: "classes", day: 0, hour: 9, duration: 1.5 },
-      { title: "Prepare lesson materials", context: "Teacher preparation", category: "preparation", day: 1, hour: 11, duration: 1 },
-      { title: "Group class session", context: "Authorized classroom", category: "classes", day: 2, hour: 10, duration: 1 },
-      { title: "Assessment deadline", context: "Classwork due date", category: "deadlines", day: 3, hour: 14, duration: 0.5 },
-      { title: "Plan next week's lesson", context: "Teacher preparation", category: "preparation", day: 4, hour: 15, duration: 1 },
-    ],
+    examples: [],
   },
   tutors: {
     role: "tutors", workspace: "Tutor workspace", title: "Sessions and Schedule",
@@ -66,13 +54,7 @@ export const scheduleContent: Record<ScheduleRole, ScheduleContent> = {
       { label: "My learners", href: "/tutors/learners", icon: Users },
       { label: "Activities & evaluations", href: "/tutors/classwork", icon: ClipboardList },
     ],
-    examples: [
-      { title: "Individual tutoring", context: "One-to-one learning", category: "individual", day: 0, hour: 10, duration: 1 },
-      { title: "Prepare practice materials", context: "Tutor preparation", category: "preparation", day: 1, hour: 9, duration: 1 },
-      { title: "Group tutoring", context: "Learning group", category: "group", day: 2, hour: 14, duration: 1.5 },
-      { title: "Individual tutoring", context: "One-to-one learning", category: "individual", day: 3, hour: 11, duration: 1 },
-      { title: "Review session goals", context: "Tutor preparation", category: "preparation", day: 4, hour: 15, duration: 1 },
-    ],
+    examples: [],
   },
   esl: {
     role: "esl", workspace: "ESL teaching workspace", title: "Lesson Schedule",
@@ -90,12 +72,6 @@ export const scheduleContent: Record<ScheduleRole, ScheduleContent> = {
       { label: "My learners", href: "/esl/learners", icon: Users },
       { label: "Teaching materials", href: "/esl/materials", icon: FolderOpen },
     ],
-    examples: [
-      { title: "Conversation practice", context: "Individual language lesson", category: "individual", day: 0, hour: 9, duration: 1 },
-      { title: "Prepare reading prompts", context: "Lesson preparation", category: "preparation", day: 1, hour: 10, duration: 1 },
-      { title: "Group language practice", context: "Group language lesson", category: "group", day: 2, hour: 14, duration: 1.5 },
-      { title: "Listening practice", context: "Individual language lesson", category: "individual", day: 3, hour: 11, duration: 1 },
-      { title: "Prepare the next lesson", context: "Lesson preparation", category: "preparation", day: 4, hour: 15, duration: 1 },
-    ],
+    examples: [],
   },
 }

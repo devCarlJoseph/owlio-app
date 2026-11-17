@@ -167,48 +167,6 @@ export function starPoints(x: number, y: number) {
   }).join(" ")
 }
 
-function ellipse(cx: number, cy: number, rx: number, ry: number): [number, number][] {
-  return Array.from({ length: 33 }, (_, index) => {
-    const angle = (Math.PI * 2 * index) / 32
-    return [cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)] as [number, number]
-  })
-}
-
 export function createSeedPages(): BoardItem[][] {
-  const shapes: ShapeName[] = ["circle", "square", "triangle", "star"]
-  return [
-    [
-      { id: "seed-prompt", authorId: "teacher", kind: "text", x: 90, y: 70, text: "Find the circle", color: "#1e3a8a", size: 44 },
-      {
-        id: "seed-underline",
-        authorId: "teacher",
-        kind: "stroke",
-        points: [[90, 132], [200, 138], [330, 132], [420, 136]],
-        color: "#e11d48",
-        width: 5,
-        opacity: 1,
-      },
-      ...shapes.map((shape, index): BoardItem => ({
-        id: `seed-${shape}`,
-        authorId: "teacher",
-        kind: "shape",
-        x: 110 + index * 200,
-        y: 230,
-        shape,
-        color: shapeColors[shape],
-        label: `${shape} shape`,
-      })),
-      { id: "seed-sticky", authorId: "teacher", kind: "sticky", x: 880, y: 90, text: "How are you today?" },
-      {
-        id: "seed-learner-circle",
-        authorId: "learner-2",
-        kind: "stroke",
-        points: ellipse(160, 280, 78, 78),
-        color: "#16a34a",
-        width: 5,
-        opacity: 1,
-      },
-    ],
-    [],
-  ]
+  return [[], []]
 }

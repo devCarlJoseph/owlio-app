@@ -60,7 +60,7 @@ export const notesGuidance =
   "Notes are personal study records. They stay in your workspace and are never treated as classroom materials."
 
 export const notesStorageNotice =
-  "Sample notes are for layout preview only. Your notes are kept in this browser and are never sent to a server."
+  "Your notes are kept in this browser until account sync is connected. No demo notes are included."
 
 export const notesLabelHint =
   "Labels are stored separately from your note text, so they never appear inside the note."
@@ -138,92 +138,4 @@ export const noteColors: NoteColorMeta[] = [
   },
 ]
 
-export const sampleNotes: NoteRecord[] = [
-  {
-    id: "sample-wave-checklist",
-    title: "Wave equation checklist",
-    body: "",
-    labels: ["exam", "physics"],
-    updatedAt: "2026-10-12T09:15:00.000Z",
-    pinned: true,
-    kind: "checklist",
-    color: "blue",
-    items: [
-      { id: "sample-wave-speed", text: "Speed, wavelength, and frequency", done: true },
-      { id: "sample-wave-signs", text: "Sign rules for the interference diagram", done: true },
-      { id: "sample-wave-bands", text: "Node and antinode positions", done: false },
-      { id: "sample-wave-practice", text: "Two past-paper questions", done: false },
-    ],
-    archived: false,
-    trashed: false,
-  },
-  {
-    id: "sample-bonding-recap",
-    title: "Chemical bonding recap",
-    body: "Ionic versus covalent, electron affinity trends, and why lattice energy drives melting point.",
-    labels: ["chemistry"],
-    updatedAt: "2026-10-11T16:40:00.000Z",
-    pinned: false,
-    kind: "text",
-    color: "green",
-    items: [],
-    archived: false,
-    trashed: false,
-  },
-  {
-    id: "sample-lab-template",
-    title: "Lab report template",
-    body: "Aim, method, results, discussion. Keep the safety section short but present.",
-    labels: ["chemistry", "lab"],
-    updatedAt: "2026-10-10T11:05:00.000Z",
-    pinned: false,
-    kind: "text",
-    color: "yellow",
-    items: [],
-    archived: false,
-    trashed: false,
-  },
-  {
-    id: "sample-calculus-plan",
-    title: "Calculus study plan",
-    body: "Two practice sets before Friday, then one past paper under timed conditions.",
-    labels: ["math", "task"],
-    updatedAt: "2026-10-09T19:30:00.000Z",
-    pinned: false,
-    kind: "text",
-    color: "purple",
-    items: [],
-    archived: false,
-    trashed: false,
-  },
-  {
-    id: "sample-essay-outline",
-    title: "Essay intro outline",
-    body: "Thesis, two supporting points, counter-argument paragraph. Draft the counter-argument first.",
-    labels: ["english", "task"],
-    updatedAt: "2026-10-08T08:20:00.000Z",
-    pinned: false,
-    kind: "checklist",
-    color: "orange",
-    items: [
-      { id: "sample-essay-thesis", text: "Write the thesis in one sentence", done: true },
-      { id: "sample-essay-points", text: "Pick two supporting points", done: false },
-      { id: "sample-essay-counter", text: "Draft the counter-argument paragraph", done: false },
-    ],
-    archived: false,
-    trashed: false,
-  },
-  {
-    id: "sample-vocabulary-set",
-    title: "Unit 3 vocabulary",
-    body: "Collect words I keep missing, with one example sentence each.",
-    labels: [],
-    updatedAt: "2026-10-07T13:15:00.000Z",
-    pinned: false,
-    kind: "text",
-    color: "teal",
-    items: [],
-    archived: false,
-    trashed: false,
-  },
-]
+export const sampleNotes: NoteRecord[] = []

@@ -1,7 +1,6 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
 import { MemoryRouter } from "react-router"
-import userEvent from "@testing-library/user-event"
 import { RoleScheduleView } from "../view/role-schedule-view"
 import TutorSessionsView from "@/components/features/tutor-workspace/sessions/view/tutor-sessions-view"
 
@@ -63,28 +62,11 @@ describe("workspace schedules", () => {
     expect(screen.getByRole("button", { name: "Next month" })).toBeTruthy()
   })
 
-  it("shows fictional examples only when requested and opens accessible details", async () => {
-    renderSchedule()
-    fireEvent.click(screen.getByRole("button", { name: "Show examples" }))
-    expect(screen.getByText(/Showing fictional examples/)).toBeTruthy()
-    fireEvent.click(screen.getAllByRole("button", { name: /^Example: Independent reading/ })[0])
-    const dialog = await screen.findByRole("dialog")
-    expect(within(dialog).getByText(/not a saved appointment/)).toBeTruthy()
-    expect(within(dialog).queryByRole("button", { name: /save|join|publish/i })).toBeNull()
-    fireEvent.click(within(dialog).getAllByRole("button", { name: "Close" })[0])
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
-    fireEvent.click(screen.getByRole("button", { name: "Hide examples" }))
-    expect(screen.queryByRole("button", { name: /^Example:/ })).toBeNull()
-    expect(screen.getAllByLabelText("Unavailable")).toHaveLength(4)
+  it.each(roles)('keeps the $role calendar empty without an example-data switch', ({ role }) => {
+    renderSchedule(role)
+    expect(screen.queryByRole('button', { name: 'Show examples' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Example:/ })).toBeNull()
+    expect(screen.getByRole('tab', { name: 'Week' })).toBeTruthy()
   })
 
-  it("filters examples by their owning event type", async () => {
-    const user = userEvent.setup()
-    renderSchedule()
-    await user.click(screen.getByRole("button", { name: "Show examples" }))
-    await user.click(screen.getByRole("combobox", { name: "Filter calendar by event type" }))
-    await user.click(await screen.findByRole("option", { name: "Class sessions" }))
-    await waitFor(() => expect(screen.queryByRole("button", { name: /^Example: Independent reading/ })).toBeNull())
-    expect(screen.getAllByRole("button", { name: /^Example: Class lesson/ }).length).toBeGreaterThan(0)
-  })
 })

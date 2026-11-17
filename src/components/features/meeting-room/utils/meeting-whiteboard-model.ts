@@ -105,22 +105,7 @@ export function circleAround(bounds: BoardBounds, pad = 18): BoardPoint[] {
   })
 }
 
-function shape(id: string, authorId: string, kind: BoardShape, colorIndex: number, x: number, y: number): BoardShapeItem {
-  const color = boardColors[colorIndex]
-  return { id, authorId, kind: 'shape', shape: kind, color: color.value, colorName: color.name, x, y }
-}
-
-function object(id: string, authorId: string, label: string, x: number, y: number): BoardObjectItem {
-  const found = boardObjects.find(item => item.label === label) ?? boardObjects[0]
-  return { id, authorId, kind: 'object', glyph: found.glyph, src: found.src, label: found.label, x, y }
-}
-
 export function createBoardSeed(kind: 'esl' | 'tutors', hostId: string, sampleLearnerId: string): BoardState {
-  const items: BoardItem[] = kind === 'esl'
-    ? [object('seed-apple', hostId, 'apple', 150, 220), object('seed-dog', hostId, 'dog', 340, 220), shape('seed-square', hostId, 'square', 1, 530, 220), object('seed-ball', hostId, 'ball', 720, 220)]
-    : [shape('seed-circle', hostId, 'circle', 0, 150, 220), shape('seed-triangle', hostId, 'triangle', 3, 340, 220), shape('seed-square', hostId, 'square', 1, 530, 220), shape('seed-diamond', hostId, 'diamond', 4, 720, 220)]
-  return {
-    items: [...items, { id: 'seed-learner-mark', authorId: sampleLearnerId, kind: 'mark', color: '#16a34a', points: circleAround(itemBounds(items[2]), 16) }],
-    instruction: kind === 'esl' ? 'Encircle the blue square' : 'Encircle the square',
-  }
+  void [kind, hostId, sampleLearnerId]
+  return { items: [], instruction: null }
 }
