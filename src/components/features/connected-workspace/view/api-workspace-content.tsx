@@ -28,22 +28,8 @@ export function ApiWorkspaceContent({ children }: { children: ReactNode }) {
   }
   if (!accountContent) return children
   const accountSelected = params.get('source') === 'account'
-  const viewHref = (account: boolean) => {
-    const next = new URLSearchParams(params)
-    if (account) next.set('source', 'account')
-    else next.delete('source')
-    return { pathname, search: next.size ? `?${next}` : '' }
-  }
   return <div className="space-y-5">
-    <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3">
-      <nav aria-label="Workspace data source" className="inline-flex rounded-full border border-border bg-card p-1 text-xs font-medium">
-        {[false, true].map(account => <Link key={String(account)} to={viewHref(account)} aria-current={accountSelected === account ? 'page' : undefined}
-          className={`rounded-full px-4 py-2 outline-none focus-visible:ring-2 focus-visible:ring-ring ${accountSelected === account ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted'}`}>
-          {account ? 'Account records' : localTools ? 'On this device' : 'Workspace view'}
-        </Link>)}
-      </nav>
-      {localTools && <p className="text-xs text-muted-foreground">{accountSelected ? 'Saved to your account. Device records stay separate.' : 'Saved on this device. Account records stay separate.'}</p>}
-    </div>
+    {localTools && <p className="mx-auto w-full max-w-7xl text-xs text-muted-foreground">{accountSelected ? 'Saved to your account. Device records stay separate.' : 'Saved on this device. Account records stay separate.'}</p>}
     {accountSelected ? accountContent : children}
   </div>
 }

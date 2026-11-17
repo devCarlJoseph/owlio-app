@@ -24,12 +24,13 @@ type StatusPageProps = {
   illustration: 'search' | 'barrier' | 'lock' | 'server'
   action?: ReactNode
   embedded?: boolean
+  bare?: boolean
 }
 
-export function StatusPage({ title, description, code, illustration, action, embedded = false }: StatusPageProps) {
+export function StatusPage({ title, description, code, illustration, action, embedded = false, bare = false }: StatusPageProps) {
   const id = useId()
-  return <section aria-labelledby={id} className={`flex items-center justify-center bg-[#edf1f4] px-4 py-8 text-[#11102f] surface-dark:bg-background surface-dark:text-foreground ${embedded ? 'min-h-[65dvh] rounded-2xl' : 'min-h-dvh'}`}>
-    <div className="flex min-h-[440px] w-full max-w-xl flex-col items-center justify-center rounded-xl bg-white px-6 py-10 text-center surface-dark:bg-card sm:min-h-[480px] sm:px-12">
+  return <section aria-labelledby={id} className={`flex items-center justify-center px-4 py-8 ${bare ? 'text-foreground' : 'bg-[#edf1f4] text-[#11102f] surface-dark:bg-background surface-dark:text-foreground'} ${embedded ? 'min-h-[65dvh] rounded-2xl' : 'min-h-dvh'}`}>
+    <div className={`flex min-h-[440px] w-full max-w-xl flex-col items-center justify-center px-6 py-10 text-center sm:min-h-[480px] sm:px-12 ${bare ? '' : 'rounded-xl bg-white surface-dark:bg-card'}`}>
       <StatusIllustration kind={illustration} />
       {code !== undefined && <p className="mt-5 text-3xl font-semibold text-[#2863e8] surface-dark:text-blue-400"><span className="sr-only">Error </span>{code}</p>}
       <h1 id={id} className="mt-4 text-xl font-medium tracking-tight">{title}</h1>
