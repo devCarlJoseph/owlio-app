@@ -52,9 +52,9 @@ describe("OwlioMascot", () => {
     expect(container.querySelector(".owlio-mascot-scene")!.getAttribute("data-state")).toBe("complete")
   })
 
-  it("tracks changes to the reduced-motion preference", () => {
+  it.each(["idle", "flying"] as const)("tracks changes to the reduced-motion preference while %s", (state) => {
     media.matches = true
-    const { container } = render(<OwlioMascot />)
+    const { container } = render(<OwlioMascot state={state} />)
     const mascot = container.querySelector<HTMLElement>(".owlio-mascot")!
     expect(mascot.dataset.reducedMotion).toBe("true")
     media.matches = false
@@ -62,9 +62,9 @@ describe("OwlioMascot", () => {
     expect(mascot.dataset.reducedMotion).toBe("false")
   })
 
-  it("pauses offscreen and hidden motion and removes subscriptions on unmount", () => {
+  it.each(["idle", "flying"] as const)("pauses offscreen and hidden motion and removes subscriptions while %s", (state) => {
     const removeListener = vi.spyOn(document, "removeEventListener")
-    const { container, unmount } = render(<OwlioMascot />)
+    const { container, unmount } = render(<OwlioMascot state={state} />)
     const removeAnimationListener = vi.spyOn(container.querySelector(".owlio-mascot-scene")!, "removeEventListener")
     const mascot = container.querySelector<HTMLElement>(".owlio-mascot")!
     act(() => visibilityCallback([{ isIntersecting: false }] as IntersectionObserverEntry[], {} as IntersectionObserver))
@@ -79,5 +79,12 @@ describe("OwlioMascot", () => {
     expect(removeListener).toHaveBeenCalledWith("visibilitychange", expect.any(Function))
     expect(media.removeEventListener).toHaveBeenCalledWith("change", expect.any(Function))
     expect(removeAnimationListener).toHaveBeenCalledWith("animationend", expect.any(Function))
+  })
+
+  it("keeps flying through animation events until the loader unmounts", () => {
+    const { container } = render(<OwlioMascot state="flying" />)
+    fireEvent.animationIteration(container.querySelector('[data-part="interaction"]')!)
+    fireEvent.animationEnd(container.querySelector('[data-part="interaction"]')!)
+    expect(container.querySelector(".owlio-mascot-scene")!.getAttribute("data-state")).toBe("flying")
   })
 })

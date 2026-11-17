@@ -1,18 +1,18 @@
 import { useId, type ReactNode } from 'react'
-import { BookOpenCheck, LoaderCircle, TriangleAlert } from 'lucide-react'
+import { BookOpenCheck, TriangleAlert } from 'lucide-react'
 import { OwlioMascotArtwork } from '@/components/common/owlio-mascot/owlio-mascot-artwork'
 
 type OwlioPageStateProps = {
   title: string
   description: ReactNode
-  tone?: 'loading' | 'error' | 'info'
+  tone?: 'error' | 'info'
   action?: ReactNode
 }
 
 /** Shared presentation for states that replace the entire application shell. */
 export function OwlioPageState({ title, description, tone = 'info', action }: OwlioPageStateProps) {
   const id = useId()
-  const Icon = tone === 'loading' ? LoaderCircle : tone === 'error' ? TriangleAlert : BookOpenCheck
+  const Icon = tone === 'error' ? TriangleAlert : BookOpenCheck
 
   return (
     <main className="relative isolate flex min-h-screen min-h-dvh flex-col overflow-hidden bg-indigo-100 text-slate-950 surface-dark:bg-slate-950 surface-dark:text-foreground">
@@ -37,13 +37,12 @@ export function OwlioPageState({ title, description, tone = 'info', action }: Ow
               <span className={tone === 'error'
                 ? 'mx-auto mb-5 flex size-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 surface-dark:bg-amber-400/15 surface-dark:text-amber-300'
                 : 'mx-auto mb-5 flex size-11 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700 surface-dark:bg-indigo-400/15 surface-dark:text-indigo-300'}>
-                <Icon aria-hidden="true" className={`size-5 ${tone === 'loading' ? 'motion-safe:animate-spin' : ''}`} />
+                <Icon aria-hidden="true" className="size-5" />
               </span>
               <h1 id={`${id}-title`} className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
               <div className="mt-3 break-words text-sm leading-6 text-slate-600 surface-dark:text-slate-300">{description}</div>
             </div>
             {action && <div className="mt-7 flex flex-wrap justify-center gap-3">{action}</div>}
-            {tone === 'loading' && <div aria-hidden="true" className="mt-7 flex justify-center gap-1.5"><span className="size-2 rounded-full bg-indigo-600 motion-safe:animate-pulse" /><span className="size-2 rounded-full bg-indigo-400 motion-safe:animate-pulse" /><span className="size-2 rounded-full bg-indigo-200 motion-safe:animate-pulse" /></div>}
           </div>
         </section>
       </div>

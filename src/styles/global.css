@@ -178,6 +178,26 @@
 
 /* Animation definitions consumed by Tailwind animate-* utilities. */
 @theme {
+  --animate-owlio-fly: owlio-fly 1.6s ease-in-out infinite;
+  --animate-owlio-fly-left: owlio-fly-left 800ms ease-in-out infinite;
+  --animate-owlio-fly-right: owlio-fly-right 800ms ease-in-out infinite;
+  --animate-owlio-loading-line: owlio-loading-line 1.8s ease-in-out infinite;
+  @keyframes owlio-fly {
+    0%, 100% { transform: translate(0, -24px) rotate(-3deg); }
+    50% { transform: translate(8px, -48px) rotate(3deg); }
+  }
+  @keyframes owlio-fly-left {
+    0%, 100% { transform: rotate(48deg); }
+    50% { transform: rotate(-24deg); }
+  }
+  @keyframes owlio-fly-right {
+    0%, 100% { transform: rotate(-24deg); }
+    50% { transform: rotate(58deg); }
+  }
+  @keyframes owlio-loading-line {
+    0% { transform: translateX(-110%); }
+    100% { transform: translateX(210%); }
+  }
   --animate-owlio-breathe: owlio-breathe 7s ease-in-out infinite;
   --animate-owlio-tilt: owlio-tilt 14s ease-in-out infinite;
   --animate-owlio-open-eyes: owlio-open-eyes 12s steps(1, end) infinite;
