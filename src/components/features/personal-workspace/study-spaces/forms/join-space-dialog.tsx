@@ -13,6 +13,7 @@ import {
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { studySpacesJoinHint } from "../utils/study-spaces-records"
+import { isStudySpaceCode, isStudySpaceInvitationToken } from "../utils/study-space-code"
 
 export type JoinSpaceDraft = {
   name: string
@@ -55,14 +56,15 @@ function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
   const [copyStatus, setCopyStatus] = useState("")
 
   async function submit() {
-    if (!/^[A-Za-z0-9_-]{43}$/.test(code.trim())) {
-      setError("Paste the invitation code supplied by the space owner.")
+    const enteredCode = code.trim()
+    if (!isStudySpaceCode(enteredCode) && !isStudySpaceInvitationToken(enteredCode)) {
+      setError("Enter an OWLIO-SPS code or paste a personal invitation.")
       return
     }
     setError("")
     setBusy(true)
     try {
-      await onSubmit({ name: "", inviteCode: code.trim() })
+      await onSubmit({ name: "", inviteCode: enteredCode })
     } catch (cause) {
       setError(getApiErrorMessage(cause, "This code could not be accepted."))
     } finally {
@@ -74,11 +76,11 @@ function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
     <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); if (!busy) void submit() }}>
       <DialogHeader>
         <DialogTitle>Join a study space</DialogTitle>
-        <DialogDescription>Paste the invitation code the owner created for your account.</DialogDescription>
+        <DialogDescription>Enter the room’s OWLIO-SPS code or paste a personal invitation from the owner.</DialogDescription>
       </DialogHeader>
       <Field>
         <FieldLabel htmlFor="account-space-code">Invitation code</FieldLabel>
-        <Input id="account-space-code" value={code} onChange={(event) => setCode(event.target.value)} disabled={busy} autoComplete="off" />
+        <Input id="account-space-code" value={code} onChange={(event) => setCode(event.target.value)} disabled={busy} autoComplete="off" placeholder="OWLIO-SPS-XXXX" />
       </Field>
       <Field className="rounded-lg border bg-muted/30 p-3">
         <FieldLabel htmlFor="study-space-account-id">Your account ID</FieldLabel>

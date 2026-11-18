@@ -52,11 +52,11 @@ Meeting messages and hand state use the backend's room lifecycle. Local panels c
 
 ## Study Spaces
 
-`/students/study-spaces` lists shared spaces the account owns or has joined through the paginated Study Spaces API. Creating a shared space saves the name and description and opens the room with the invitation dialog available. The owner enters the recipient's account ID to generate a single-use code that expires after 24 hours. The recipient can copy their account ID and redeem the invitation in **Join by code**. Browser-only rooms remain accessible, with options to create a room or add a joined-room preview in List view.
+`/students/study-spaces` lists shared spaces the account owns or has joined through the paginated Study Spaces API. Creating a shared space generates a reusable `OWLIO-SPS-XXXX` code and opens a copy dialog before avatar setup. The owner can reopen **Invite** to copy it, and signed-in students can use **Join by code**. Owners can still create a personal invitation using the recipient’s account ID. Personal invitations work once and expire after 24 hours. Browser-only rooms remain accessible in List view.
 
 Shared room messages are saved as discussion replies and visible only to members. The open room refreshes the latest 50 displayed messages every five seconds while the tab is visible. The current discussion API returns author IDs without display names for other members. Members appear as **Member** and the signed-in student sees their own name. Simultaneous first posts can create separate API threads. The room combines replies from threads named **Room discussion**.
 
-The API returns memberships rather than a student-wide directory and only issues recipient-bound invitations. Global discovery and reusable room codes require new backend contracts. Layout and seat count preferences for a shared room use account- and room-scoped browser storage. Avatars, seating, music, tasks, lockers and TV remain device-local. Existing device room records are left in their original storage and are not published automatically.
+Room codes require backend migration `0050_study_space_join_codes` and the matching API release before the frontend release. Preexisting shared rooms continue to use personal invitations. Archived room codes cannot be used, and a student with an inactive membership needs a personal invitation to rejoin. A student-wide directory remains unavailable. Layout and seat count preferences for a shared room use account- and room-scoped browser storage. Avatars, seating, music, tasks, lockers and TV remain device-local. Existing device room records are left in their original storage and are not published automatically.
 
 ## Verification boundary
 

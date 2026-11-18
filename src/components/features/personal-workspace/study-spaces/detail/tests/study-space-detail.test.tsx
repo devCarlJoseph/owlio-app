@@ -2,6 +2,8 @@ import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
+import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
+import { getStudySpace, listRoomDiscussions } from "@/services/api/study-space.service"
 import { StudySpaceDetailView } from "../view/study-space-detail-view"
 import { getSampleNappers, getSampleRoster } from "../../utils/space-roster"
 import {
@@ -12,6 +14,11 @@ import {
 import { buildRoomSpots, buildSeats } from "../utils/study-space-seats"
 import { getSampleLockers } from "../utils/room-lockers"
 import type { SpaceRoomSceneProps } from "../ui/space-room-scene"
+
+vi.mock("@/services/api/study-space.service", () => ({
+  getStudySpace: vi.fn(),
+  listRoomDiscussions: vi.fn(),
+}))
 
 vi.mock("../ui/space-room-scene", () => ({
   SpaceRoomScene: (props: SpaceRoomSceneProps) => (
@@ -68,6 +75,35 @@ function seedCharacter(name = "Sam") {
 }
 
 describe("study space detail room", () => {
+  it("shows the created room code before avatar setup", async () => {
+    const id = "22222222-2222-4222-8222-222222222222"
+    const joinCode = "OWLIO-SPS-A7K2"
+    vi.mocked(getStudySpace).mockResolvedValue({
+      id, joinCode, name: "Group study", about: "", kind: "collaborative", capacity: 4, role: "owner", createdAt: "",
+    })
+    vi.mocked(listRoomDiscussions).mockResolvedValue([])
+    const user = userEvent.setup()
+    render(
+      <AuthSessionContext.Provider value={{
+        status: "authenticated",
+        user: { id: "student", email: "student@example.test", name: "Sam", status: "ACTIVE", roles: ["STUDENT"], emailVerifiedAt: null, createdAt: "" },
+        error: null, signIn: vi.fn(), signOut: vi.fn(), refreshCurrentUser: vi.fn(),
+      }}>
+        <MemoryRouter initialEntries={[{ pathname: `/students/study-spaces/${id}`, state: { offerInvite: true } }]}>
+          <Routes>
+            <Route path="/students/study-spaces/:spaceId" element={<StudySpaceDetailView />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthSessionContext.Provider>,
+    )
+
+    const codeDialog = await screen.findByRole("dialog", { name: "Study space code" })
+    expect(within(codeDialog).getByText(joinCode)).toBeTruthy()
+    expect(screen.queryByText("Create your character")).toBeNull()
+    await user.click(within(codeDialog).getByRole("button", { name: "Done" }))
+    expect(await screen.findByText("Create your character")).toBeTruthy()
+  })
+
   it("shows a not-found state for an unknown space id", () => {
     renderAt("missing-space-id")
 

@@ -142,7 +142,7 @@ describe("shared study spaces", () => {
     expect(await dialog.findByRole("alert")).toBeTruthy()
     expect(joinStudySpace).not.toHaveBeenCalled()
 
-    const code = "a".repeat(43)
+    const code = "owlio-sps-a7k2"
     await user.clear(input)
     await user.type(input, ` ${code} `)
     await user.click(dialog.getByRole("button", { name: "Join space" }))

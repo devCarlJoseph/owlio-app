@@ -1,10 +1,18 @@
 import type { StudySpaceRecord } from '@/components/features/personal-workspace/study-spaces/utils/study-spaces-records'
+import { isStudySpaceCode, isStudySpaceInvitationToken } from '@/components/features/personal-workspace/study-spaces/utils/study-space-code'
 import { collectOperation, requestOperation } from './contract-client'
 import type { OperationData } from './generated-contract'
 
-export function toStudySpaceView(record: OperationData<'GET /api/v1/study-spaces/{spaceId}'>): StudySpaceRecord {
+type StudySpaceSummary = OperationData<'GET /api/v1/study-spaces'>['items'][number]
+
+export function toStudySpaceView(record: StudySpaceSummary & { joinCode?: string | null }): StudySpaceRecord {
   // These two values choose the existing room illustration, not stored membership limits.
-  return { id: record.id, name: record.name, about: record.description, role: record.role === 'OWNER' ? 'owner' : 'member', kind: 'collaborative', capacity: 4, createdAt: '' }
+  const owner = record.role === 'OWNER'
+  return {
+    id: record.id, name: record.name, about: record.description, role: owner ? 'owner' : 'member',
+    kind: 'collaborative', capacity: 4, createdAt: '',
+    ...(owner && record.joinCode ? { joinCode: record.joinCode } : {}),
+  }
 }
 export async function getStudySpaces(signal?: AbortSignal) {
   return (await collectOperation('GET /api/v1/study-spaces', { signal })).map(toStudySpaceView)
@@ -15,11 +23,19 @@ export async function getStudySpace(spaceId: string, signal?: AbortSignal) {
 export async function createStudySpace(name: string, description: string) {
   return toStudySpaceView(await requestOperation('POST /api/v1/study-spaces', { body: { name, description } }))
 }
-export async function joinStudySpace(token: string) {
-  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) throw new Error('Enter the invitation token supplied by the space owner.')
-  const { spaceId } = await requestOperation('POST /api/v1/study-space-invitations/accept', { body: { token } })
+export async function joinStudySpace(value: string) {
+  const code = value.trim()
+  const roomCode = isStudySpaceCode(code)
+  if (!roomCode && !isStudySpaceInvitationToken(code)) throw new Error('Enter an OWLIO-SPS code or the invitation token supplied by the space owner.')
+  const { spaceId } = roomCode
+    ? await requestOperation('POST /api/v1/study-spaces/join', { body: { code: code.toUpperCase() } })
+    : await requestOperation('POST /api/v1/study-space-invitations/accept', { body: { token: code } })
   try { return await getStudySpace(spaceId) }
-  catch { throw new Error('Your invitation was accepted, but the space could not be loaded. Refresh your spaces before retrying.') }
+  catch {
+    throw new Error(roomCode
+      ? 'You joined the study space, but it could not be loaded. Refresh your spaces to open it.'
+      : 'Your invitation was accepted, but the space could not be loaded. Refresh your spaces before retrying.')
+  }
 }
 export function issueStudySpaceInvitation(spaceId: string, recipientId: string) {
   return requestOperation('POST /api/v1/study-spaces/{spaceId}/invitations', { params: { spaceId }, body: { recipientId } })

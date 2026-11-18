@@ -12,6 +12,7 @@ export type StudySpaceRecord = {
   capacity: number
   createdAt: string
   inviteCode?: string
+  joinCode?: string
   accountSpace?: true
   // Local-only timestamp of the last time this browser opened the room.
   lastVisitedAt?: string

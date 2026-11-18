@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { collectOperation, requestOperation } from './contract-client'
-import { getDiscussionReplies, getStudySpaces, joinStudySpace, removeStudySpace } from './study-space.service'
+import { createStudySpace, getDiscussionReplies, getStudySpaces, joinStudySpace, removeStudySpace, toStudySpaceView } from './study-space.service'
 
 vi.mock('./contract-client', () => ({ collectOperation: vi.fn(), requestOperation: vi.fn() }))
 beforeEach(() => vi.resetAllMocks())
@@ -19,6 +19,21 @@ describe('study-space API workflows', () => {
   it('validates invitation tokens before sending a mutation', async () => {
     await expect(joinStudySpace('short')).rejects.toThrow('invitation token')
     expect(requestOperation).not.toHaveBeenCalled()
+  })
+
+  it('keeps the newly created code available for the owner only', async () => {
+    const room = { id: 'space', name: 'Group study', description: '', role: 'OWNER', joinCode: 'OWLIO-SPS-A7K2' } as const
+    vi.mocked(requestOperation).mockResolvedValue(room)
+    expect(await createStudySpace(room.name, '')).toMatchObject({ role: 'owner', joinCode: room.joinCode })
+    expect(toStudySpaceView({ ...room, role: 'MEMBER' })).not.toHaveProperty('joinCode')
+  })
+
+  it('normalizes a reusable code and opens the confirmed room', async () => {
+    vi.mocked(requestOperation)
+      .mockResolvedValueOnce({ spaceId: 'space' })
+      .mockResolvedValueOnce({ id: 'space', name: 'Group study', description: '', role: 'MEMBER', joinCode: null })
+    expect(await joinStudySpace(' owlio-sps-a7k2 ')).toMatchObject({ id: 'space', role: 'member' })
+    expect(requestOperation).toHaveBeenNthCalledWith(1, 'POST /api/v1/study-spaces/join', { body: { code: 'OWLIO-SPS-A7K2' } })
   })
 
   it('preserves confirmed acceptance when the follow-up detail read fails', async () => {

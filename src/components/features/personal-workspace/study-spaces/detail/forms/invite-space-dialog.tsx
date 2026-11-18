@@ -8,7 +8,60 @@ import { Input } from "@/components/ui/input"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import { issueStudySpaceInvitation } from "@/services/api/study-space.service"
 
-export function InviteSpaceDialog({ spaceId, onClose }: { spaceId: string; onClose: () => void }) {
+export function InviteSpaceDialog({ spaceId, joinCode, onClose }: {
+  spaceId: string
+  joinCode?: string
+  onClose: () => void
+}) {
+  const [personalInvite, setPersonalInvite] = useState(false)
+  if (joinCode && !personalInvite) {
+    return <SpaceCodeDialog code={joinCode} onClose={onClose} onPersonalInvite={() => setPersonalInvite(true)} />
+  }
+  return <PersonalInvitationDialog spaceId={spaceId} onClose={onClose} />
+}
+
+function SpaceCodeDialog({ code, onClose, onPersonalInvite }: {
+  code: string
+  onClose: () => void
+  onPersonalInvite: () => void
+}) {
+  const [copyStatus, setCopyStatus] = useState("")
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopyStatus("Study space code copied.")
+    } catch {
+      setCopyStatus("Select the study space code and copy it manually.")
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Study space code</DialogTitle>
+          <DialogDescription>Share this code with students. They can enter it under <strong>Study Spaces → Join by code</strong>.</DialogDescription>
+        </DialogHeader>
+        <div className="rounded-xl border bg-muted/40 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <code className="select-all break-all text-lg font-semibold tracking-wide">{code}</code>
+            <Button type="button" size="icon" variant="outline" aria-label="Copy study space code" onClick={() => void copyCode()}>
+              <Copy aria-hidden="true" />
+            </Button>
+          </div>
+          {copyStatus && <p role="status" className="mt-2 text-xs text-muted-foreground">{copyStatus}</p>}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onPersonalInvite}>Invite a specific student</Button>
+          <Button type="button" onClick={onClose}>Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function PersonalInvitationDialog({ spaceId, onClose }: { spaceId: string; onClose: () => void }) {
   const [recipientId, setRecipientId] = useState("")
   const [invitation, setInvitation] = useState<{ token: string; expiresAt: string } | null>(null)
   const [busy, setBusy] = useState(false)

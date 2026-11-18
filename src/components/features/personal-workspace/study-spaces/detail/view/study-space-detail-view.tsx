@@ -125,7 +125,8 @@ function RoomLoader({ spaceId, user }: { spaceId?: string; user?: RoomAccount | 
 
 function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: StudySpaceRecord | null; user?: RoomAccount | null }) {
   const navigate = useNavigate()
-  const { state } = useLocation()
+  const location = useLocation()
+  const { state } = location
   const shared = Boolean(space?.accountSpace)
   const [inviteOpen, setInviteOpen] = useState(Boolean(state?.offerInvite && space?.accountSpace && space.role === "owner"))
   const discussion = useRoomDiscussion(shared ? spaceId : undefined, user)
@@ -221,6 +222,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
 
   // The character dialog must stay open until a character exists; the footer offers a way back.
   const characterDialogOpen = character === null || editDialogOpen
+  const showingInvite = inviteOpen && shared && space.role === "owner" && (Boolean(space.joinCode) || !characterDialogOpen)
   const selectedSeat = seats.find((seat) => seat.id === selectedSeatId) ?? null
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
   const freeSeats = tableSeats.length - roster.length - (seatedSeat?.zone === "discussion" ? 1 : 0)
@@ -229,6 +231,13 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const isLeader = canManageTasks(space)
   const activeTrack =
     focusMusicTracks.find((track) => track.id === music.playback.trackId) ?? null
+
+  function closeInvite() {
+    setInviteOpen(false)
+    if (state?.offerInvite) {
+      navigate(location.pathname, { replace: true, state: { layoutSaved: state.layoutSaved } })
+    }
+  }
 
   function handleCharacterSubmit(draft: Pick<StudySpaceCharacter, "name" | "bodyColor" | "accentColor">) {
     const next: StudySpaceCharacter = { ...draft, createdAt: new Date().toISOString() }
@@ -771,11 +780,11 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
         </div>
       </div>
 
-      {inviteOpen && !characterDialogOpen && shared && space.role === "owner" && (
-        <InviteSpaceDialog spaceId={space.id} onClose={() => setInviteOpen(false)} />
+      {showingInvite && (
+        <InviteSpaceDialog spaceId={space.id} joinCode={space.joinCode} onClose={closeInvite} />
       )}
       <CharacterDialog
-        open={characterDialogOpen}
+        open={characterDialogOpen && !showingInvite}
         onOpenChange={setEditDialogOpen}
         required={character === null}
         initial={character}

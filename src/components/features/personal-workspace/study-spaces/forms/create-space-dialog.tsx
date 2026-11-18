@@ -101,7 +101,7 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
         <DialogTitle className="text-2xl font-semibold tracking-tight">Create a study space</DialogTitle>
         <DialogDescription className="max-w-md text-teal-100">
           Set up a room for independent study or group work. {accountSpace ? "" : "This room stays on this device."}
-          {accountSpace ? " Invite other students from the room after you create it." : ""}
+          {accountSpace ? " You’ll get a study space code to share after you create it." : ""}
         </DialogDescription>
       </DialogHeader>
 
