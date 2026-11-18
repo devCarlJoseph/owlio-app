@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
-import { Mic, Send, Square } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Mic, Send, Square, X } from 'lucide-react'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import { classroomVoiceLimit } from '@/services/api/classroom-chat.service'
 import { useAudioObjectUrl } from '../hooks/use-audio-object-url'
+import { ChatVoiceWaveform } from '../ui/chat-voice-waveform'
+import { chatDurationLabel } from '../utils/chat-format'
 
 const recordingTypes = ['audio/mp4;codecs=mp4a.40.2', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4']
 const maxSeconds = 30
 
-type Capture = { stream?: MediaStream; recorder?: MediaRecorder; timer?: number }
-type Recording = { audio: Blob; requestId: string }
+type Capture = { stream?: MediaStream; recorder?: MediaRecorder; timer?: number; clock?: number; sendOnStop?: boolean; replyToId: string | null }
+type Recording = { audio: Blob; requestId: string; replyToId: string | null }
 
 function releaseCapture(capture: Capture) {
   window.clearTimeout(capture.timer)
+  window.clearInterval(capture.clock)
   const { recorder, stream } = capture
   if (recorder) {
     recorder.ondataavailable = null
@@ -24,33 +25,24 @@ function releaseCapture(capture: Capture) {
   stream?.getTracks().forEach(track => track.stop())
 }
 
-export function ChatVoiceRecorder({ disabled, triggerClassName, onSend }: {
+export function ChatVoiceRecorder({ disabled, triggerClassName, onStart, onSend, replyToId, renderComposer }: {
   disabled: boolean
   triggerClassName: string
-  onSend: (audio: Blob, requestId: string) => Promise<boolean>
+  onStart: () => void
+  onSend: (audio: Blob, requestId: string, replyToId: string | null) => Promise<boolean>
+  replyToId: string | null
+  renderComposer: (mic?: ReactNode) => ReactNode
 }) {
-  const [open, setOpen] = useState(false)
   const [sending, setSending] = useState(false)
-
-  return <Dialog open={open} onOpenChange={next => { if (!sending) setOpen(next) }}>
-    <DialogTrigger render={<button type="button" disabled={disabled} className={triggerClassName} />} aria-label="Record voice message" title="Record voice message">
-      <Mic aria-hidden="true" className="size-4" />
-    </DialogTrigger>
-    <DialogContent className="max-h-[calc(100dvh-2rem)] gap-4 overflow-y-auto rounded-2xl" showCloseButton={!sending}>
-      {open && <VoiceRecording onSend={onSend} onClose={() => setOpen(false)} sending={sending} onSendingChange={setSending} />}
-    </DialogContent>
-  </Dialog>
-}
-
-function VoiceRecording({ sending, onSendingChange, onSend, onClose }: {
-  sending: boolean
-  onSendingChange: (sending: boolean) => void
-  onSend: (audio: Blob, requestId: string) => Promise<boolean>
-  onClose: () => void
-}) {
   const activeCapture = useRef<Capture | null>(null)
-  const activeSend = useRef<Blob | null>(null)
+  const activeSend = useRef<Recording | null>(null)
+  const mic = useRef<HTMLButtonElement>(null)
+  const stopButton = useRef<HTMLButtonElement>(null)
+  const sendButton = useRef<HTMLButtonElement>(null)
+  const discardButton = useRef<HTMLButtonElement>(null)
+  const restoreFocus = useRef(false)
   const [phase, setPhase] = useState<'idle' | 'requesting' | 'recording' | 'stopping'>('idle')
+  const [elapsed, setElapsed] = useState(0)
   const [recording, setRecording] = useState<Recording | null>(null)
   const [error, setError] = useState('')
   const { url, setAudio } = useAudioObjectUrl()
@@ -61,16 +53,51 @@ function VoiceRecording({ sending, onSendingChange, onSend, onClose }: {
     activeSend.current = null
   }, [])
 
+  useEffect(() => {
+    if (phase === 'requesting') discardButton.current?.focus()
+    else if (phase === 'recording') stopButton.current?.focus()
+    else if (recording && !sending) sendButton.current?.focus()
+    else if (phase === 'idle' && !recording && restoreFocus.current) {
+      if (disabled) return
+      mic.current?.focus()
+      restoreFocus.current = false
+    }
+  }, [disabled, phase, recording, sending])
+
+  const send = async (clip: Recording) => {
+    if (activeSend.current) return
+    activeSend.current = clip
+    setSending(true)
+    setError('')
+    try {
+      const sent = await onSend(clip.audio, clip.requestId, clip.replyToId)
+      if (activeSend.current !== clip) return
+      if (sent) { setAudio(null); setRecording(null) }
+      else setError('The recording could not be sent. Try again.')
+    } catch (cause) {
+      if (activeSend.current === clip) setError(getApiErrorMessage(cause, 'The recording could not be sent. Try again.'))
+    } finally {
+      if (activeSend.current === clip) {
+        activeSend.current = null
+        setSending(false)
+      }
+    }
+  }
+
   const start = async () => {
     if (activeCapture.current) return
-    const type = typeof MediaRecorder !== 'undefined' && recordingTypes.find(format => MediaRecorder.isTypeSupported(format))
+    const type = typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function'
+      && recordingTypes.find(format => MediaRecorder.isTypeSupported(format))
     if (!type || !navigator.mediaDevices?.getUserMedia) {
       setError('Voice recording is unavailable in this browser.')
       return
     }
-    const capture: Capture = {}
+    const capture: Capture = { replyToId }
     activeCapture.current = capture
+    restoreFocus.current = true
+    onStart()
     setError('')
+    setElapsed(0)
     setPhase('requesting')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -97,8 +124,10 @@ function VoiceRecording({ sending, onSendingChange, onSend, onClose }: {
         else if (!size) setError('No audio was recorded. Try again.')
         else {
           const audio = new Blob(chunks, { type: type.split(';')[0] })
+          const clip = { audio, requestId: crypto.randomUUID(), replyToId: capture.replyToId }
           setAudio(audio)
-          setRecording({ audio, requestId: crypto.randomUUID() })
+          setRecording(clip)
+          if (capture.sendOnStop) void send(clip)
         }
       }
       recorder.onerror = () => {
@@ -108,6 +137,8 @@ function VoiceRecording({ sending, onSendingChange, onSend, onClose }: {
         setError('Recording stopped unexpectedly. Try again.')
       }
       recorder.start(250)
+      const startedAt = performance.now()
+      capture.clock = window.setInterval(() => setElapsed(Math.min(maxSeconds, (performance.now() - startedAt) / 1000)), 250)
       capture.timer = window.setTimeout(() => { if (recorder.state === 'recording') recorder.stop() }, maxSeconds * 1000)
       setPhase('recording')
     } catch (cause) {
@@ -121,47 +152,53 @@ function VoiceRecording({ sending, onSendingChange, onSend, onClose }: {
     }
   }
 
-  const stop = () => {
-    const recorder = activeCapture.current?.recorder
-    if (recorder?.state !== 'recording') return
+  const stop = (sendOnStop = false) => {
+    const capture = activeCapture.current
+    if (capture?.recorder?.state !== 'recording') return
+    capture.sendOnStop = sendOnStop
     setPhase('stopping')
-    recorder.stop()
+    capture.recorder.stop()
   }
 
-  const send = async () => {
-    if (!recording || activeSend.current) return
-    activeSend.current = recording.audio
-    onSendingChange(true)
+  const discard = () => {
+    if (activeSend.current) return
+    if (activeCapture.current) releaseCapture(activeCapture.current)
+    activeCapture.current = null
+    setAudio(null)
+    setRecording(null)
+    setPhase('idle')
     setError('')
-    try {
-      const sent = await onSend(recording.audio, recording.requestId)
-      if (activeSend.current !== recording.audio) return
-      if (sent) onClose()
-      else setError('The recording could not be sent. Try again.')
-    } catch (cause) {
-      if (activeSend.current === recording.audio) setError(getApiErrorMessage(cause, 'The recording could not be sent. Try again.'))
-    } finally {
-      if (activeSend.current === recording.audio) {
-        activeSend.current = null
-        onSendingChange(false)
-      }
-    }
   }
+
+  if (phase === 'idle' && !recording) return <>
+    {error && <p role="alert" className="mb-1 text-xs text-destructive">{error}</p>}
+    {renderComposer(<button ref={mic} type="button" disabled={disabled} className={triggerClassName} aria-label="Record voice message" onClick={() => void start()}>
+      <Mic aria-hidden="true" className="size-4" />
+    </button>)}
+  </>
 
   return <>
-    <DialogHeader>
-      <DialogTitle className="pr-8 text-base font-semibold">Voice message</DialogTitle>
-      <DialogDescription>Record up to {maxSeconds} seconds and listen before sending.</DialogDescription>
-    </DialogHeader>
-    {phase === 'recording' && <p role="status" className="flex items-center gap-2 rounded-xl bg-brand-soft px-3 py-2 text-sm text-brand-soft-foreground"><span className="size-2 rounded-full bg-destructive" />Recording…</p>}
-    {url && <audio aria-label="Preview voice message" controls controlsList="nodownload" className="w-full min-w-0" src={url} />}
-    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    <DialogFooter>
-      {recording ? <>
-        <Button type="button" variant="outline" disabled={sending} onClick={() => { setAudio(null); setRecording(null); setError('') }}>Discard recording</Button>
-        <Button type="button" disabled={sending} className="bg-brand text-brand-foreground hover:bg-brand/90" onClick={() => void send()}><Send />{sending ? 'Sending…' : 'Send voice message'}</Button>
-      </> : phase === 'recording' ? <Button type="button" onClick={stop}><Square />Stop recording</Button>
-        : <Button type="button" disabled={phase !== 'idle'} onClick={() => void start()}><Mic />{phase === 'requesting' ? 'Waiting for microphone…' : phase === 'stopping' ? 'Finishing recording…' : 'Start recording'}</Button>}
-    </DialogFooter>
+    {error && <p role="alert" className="mb-1 text-xs text-destructive">{error}</p>}
+    <div role="group" aria-label="Voice recording" className="flex min-w-0 items-center gap-1 text-brand"
+      onKeyDown={event => {
+        if (event.key === 'Escape' && !sending) { event.preventDefault(); discard() }
+      }}>
+      {recording ? <ChatVoiceWaveform audio={recording.audio} url={url} audioLabel="Preview voice message"
+        className="min-w-0 flex-1 rounded-full bg-brand-soft px-2 py-1 text-brand-soft-foreground" />
+        : <div className="flex min-h-10 min-w-0 flex-1 items-center justify-between gap-2 rounded-full bg-brand px-1.5 py-1 text-brand-foreground">
+          {phase === 'recording' && <button ref={stopButton} type="button" aria-label="Stop recording" onClick={() => stop()}
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-foreground text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-brand">
+            <Square aria-hidden="true" className="size-3.5 fill-current" />
+          </button>}
+          <span role="status" className={phase === 'recording' ? 'sr-only' : 'px-2 text-xs'}>{phase === 'recording' ? 'Recording voice message' : phase === 'requesting' ? 'Waiting for microphone…' : 'Finishing recording…'}</span>
+          {phase === 'recording' && <span className="shrink-0 rounded-full bg-brand-foreground px-2 py-0.5 text-xs font-medium text-brand tabular-nums">{chatDurationLabel(elapsed)}</span>}
+        </div>}
+      <button ref={sendButton} type="button" disabled={sending || disabled || (!recording && phase !== 'recording')}
+        className={triggerClassName} aria-label={sending ? 'Sending voice message' : 'Send voice message'}
+        onClick={() => recording ? void send(recording) : stop(true)}><Send aria-hidden="true" className="size-5" /></button>
+      <button ref={discardButton} type="button" disabled={sending} className={triggerClassName} aria-label="Discard recording" onClick={discard}>
+        <span className="grid size-5 place-items-center rounded-full bg-brand text-brand-foreground"><X aria-hidden="true" className="size-3.5" /></span>
+      </button>
+    </div>
   </>
 }

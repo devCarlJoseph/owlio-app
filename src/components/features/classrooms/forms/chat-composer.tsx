@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react"
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react"
 import { AtSign, Paperclip, Send, Smile, X } from "lucide-react"
 import { cn } from '@/lib/utils'
 import type { ChatMentions } from '@/services/api/classroom-chat.service'
@@ -26,7 +26,7 @@ export function ChatComposer({
   canMentionStudents = false,
 }: {
   onSend: (body: string, mentions?: ChatMentions) => void | Promise<boolean>
-  onSendVoice?: (audio: Blob, requestId: string) => Promise<boolean>
+  onSendVoice?: (audio: Blob, requestId: string, replyToId: string | null) => Promise<boolean>
   replyingTo: ClassroomChatReplyRef | null
   onCancelReply: () => void
   disabled?: boolean
@@ -106,6 +106,51 @@ export function ChatComposer({
     textareaRef.current?.focus()
   }
 
+  const renderComposer = (mic?: ReactNode) => (
+    <div className="flex min-w-0 items-end gap-0.5 rounded-[15px] bg-brand-soft p-1.5 @min-[30rem]/class-chat:gap-1">
+      <button type="button" disabled className={cn(iconButton, onSendVoice && 'hidden @min-[30rem]/class-chat:inline-flex')} aria-label="Attach a file (not available yet)" title="Attachments are not available yet">
+        <Paperclip aria-hidden="true" className="size-4" />
+      </button>
+      {classroomId && <button type="button" disabled={disabled} className={iconButton} aria-label="Mention someone" aria-expanded={mentionsOpen} onMouseDown={event => event.preventDefault()} onClick={() => {
+        if (mentionsOpen || activeMention) {
+          setMentionsOpen(!mentionsOpen); textareaRef.current?.focus(); return
+        }
+        const start = textareaRef.current?.selectionStart ?? draft.length
+        const end = textareaRef.current?.selectionEnd ?? start
+        const prefix = draft.slice(0, start)
+        const insertion = `${prefix}${prefix && !/\s$/.test(prefix) ? ' ' : ''}@`
+        const value = insertion + draft.slice(end)
+        if (value.length > MAX_LENGTH) return
+        setDraft(value); updateMention(value, insertion.length, insertion.length)
+        requestAnimationFrame(() => { textareaRef.current?.focus(); textareaRef.current?.setSelectionRange(insertion.length, insertion.length) })
+      }}><AtSign aria-hidden="true" className="size-4" /></button>}
+      <label htmlFor="class-chat-message" className="sr-only">Message this class</label>
+      <Textarea
+        ref={textareaRef}
+        id="class-chat-message"
+        rows={1}
+        disabled={disabled}
+        value={draft}
+        maxLength={MAX_LENGTH}
+        onChange={(event) => { setDraft(event.currentTarget.value); updateMention(event.currentTarget.value, event.currentTarget.selectionStart, event.currentTarget.selectionEnd) }}
+        onSelect={event => updateMention(event.currentTarget.value, event.currentTarget.selectionStart, event.currentTarget.selectionEnd)}
+        onKeyDown={handleKeyDown}
+        aria-autocomplete="list"
+        aria-controls={mentionsOpen ? mentionsId : undefined}
+        aria-activedescendant={mentionsOpen ? activeOptionId : undefined}
+        placeholder="Your message"
+        className="max-h-28 min-h-8 min-w-0 flex-1 resize-none rounded-lg border-0 bg-transparent px-1.5 py-1.5 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-transparent @min-[30rem]/class-chat:min-h-9 @min-[30rem]/class-chat:px-2"
+      />
+      <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
+        <Smile aria-hidden="true" className="size-4" />
+      </button>
+      {mic}
+      <Button type="submit" variant="ghost" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-8 shrink-0 rounded-lg text-brand-soft-foreground hover:bg-background/80 hover:text-brand-soft-foreground @min-[30rem]/class-chat:size-9">
+        <Send aria-hidden="true" />
+      </Button>
+    </div>
+  )
+
   return (
     <form onSubmit={submit} className="max-h-[55%] shrink-0 overflow-y-auto px-3 pt-1 pb-3 @min-[30rem]/class-chat:px-6" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setMentionsOpen(false) }}>
       {classroomId && <ChatMentionPicker key={`${classroomId}:${userId}`} ref={mentionsRef} classroomId={classroomId} userId={userId} canMentionStudents={canMentionStudents} query={activeMention?.query ?? ''} open={mentionsOpen && !disabled} listId={mentionsId} onActiveChange={setActiveOptionId} onClose={() => setMentionsOpen(false)} onSelect={selectMention} />}
@@ -140,48 +185,9 @@ export function ChatComposer({
           ))}
         </div>
       )}
-      <div className="flex min-w-0 items-end gap-0.5 rounded-[15px] bg-brand-soft p-1.5 @min-[30rem]/class-chat:gap-1">
-        <button type="button" disabled className={cn(iconButton, onSendVoice && 'hidden @min-[30rem]/class-chat:inline-flex')} aria-label="Attach a file (not available yet)" title="Attachments are not available yet">
-          <Paperclip aria-hidden="true" className="size-4" />
-        </button>
-        {classroomId && <button type="button" disabled={disabled} className={iconButton} aria-label="Mention someone" aria-expanded={mentionsOpen} onMouseDown={event => event.preventDefault()} onClick={() => {
-          if (mentionsOpen || activeMention) {
-            setMentionsOpen(!mentionsOpen); textareaRef.current?.focus(); return
-          }
-          const start = textareaRef.current?.selectionStart ?? draft.length
-          const end = textareaRef.current?.selectionEnd ?? start
-          const prefix = draft.slice(0, start)
-          const insertion = `${prefix}${prefix && !/\s$/.test(prefix) ? ' ' : ''}@`
-          const value = insertion + draft.slice(end)
-          if (value.length > MAX_LENGTH) return
-          setDraft(value); updateMention(value, insertion.length, insertion.length)
-          requestAnimationFrame(() => { textareaRef.current?.focus(); textareaRef.current?.setSelectionRange(insertion.length, insertion.length) })
-        }}><AtSign aria-hidden="true" className="size-4" /></button>}
-        <label htmlFor="class-chat-message" className="sr-only">Message this class</label>
-        <Textarea
-          ref={textareaRef}
-          id="class-chat-message"
-          rows={1}
-          disabled={disabled}
-          value={draft}
-          maxLength={MAX_LENGTH}
-          onChange={(event) => { setDraft(event.currentTarget.value); updateMention(event.currentTarget.value, event.currentTarget.selectionStart, event.currentTarget.selectionEnd) }}
-          onSelect={event => updateMention(event.currentTarget.value, event.currentTarget.selectionStart, event.currentTarget.selectionEnd)}
-          onKeyDown={handleKeyDown}
-          aria-autocomplete="list"
-          aria-controls={mentionsOpen ? mentionsId : undefined}
-          aria-activedescendant={mentionsOpen ? activeOptionId : undefined}
-          placeholder="Your message"
-          className="max-h-28 min-h-8 min-w-0 flex-1 resize-none rounded-lg border-0 bg-transparent px-1.5 py-1.5 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-transparent @min-[30rem]/class-chat:min-h-9 @min-[30rem]/class-chat:px-2"
-        />
-        <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
-          <Smile aria-hidden="true" className="size-4" />
-        </button>
-        {onSendVoice && <ChatVoiceRecorder onSend={onSendVoice} triggerClassName={iconButton} disabled={disabled} />}
-        <Button type="submit" variant="ghost" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-8 shrink-0 rounded-lg text-brand-soft-foreground hover:bg-background/80 hover:text-brand-soft-foreground @min-[30rem]/class-chat:size-9">
-          <Send aria-hidden="true" />
-        </Button>
-      </div>
+      {onSendVoice ? <ChatVoiceRecorder onSend={onSendVoice} triggerClassName={iconButton} disabled={disabled}
+        replyToId={replyingTo?.messageId ?? null} renderComposer={renderComposer}
+        onStart={() => { setEmojiOpen(false); setMentionsOpen(false) }} /> : renderComposer()}
       {draft.length >= 400 && <p aria-live="polite" className="mt-1 px-1 text-right text-[11px] text-muted-foreground">{draft.length}/{MAX_LENGTH}</p>}
     </form>
   )

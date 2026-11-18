@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play } from 'lucide-react'
 import { getClassroomVoiceMessage, type ClassroomVoiceType } from '@/services/api/classroom-chat.service'
 import { useAudioObjectUrl } from '../hooks/use-audio-object-url'
+import { ChatVoiceWaveform } from './chat-voice-waveform'
 
-export function ChatVoicePlayer({ classroomId, messageId, voiceType }: {
+export function ChatVoicePlayer({ classroomId, messageId, voiceType, mine }: {
   classroomId: string
   messageId: string
   voiceType: ClassroomVoiceType
+  mine: boolean
 }) {
   const request = useRef<AbortController | null>(null)
   const { url, setAudio } = useAudioObjectUrl()
+  const [audio, setBlob] = useState<Blob | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   useEffect(() => () => request.current?.abort(), [])
@@ -23,7 +25,7 @@ export function ChatVoicePlayer({ classroomId, messageId, voiceType }: {
     try {
       const audio = await getClassroomVoiceMessage(classroomId, messageId, controller.signal)
       if (audio.type !== voiceType) throw new Error('Unexpected audio format.')
-      if (!controller.signal.aborted) setAudio(audio)
+      if (!controller.signal.aborted) { setAudio(audio); setBlob(audio) }
     } catch {
       if (!controller.signal.aborted) setError('Could not load audio. Try again.')
     } finally {
@@ -35,12 +37,8 @@ export function ChatVoicePlayer({ classroomId, messageId, voiceType }: {
   }
 
   return <div className="w-56 max-w-full min-w-0 space-y-1">
-    {url ? <audio aria-label="Voice message playback" className="w-full min-w-0" controls controlsList="nodownload" autoPlay src={url}
-      onError={() => { setAudio(null); setError('This recording could not be played.') }} />
-      : <button type="button" aria-label="Play voice message" disabled={loading} onClick={() => void load()} className="flex min-h-9 w-full items-center gap-2 rounded-lg px-1 text-left font-medium outline-none hover:bg-current/5 focus-visible:ring-2 focus-visible:ring-current disabled:opacity-70">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-foreground/25"><Play aria-hidden="true" className="size-4 fill-current" /></span>
-        {loading ? 'Loading audio…' : 'Voice message'}
-      </button>}
+    <ChatVoiceWaveform audio={audio} url={url} loading={loading} audioLabel="Voice message playback" className={mine ? undefined : 'text-brand-soft-foreground'}
+      onLoad={() => void load()} onError={() => { setAudio(null); setBlob(null) }} />
     {error && <p role="alert" className="text-xs">{error}</p>}
   </div>
 }

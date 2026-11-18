@@ -3,6 +3,11 @@ const dateOf = (value: string) => {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
+export function chatDurationLabel(seconds: number) {
+  const whole = Math.floor(Math.max(0, seconds))
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
+}
+
 export function chatDay(value: string) {
   return dateOf(value)?.toDateString() ?? value
 }

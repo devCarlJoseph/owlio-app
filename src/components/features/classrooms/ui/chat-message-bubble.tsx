@@ -28,7 +28,7 @@ export function ChatMessageBubble({ classroomId, message, mine, showHeader, high
       {mentioned && <p className="text-xs font-medium text-brand">Mentioned you</p>}
       {showHeader && !mine && <p className="text-xs font-semibold text-brand-soft-foreground">{message.authorName}{message.authorRole === 'educator' && <span className="ml-1.5 text-[11px] font-normal">· Educator</span>}</p>}
       {message.replyTo && <button type="button" onClick={() => onJumpToMessage(message.replyTo!.messageId)} aria-label={`Replying to ${message.replyTo.authorName}: ${message.replyTo.excerpt}. Go to original message`} className="block w-full max-w-full rounded-lg border-l-2 border-current bg-background/15 px-2.5 py-1.5 text-left text-xs outline-none hover:bg-background/25 focus-visible:ring-2 focus-visible:ring-ring"><span className="mb-0.5 block font-semibold">Replying to {message.replyTo.authorName}</span><span className="line-clamp-2 [overflow-wrap:anywhere]">{message.replyTo.excerpt}</span></button>}
-      {message.voiceType ? <ChatVoicePlayer classroomId={classroomId} messageId={message.id} voiceType={message.voiceType} /> : <DiscussionText text={message.body} />}
+      {message.voiceType ? <ChatVoicePlayer classroomId={classroomId} messageId={message.id} voiceType={message.voiceType} mine={mine} /> : <DiscussionText text={message.body} />}
       <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
         {(onReact || message.reactions) && <ChatMessageReactions reactions={message.reactions ?? {}} onReact={onReact} />}
         <div className={`ml-auto flex flex-wrap items-center justify-end gap-x-1.5 gap-y-1 text-[11px] ${mine ? 'text-brand-foreground' : 'text-muted-foreground'}`}>

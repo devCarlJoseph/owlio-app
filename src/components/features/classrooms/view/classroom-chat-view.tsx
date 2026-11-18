@@ -119,9 +119,12 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     if (sent) setReplyingTo(null)
     return sent
   }
-  const handleVoiceSend = async (audio: Blob, requestId: string) => {
-    const sent = await chat.sendVoice(audio, requestId, replyingTo?.messageId ?? null)
-    if (sent) { setQuery(''); setReplyingTo(null) }
+  const handleVoiceSend = async (audio: Blob, requestId: string, replyToId: string | null) => {
+    const sent = await chat.sendVoice(audio, requestId, replyToId)
+    if (sent) {
+      setQuery('')
+      setReplyingTo(current => current?.messageId === replyToId ? null : current)
+    }
     return sent
   }
 
