@@ -1,7 +1,9 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react"
 import { AtSign, Paperclip, Send, Smile, X } from "lucide-react"
+import { cn } from '@/lib/utils'
 import type { ChatMentions } from '@/services/api/classroom-chat.service'
 import { ChatMentionPicker, type ChatMentionPickerHandle } from './chat-mention-picker'
+import { ChatVoiceRecorder } from './chat-voice-recorder'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import type { ClassroomChatReplyRef } from "../types/classroom-types"
@@ -15,6 +17,7 @@ const iconButton =
 
 export function ChatComposer({
   onSend,
+  onSendVoice,
   replyingTo,
   onCancelReply,
   disabled = false,
@@ -23,6 +26,7 @@ export function ChatComposer({
   canMentionStudents = false,
 }: {
   onSend: (body: string, mentions?: ChatMentions) => void | Promise<boolean>
+  onSendVoice?: (audio: Blob, requestId: string) => Promise<boolean>
   replyingTo: ClassroomChatReplyRef | null
   onCancelReply: () => void
   disabled?: boolean
@@ -137,7 +141,7 @@ export function ChatComposer({
         </div>
       )}
       <div className="flex min-w-0 items-end gap-0.5 rounded-[15px] bg-brand-soft p-1.5 @min-[30rem]/class-chat:gap-1">
-        <button type="button" disabled className={iconButton} aria-label="Attach a file (not available yet)" title="Attachments are not available yet">
+        <button type="button" disabled className={cn(iconButton, onSendVoice && 'hidden @min-[30rem]/class-chat:inline-flex')} aria-label="Attach a file (not available yet)" title="Attachments are not available yet">
           <Paperclip aria-hidden="true" className="size-4" />
         </button>
         {classroomId && <button type="button" disabled={disabled} className={iconButton} aria-label="Mention someone" aria-expanded={mentionsOpen} onMouseDown={event => event.preventDefault()} onClick={() => {
@@ -173,6 +177,7 @@ export function ChatComposer({
         <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
           <Smile aria-hidden="true" className="size-4" />
         </button>
+        {onSendVoice && <ChatVoiceRecorder onSend={onSendVoice} triggerClassName={iconButton} disabled={disabled} />}
         <Button type="submit" variant="ghost" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-8 shrink-0 rounded-lg text-brand-soft-foreground hover:bg-background/80 hover:text-brand-soft-foreground @min-[30rem]/class-chat:size-9">
           <Send aria-hidden="true" />
         </Button>

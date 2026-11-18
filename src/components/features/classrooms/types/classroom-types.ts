@@ -1,3 +1,5 @@
+import type { ClassroomMessageReactions, ClassroomVoiceType } from '@/services/api/classroom-chat.service'
+
 export type WorkspaceRole = "students" | "educators" | "tutors" | "esl"
 
 export type ClassroomMember = {
@@ -46,6 +48,8 @@ export type ClassroomChatReplyRef = {
 
 export type ClassroomChatMessage = {
   seenCount?: number | null
+  reactions?: ClassroomMessageReactions
+  voiceType?: ClassroomVoiceType | null
   mentionUserIds?: string[]
   mentionStudents?: boolean
   id: string

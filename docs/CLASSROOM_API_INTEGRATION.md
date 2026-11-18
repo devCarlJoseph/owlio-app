@@ -100,6 +100,14 @@ The **Members** tab and **Chat → Conversation details → Chat members** use `
 
 Classroom chat uses a Messenger-inspired conversation layout with grouped bubbles, actual message dates/times, search, server-backed replies, a bounded shadcn message viewport, and a collapsible details/member panel. Its conversation surfaces inherit the product theme (white in light mode and dark in dark mode), with purple outgoing bubbles and a rounded composer scoped to the Chat tab. Classroom invite and meeting-code cards are omitted on this tab and remain available on the other classroom tabs. On narrow screens details replace the conversation temporarily; closing restores focus and the draft. Existing message routes, cookie/CSRF handling, five-second refresh, request-ID retry behavior, and archived/denied restrictions are unchanged. The unsupported local preview reactions were removed from classroom chat; emoji message content still uses the existing server-backed send flow. There are no fabricated typing, online, read-receipt, file-sharing, or encryption indicators.
 
+## Classroom chat reactions and voice messages
+
+Classroom members can add or remove Owlio emoji reactions on individual messages and see the confirmed counts. The newest history page refreshes counts with the existing chat poll. Older pages show the counts from when they were loaded, plus changes confirmed for the current user.
+
+The mic opens a recorder where a member can record a clip of up to 30 seconds, listen, discard, or send without clearing the text draft. Recording requires microphone permission and a supported browser format. Failed sends retain the recording in the open dialog and reuse its request ID on retry. Voice messages appear in normal chat history and replies. Playback fetches a private clip on demand through the authenticated classroom API. The API caps uploads at 512 KiB and stores them with the message. Archived history remains playable and reaction counts stay visible.
+
+The controls require the matching API release and additive migration `0051_classroom_voice_and_reactions`. The frontend uses the API’s `canWrite` flag for reaction and recording actions. See the backend’s `docs/CLASSROOM_CHAT_API.md` for the HTTP contract.
+
 ## Classroom chat and reusable meeting codes — 15 November 2026
 
 The existing classroom and meeting layouts now connect the requested create/enroll/chat/meeting journey. New classroom invitations use `OWLIO-` plus four random uppercase letters/digits. Each classroom also receives a reusable meeting code with eight random uppercase letters/digits, available immediately after creation and on authorized list/detail reloads. Older invitations remain accepted.

@@ -119,6 +119,11 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
     if (sent) setReplyingTo(null)
     return sent
   }
+  const handleVoiceSend = async (audio: Blob, requestId: string) => {
+    const sent = await chat.sendVoice(audio, requestId, replyingTo?.messageId ?? null)
+    if (sent) { setQuery(''); setReplyingTo(null) }
+    return sent
+  }
 
   return <div className="@container/class-chat min-w-0 scheme-light dark:scheme-dark" onKeyDown={event => {
     if (event.key === 'Escape' && detailsOpen && !event.defaultPrevented) { event.preventDefault(); closeDetails() }
@@ -144,13 +149,36 @@ export function ClassroomChatView({ classroom, role }: { classroom: Classroom; r
             const previous = messages[index - 1]
             const newDay = !previous || chatDay(previous.createdAt) !== chatDay(message.createdAt)
             const showHeader = !previous || previous.authorId !== message.authorId || newDay
-            return <Fragment key={message.id}>{newDay && <li className="mt-2 self-center rounded-full px-3 py-1 text-center text-[11px] font-medium text-muted-foreground">{chatDateLabel(message.createdAt)}</li>}<ChatMessageBubble classroomId={classroom.id} mentioned={message.authorId !== user?.id && (message.mentionUserIds?.includes(user?.id ?? "") || Boolean(message.mentionStudents && classroom.ownerId !== user?.id))} message={{ ...message, replyTo: message.replyTo ?? undefined }} mine={message.authorId === user?.id} showHeader={showHeader} highlighted={highlightedId === message.id} onReply={() => startReply(message)} onJumpToMessage={jumpToMessage} /></Fragment>
+            return <Fragment key={message.id}>
+              {newDay && <li className="mt-2 self-center rounded-full px-3 py-1 text-center text-[11px] font-medium text-muted-foreground">{chatDateLabel(message.createdAt)}</li>}
+              <ChatMessageBubble
+                classroomId={classroom.id}
+                mentioned={message.authorId !== user?.id && (message.mentionUserIds?.includes(user?.id ?? "") || Boolean(message.mentionStudents && classroom.ownerId !== user?.id))}
+                message={{ ...message, replyTo: message.replyTo ?? undefined }}
+                mine={message.authorId === user?.id}
+                showHeader={showHeader}
+                highlighted={highlightedId === message.id}
+                onReply={() => startReply(message)}
+                onJumpToMessage={jumpToMessage}
+                onReact={chat.canWrite ? (emoji, active) => chat.react(message.id, emoji, active) : undefined}
+              />
+            </Fragment>
           })}
         </ol>}
       </ScrollArea>
       <p role="status" className="shrink-0 px-4 py-1 text-xs text-muted-foreground empty:hidden">{status}</p>
       {chat.error && <p role="alert" className="shrink-0 px-4 py-1 text-xs text-destructive [overflow-wrap:anywhere]">{chat.error}</p>}
-      <ChatComposer classroomId={classroom.id} userId={user?.id} canMentionStudents={classroom.ownerId === user?.id && classroom.access === 'owner'} disabled={chat.busy || chat.loading || chat.denied} onSend={handleSend} replyingTo={replyingTo} onCancelReply={() => setReplyingTo(null)} />
+      {chat.reactionError && <p role="alert" className="shrink-0 px-4 py-1 text-xs text-destructive [overflow-wrap:anywhere]">{chat.reactionError}</p>}
+      <ChatComposer
+        classroomId={classroom.id}
+        userId={user?.id}
+        canMentionStudents={classroom.ownerId === user?.id && classroom.access === 'owner'}
+        disabled={chat.busy || chat.loading || chat.denied}
+        onSend={handleSend}
+        onSendVoice={chat.canWrite ? handleVoiceSend : undefined}
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
+      />
     </section>
     {detailsOpen && <aside id={detailsId} aria-label="Conversation details" className="flex min-h-0 min-w-0 flex-col gap-2">
       <section className="flex max-h-1/2 min-h-0 shrink-0 flex-col overflow-hidden rounded-[22px] border border-border/60 bg-card">
