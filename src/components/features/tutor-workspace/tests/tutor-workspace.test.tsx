@@ -16,7 +16,6 @@ import TutorSessionNotesView from "../notes/view/tutor-session-notes-view"
 import TutorNotificationsView from "../notifications/view/tutor-notifications-view"
 import TutorStudentProgressView from "../progress/view/tutor-student-progress-view"
 import TutorSessionsView from "../sessions/view/tutor-sessions-view"
-import TutorSettingsView from "../settings/view/tutor-settings-view"
 import LearningPlansView from "../learning-plans/view/learning-plans-view"
 
 afterEach(cleanup)
@@ -38,7 +37,6 @@ const disconnectedPages: [string, ComponentType, string][] = [
   ["Announcements", TutorAnnouncementsView, "Announcements are unavailable"],
   ["Notifications", TutorNotificationsView, "Notification inbox is unavailable"],
   ["AI Tutor Assistant", TutorAiAssistantView, "AI generation is not connected"],
-  ["Profile & Settings", TutorSettingsView, "Profile settings are unavailable"],
 ]
 
 describe("tutor workspace pages", () => {
@@ -136,11 +134,14 @@ describe("tutor workspace pages", () => {
       "/tutors/materials",
       "/tutors/progress",
       "/tutors/ai-assistant",
+      "/tutors/profile",
+      "/tutors/settings",
+      "/tutors/help",
     ]) {
       expect(hrefs.has(href)).toBe(true)
     }
 
-    for (const path of ["attendance", "communication", "notifications", "settings"]) {
+    for (const path of ["attendance", "communication", "notifications"]) {
       expect(hrefs.has(`/tutors/${path}`)).toBe(false)
     }
 

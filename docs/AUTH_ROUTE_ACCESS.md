@@ -47,6 +47,12 @@ Production API requests use the frontend origin and the `/api` Render proxy in `
 
 The frontend uses the API's INVALID_CSRF response for a single retry after obtaining fresh CSRF. Registration returns a generic message, not an authenticated user. Account statuses include DISABLED. Google link status returns linked without an email. Google callback outcomes use the API's underscore names, including verification_required, registration_required, and link_required.
 
+## Account pages
+
+All four workspace roots expose `profile`, `settings`, and `help`. My Profile updates the display name through `PATCH /api/v1/users/me` and uses `/api/v1/users/me/avatar` for JPEG, PNG, or WebP uploads up to 2 MB. The matching API serves uploaded images from a private Neon Object Storage bucket using short-lived URLs. The profile and dashboard menu share the photo. Google sign-in or linking refreshes the synced Google photo, and removing a custom upload restores it when available. Existing linked users sync at their next Google sign-in.
+
+Settings saves time zone, locale, and session-reminder opt-in to the authenticated account, while appearance applies to this browser. Help & Support submits a request and lists status for the current account.
+
 ## Google setup and linking
 
 A successful Google login callback with `registration_required` opens a dedicated signup step: choose an account role, accept the terms, and select **Sign up with Google**. Google supplies the name and email, and this flow does not require an Owlio password. Email signup remains available.

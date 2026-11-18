@@ -14,10 +14,13 @@ it.each(classroomRoles)('gives every %s sidebar destination a searchable, role-p
   }
 })
 
-it.each(classroomRoles)('keeps planned %s pages titled and excludes implemented tutor settings', role => {
+it.each(classroomRoles)('keeps planned %s pages titled and excludes implemented account pages', role => {
   const pages = getPlannedDashboardPages('/' + role)
-  expect(pages.some(page => page.href === `/${role}/profile`)).toBe(true)
-  expect(pages.some(page => page.href === `/${role}/settings`)).toBe(role !== 'tutors')
+  for (const [path, title] of [['profile', 'My Profile'], ['settings', 'Settings'], ['help', 'Help & Support']]) {
+    const href = `/${role}/${path}`
+    expect(pages.some(page => page.href === href)).toBe(false)
+    expect(getDashboardPageTitle(href)).toBe(title)
+  }
   for (const page of pages) expect(getDashboardPageTitle(page.href)).toBe(page.label)
 })
 

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
+import { updateProfilePhoto } from './profile-photo.service'
 import { getCsrfToken, registerAccount, loginAccount, logoutAccount, mutateApiWithCsrf } from './auth.service'
-vi.mock('@/lib/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() } }))
+vi.mock('@/lib/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 
 function rejected(status: number, code: string) {
   return { isAxiosError: true, response: { status, data: { code } } }
@@ -29,6 +30,20 @@ describe('current auth API contract', () => {
     await mutateApiWithCsrf('DELETE', '/api/v1/users/me/personal-notes/note', { expectedVersion: 2 })
     expect(api.patch).toHaveBeenCalledWith('/api/v1/users/me/tasks/task', { expectedVersion: 1 }, { headers: { 'x-csrf-token': 'csrf' } })
     expect(api.delete).toHaveBeenCalledWith('/api/v1/users/me/personal-notes/note', { headers: { 'x-csrf-token': 'csrf' }, data: { expectedVersion: 2 } })
+  })
+  it('retries a binary profile photo only for stale CSRF and keeps its image content type', async () => {
+    const file = new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], 'avatar.jpg', { type: 'image/jpeg' })
+    const avatar = { url: 'https://storage.example.test/avatar', source: 'upload', uploadsAvailable: true }
+    vi.mocked(api.get).mockResolvedValueOnce({ data: { data: { csrfToken: 'old' } } })
+      .mockResolvedValueOnce({ data: { data: { csrfToken: 'fresh' } } })
+    vi.mocked(api.put).mockRejectedValueOnce(rejected(403, 'INVALID_CSRF'))
+      .mockResolvedValueOnce({ data: { data: avatar } })
+    await getCsrfToken(true)
+    await expect(updateProfilePhoto(file)).resolves.toEqual(avatar)
+    expect(api.put).toHaveBeenCalledTimes(2)
+    expect(api.put).toHaveBeenLastCalledWith('/api/v1/users/me/avatar', file, {
+      headers: { 'x-csrf-token': 'fresh', 'Content-Type': 'image/jpeg' },
+    })
   })
   it('rejects a missing CSRF token before sending a mutation', async () => {
     vi.mocked(api.get).mockResolvedValue({ data: { data: {} } })

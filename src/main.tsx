@@ -52,7 +52,9 @@ import TutorProgressPage from "@/pages/dashboard/tutors/progress";
 import TutorCommunicationPage from "@/pages/dashboard/tutors/communication";
 import TutorNotificationsPage from "@/pages/dashboard/tutors/notifications";
 import TutorAiAssistantPage from "@/pages/dashboard/tutors/ai-assistant";
-import TutorSettingsPage from "@/pages/dashboard/tutors/settings";
+import ProfilePage from "@/pages/dashboard/account/profile";
+import SettingsPage from "@/pages/dashboard/account/settings";
+import SupportPage from "@/pages/dashboard/account/support";
 import EslLessonsPage from "@/pages/dashboard/esl/lessons";
 import EslClassworkPage from "@/pages/dashboard/esl/classwork";
 import EslAttendancePage from "@/pages/dashboard/esl/attendance";
@@ -159,6 +161,9 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<StudentProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/educators" element={<RequireRole role="EDUCATOR"><PlatformLayout /></RequireRole>}>
@@ -195,6 +200,9 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/tutors" element={<RequireRole role="TUTOR"><PlatformLayout /></RequireRole>}>
@@ -236,7 +244,9 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<TutorNotificationsPage />} />
             <Route path="progress" element={<TutorProgressPage />} />
             <Route path="ai-assistant" element={<TutorAiAssistantPage />} />
-            <Route path="settings" element={<TutorSettingsPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
           <Route path="/esl" element={<RequireRole role="ESL"><PlatformLayout /></RequireRole>}>
@@ -275,6 +285,9 @@ createRoot(document.getElementById("root")!).render(
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
             <Route path="account/security" element={<AccountSecurityPage />} />
           </Route>
         </Route>

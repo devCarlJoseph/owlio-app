@@ -9,7 +9,7 @@ export type AuthSessionContextValue = {
   error: string | null
   signIn: (credentials: LoginRequest) => Promise<AuthSession>
   signOut: () => Promise<void>
-  refreshCurrentUser: () => Promise<void>
+  refreshCurrentUser: (background?: boolean) => Promise<void>
 }
 
 export const AuthSessionContext = createContext<AuthSessionContextValue | null>(null)

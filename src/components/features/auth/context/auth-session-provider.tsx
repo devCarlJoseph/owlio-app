@@ -61,7 +61,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     }
   }, [loadCurrentUser])
 
-  const refreshCurrentUser = useCallback(() => checkCurrentUser(), [checkCurrentUser])
+  const refreshCurrentUser = useCallback((background = false) => checkCurrentUser(background), [checkCurrentUser])
 
   const invalidatePendingChecks = useCallback(() => { ++operationVersion.current }, [])
 

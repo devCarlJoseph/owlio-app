@@ -3,7 +3,7 @@ import { Bell, CircleHelp, LogOut, Menu, Search, Settings, ShieldCheck, UserRoun
 import { Link, Outlet, useLocation, useNavigate } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { DashboardChromeContext } from "@/components/common/dashboard-chrome"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -19,6 +19,7 @@ import {
   getDashboardSidebarNavigation,
   getDashboardWorkspace,
 } from "@/components/common/dashboard-navigation"
+import { useProfilePhoto } from "@/components/features/account/use-profile-photo"
 import { ClassroomPrototypeProvider } from "@/components/features/classrooms/context/classroom-prototype-provider"
 import { ApiWorkspaceContent } from "@/components/features/connected-workspace/view/api-workspace-content"
 import { NotificationsTrigger } from "@/components/features/notifications/ui/notifications-trigger"
@@ -36,6 +37,7 @@ export default function PlatformLayout() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, signOut } = useAuthSession()
+  const profilePhoto = useProfilePhoto(user?.id)
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState<string | null>(null)
   const pageTitle = getDashboardPageTitle(pathname)
@@ -58,7 +60,7 @@ export default function PlatformLayout() {
     { label: "Account security", href: findHref("Account security"), icon: ShieldCheck },
     { label: "Notifications", href: notificationHref, icon: Bell },
   ]
-  const supportEntries: MenuEntry[] = [{ label: "Help & support", href: profileLinks.find(item => item.label === 'Help & support')?.href, icon: CircleHelp }]
+  const supportEntries: MenuEntry[] = [{ label: "Help & Support", href: profileLinks.find(item => item.label === 'Help & Support')?.href, icon: CircleHelp }]
   const workspaceLabel = getDashboardWorkspace(pathname)?.label
   const userInitials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'OW'
   const userRoleLabel = getAccountLabel(user?.roles ?? [])
@@ -177,6 +179,9 @@ export default function PlatformLayout() {
                 className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <Avatar className="size-10">
+                  {profilePhoto.current?.photo?.url && (
+                    <AvatarImage key={profilePhoto.current.revision} src={profilePhoto.current.photo.url} alt="" referrerPolicy="no-referrer" />
+                  )}
                   <AvatarFallback className="bg-brand-soft text-sm font-semibold text-brand-soft-foreground">{userInitials}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
@@ -229,7 +234,7 @@ export default function PlatformLayout() {
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
             <DashboardChromeContext.Provider value={setImmersive}>
               <ClassroomPrototypeProvider>
-                <ApiWorkspaceContent key={`${user?.id}:${user?.roles.join(',')}:${pathname}`}><Outlet /></ApiWorkspaceContent>
+                <ApiWorkspaceContent key={`${user?.id}:${user?.roles.join(',')}:${pathname}`}><Outlet context={profilePhoto} /></ApiWorkspaceContent>
               </ClassroomPrototypeProvider>
             </DashboardChromeContext.Provider>
           </main>

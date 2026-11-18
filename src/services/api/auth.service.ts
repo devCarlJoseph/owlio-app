@@ -53,9 +53,9 @@ export async function postApiWithCsrf<T>(path: string, body?: unknown): Promise<
   return mutateApiWithCsrf<T>('POST', path, body)
 }
 
-export async function mutateApiWithCsrf<T>(method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+export async function mutateApiWithCsrf<T>(method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown, contentType?: string): Promise<T> {
   const send = (token: string) => {
-    const config = { headers: { 'x-csrf-token': token } }
+    const config = { headers: { 'x-csrf-token': token, ...(contentType ? { 'Content-Type': contentType } : {}) } }
     if (method === 'POST') return api.post<ApiSuccess<T>>(path, body, config)
     if (method === 'PUT') return api.put<ApiSuccess<T>>(path, body, config)
     if (method === 'PATCH') return api.patch<ApiSuccess<T>>(path, body, config)

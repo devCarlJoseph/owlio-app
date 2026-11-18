@@ -12,6 +12,7 @@ import {
   Megaphone,
   NotebookPen,
   School,
+  Settings,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -48,7 +49,6 @@ const workspaceLabels: Record<DashboardRole, string> = {
 
 const plannedPaths: Record<string, string> = {
   'AI Assistant': 'ai-assistant',
-  'Help and Support': 'help',
   'Grade Book': 'grade-book',
   Announcements: 'announcements',
   'Lesson Planner': 'lesson-planner',
@@ -60,8 +60,8 @@ export function getDashboardProfileNavigation(pathname: string) {
   const role = getDashboardRole(pathname)
   return role ? [
     { label: 'My Profile', href: `/${role}/profile`, icon: UserRound },
-    { label: 'Settings', href: `/${role}/settings`, icon: ShieldCheck },
-    { label: 'Help & support', href: `/${role}/help`, icon: CircleHelp },
+    { label: 'Settings', href: `/${role}/settings`, icon: Settings },
+    { label: 'Help & Support', href: `/${role}/help`, icon: CircleHelp },
   ] : []
 }
 
@@ -71,7 +71,6 @@ export function getPlannedDashboardPages(pathname: string) {
   return [
     ...roleNavigation[role].flatMap(group => group.items).filter(item => !item.href)
       .map(item => ({ label: item.label, href: `/${role}/${plannedPaths[item.label]}` })),
-    ...getDashboardProfileNavigation(pathname).filter(item => !(role === 'tutors' && item.label === 'Settings')),
   ].filter((item, index, items) => items.findIndex(other => other.href === item.href) === index)
 }
 
@@ -111,7 +110,7 @@ const roleNavigation: Record<DashboardRole, DashboardNavigationGroup[]> = {
       label: "Tools & Support",
       items: [
         { label: "AI Assistant", icon: Sparkles },
-        { label: "Help and Support", icon: CircleHelp },
+        { label: "Help & Support", href: "/students/help", icon: CircleHelp },
       ],
     },
   ],
@@ -281,7 +280,10 @@ export function getDashboardSidebarNavigation(pathname: string): DashboardNaviga
 }
 
 export function getDashboardNavigation(pathname: string): NavigableDashboardNavigationGroup[] {
-  return [...getDashboardSidebarNavigation(pathname), { label: 'Profile', items: getDashboardProfileNavigation(pathname) }]
+  const sidebar = getDashboardSidebarNavigation(pathname)
+  const sidebarHrefs = new Set(sidebar.flatMap(group => group.items.map(item => item.href)))
+  const profile = getDashboardProfileNavigation(pathname).filter(item => !sidebarHrefs.has(item.href))
+  return [...sidebar, { label: 'Account', items: profile }]
     .map((group) => ({ ...group, items: group.items.filter(isNavigableItem) }))
     .filter(({ items }) => items.length > 0)
 }
