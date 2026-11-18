@@ -1,7 +1,7 @@
 import { PeopleRowsSkeleton } from '@/components/ui/loading-skeleton'
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
-import { CircleCheck, CheckCheck } from 'lucide-react'
+import { CircleCheck, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { getClassroomMessageReaders, type ChatReader } from '@/services/api/classroom-chat.service'
@@ -12,8 +12,8 @@ export function ChatMessageReceipt({ classroomId, messageId, seenCount }: { clas
   const [retry, setRetry] = useState(0)
   if (!seenCount) return <span className="inline-flex items-center gap-1" title="Saved to the classroom"><CircleCheck aria-hidden="true" className="size-3" />Sent</span>
   return <Dialog open={open} onOpenChange={setOpen}>
-    <DialogTrigger render={<button type="button" className="inline-flex items-center gap-1 rounded-sm text-brand outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring" />} aria-label={`Seen by ${seenCount}. View readers`}>
-      <CheckCheck aria-hidden="true" className="size-3" />Seen by {seenCount}
+    <DialogTrigger render={<button type="button" className="inline-flex items-center gap-1 rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-current" />} aria-label={`Seen by ${seenCount}. View readers`}>
+      <Eye aria-hidden="true" className="size-3" />Seen by {seenCount}
     </DialogTrigger>
     <DialogContent>
       <div className="space-y-2 pr-8"><DialogTitle>Seen by</DialogTitle><DialogDescription>Class members who have read this message.</DialogDescription></div>
