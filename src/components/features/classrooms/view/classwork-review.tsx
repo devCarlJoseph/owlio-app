@@ -10,7 +10,7 @@ import { ClassworkSubmissionReview } from './classwork-submission-review'
 
 type Review = { learners: Awaited<ReturnType<typeof listClassworkLearners>>; submissions: Awaited<ReturnType<typeof listClassworkSubmissions>> }
 
-export function ClassworkReview({ work, questions, closed }: { work: Classwork; questions: ClassworkQuestion[]; closed: boolean }) {
+export function ClassworkReview({ work, questions, closed, schoolOwnerId }: { work: Classwork; questions: ClassworkQuestion[]; closed: boolean; schoolOwnerId?: string }) {
   const { selected, select } = useClassworkReview()
   const [data, setData] = useState<Review | null>(null)
   const [error, setError] = useState('')
@@ -22,7 +22,7 @@ export function ClassworkReview({ work, questions, closed }: { work: Classwork; 
     }).catch(cause => { if (!controller.signal.aborted) setError(getApiErrorMessage(cause, 'Could not load submissions.')) })
     return () => controller.abort()
   }, [work.classroomId, work.id, revision])
-  if (selected) return <ClassworkSubmissionReview key={selected.id} work={work} questions={questions} selection={selected} onClose={() => select(null)} />
+  if (selected) return <ClassworkSubmissionReview key={selected.id} work={work} questions={questions} selection={selected} schoolOwnerId={schoolOwnerId} onClose={() => select(null)} />
   const submitted = data?.submissions.filter(item => item.submittedAt) ?? []
   const submittedIds = new Set(submitted.map(item => item.studentId))
   const pending = data?.learners.filter(learner => !submittedIds.has(learner.studentId)) ?? []

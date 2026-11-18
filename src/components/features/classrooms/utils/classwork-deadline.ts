@@ -1,4 +1,5 @@
 import type { Classwork, Submission } from '@/services/api/academic.service'
+import { gradingPeriods } from '../contents/grading-periods'
 
 export function classworkClosed(dueAt: string | null, now = Date.now()) {
   return dueAt !== null && now >= Date.parse(dueAt)
@@ -31,5 +32,9 @@ export function readClassworkFields(form: FormData) {
   const points = String(form.get('maxPoints') ?? '').trim()
   const maxPoints = points === '' ? null : Number(points)
   if (maxPoints !== null && (!Number.isInteger(maxPoints) || maxPoints < 1 || maxPoints > 10000)) throw new Error('Maximum points must be a whole number from 1 to 10,000.')
-  return { title, instructions, dueAt: dueAt.toISOString(), maxPoints }
+  const selectedPeriod = form.get('gradingPeriod')
+  const gradingPeriod = gradingPeriods.find(period => period === selectedPeriod)
+  return { title, instructions, dueAt: dueAt.toISOString(), maxPoints,
+    ...(gradingPeriod ? { gradingPeriod } : selectedPeriod === 'none' ? { gradingPeriod: null } : {}),
+  }
 }

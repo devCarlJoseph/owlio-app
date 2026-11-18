@@ -11,6 +11,8 @@ import { getClassworkSubmission, type ClassworkQuestion } from '@/services/api/c
 import { getClassworkAnswerScore, getClassworkEvaluation, getClassworkRubric, releaseClassworkEvaluation, saveClassworkEvaluation, type ClassworkEvaluation } from '@/services/api/classwork-grading.service'
 import type { ReviewSelection } from '../context/classwork-review-context'
 import { formatClassworkDate } from '../utils/classwork-deadline'
+import { GradeComments } from '../ui/grade-comments'
+import { ReleasedFeedbackEditor } from '../ui/released-feedback-editor'
 
 type ReviewData = {
   submission: Submission; evaluation: ClassworkEvaluation | null
@@ -18,8 +20,8 @@ type ReviewData = {
   rubric: Awaited<ReturnType<typeof getClassworkRubric>>['criteria']
 }
 
-export function ClassworkSubmissionReview({ work, questions, selection, onClose }: {
-  work: Classwork; questions: ClassworkQuestion[]; selection: ReviewSelection; onClose: () => void
+export function ClassworkSubmissionReview({ work, questions, selection, schoolOwnerId, onClose }: {
+  work: Classwork; questions: ClassworkQuestion[]; selection: ReviewSelection; schoolOwnerId?: string; onClose: () => void
 }) {
   const [data, setData] = useState<ReviewData | null>(null)
   const [error, setError] = useState('')
@@ -53,12 +55,12 @@ export function ClassworkSubmissionReview({ work, questions, selection, onClose 
       })}</ol>
       {data.submission.textAnswer && <section className="space-y-2 rounded-xl border border-border p-4"><h5 className="text-sm font-semibold">Written response</h5><p className="whitespace-pre-wrap break-words text-sm leading-6">{data.submission.textAnswer}</p></section>}
       {data.submission.files.length > 0 && <p className="text-xs text-muted-foreground">This submission has {data.submission.files.length} attachment(s). Attachment review is not available here.</p>}
-      <GradeEditor key={revision} work={work} data={data} />
+      <GradeEditor key={revision} work={work} data={data} schoolOwnerId={schoolOwnerId} />
     </>}
   </section>
 }
 
-function GradeEditor({ work, data }: { work: Classwork; data: ReviewData }) {
+function GradeEditor({ work, data, schoolOwnerId }: { work: Classwork; data: ReviewData; schoolOwnerId?: string }) {
   const [evaluation, setEvaluation] = useState(data.evaluation)
   const [score, setScore] = useState(data.evaluation?.score?.toString() ?? '')
   const [feedback, setFeedback] = useState(data.evaluation?.feedback ?? '')
@@ -100,12 +102,18 @@ function GradeEditor({ work, data }: { work: Classwork; data: ReviewData }) {
     finally { lock.current = false; setBusy(false) }
   }
 
-  return <form onSubmit={save} className="space-y-4 rounded-xl border border-border bg-muted/20 p-4">
-    <header><h5 className="text-sm font-semibold">{released ? 'Released grade' : 'Grade and feedback'}</h5><p className="mt-1 text-xs leading-5 text-muted-foreground">{released ? 'This result is visible to the student and is locked here.' : 'Saving keeps this grade private. Release it only after reviewing the submitted answers.'}</p></header>
+  return <><form onSubmit={save} className="space-y-4 rounded-xl border border-border bg-muted/20 p-4">
+    <header><h5 className="text-sm font-semibold">{released ? 'Released grade' : 'Grade and feedback'}</h5><p className="mt-1 text-xs leading-5 text-muted-foreground">{released ? 'This result is visible to the student.' : 'Saving keeps this grade private. Release it only after reviewing the submitted answers.'}</p></header>
     {maximum === null ? <p className="text-xs leading-5 text-muted-foreground">This activity was published as feedback-only. Its maximum points cannot be changed now. Set maximum points on a new draft to enable numeric grades.</p> : <div className="space-y-2"><Label htmlFor="review-score">Score out of {maximum}</Label><Input id="review-score" type="number" min={0} max={maximum} step={1} value={score} onChange={event => setScore(event.target.value)} disabled={busy || released} />{data.answerScore && data.answerScore.total === maximum && criteria.length === 0 && !released && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setScore(String(data.answerScore!.correct))}>Use answer-key count · 1 point per question</Button>}</div>}
     {criteria.map(item => <div key={item.id} className="space-y-2"><Label htmlFor={`criterion-${item.id}`}>{item.label} · out of {item.maxPoints}</Label><Input id={`criterion-${item.id}`} type="number" min={0} max={item.maxPoints} step={1} value={points[item.id] ?? ''} disabled={busy || released} onChange={event => setPoints(current => ({ ...current, [item.id]: event.target.value }))} /></div>)}
     <div className="space-y-2"><Label htmlFor="review-feedback">Feedback for the student</Label><Textarea id="review-feedback" maxLength={6000} value={feedback} onChange={event => setFeedback(event.target.value)} disabled={busy || released} className="min-h-28" /></div>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm">{notice}</p>}
     {!released && <div className="flex flex-wrap gap-2"><Button type="submit" disabled={busy} className="bg-brand text-brand-foreground hover:bg-brand/90">Save grade draft</Button><Button type="button" variant="outline" disabled={busy || dirty || !evaluation} onClick={() => void release()}>Release grade to student</Button></div>}
   </form>
+    {evaluation?.status === 'RELEASED' && schoolOwnerId && <section className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+      <ReleasedFeedbackEditor evaluation={evaluation} onSave={saved => { setEvaluation(saved); setFeedback(saved.feedback) }} />
+      <h5 className="text-sm font-semibold">Private comments</h5>
+      <GradeComments submissionId={data.submission.id} accountId={schoolOwnerId} owned />
+    </section>}
+  </>
 }

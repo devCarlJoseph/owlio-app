@@ -1,5 +1,17 @@
 # Classroom API integration
 
+## Classroom Grades & Feedback
+
+School classrooms expose **Grades & Feedback** at `/students/classrooms/:classroomId?tab=progress` and `/educators/classrooms/:classroomId?tab=progress`. Owners page through the roster and activities and can inspect drafts and releases. Learners use the self-scoped gradebook and see scores and written feedback only after the educator releases them. A submitted quiz or assessment also displays its released score and feedback in Classwork. Opening or refreshing the grades tab reads the current gradebook, and each row links to its original activity.
+
+The owner projection uses `GET /classrooms/:classroomId/gradebook` with independent learner and classwork cursors. The learner projection uses `GET /classrooms/:classroomId/gradebook/me`. The details panel reads `GET /submissions/:submissionId/evaluation` for owners and `GET /submissions/:submissionId/result` for a learner's released result. These paths use the existing authenticated API under `/api/v1`.
+
+Educators assign **Prelim**, **Midterm**, **Semi-finals**, or **Finals** when drafting Classwork. The period filter groups activities by their saved assignment. Published scored activities count toward their assigned period. Once their deadlines close and submitted results are released, educators can review and explicitly release each student's period grade. The API divides total earned by total possible, counts missing work as zero, and rounds to two decimals. Existing work without a period and feedback-only work are excluded. Each release is a snapshot. The first release for a period locks publication of additional scored work in that period.
+
+Each released submission has a private comment thread for its author and the current classroom owner. Educators can revise published written feedback from the details panel. The API versions the revision and retains prior text. The released score, rubric, and release metadata are preserved.
+
+Period assignment, period releases, private comments, and feedback revisions require the matching Owlio API release and additive migration `0049_classroom_grades_and_periods`. The migration was generated locally. Database application and live writes require separate authorization.
+
 ## Classwork theme alignment — 17 November 2026
 
 Student and educator Classwork surfaces use semantic brand/brand-soft colors for badges, activity icons, selected answers, finish/submit actions, timeline markers, active activity buttons, progress fills, and correct-answer checks. Lime/green decorative accents from the original reference were removed at the user's request. Error and missing states retain destructive colors and text labels. This is a scoped presentation change with no API, grading, deadline, or data changes. Browser rendering remains unverified because the available browser cannot reach the local server.

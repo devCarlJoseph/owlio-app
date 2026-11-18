@@ -10,12 +10,23 @@ import type { Classwork } from '@/services/api/academic.service'
 import { addClassworkQuestion, createClassroomWork, type QuestionInput } from '@/services/api/classwork-workspace.service'
 import { localClassworkDate, readClassworkFields } from '../utils/classwork-deadline'
 import { ClassworkDeadlinePicker } from './classwork-deadline-picker'
+import { gradingPeriodLabels, gradingPeriods } from '../contents/grading-periods'
 
-export function ClassworkFields({ work, disabled }: { work?: Classwork; disabled?: boolean }) {
+export function ClassworkFields({ work, disabled, schoolClassroom }: { work?: Classwork; disabled?: boolean; schoolClassroom?: boolean }) {
   return <div className="space-y-4">
     <div className="space-y-2"><Label htmlFor="work-title">Title</Label><Input id="work-title" name="title" required maxLength={200} defaultValue={work?.title} disabled={disabled} placeholder="e.g. Introduction to sensors" /></div>
     <div className="space-y-2"><Label htmlFor="work-instructions">Instructions</Label><Textarea id="work-instructions" name="instructions" required maxLength={10000} defaultValue={work?.instructions} disabled={disabled} placeholder="Explain what students need to complete." className="min-h-28" /></div>
     <div className="space-y-2"><Label htmlFor="work-points">Maximum points</Label><Input id="work-points" name="maxPoints" type="number" min={1} max={10000} step={1} defaultValue={work?.maxPoints ?? ''} disabled={disabled} placeholder="e.g. 10" aria-describedby="points-help" /><p id="points-help" className="text-xs leading-5 text-muted-foreground">Set the grading maximum before publishing. Leave blank for feedback-only work. Published grading settings cannot be changed.</p></div>
+    {schoolClassroom && <div className="space-y-2">
+      <Label htmlFor="work-period">Grading period</Label>
+      <Select name="gradingPeriod" defaultValue={work?.gradingPeriod ?? 'none'} disabled={disabled}
+        items={[{ value: 'none', label: 'No period' }, ...gradingPeriods.map(value => ({ value, label: gradingPeriodLabels[value] }))]}>
+        <SelectTrigger id="work-period" className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent><SelectItem value="none">No period</SelectItem>
+          {gradingPeriods.map(period => <SelectItem key={period} value={period}>{gradingPeriodLabels[period]}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>}
     <div className="space-y-2"><Label htmlFor="work-closing">Closing date and time</Label><ClassworkDeadlinePicker initialValue={localClassworkDate(work?.dueAt ?? null)} disabled={disabled} /><p id="closing-help" className="text-xs leading-5 text-muted-foreground">Your time zone: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Submissions close for everyone at this time. Unsubmitted work is marked Missing.</p></div>
   </div>
 }
@@ -45,7 +56,7 @@ export function QuestionEditor({ position, disabled, onSave }: { position: numbe
   </form>
 }
 
-export function ClassworkCreator({ classroomId, onCreated, onCancel }: { classroomId: string; onCreated: (id: string, notice?: string) => void; onCancel: () => void }) {
+export function ClassworkCreator({ classroomId, schoolClassroom, onCreated, onCancel }: { classroomId: string; schoolClassroom?: boolean; onCreated: (id: string, notice?: string) => void; onCancel: () => void }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   // Questions define a quiz; written assessments use the API's text response.
@@ -70,6 +81,6 @@ export function ClassworkCreator({ classroomId, onCreated, onCancel }: { classro
     <header><h3 id="create-work-heading" className="font-semibold">Create classwork</h3><p className="mt-1 text-sm text-muted-foreground">Save a draft, review it, then publish to this class.</p></header>
     <div className="space-y-2"><Label htmlFor="classwork-kind">Classwork type</Label><Select value={kind} disabled={busy} onValueChange={value => setKind(value ?? 'assessment')}><SelectTrigger id="classwork-kind" className="h-10 w-full"><SelectValue>{kind === 'quiz' ? 'Quiz — multiple choice' : 'Assessment — written response'}</SelectValue></SelectTrigger><SelectContent><SelectItem value="assessment">Assessment — written response</SelectItem><SelectItem value="quiz">Quiz — multiple choice</SelectItem></SelectContent></Select></div>
     {kind === 'quiz' && <div className="space-y-3">{firstQuestion ? <div className="rounded-lg bg-muted p-3 text-sm"><p className="font-medium">First question: {firstQuestion.prompt}</p><Button variant="ghost" size="sm" disabled={busy} onClick={() => setFirstQuestion(null)}>Change first question</Button></div> : <QuestionEditor position={1} disabled={busy} onSave={async input => { setFirstQuestion(input); return true }} />}</div>}
-    <form onSubmit={create} className="space-y-5"><ClassworkFields disabled={busy} />{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<div className="flex flex-wrap gap-2"><Button type="submit" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={busy}>{busy ? 'Saving…' : 'Create draft'}</Button><Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button></div></form>
+    <form onSubmit={create} className="space-y-5"><ClassworkFields disabled={busy} schoolClassroom={schoolClassroom} />{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<div className="flex flex-wrap gap-2"><Button type="submit" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={busy}>{busy ? 'Saving…' : 'Create draft'}</Button><Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button></div></form>
   </section>
 }

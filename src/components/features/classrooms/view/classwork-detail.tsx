@@ -13,10 +13,14 @@ import { ClassworkFields, QuestionEditor } from '../forms/classwork-editor'
 import { useClassworkClock } from '../hooks/use-classwork-clock'
 import { classworkClosed, classworkStatus, formatClassworkDate, readClassworkFields } from '../utils/classwork-deadline'
 import { ClassworkReview } from './classwork-review'
+import { gradingPeriodLabels } from '../contents/grading-periods'
+import { ClassworkReleasedResult } from '../ui/classwork-released-result'
 
 const finishClass = 'border border-brand bg-brand text-brand-foreground hover:bg-brand/90'
 
-export function ClassworkDetail({ classroomId, id, owned, notice, onBack, onEntryChange }: { classroomId: string; id: string; owned: boolean; notice?: string; onBack: () => void; onEntryChange?: (entry: ClassworkEntry) => void }) {
+type ClassworkScope = { owned: boolean; schoolClassroom?: boolean; schoolOwnerId?: string }
+
+export function ClassworkDetail({ classroomId, id, owned, schoolClassroom, schoolOwnerId, notice, onBack, onEntryChange }: ClassworkScope & { classroomId: string; id: string; notice?: string; onBack: () => void; onEntryChange?: (entry: ClassworkEntry) => void }) {
   const [entry, setEntry] = useState<ClassworkEntry | null>(null)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -29,11 +33,11 @@ export function ClassworkDetail({ classroomId, id, owned, notice, onBack, onEntr
   }, [classroomId, id, owned, attempt])
   return <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-2"><Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft />All classwork</Button><Button variant="ghost" size="sm" onClick={() => { setEntry(null); setError(''); setAttempt(value => value + 1) }}>Reload saved work</Button></div>
     {notice && <p role="status" className="rounded-lg border border-border bg-muted p-3 text-sm">{notice}</p>}
-    {error ? <div role="alert" className="space-y-3 rounded-xl border border-border bg-card p-5"><p>{error}</p><Button variant="outline" onClick={() => { setError(''); setAttempt(value => value + 1) }}>Retry classwork</Button></div> : entry ? <ClassworkContent entry={entry} owned={owned} onEntryChange={onEntryChange} /> : <ClassworkDetailSkeleton />}
+    {error ? <div role="alert" className="space-y-3 rounded-xl border border-border bg-card p-5"><p>{error}</p><Button variant="outline" onClick={() => { setError(''); setAttempt(value => value + 1) }}>Retry classwork</Button></div> : entry ? <ClassworkContent entry={entry} owned={owned} schoolClassroom={schoolClassroom} schoolOwnerId={schoolOwnerId} onEntryChange={onEntryChange} /> : <ClassworkDetailSkeleton />}
   </div>
 }
 
-function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEntry; owned: boolean; onEntryChange?: (entry: ClassworkEntry) => void }) {
+function ClassworkContent({ entry, owned, schoolClassroom, schoolOwnerId, onEntryChange }: ClassworkScope & { entry: ClassworkEntry; onEntryChange?: (entry: ClassworkEntry) => void }) {
   const review = useClassworkReview()
   const [work, setWork] = useState(entry.work)
   const [questions, setQuestions] = useState(entry.questions)
@@ -104,7 +108,7 @@ function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEnt
   const state = owned ? draft ? 'Draft' : closed ? 'Closed' : 'Published' : closed && !submitted ? 'Missing' : classworkStatus(work, submission, now)
   return <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card" aria-labelledby="classwork-title"><Tabs value={owned ? review.panel : 'form'} onValueChange={value => review.setPanel(value === 'student-work' ? 'student-work' : 'form')} className="gap-0">
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-7">
-      <div className="flex min-w-0 items-center gap-2"><Badge className="bg-brand-soft text-brand-soft-foreground">{quiz ? 'Quiz' : 'Assessment'}</Badge><span className="text-xs text-muted-foreground">{state}</span></div>
+      <div className="flex min-w-0 flex-wrap items-center gap-2"><Badge className="bg-brand-soft text-brand-soft-foreground">{quiz ? 'Quiz' : 'Assessment'}</Badge>{work.gradingPeriod && <Badge variant="outline">{gradingPeriodLabels[work.gradingPeriod]}</Badge>}<span className="text-xs text-muted-foreground">{state}</span></div>
       {owned ? <div className="flex flex-wrap gap-2">{draft && <><Button size="sm" variant="outline" disabled={busy || editing} onClick={() => setEditing(true)}>Edit details</Button><Button size="sm" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={busy || editing || !work.dueAt || closed} onClick={() => void run(async () => { if (!work.dueAt || classworkClosed(work.dueAt)) throw new Error('Set a future closing date before publishing.'); await publishClassroomWork(work.id); setWork(current => ({ ...current, status: 'PUBLISHED' })); setNotice('Classwork published to this classroom.') })}>Publish to class</Button></>}</div> : <Button size="sm" className={finishClass} disabled={locked} onClick={() => void saveResponse(true)}>{submitted ? <><Check />Submitted</> : quiz ? 'Finish quiz' : 'Submit assessment'}</Button>}
     </header>
     {owned && <TabsList aria-label="Activity workspace" variant="line" className="mx-5 mt-4 border-b border-border sm:mx-7"><TabsTrigger value="form">{quiz ? 'Quiz form' : 'Assessment form'}</TabsTrigger><TabsTrigger value="student-work" disabled={draft}>Student work</TabsTrigger></TabsList>}
@@ -113,7 +117,8 @@ function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEnt
       <div aria-live="polite" className="space-y-2">{error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}{notice && <p role="status" className="rounded-lg bg-muted p-3 text-sm">{notice}</p>}</div>
       {closed && !draft && <p role="status" className="rounded-lg border border-border bg-muted/60 p-3 text-sm">{submitted ? 'This activity is closed. Your submitted work is available below.' : owned ? 'This activity is closed. Further submissions are not accepted.' : 'Missing activity. The deadline has passed and submissions are no longer accepted. Your saved work is available below.'}</p>}
       {draft && !editing && <p className="text-xs text-muted-foreground">Only you can see this draft. {work.dueAt && closed ? 'Edit its closing date before publishing.' : 'Review the instructions and questions before publishing.'}</p>}
-      {editing ? <form onSubmit={saveMetadata} className="space-y-4"><ClassworkFields work={work} disabled={busy} /><div className="flex gap-2"><Button type="submit" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={busy}>Save details</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancel</Button></div></form> : <section className="space-y-2 border-b border-border pb-5"><h4 className="text-sm font-semibold">Instructions</h4><p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">{work.instructions}</p></section>}
+      {!owned && submission?.status === 'SUBMITTED' && <ClassworkReleasedResult key={submission.id} submissionId={submission.id} />}
+      {editing ? <form onSubmit={saveMetadata} className="space-y-4"><ClassworkFields work={work} disabled={busy} schoolClassroom={schoolClassroom} /><div className="flex gap-2"><Button type="submit" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={busy}>Save details</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>Cancel</Button></div></form> : <section className="space-y-2 border-b border-border pb-5"><h4 className="text-sm font-semibold">Instructions</h4><p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">{work.instructions}</p></section>}
       <div className="space-y-6">{questions.questions.map((question, index) => <div key={question.id} className="space-y-2"><fieldset disabled={locked} className="min-w-0 space-y-3"><legend className="mb-3 w-full break-words text-sm font-semibold">{index + 1}. {question.prompt}</legend><div className="grid gap-3 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label key={optionIndex} className={`flex min-h-11 min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${choices.some(answer => answer.questionId === question.id && answer.optionIndex === optionIndex) ? 'border-brand/40 bg-brand-soft text-brand-soft-foreground' : 'border-border bg-card'} ${locked ? 'cursor-default' : 'cursor-pointer hover:border-brand/50'}`}><input className="sr-only" type="radio" name={`answer-${question.id}`} value={optionIndex} checked={choices.some(answer => answer.questionId === question.id && answer.optionIndex === optionIndex)} onChange={() => setChoices(current => [...current.filter(answer => answer.questionId !== question.id), { questionId: question.id, optionIndex }])} /><span aria-hidden="true" className="grid size-6 shrink-0 place-items-center rounded bg-black/5">{String.fromCharCode(65 + optionIndex)}</span><span className="min-w-0 break-words">{option}</span>{owned && question.answerIndex === optionIndex && <Check aria-label="Correct answer" className="ml-auto size-4 shrink-0 text-brand" />}</label>)}</div></fieldset>
         {owned && draft && <Button type="button" variant="ghost" size="sm" disabled={busy || editing} onClick={() => void run(async () => { const result = await removeClassworkQuestion(work.id, question.id, questions.version); setQuestions(current => ({ version: result.version, questions: current.questions.filter(item => item.id !== question.id) })); setNotice('Question removed.') })}><Trash2 />Remove question {index + 1}</Button>}
       </div>)}</div>
@@ -122,6 +127,6 @@ function ClassworkContent({ entry, owned, onEntryChange }: { entry: ClassworkEnt
       {!owned && !submitted && !closed && <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><p className="max-w-xs text-xs leading-5 text-muted-foreground">Drafts are not submissions. Finish and submit before the closing time.</p><Button variant="outline" disabled={busy} onClick={() => void saveResponse(false)}>{busy ? 'Saving…' : 'Save draft'}</Button></footer>}
       {submitted && <p className="text-xs text-muted-foreground">Submitted {formatClassworkDate(submission.submittedAt)}{submission.isLate ? ' · Previously accepted late' : ''}</p>}
 
-    </TabsContent>{owned && !draft && <TabsContent value="student-work" keepMounted className="px-5 py-6 sm:px-7"><ClassworkReview work={work} questions={questions.questions} closed={closed} /></TabsContent>}</Tabs>
+    </TabsContent>{owned && !draft && <TabsContent value="student-work" keepMounted className="px-5 py-6 sm:px-7"><ClassworkReview work={work} questions={questions.questions} closed={closed} schoolOwnerId={schoolOwnerId} /></TabsContent>}</Tabs>
   </section>
 }

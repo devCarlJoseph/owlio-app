@@ -13,6 +13,7 @@ import { ClassroomFeedView } from './classroom-feed-view'
 import { ClassroomScheduleView } from './classroom-schedule-view'
 import { ClassroomAttendanceView } from './classroom-attendance-view'
 import { ClassroomClassworkView } from './classroom-classwork-view'
+import { ClassroomGradesView } from './classroom-grades-view'
 import { ClassroomInformation } from '../ui/classroom-information'
 import { ClassroomDetailHeader } from '../ui/classroom-detail-header'
 import { ClassroomSectionNavigation } from '../ui/classroom-section-navigation'
@@ -43,6 +44,8 @@ export function ClassroomDetailView() {
   const defaultTab = 'about'
   const tab = tabs.find(item => item.value === params.get('tab'))?.value ?? defaultTab
   const owned = classroom?.access === 'owner'
+  const schoolGrades = classroom?.ownerWorkspace === 'educators' && (role === 'students' || role === 'educators')
+  const fullWidth = ['chat', 'feed', 'classwork', 'schedule', 'attendance'].includes(tab) || (tab === 'progress' && schoolGrades)
   const visible = classroom && (role === 'students' ? !owned : owned)
   if (classroomsLoading) return <ClassroomDetailSkeleton tab={tab} />
   if (classroomsError) return <section role="alert" className="space-y-3 rounded-xl border p-6"><h2>Classroom could not be loaded</h2><p>{classroomsError}</p><Button className="bg-brand text-brand-foreground hover:bg-brand/90" onClick={reloadClassrooms}>Try again</Button></section>
@@ -60,18 +63,23 @@ export function ClassroomDetailView() {
     {tab !== 'chat' && <ClassroomDetailHeader classroom={classroom} owned={owned} meetingHref={meetingHref} onClasswork={() => selectTab('classwork')} />}
     <Tabs orientation={desktop ? 'vertical' : 'horizontal'} value={tab} onValueChange={selectTab} className="min-w-0 gap-5 lg:grid lg:grid-cols-[11rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[12rem_minmax(0,1fr)]">
       <ClassroomSectionNavigation tab={tab} schoolClassroom={classroom.ownerWorkspace === 'educators'} />
-      <div className={['chat', 'feed', 'classwork', 'schedule', 'attendance'].includes(tab) ? 'min-w-0' : 'grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_15rem]'}>
+      <div className={fullWidth ? 'min-w-0' : 'grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_15rem]'}>
         <section aria-label="Classroom content" className="min-w-0 space-y-5">
           <TabsContent value="about" className={`${card} space-y-5 p-5 sm:p-6`}><header className="flex items-center gap-2 border-b border-border pb-4"><Info aria-hidden="true" className="size-4 text-muted-foreground" /><h3 className="text-sm font-semibold">About this classroom</h3></header><p className="whitespace-pre-wrap break-words text-sm leading-7 text-foreground">{classroom.description || 'No description provided.'}</p><div className="flex items-start gap-3 rounded-lg bg-muted/60 p-4"><GraduationCap aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand" /><div><h4 className="text-sm font-semibold">A space for your class</h4><p className="mt-1 text-sm leading-6 text-muted-foreground">Classroom creation and enrollment are connected. Use Sessions to schedule or join a meeting.</p></div></div></TabsContent>
           <TabsContent value="people" className={`${card} p-5 sm:p-6`}><h3 className="mb-5 border-b border-border pb-4 text-sm font-semibold">Class members</h3><ClassroomMembersView classroom={classroom} role={role} /></TabsContent>
-          {sections.filter(item => !['about', 'people', 'chat', 'feed', 'classwork', 'schedule', 'attendance'].includes(item.value)).map(item => <TabsContent key={item.value} value={item.value} className={card}><header className="border-b border-border px-5 py-4"><h3 className="font-semibold">{item.value === 'progress' ? 'Progress' : item.label}</h3></header><div className="flex flex-col items-center px-5 py-12 text-center"><span className="mb-4 grid size-14 place-items-center rounded-full bg-muted"><MessageSquare aria-hidden="true" className="size-6 text-muted-foreground" /></span><p className="text-base font-medium">{item.label + ' will appear here'}</p><p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">This section is under development.</p></div></TabsContent>)}
+          {sections.filter(item => item.value === 'materials' || (item.value === 'progress' && !schoolGrades)).map(item => <TabsContent key={item.value} value={item.value} className={card}><header className="border-b border-border px-5 py-4"><h3 className="font-semibold">{item.value === 'progress' ? 'Progress' : item.label}</h3></header><div className="flex flex-col items-center px-5 py-12 text-center"><span className="mb-4 grid size-14 place-items-center rounded-full bg-muted"><MessageSquare aria-hidden="true" className="size-6 text-muted-foreground" /></span><p className="text-base font-medium">{item.label + ' will appear here'}</p><p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">This section is under development.</p></div></TabsContent>)}
+          {tab === 'progress' && schoolGrades && user && <TabsContent value="progress">
+            <ClassroomGradesView key={JSON.stringify([user.id, classroom.id, classroom.access])}
+              classroomId={classroom.id} classroomHref={`/${role}/classrooms/${encodeURIComponent(classroom.id)}`}
+              owned={owned} accountId={user.id} />
+          </TabsContent>}
           {tab === 'attendance' && <TabsContent value="attendance"><ClassroomAttendanceView key={user?.id + ':' + classroom.id} classroom={classroom} /></TabsContent>}
           {tab === 'schedule' && <TabsContent value="schedule"><ClassroomScheduleView key={user?.id + ':' + classroom.id} classroom={classroom} /></TabsContent>}
           {tab === 'classwork' && <TabsContent value="classwork"><ClassroomClassworkView key={user?.id + ':' + classroom.id} classroom={classroom} /></TabsContent>}
           {tab === 'feed' && <TabsContent value="feed"><ClassroomFeedView key={user?.id + ':' + classroom.id} classroom={classroom} /></TabsContent>}
           {tab === 'chat' && <TabsContent value="chat"><ClassroomChatView key={user?.id + ':' + classroom.id} classroom={classroom} role={role} /></TabsContent>}
         </section>
-        {!['chat', 'feed', 'classwork', 'schedule', 'attendance'].includes(tab) && <ClassroomInformation classroom={classroom} owned={owned} notice={notice} onAbout={() => selectTab('about')} onCopyCode={() => void copyCode()} />}
+        {!fullWidth && <ClassroomInformation classroom={classroom} owned={owned} notice={notice} onAbout={() => selectTab('about')} onCopyCode={() => void copyCode()} />}
       </div>
     </Tabs>
   </div>
