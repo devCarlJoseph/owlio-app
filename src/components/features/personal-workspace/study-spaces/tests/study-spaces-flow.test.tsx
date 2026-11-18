@@ -3,7 +3,15 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpacesView } from "../view/study-spaces-view"
-import { studySpacesStorageKey } from "../utils/study-spaces-records"
+import { loadAccountRoomLayout, studySpacesStorageKey, type StudySpaceRecord } from "../utils/study-spaces-records"
+import { AuthSessionContext, type AuthSessionContextValue } from "@/components/features/auth/context/auth-session-context"
+import { createStudySpace, getStudySpaces, joinStudySpace } from "@/services/api/study-space.service"
+
+vi.mock("@/services/api/study-space.service", () => ({
+  createStudySpace: vi.fn(),
+  getStudySpaces: vi.fn(),
+  joinStudySpace: vi.fn(),
+}))
 
 vi.setConfig({ testTimeout: 20000 })
 
@@ -11,10 +19,24 @@ afterEach(cleanup)
 
 beforeEach(() => {
   window.localStorage.clear()
+  vi.resetAllMocks()
 })
 
-function renderList() {
-  return render(
+const accountId = "11111111-1111-4111-8111-111111111111"
+const session: AuthSessionContextValue = {
+  status: "authenticated",
+  user: { id: accountId, name: "Sam", email: "sam@example.test", roles: ["STUDENT"], status: "ACTIVE", emailVerifiedAt: null, createdAt: "2026-01-01T00:00:00Z" },
+  error: null,
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  refreshCurrentUser: vi.fn(),
+}
+const sharedSpace: StudySpaceRecord = {
+  id: "22222222-2222-4222-8222-222222222222", name: "Peer study", about: "", kind: "collaborative", capacity: 4, role: "owner", createdAt: "",
+}
+
+function renderList(account = false) {
+  const router = (
     <MemoryRouter initialEntries={["/students/study-spaces"]}>
       <Routes>
         <Route path="/students/study-spaces" element={<StudySpacesView />} />
@@ -22,6 +44,7 @@ function renderList() {
       </Routes>
     </MemoryRouter>
   )
+  return render(account ? <AuthSessionContext.Provider value={session}>{router}</AuthSessionContext.Provider> : router)
 }
 
 describe("study spaces create flow", () => {
@@ -80,6 +103,68 @@ describe("study spaces create flow", () => {
     const stored = window.localStorage.getItem(studySpacesStorageKey)
     const records = JSON.parse(stored as string) as { id: string }[]
     expect(records.some((record) => record.id === "sample-space-physics")).toBe(false)
+  })
+})
+
+describe("shared study spaces", () => {
+  it("creates a shared room without inserting it into the local directory", async () => {
+    vi.mocked(getStudySpaces).mockResolvedValue([])
+    vi.mocked(createStudySpace).mockResolvedValue(sharedSpace)
+    const user = userEvent.setup()
+    renderList(true)
+
+    await user.click(screen.getByRole("button", { name: "Create space" }))
+    const form = within(screen.getByRole("dialog"))
+    await user.type(form.getByLabelText("Space name"), "Peer study")
+    await user.click(form.getByRole("radio", { name: "Study lounge" }))
+    await user.click(form.getByRole("button", { name: "Increase seats" }))
+    await user.click(form.getByRole("button", { name: "Create space" }))
+
+    expect(await screen.findByText("study room route")).toBeTruthy()
+    expect(createStudySpace).toHaveBeenCalledWith("Peer study", "")
+    expect(JSON.parse(localStorage.getItem(studySpacesStorageKey) ?? "[]")).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: sharedSpace.id })]))
+    expect(loadAccountRoomLayout(accountId, sharedSpace)).toMatchObject({ kind: "lounge", capacity: 5 })
+    expect(loadAccountRoomLayout("other-account", sharedSpace)).toEqual(sharedSpace)
+  })
+
+  it("opens the accepted room with the exact invitation code", async () => {
+    vi.mocked(getStudySpaces).mockResolvedValue([sharedSpace])
+    vi.mocked(joinStudySpace).mockResolvedValue({ ...sharedSpace, role: "member" })
+    const user = userEvent.setup()
+    renderList(true)
+
+    expect(await screen.findByRole("link", { name: "Open Peer study" })).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Join by code" }))
+    const dialog = within(screen.getByRole("dialog"))
+    const input = dialog.getByLabelText("Invitation code")
+    await user.type(input, "wrong")
+    await user.click(dialog.getByRole("button", { name: "Join space" }))
+    expect(await dialog.findByRole("alert")).toBeTruthy()
+    expect(joinStudySpace).not.toHaveBeenCalled()
+
+    const code = "a".repeat(43)
+    await user.clear(input)
+    await user.type(input, ` ${code} `)
+    await user.click(dialog.getByRole("button", { name: "Join space" }))
+    expect(await screen.findByText("study room route")).toBeTruthy()
+    expect(joinStudySpace).toHaveBeenCalledWith(code)
+  })
+
+  it("preserves the local joined-room flow for a signed-in student", async () => {
+    vi.mocked(getStudySpaces).mockResolvedValue([])
+    const user = userEvent.setup()
+    renderList(true)
+
+    await user.click(screen.getByRole("button", { name: "Add a browser-only joined room" }))
+    const dialog = within(screen.getByRole("dialog"))
+    await user.type(dialog.getByLabelText("Space name"), "Offline circle")
+    await user.click(dialog.getByRole("button", { name: "Join space" }))
+
+    expect(await screen.findByRole("link", { name: "Open Offline circle" })).toBeTruthy()
+    expect(joinStudySpace).not.toHaveBeenCalled()
+    expect(JSON.parse(localStorage.getItem(studySpacesStorageKey) ?? "[]")).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "Offline circle", role: "member" }),
+    ]))
   })
 })
 

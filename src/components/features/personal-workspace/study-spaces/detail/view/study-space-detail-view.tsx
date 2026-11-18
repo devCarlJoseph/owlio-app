@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router"
+import { useContext, useEffect, useMemo, useRef, useState } from "react"
+import { Link, useLocation, useNavigate, useParams } from "react-router"
 import {
   ArrowDown,
   ArrowUp,
@@ -20,8 +20,15 @@ import {
   Sunset,
   Tags,
   Tv,
+  UserPlus,
 } from "lucide-react"
 import { cn } from "cn"
+import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
+import { useRoomDiscussion } from "@/components/features/connected-workspace/hooks/use-room-discussion"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { getStudySpace } from "@/services/api/study-space.service"
+import { StudySpaceSkeleton } from "../../ui/study-space-skeleton"
+import { InviteSpaceDialog } from "../forms/invite-space-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -57,6 +64,7 @@ import { useFocusMusic } from "../hooks/use-focus-music"
 import { usePomodoro } from "../hooks/use-pomodoro"
 import {
   createStudySpaceId,
+  loadAccountRoomLayout,
   loadHallCharacter,
   loadSpaceCharacter,
   loadStudySpaces,
@@ -64,6 +72,7 @@ import {
   saveSpaceCharacter,
   studySpaceRoomPreviewNotice,
   type StudySpaceCharacter,
+  type StudySpaceRecord,
 } from "../../utils/study-spaces-records"
 
 const BUBBLE_DURATION_MS = 6000
@@ -74,11 +83,52 @@ const NAP_MAT_COUNT = ROOM_SPOTS.filter((spot) => spot.furniture === "mat").leng
 
 export function StudySpaceDetailView() {
   const { spaceId } = useParams()
+  const user = useContext(AuthSessionContext)?.user
+  return <RoomLoader key={`${user?.id ?? "local"}:${spaceId ?? ""}`} spaceId={spaceId} user={user} />
+}
+
+type RoomAccount = { id: string; name: string }
+
+function RoomLoader({ spaceId, user }: { spaceId?: string; user?: RoomAccount | null }) {
+  const [local] = useState(() => loadStudySpaces().find((record) => record.id === spaceId) ?? null)
+  const [shared, setShared] = useState<StudySpaceRecord | null>(null)
+  const [error, setError] = useState("")
+  const [reload, setReload] = useState(0)
+  const userId = user?.id
+
+  useEffect(() => {
+    if (local || !spaceId || !userId) return
+    const controller = new AbortController()
+    void getStudySpace(spaceId, controller.signal).then((space) => {
+      if (!controller.signal.aborted) setShared(loadAccountRoomLayout(userId, { ...space, accountSpace: true }))
+    }).catch((cause) => {
+      if (!controller.signal.aborted) setError(getApiErrorMessage(cause, "Could not open this study space."))
+    })
+    return () => controller.abort()
+  }, [local, reload, spaceId, userId])
+
+  if (!local && !shared && user && spaceId) {
+    if (!error) return <StudySpaceSkeleton />
+    return (
+      <div className="space-y-3 rounded-xl border bg-card p-5">
+        <p role="alert">{error}</p>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => { setError(""); setReload((current) => current + 1) }}>Retry</Button>
+          <Button variant="ghost" nativeButton={false} render={<Link to="/students/study-spaces" />}>Back to study spaces</Button>
+        </div>
+      </div>
+    )
+  }
+
+  return <StudySpaceRoom spaceId={spaceId} space={local ?? shared} user={user} />
+}
+
+function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: StudySpaceRecord | null; user?: RoomAccount | null }) {
   const navigate = useNavigate()
-  const space = useMemo(
-    () => loadStudySpaces().find((record) => record.id === spaceId) ?? null,
-    [spaceId]
-  )
+  const { state } = useLocation()
+  const shared = Boolean(space?.accountSpace)
+  const [inviteOpen, setInviteOpen] = useState(Boolean(state?.offerInvite && space?.accountSpace && space.role === "owner"))
+  const discussion = useRoomDiscussion(shared ? spaceId : undefined, user)
   const tableSeats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
   const seats = useMemo(() => [...tableSeats, ...ROOM_SPOTS], [tableSeats])
   const roster = useMemo(() => (space ? getSampleRoster(space, tableSeats.length) : []), [space, tableSeats.length])
@@ -125,8 +175,8 @@ export function StudySpaceDetailView() {
   const timer = usePomodoro()
 
   useEffect(() => {
-    if (spaceId) markStudySpaceVisited(spaceId)
-  }, [spaceId])
+    if (spaceId && !shared) markStudySpaceVisited(spaceId)
+  }, [shared, spaceId])
 
   useEffect(() => {
     if (!expanded) return
@@ -136,6 +186,10 @@ export function StudySpaceDetailView() {
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [expanded])
+
+  useEffect(() => () => {
+    if (bubbleTimeoutRef.current !== null) window.clearTimeout(bubbleTimeoutRef.current)
+  }, [])
 
   if (!space) {
     return (
@@ -264,18 +318,21 @@ export function StudySpaceDetailView() {
     if (spaceId) saveOwnLockerCode(spaceId, code)
   }
 
-  function sendMessage() {
+  async function sendMessage() {
     const text = draft.trim()
     if (text.length === 0 || !character) return
 
-    const message: RoomMessage = {
-      id: createStudySpaceId(),
-      author: character.name,
-      text,
-      sentAt: Date.now(),
+    const message = shared
+      ? await discussion.send(text)
+      : { id: createStudySpaceId(), author: character.name, text, sentAt: Date.now() }
+    if (!message) return
+
+    if (!shared) setMessages((current) => [...current, message])
+    else {
+      setPanel(null)
+      setChatOpen(true)
     }
-    setMessages((current) => [...current, message])
-    setDraft("")
+    setDraft((current) => current.trim() === text ? "" : current)
 
     setBubble({ id: message.id, text })
     if (bubbleTimeoutRef.current !== null) window.clearTimeout(bubbleTimeoutRef.current)
@@ -285,15 +342,15 @@ export function StudySpaceDetailView() {
   return (
     <div
       className={cn(
-        "flex w-full flex-col gap-2",
+        "flex w-full flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#151f31] shadow-sm",
         expanded
-          ? "fixed inset-0 z-40 bg-slate-100 surface-dark:bg-muted p-2"
+          ? "fixed inset-0 z-40 rounded-none"
           : "mx-auto h-[calc(100svh-6rem)] min-h-[560px] sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
       )}
     >
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-3 py-2 shadow-sm">
-        <div className="flex min-w-0 items-center gap-2">
-          <h2 className="truncate text-base font-semibold tracking-tight text-slate-900 surface-dark:text-foreground">
+      <div className="z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/15 px-3 py-2 text-slate-100">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h2 className="max-w-56 truncate text-base font-semibold tracking-tight sm:max-w-80">
             {space.name}
           </h2>
           <Badge variant="secondary" className="bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300">
@@ -302,16 +359,22 @@ export function StudySpaceDetailView() {
           <Badge
             variant="outline"
             className="border-amber-300 surface-dark:border-surface-amber-border bg-amber-50 surface-dark:bg-surface-amber-soft text-amber-800 surface-dark:text-amber-300"
-            title={studySpaceRoomPreviewNotice}
+            title={shared ? "Members can exchange messages in this room." : studySpaceRoomPreviewNotice}
           >
-            Local preview
+            {shared ? "Shared space" : "Local preview"}
           </Badge>
-          <span className="hidden text-xs text-slate-500 surface-dark:text-muted-foreground sm:inline">
-            {freeSeats} of {tableSeats.length} table seats open
+          <span className="hidden text-xs text-slate-300 sm:inline">
+            {freeSeats} of {tableSeats.length} table seats open{shared ? " on this device" : ""}
           </span>
         </div>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="flex max-w-full flex-wrap items-center gap-0.5 [&>button]:text-slate-100 [&>button:hover]:bg-white/15 [&>button:hover]:text-white [&>a]:text-slate-100 [&>a:hover]:bg-white/15">
+          {shared && space.role === "owner" && (
+            <Button type="button" size="sm" variant="ghost" onClick={() => setInviteOpen(true)}>
+              <UserPlus aria-hidden="true" />
+              Invite
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -471,7 +534,7 @@ export function StudySpaceDetailView() {
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-[#e8eef6] shadow-sm">
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-[#ded9ee]">
         {character ? (
           <div className="absolute inset-0">
           <SpaceRoomScene
@@ -503,13 +566,16 @@ export function StudySpaceDetailView() {
           />
           </div>
         ) : (
-          <div aria-hidden="true" className="absolute inset-0 bg-[#e8eef6]" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[#ded9ee]" />
         )}
 
         {!noticeDismissed ? (
           <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
             <p className="flex-1">
-              {studySpaceRoomPreviewNotice}
+              {shared
+                ? "Chat is shared with room members. Avatars, seats, and room tools are local to your device."
+                : studySpaceRoomPreviewNotice}
+              {shared && state?.layoutSaved === false ? " The selected layout could not be saved on this device." : ""}
               {samplePeople.length > 0 ? ` ${sampleRosterNotice}` : ""}
             </p>
             <button
@@ -572,9 +638,11 @@ export function StudySpaceDetailView() {
 
         {chatOpen ? (
           <RoomChatPanel
-            messages={messages}
+            messages={shared ? discussion.messages : messages}
+            shared={shared}
+            error={discussion.readError}
             onClose={() => setChatOpen(false)}
-            className="absolute inset-y-3 right-3 z-10"
+            className="absolute bottom-28 right-3 top-24 z-10 sm:bottom-20"
           />
         ) : null}
 
@@ -597,7 +665,7 @@ export function StudySpaceDetailView() {
           {timer.status === "finished" ? " Focus timer finished." : ""}
         </p>
 
-        <div className="absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 shadow-md backdrop-blur">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-end justify-between gap-2 *:pointer-events-auto">
           {seatedSeat ? (
             <span className="flex items-center gap-2 rounded-lg border border-emerald-200 surface-dark:border-surface-emerald-border bg-emerald-50 surface-dark:bg-surface-emerald-soft px-2 py-1 text-xs text-emerald-800 surface-dark:text-emerald-300">
               <Armchair className="size-3.5" aria-hidden="true" />
@@ -613,7 +681,7 @@ export function StudySpaceDetailView() {
               </Button>
             </span>
           ) : (
-            <span className="hidden items-center gap-2 text-xs text-slate-500 surface-dark:text-muted-foreground md:flex">
+            <span className="hidden items-center gap-2 rounded-lg bg-slate-950/85 px-2 py-1.5 text-xs text-slate-100 lg:flex">
               <span>Choose a seat in the room</span>
               <span aria-hidden="true" className="rounded bg-slate-100 surface-dark:bg-muted px-1.5 py-0.5 font-medium text-slate-600 surface-dark:text-muted-foreground">
                 WASD to walk
@@ -622,12 +690,21 @@ export function StudySpaceDetailView() {
           )}
 
           <form
-            className="flex min-w-40 flex-1 items-center gap-2"
+            className="order-last flex w-full min-w-0 items-center gap-1 rounded-xl border border-white/15 bg-[#151f31]/95 p-1.5 shadow-lg md:order-none md:mx-auto md:w-auto md:min-w-64 md:max-w-lg md:flex-1"
             onSubmit={(event) => {
               event.preventDefault()
-              sendMessage()
+              void sendMessage()
             }}
           >
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              className="text-slate-200 hover:bg-white/10 hover:text-white"
+              aria-label={chatOpen ? "Hide conversation" : "Show conversation"}
+              aria-pressed={chatOpen}
+              onClick={() => { setChatOpen((current) => !current); setPanel(null) }}
+            ><MessageCircle aria-hidden="true" /></Button>
             <label htmlFor="space-chat-input" className="sr-only">
               Message in {space.name}
             </label>
@@ -636,20 +713,25 @@ export function StudySpaceDetailView() {
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder={character ? "Say something in this room…" : "Create your character to chat"}
-              disabled={!character}
+              disabled={!character || discussion.busy}
               maxLength={200}
-              className="rounded-full border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
+              className="min-w-0 border-transparent bg-transparent text-white placeholder:text-slate-300 focus-visible:border-white/40 focus-visible:ring-white/40"
             />
             <Button
               type="submit"
               size="sm"
-              disabled={!character || draft.trim().length === 0}
-              className="rounded-full bg-blue-600 text-white hover:bg-blue-500"
+              disabled={!character || discussion.busy || draft.trim().length === 0}
+              aria-label="Send message"
+              className="rounded-lg bg-teal-700 text-white hover:bg-teal-600"
             >
               <Send aria-hidden="true" />
               <span className="hidden sm:inline">Send</span>
             </Button>
           </form>
+
+          {discussion.sendError && (
+            <p role="alert" className="order-last w-full rounded-lg bg-slate-950 px-3 py-2 text-xs text-red-200">{discussion.sendError}</p>
+          )}
 
           {standHint ? (
             <span role="status" className="rounded-lg bg-amber-100 surface-dark:bg-surface-amber-soft px-2 py-1 text-xs text-amber-900 surface-dark:text-amber-200">
@@ -689,6 +771,9 @@ export function StudySpaceDetailView() {
         </div>
       </div>
 
+      {inviteOpen && !characterDialogOpen && shared && space.role === "owner" && (
+        <InviteSpaceDialog spaceId={space.id} onClose={() => setInviteOpen(false)} />
+      )}
       <CharacterDialog
         open={characterDialogOpen}
         onOpenChange={setEditDialogOpen}

@@ -15,10 +15,12 @@ export type RoomMessage = {
 type RoomChatPanelProps = {
   messages: RoomMessage[]
   onClose: () => void
+  shared?: boolean
+  error?: string
   className?: string
 }
 
-export function RoomChatPanel({ messages, onClose, className }: RoomChatPanelProps) {
+export function RoomChatPanel({ messages, onClose, shared, error, className }: RoomChatPanelProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -50,11 +52,12 @@ export function RoomChatPanel({ messages, onClose, className }: RoomChatPanelPro
         </Button>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-2 p-3">
+      {error && <p role="alert" className="px-3 py-2 text-xs text-red-200">{error}</p>}
+      <ScrollArea className="min-h-0 flex-1">
+        <div role="log" aria-label="Room messages" className="flex flex-col gap-2 p-3">
           {messages.length === 0 ? (
             <p className="rounded-lg border border-dashed border-slate-700 px-3 py-4 text-center text-xs leading-5 text-slate-400 surface-dark:text-muted-foreground">
-              No messages yet. Send a message and it appears above your character.
+              {shared ? "Start the conversation with a message to the room." : "No messages yet. Send a message and it appears above your character."}
             </p>
           ) : (
             messages.map((message) => (
@@ -74,7 +77,7 @@ export function RoomChatPanel({ messages, onClose, className }: RoomChatPanelPro
       </ScrollArea>
 
       <p className="border-t border-slate-700 px-3 py-2 text-[11px] leading-4 text-slate-400 surface-dark:text-muted-foreground">
-        {studySpaceChatLocalNotice}
+        {shared ? "Messages are saved and visible to members of this study space." : studySpaceChatLocalNotice}
       </p>
     </aside>
   )

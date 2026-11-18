@@ -26,11 +26,27 @@ export function SpaceActionsMenu({
   className,
 }: {
   space: StudySpaceRecord
-  onRemove: (space: StudySpaceRecord) => void
+  onRemove: (space: StudySpaceRecord) => void | Promise<void>
   className?: string
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState("")
   const isOwner = space.role === "owner"
+  const ownerAction = space.accountSpace ? "Archive" : "Remove"
+
+  async function confirm() {
+    setBusy(true)
+    setError("")
+    try {
+      await onRemove(space)
+      setConfirmOpen(false)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not update this space.")
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <>
@@ -49,38 +65,39 @@ export function SpaceActionsMenu({
           <MoreVertical aria-hidden="true" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem variant="destructive" onClick={() => setConfirmOpen(true)}>
+          <DropdownMenuItem variant="destructive" onClick={() => { setError(""); setConfirmOpen(true) }}>
             <Trash2 aria-hidden="true" />
-            {isOwner ? "Remove from this browser" : "Leave space"}
+            {isOwner ? (space.accountSpace ? "Archive space" : "Remove from this browser") : "Leave space"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <Dialog open={confirmOpen} onOpenChange={(open) => { if (!busy) setConfirmOpen(open) }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {isOwner ? "Remove this study space?" : "Leave this study space?"}
+              {isOwner ? `${ownerAction} this study space?` : "Leave this study space?"}
             </DialogTitle>
             <DialogDescription>
-              {isOwner
+              {space.accountSpace
+                ? (isOwner ? `“${space.name}” will close for all members.` : `You will lose access to “${space.name}”.`)
+                : isOwner
                 ? `"${space.name}" will be removed from this browser. Study spaces are local previews, so this does not affect other students.`
                 : `"${space.name}" will be removed from your joined list in this browser.`}
             </DialogDescription>
           </DialogHeader>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>
+            <Button type="button" variant="outline" disabled={busy} onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>
             <Button
               type="button"
               variant="destructive"
-              onClick={() => {
-                onRemove(space)
-                setConfirmOpen(false)
-              }}
+              disabled={busy}
+              onClick={() => void confirm()}
             >
-              {isOwner ? "Remove space" : "Leave space"}
+              {isOwner ? `${ownerAction} space` : "Leave space"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -94,7 +111,7 @@ function SpaceCard({
   onRemove,
 }: {
   space: StudySpaceRecord
-  onRemove: (space: StudySpaceRecord) => void
+  onRemove: (space: StudySpaceRecord) => void | Promise<void>
 }) {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm transition-colors hover:border-slate-300 surface-dark:hover:border-border">
@@ -110,7 +127,7 @@ function SpaceCard({
             {kindLabel(space.kind)} · {space.capacity} seats
           </p>
           <p className="mt-1 text-xs leading-4 text-slate-500 surface-dark:text-muted-foreground">
-            {metaLine(space)} · browser only
+            {space.accountSpace ? "Shared space" : `${metaLine(space)} · browser only`}
           </p>
         </div>
       </div>
@@ -134,7 +151,7 @@ function LockedSpaceCard({
   onUnlock,
 }: {
   space: StudySpaceRecord
-  onUnlock: (space: StudySpaceRecord) => void
+  onUnlock: (space: StudySpaceRecord) => void | Promise<void>
 }) {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-dashed border-slate-300 surface-dark:border-border bg-slate-50 surface-dark:bg-background shadow-sm">

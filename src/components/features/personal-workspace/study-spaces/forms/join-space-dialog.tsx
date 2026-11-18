@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { LogIn } from "lucide-react"
+import { Copy, LogIn } from "lucide-react"
+import { getApiErrorMessage } from "@/services/api/api-error"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -21,22 +22,82 @@ export type JoinSpaceDraft = {
 type JoinSpaceDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (draft: JoinSpaceDraft) => void
+  onSubmit: (draft: JoinSpaceDraft) => void | Promise<void>
   previewName?: string | null
+  accountId?: string
 }
 
-export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName }: JoinSpaceDialogProps) {
+export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, accountId }: JoinSpaceDialogProps) {
+  const [busy, setBusy] = useState(false)
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(next) => { if (!busy) onOpenChange(next) }}>
       <DialogContent className="sm:max-w-lg">
-        <JoinSpaceForm
+        {accountId ? <JoinByCodeForm key={String(open)} accountId={accountId} busy={busy} setBusy={setBusy} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} /> : <JoinSpaceForm
           key={open ? "join-space-open" : "join-space-closed"}
           onCancel={() => onOpenChange(false)}
           onSubmit={onSubmit}
           previewName={previewName ?? null}
-        />
+        />}
       </DialogContent>
     </Dialog>
+  )
+}
+
+function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
+  accountId: string
+  busy: boolean
+  setBusy: (busy: boolean) => void
+  onSubmit: JoinSpaceDialogProps["onSubmit"]
+  onCancel: () => void
+}) {
+  const [code, setCode] = useState("")
+  const [error, setError] = useState("")
+  const [copyStatus, setCopyStatus] = useState("")
+
+  async function submit() {
+    if (!/^[A-Za-z0-9_-]{43}$/.test(code.trim())) {
+      setError("Paste the invitation code supplied by the space owner.")
+      return
+    }
+    setError("")
+    setBusy(true)
+    try {
+      await onSubmit({ name: "", inviteCode: code.trim() })
+    } catch (cause) {
+      setError(getApiErrorMessage(cause, "This code could not be accepted."))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); if (!busy) void submit() }}>
+      <DialogHeader>
+        <DialogTitle>Join a study space</DialogTitle>
+        <DialogDescription>Paste the invitation code the owner created for your account.</DialogDescription>
+      </DialogHeader>
+      <Field>
+        <FieldLabel htmlFor="account-space-code">Invitation code</FieldLabel>
+        <Input id="account-space-code" value={code} onChange={(event) => setCode(event.target.value)} disabled={busy} autoComplete="off" />
+      </Field>
+      <Field className="rounded-lg border bg-muted/30 p-3">
+        <FieldLabel htmlFor="study-space-account-id">Your account ID</FieldLabel>
+        <p className="text-xs text-muted-foreground">Share this ID with a room owner so they can create a code for you.</p>
+        <div className="flex gap-2">
+          <Input id="study-space-account-id" value={accountId} readOnly onFocus={(event) => event.target.select()} />
+          <Button type="button" size="icon" variant="outline" aria-label="Copy your account ID" onClick={() => {
+            void navigator.clipboard?.writeText(accountId).then(() => setCopyStatus("Account ID copied."), () => setCopyStatus("Select the account ID and copy it manually."))
+            if (!navigator.clipboard) setCopyStatus("Select the account ID and copy it manually.")
+          }}><Copy aria-hidden="true" /></Button>
+        </div>
+        {copyStatus && <p role="status" className="text-xs text-muted-foreground">{copyStatus}</p>}
+      </Field>
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Cancel</Button>
+        <Button type="submit" disabled={busy || !code.trim()}><LogIn aria-hidden="true" />{busy ? "Joining…" : "Join space"}</Button>
+      </DialogFooter>
+    </form>
   )
 }
 

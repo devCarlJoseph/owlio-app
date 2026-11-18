@@ -21,6 +21,22 @@ export async function joinStudySpace(token: string) {
   try { return await getStudySpace(spaceId) }
   catch { throw new Error('Your invitation was accepted, but the space could not be loaded. Refresh your spaces before retrying.') }
 }
+export function issueStudySpaceInvitation(spaceId: string, recipientId: string) {
+  return requestOperation('POST /api/v1/study-spaces/{spaceId}/invitations', { params: { spaceId }, body: { recipientId } })
+}
+
+export function listRoomDiscussions(spaceId: string, signal?: AbortSignal) {
+  return collectOperation('GET /api/v1/study-spaces/{spaceId}/discussions', { params: { spaceId }, signal })
+}
+
+export function createRoomDiscussion(spaceId: string, title: string) {
+  return requestOperation('POST /api/v1/study-spaces/{spaceId}/discussions', { params: { spaceId }, body: { title } })
+}
+
+export function postRoomReply(discussionId: string, body: string) {
+  return requestOperation('POST /api/v1/discussions/{discussionId}/replies', { params: { discussionId }, body: { body } })
+}
+
 export function removeStudySpace(space: StudySpaceRecord) {
   return space.role === 'owner' ? requestOperation('POST /api/v1/study-spaces/{spaceId}/archive', { params: { spaceId: space.id }, body: {} }) : requestOperation('POST /api/v1/study-spaces/{spaceId}/leave', { params: { spaceId: space.id }, body: {} })
 }

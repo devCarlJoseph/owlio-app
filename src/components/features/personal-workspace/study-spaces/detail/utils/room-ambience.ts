@@ -18,7 +18,7 @@ export type LightingPreset = {
 
 export const LIGHTING: Record<LightPhase, LightingPreset> = {
   morning: {
-    background: "#e6f0fb",
+    background: "#e6e1f2",
     hemiSky: "#f4f9ff",
     hemiGround: "#cfdbe9",
     hemiIntensity: 0.85,
@@ -29,7 +29,7 @@ export const LIGHTING: Record<LightPhase, LightingPreset> = {
     lamps: 0,
   },
   day: {
-    background: "#e8eef6",
+    background: "#ded9ee",
     hemiSky: "#ffffff",
     hemiGround: "#cdd8e6",
     hemiIntensity: 0.9,

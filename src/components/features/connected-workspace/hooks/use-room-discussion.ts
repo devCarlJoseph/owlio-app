@@ -1,58 +1,101 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAuthSession } from '@/components/features/auth/context/auth-session-context'
-import type { RoomMessage } from '@/components/features/personal-workspace/study-spaces/detail/ui/room-chat-panel'
-import { collectOperation, requestOperation } from '@/services/api/contract-client'
-import { getApiErrorMessage } from '@/services/api/api-error'
-import { getDiscussionReplies } from '@/services/api/study-space.service'
+import { useEffect, useRef, useState } from "react"
+import type { RoomMessage } from "@/components/features/personal-workspace/study-spaces/detail/ui/room-chat-panel"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { createRoomDiscussion, getDiscussionReplies, listRoomDiscussions, postRoomReply } from "@/services/api/study-space.service"
 
-/** Saved discussion replies; avatar positions remain a local visual aid. */
-export function useRoomDiscussion(spaceId: string | undefined) {
-  const { user } = useAuthSession()
+const ROOM_THREAD_TITLE = "Room discussion"
+const REFRESH_MS = 5000
+
+function latestMessages(messages: RoomMessage[]) {
+  return messages.sort((a, b) => a.sentAt - b.sentAt || a.id.localeCompare(b.id)).slice(-50)
+}
+
+// The room mounts this hook with a fresh key for each account and space.
+export function useRoomDiscussion(spaceId?: string, user?: { id: string; name: string } | null) {
   const [messages, setMessages] = useState<RoomMessage[]>([])
-  const [error, setError] = useState('')
+  const [readError, setReadError] = useState("")
+  const [sendError, setSendError] = useState("")
   const [busy, setBusy] = useState(false)
-  const thread = useRef<string | null>(null)
-  const generation = useRef(0)
-  const sending = useRef(false)
-  const active = useRef(true)
+  const write = useRef({ active: true, sending: false, revision: 0 })
+  const userId = user?.id
+  const userName = user?.name
+
   useEffect(() => {
-    active.current = true
+    if (!spaceId || !userId) return
+    const mutation = write.current
+    mutation.active = true
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout>
-    async function read() {
-      const revision = generation.current
+
+    async function refresh(id: string) {
+      const revision = mutation.revision
       try {
-        if (!spaceId) return
-        if (!thread.current) {
-          const threads = await collectOperation('GET /api/v1/study-spaces/{spaceId}/discussions', { params: { spaceId }, signal: controller.signal })
-          const room = threads.find(item => item.title === 'Room discussion' && !item.lockedAt)
-          if (room && !thread.current) thread.current = room.id
+        if (mutation.sending || document.hidden) return
+        const threads = await listRoomDiscussions(id, controller.signal)
+        // The API permits duplicate titles. Merge replies to keep simultaneous first posts visible.
+        const groups = await Promise.all(threads.filter((thread) => thread.title === ROOM_THREAD_TITLE)
+          .map((thread) => getDiscussionReplies(thread.id, controller.signal)))
+        if (controller.signal.aborted || revision !== mutation.revision) return
+        const updated = latestMessages(groups.flat().map((reply) => ({
+          id: reply.id,
+          author: reply.authorId === userId ? userName ?? "You" : "Member",
+          text: reply.body,
+          sentAt: Date.parse(reply.createdAt),
+        })))
+        setMessages((current) => current.length === updated.length &&
+          current.every((message, index) => message.id === updated[index].id && message.author === updated[index].author)
+          ? current
+          : updated)
+        setReadError("")
+      } catch (cause) {
+        if (!controller.signal.aborted && revision === mutation.revision) {
+          // The previously authorized snapshot may no longer be available to this account.
+          setMessages([])
+          setReadError(getApiErrorMessage(cause, "Room messages could not be refreshed."))
         }
-        if (thread.current) {
-          const replies = await getDiscussionReplies(thread.current, controller.signal)
-          if (!controller.signal.aborted && revision === generation.current) setMessages(replies.slice(-50).map(reply => ({ id: reply.id, author: reply.authorId === user?.id ? user.name : 'Member', text: reply.body, sentAt: Date.parse(reply.createdAt) })))
-        }
-        if (!controller.signal.aborted) setError('')
-      } catch (cause) { if (!controller.signal.aborted) setError(getApiErrorMessage(cause, 'Room discussion could not be loaded.')) }
-      finally { if (!controller.signal.aborted) timer = setTimeout(() => void read(), 5000) }
-    }
-    void read()
-    return () => { active.current = false; controller.abort(); clearTimeout(timer) }
-  }, [spaceId, user?.id, user?.name])
-  const send = useCallback(async (body: string) => {
-    if (!spaceId || !user || sending.current) return false
-    sending.current = true; generation.current++; setBusy(true); setError('')
-    try {
-      if (!thread.current) {
-        const created = await requestOperation('POST /api/v1/study-spaces/{spaceId}/discussions', { params: { spaceId }, body: { title: 'Room discussion' } })
-        thread.current = created.id
+      } finally {
+        if (!controller.signal.aborted) timer = setTimeout(() => void refresh(id), REFRESH_MS)
       }
-      const reply = await requestOperation('POST /api/v1/discussions/{discussionId}/replies', { params: { discussionId: thread.current }, body: { body } })
-      generation.current++
-      if (active.current) setMessages(current => [...current, { id: reply.id, author: user.name, text: body, sentAt: Date.parse(reply.createdAt) }])
-      return true
-    } catch (cause) { if (active.current) setError(getApiErrorMessage(cause, 'Message was not confirmed. Refresh before retrying.')); return false }
-    finally { sending.current = false; if (active.current) setBusy(false) }
-  }, [spaceId, user])
-  return { messages, error, busy, send }
+    }
+
+    void refresh(spaceId)
+    return () => {
+      mutation.active = false
+      controller.abort()
+      clearTimeout(timer)
+    }
+  }, [spaceId, userId, userName])
+
+  async function send(body: string) {
+    const mutation = write.current
+    if (!spaceId || !user || mutation.sending) return null
+    mutation.sending = true
+    mutation.revision++
+    setBusy(true)
+    setSendError("")
+    try {
+      const threads = (await listRoomDiscussions(spaceId)).filter((thread) => thread.title === ROOM_THREAD_TITLE)
+      let thread = threads.find((item) => !item.lockedAt)
+      if (!mutation.active) return null
+      if (!thread) {
+        if (threads.length) throw new Error("This room conversation is locked.")
+        thread = await createRoomDiscussion(spaceId, ROOM_THREAD_TITLE)
+      }
+      if (!mutation.active) return null
+      const reply = await postRoomReply(thread.id, body)
+      if (!mutation.active) return null
+      const message = { id: reply.id, author: user.name, text: body, sentAt: Date.parse(reply.createdAt) }
+      setMessages((current) => latestMessages([...current.filter((item) => item.id !== reply.id), message]))
+      setReadError("")
+      return message
+    } catch (cause) {
+      if (mutation.active) setSendError(getApiErrorMessage(cause, "Message delivery could not be confirmed."))
+      return null
+    } finally {
+      mutation.sending = false
+      if (mutation.active) setBusy(false)
+    }
+  }
+
+  return { messages, readError, sendError, busy, send }
 }

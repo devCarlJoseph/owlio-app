@@ -12,6 +12,7 @@ export type StudySpaceRecord = {
   capacity: number
   createdAt: string
   inviteCode?: string
+  accountSpace?: true
   // Local-only timestamp of the last time this browser opened the room.
   lastVisitedAt?: string
 }
@@ -172,6 +173,29 @@ export function saveStudySpaces(spaces: StudySpaceRecord[]): void {
     window.localStorage.setItem(studySpacesStorageKey, JSON.stringify(spaces))
   } catch {
     return
+  }
+}
+
+function layoutKey(userId: string, spaceId: string) {
+  return `owlio.account-study-space-layout.v1.${userId}.${spaceId}`
+}
+
+export function loadAccountRoomLayout(userId: string, space: StudySpaceRecord): StudySpaceRecord {
+  try {
+    const saved = JSON.parse(localStorage.getItem(layoutKey(userId, space.id)) ?? "null")
+    if (saved) return normalizeStudySpace({ ...space, kind: saved.kind, capacity: saved.capacity })
+  } catch {
+    // The room can still open with its default layout.
+  }
+  return space
+}
+
+export function saveAccountRoomLayout(userId: string, spaceId: string, layout: Pick<StudySpaceRecord, "kind" | "capacity">): boolean {
+  try {
+    localStorage.setItem(layoutKey(userId, spaceId), JSON.stringify({ kind: layout.kind, capacity: layout.capacity }))
+    return true
+  } catch {
+    return false
   }
 }
 

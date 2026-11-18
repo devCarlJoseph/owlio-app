@@ -1,8 +1,11 @@
 import { StudySpaceSkeleton } from '../ui/study-space-skeleton'
-import { lazy, Suspense, useEffect, useMemo, useState } from "react"
+import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router"
 import { Globe2, Info, Layers, List, Maximize2, Minimize2, Plus, Search, Users } from "lucide-react"
 import { cn } from "cn"
+import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
+import { getApiErrorMessage } from "@/services/api/api-error"
+import { createStudySpace, getStudySpaces, joinStudySpace, removeStudySpace } from "@/services/api/study-space.service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -18,9 +21,11 @@ import { LockedSpaceGrid, SpaceGrid, SpaceGridEmptyState } from "../ui/space-car
 import { SpaceMap } from "../ui/space-map"
 import {
   createStudySpaceId,
+  loadAccountRoomLayout,
   loadJoinedDiscoveryIds,
   loadStudySpaces,
   sampleDiscoverySpaces,
+  saveAccountRoomLayout,
   saveJoinedDiscoveryIds,
   saveStudySpaces,
   sortSpaces,
@@ -53,7 +58,19 @@ function hasWebGL(): boolean {
 }
 
 export function StudySpacesView() {
+  const userId = useContext(AuthSessionContext)?.user?.id
+  return <StudySpacesHall key={userId ?? "local"} userId={userId} />
+}
+
+function StudySpacesHall({ userId }: { userId?: string }) {
   const navigate = useNavigate()
+  const [accountSpaces, setAccountSpaces] = useState<StudySpaceRecord[]>([])
+  const [directoryStatus, setDirectoryStatus] = useState(userId ? "Loading shared spaces…" : "")
+  const [directoryError, setDirectoryError] = useState(false)
+  const [refresh, setRefresh] = useState(0)
+  const [localCreate, setLocalCreate] = useState(false)
+  const [localJoin, setLocalJoin] = useState(false)
+  const active = useRef(false)
   const [spaces, setSpaces] = useState<StudySpaceRecord[]>(() => loadStudySpaces())
   const [joinedDiscoveryIds, setJoinedDiscoveryIds] = useState<string[]>(() => loadJoinedDiscoveryIds())
   const [createOpen, setCreateOpen] = useState(false)
@@ -64,6 +81,26 @@ export function StudySpacesView() {
   const [webgl] = useState(hasWebGL)
   const [view, setView] = useState<HallView>(() => (webgl ? "world" : "list"))
   const [expanded, setExpanded] = useState(false)
+
+  useEffect(() => {
+    active.current = true
+    return () => { active.current = false }
+  }, [])
+
+  useEffect(() => {
+    if (!userId) return
+    const controller = new AbortController()
+    void getStudySpaces(controller.signal).then((records) => {
+      if (controller.signal.aborted) return
+      setAccountSpaces(records.map((space) => loadAccountRoomLayout(userId, { ...space, accountSpace: true })))
+      setDirectoryStatus("")
+    }).catch((error) => {
+      if (controller.signal.aborted) return
+      setDirectoryError(true)
+      setDirectoryStatus(getApiErrorMessage(error, "Could not load shared study spaces."))
+    })
+    return () => controller.abort()
+  }, [userId, refresh])
 
   useEffect(() => {
     saveStudySpaces(spaces)
@@ -86,15 +123,15 @@ export function StudySpacesView() {
   const matches = (space: StudySpaceRecord) => needle === "" || space.name.toLowerCase().includes(needle)
 
   const createdSpaces = useMemo(
-    () => sortSpaces(spaces.filter((space) => space.role === "owner" && matches(space)), sort),
+    () => sortSpaces([...accountSpaces, ...spaces].filter((space) => space.role === "owner" && matches(space)), sort),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [spaces, sort, needle]
+    [accountSpaces, spaces, sort, needle]
   )
 
   const joinedSpaces = useMemo(
-    () => sortSpaces(spaces.filter((space) => space.role === "member" && matches(space)), sort),
+    () => sortSpaces([...accountSpaces, ...spaces].filter((space) => space.role === "member" && matches(space)), sort),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [spaces, sort, needle]
+    [accountSpaces, spaces, sort, needle]
   )
 
   const lockedSpaces = useMemo(
@@ -109,7 +146,14 @@ export function StudySpacesView() {
 
   const total = createdSpaces.length + joinedSpaces.length + lockedSpaces.length
 
-  function handleCreate(draft: SpaceDraft) {
+  async function handleCreate(draft: SpaceDraft) {
+    if (userId && !localCreate) {
+      const space = await createStudySpace(draft.name, draft.about)
+      if (!active.current) return
+      const layoutSaved = saveAccountRoomLayout(userId, space.id, draft)
+      navigate(`/students/study-spaces/${space.id}`, { state: { offerInvite: true, layoutSaved } })
+      return
+    }
     const space: StudySpaceRecord = {
       id: createStudySpaceId(),
       name: draft.name,
@@ -124,12 +168,18 @@ export function StudySpacesView() {
     navigate(`/students/study-spaces/${space.id}`)
   }
 
-  function openJoin(target: StudySpaceRecord | null) {
+  function openJoin(target: StudySpaceRecord | null, browserOnly = false) {
     setJoinTarget(target)
+    setLocalJoin(browserOnly)
     setJoinOpen(true)
   }
 
-  function handleJoin(draft: JoinSpaceDraft) {
+  async function handleJoin(draft: JoinSpaceDraft) {
+    if (userId && !joinTarget && !localJoin) {
+      const space = await joinStudySpace(draft.inviteCode)
+      if (active.current) navigate(`/students/study-spaces/${space.id}`)
+      return
+    }
     const inviteCode = draft.inviteCode.length > 0 ? draft.inviteCode : undefined
     const createdAt = new Date().toISOString()
 
@@ -164,7 +214,13 @@ export function StudySpacesView() {
     setJoinOpen(false)
   }
 
-  function handleRemove(space: StudySpaceRecord) {
+  async function handleRemove(space: StudySpaceRecord) {
+    if (space.accountSpace) {
+      await removeStudySpace(space)
+      setAccountSpaces((current) => current.filter((record) => record.id !== space.id))
+      setRefresh((current) => current + 1)
+      return
+    }
     setSpaces((current) => current.filter((record) => record.id !== space.id))
   }
 
@@ -244,7 +300,7 @@ export function StudySpacesView() {
             ))}
           </SelectContent>
         </Select>
-        <Button type="button" size="sm" className="rounded-full shadow-sm" onClick={() => setCreateOpen(true)}>
+        <Button type="button" size="sm" className="rounded-full shadow-sm" onClick={() => { setLocalCreate(false); setCreateOpen(true) }}>
           <Plus aria-hidden="true" />
           Create space
         </Button>
@@ -256,7 +312,7 @@ export function StudySpacesView() {
           onClick={() => openJoin(null)}
         >
           <Plus aria-hidden="true" />
-          Join space
+          {userId ? "Join by code" : "Join space"}
         </Button>
         {overlay ? (
           <Button
@@ -278,6 +334,16 @@ export function StudySpacesView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl">
+      {directoryStatus && (
+        <div className="mb-2 flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm" role={directoryError ? "alert" : "status"}>
+          {directoryStatus}
+          {directoryError && <Button size="xs" variant="outline" onClick={() => {
+            setDirectoryError(false)
+            setDirectoryStatus("Loading shared spaces…")
+            setRefresh((current) => current + 1)
+          }}>Retry</Button>}
+        </div>
+      )}
       {view === "world" ? (
         <section
           aria-labelledby="study-hall-title"
@@ -325,7 +391,7 @@ export function StudySpacesView() {
             <p className="flex-1 text-sm leading-6 text-blue-800 surface-dark:text-blue-300">{studySpacesGuidance}</p>
             <p className="flex w-full items-start gap-2 border-t border-blue-100 surface-dark:border-surface-blue-border pt-2 text-xs leading-5 text-blue-800 surface-dark:text-blue-300 sm:w-auto sm:flex-1 sm:border-t-0 sm:pt-0">
               <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-              {studySpacesStorageNotice}
+              {userId ? "Shared spaces you own or have joined appear here alongside your browser-only rooms." : studySpacesStorageNotice}
             </p>
           </div>
 
@@ -360,16 +426,26 @@ export function StudySpacesView() {
             )}
           </div>
 
-          <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{studySpacesOpenHint}</p>
+          {userId ? (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => { setLocalCreate(true); setCreateOpen(true) }}>
+                Create a browser-only room
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => openJoin(null, true)}>
+                Add a browser-only joined room
+              </Button>
+            </div>
+          ) : <p className="text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{studySpacesOpenHint}</p>}
         </section>
       )}
 
-      <CreateSpaceDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreate} />
+      <CreateSpaceDialog accountSpace={Boolean(userId && !localCreate)} open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreate} />
       <JoinSpaceDialog
         open={joinOpen}
         onOpenChange={setJoinOpen}
         onSubmit={handleJoin}
         previewName={joinTarget?.name ?? null}
+        accountId={joinTarget || localJoin ? undefined : userId}
       />
     </div>
   )
@@ -383,7 +459,7 @@ function ListSection({
 }: {
   title: string
   spaces: StudySpaceRecord[]
-  onRemove: (space: StudySpaceRecord) => void
+  onRemove: (space: StudySpaceRecord) => void | Promise<void>
   emptyMessage: string
 }) {
   return (
@@ -393,7 +469,7 @@ function ListSection({
           {title} ({spaces.length})
         </h4>
         <p className="mt-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
-          Peer spaces in this browser. Room previews reflect each space's layout.
+          Open a room to study. Browser-only rooms are labeled on their cards.
         </p>
       </div>
       {spaces.length > 0 ? (
