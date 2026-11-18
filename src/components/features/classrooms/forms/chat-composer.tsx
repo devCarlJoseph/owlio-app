@@ -11,7 +11,7 @@ const MAX_LENGTH = 500
 const containsMention = (body: string, name: string) => new RegExp(`(^|\\s)@${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|\\s|[.,!?;:])`).test(body)
 
 const iconButton =
-  "inline-flex size-9 shrink-0 items-center justify-center rounded-md text-brand outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+  "inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-brand-soft-foreground outline-none hover:bg-background/80 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent @min-[30rem]/class-chat:size-9"
 
 export function ChatComposer({
   onSend,
@@ -103,7 +103,7 @@ export function ChatComposer({
   }
 
   return (
-    <form onSubmit={submit} className="shrink-0 bg-card p-3 sm:px-4" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setMentionsOpen(false) }}>
+    <form onSubmit={submit} className="max-h-[55%] shrink-0 overflow-y-auto px-3 pt-1 pb-3 @min-[30rem]/class-chat:px-6" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setMentionsOpen(false) }}>
       {classroomId && <ChatMentionPicker key={`${classroomId}:${userId}`} ref={mentionsRef} classroomId={classroomId} userId={userId} canMentionStudents={canMentionStudents} query={activeMention?.query ?? ''} open={mentionsOpen && !disabled} listId={mentionsId} onActiveChange={setActiveOptionId} onClose={() => setMentionsOpen(false)} onSelect={selectMention} />}
       {replyingTo && (
         <div className="mb-2 flex items-start gap-2 rounded-lg border-l-2 border-primary bg-muted px-3 py-2 text-xs">
@@ -136,7 +136,7 @@ export function ChatComposer({
           ))}
         </div>
       )}
-      <div className="flex min-w-0 items-end gap-1.5">
+      <div className="flex min-w-0 items-end gap-0.5 rounded-[15px] bg-brand-soft p-1.5 @min-[30rem]/class-chat:gap-1">
         <button type="button" disabled className={iconButton} aria-label="Attach a file (not available yet)" title="Attachments are not available yet">
           <Paperclip aria-hidden="true" className="size-4" />
         </button>
@@ -167,13 +167,13 @@ export function ChatComposer({
           aria-autocomplete="list"
           aria-controls={mentionsOpen ? mentionsId : undefined}
           aria-activedescendant={mentionsOpen ? activeOptionId : undefined}
-          placeholder="Aa"
-          className="max-h-32 min-h-9 min-w-0 flex-1 resize-none rounded-md border-0 bg-muted px-4 py-2 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-muted"
+          placeholder="Your message"
+          className="max-h-28 min-h-8 min-w-0 flex-1 resize-none rounded-lg border-0 bg-transparent px-1.5 py-1.5 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-transparent @min-[30rem]/class-chat:min-h-9 @min-[30rem]/class-chat:px-2"
         />
         <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
           <Smile aria-hidden="true" className="size-4" />
         </button>
-        <Button type="submit" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-9 shrink-0 bg-brand text-brand-foreground hover:bg-brand/90">
+        <Button type="submit" variant="ghost" size="icon" disabled={!canSend} aria-label="Send class chat message" className="size-8 shrink-0 rounded-lg text-brand-soft-foreground hover:bg-background/80 hover:text-brand-soft-foreground @min-[30rem]/class-chat:size-9">
           <Send aria-hidden="true" />
         </Button>
       </div>
