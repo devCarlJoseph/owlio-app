@@ -63,7 +63,7 @@ import {
   type RoomTask,
 } from "../utils/room-tasks"
 import { loadRoomTvVideo, saveRoomTvVideo, type RoomTvVideo } from "../utils/room-tv"
-import { getSampleNappers, getSampleRoster, sampleRosterNotice } from "../../utils/space-roster"
+import { getMemberRoster, getSampleNappers, getSampleRoster, sampleRosterNotice } from "../../utils/space-roster"
 import { SpaceRoomScene, type CameraResetHandle } from "../ui/space-room-scene"
 import { focusMusicTracks } from "../utils/focus-music"
 import { buildRoomSpots, buildSeats, roomSpawnPoint } from "../utils/study-space-seats"
@@ -136,13 +136,19 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const { state } = location
   const shared = Boolean(space?.accountSpace)
   const [inviteOpen, setInviteOpen] = useState(Boolean(state?.offerInvite && space?.accountSpace && space.role === "owner"))
+  const [roomMembers, setRoomMembers] = useState<StudySpaceMember[]>([])
   const discussion = useRoomDiscussion(shared ? spaceId : undefined, user)
   const tableSeats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
   const seats = useMemo(() => [...tableSeats, ...ROOM_SPOTS], [tableSeats])
-  const roster = useMemo(() => (space ? getSampleRoster(space, tableSeats.length) : []), [space, tableSeats.length])
+  const roster = useMemo(() => {
+    if (!space) return []
+    return shared
+      ? getMemberRoster(roomMembers, user?.id, Math.max(0, tableSeats.length - 1))
+      : getSampleRoster(space, tableSeats.length)
+  }, [roomMembers, shared, space, tableSeats.length, user?.id])
   const samplePeople = useMemo(
-    () => (space ? [...roster, ...getSampleNappers(space, roster, tableSeats.length, NAP_MAT_COUNT)] : []),
-    [space, roster, tableSeats.length]
+    () => (space && !shared ? [...roster, ...getSampleNappers(space, roster, tableSeats.length, NAP_MAT_COUNT)] : []),
+    [roster, shared, space, tableSeats.length]
   )
 
   // A room-specific character wins; otherwise the study hall character walks in by default.
@@ -151,11 +157,11 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   )
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [messages, setMessages] = useState<RoomMessage[]>([])
-  const [roomMembers, setRoomMembers] = useState<StudySpaceMember[]>([])
   const [membersOpen, setMembersOpen] = useState(false)
   const [membersLoading, setMembersLoading] = useState(false)
   const [membersError, setMembersError] = useState("")
   const memberRequestRef = useRef(0)
+  const memberRequestBusyRef = useRef(false)
   const [bubble, setBubble] = useState<{ id: string; text: string } | null>(null)
   const [showNameTags, setShowNameTags] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
@@ -188,7 +194,8 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const timer = usePomodoro()
 
   const refreshRoomMembers = useCallback(async () => {
-    if (!shared || !spaceId) return
+    if (!shared || !spaceId || memberRequestBusyRef.current) return
+    memberRequestBusyRef.current = true
     const requestId = ++memberRequestRef.current
     setMembersLoading(true)
     setMembersError("")
@@ -199,13 +206,22 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
       if (requestId === memberRequestRef.current) setMembersError(getApiErrorMessage(cause, "Could not load this space’s members."))
     } finally {
       if (requestId === memberRequestRef.current) setMembersLoading(false)
+      memberRequestBusyRef.current = false
     }
   }, [shared, spaceId])
 
   useEffect(() => {
     if (shared) void refreshRoomMembers()
     else setRoomMembers([])
-    return () => { memberRequestRef.current += 1 }
+    const refreshInterval = shared
+      ? window.setInterval(() => {
+          if (document.visibilityState === "visible") void refreshRoomMembers()
+        }, 10_000)
+      : undefined
+    return () => {
+      if (refreshInterval !== undefined) window.clearInterval(refreshInterval)
+      memberRequestRef.current += 1
+    }
   }, [refreshRoomMembers, shared])
 
   useEffect(() => {
@@ -260,7 +276,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
   const freeSeats = tableSeats.length - roster.length - (seatedSeat?.zone === "discussion" ? 1 : 0)
   const napping = seatedSeat?.furniture === "mat"
-  const selectedTaker = selectedSeat ? samplePeople.find((person) => seats[person.seatIndex]?.id === selectedSeat.id) ?? null : null
+  const selectedTaker = selectedSeat ? [...samplePeople, ...roster].find((person) => seats[person.seatIndex]?.id === selectedSeat.id) ?? null : null
   const isLeader = canManageTasks(space)
   const activeTrack =
     focusMusicTracks.find((track) => track.id === music.playback.trackId) ?? null
@@ -596,6 +612,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
             kind={space.kind}
             seats={seats}
             samplePeople={samplePeople}
+            members={roster}
             tasks={tasks}
             tvHasVideo={tvVideo !== null}
             lockers={lockerSlots}
@@ -627,10 +644,12 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
             <p className="flex-1">
               {shared
-                ? "Chat and the Members roster are shared. Room avatars, seats, and tools are local to your device."
+                ? "Chat and the Members roster are shared. Other joined members appear as idle room characters; their custom colors and movement are not synced."
                 : studySpaceRoomPreviewNotice}
               {shared && state?.layoutSaved === false ? " The selected layout could not be saved on this device." : ""}
-              {samplePeople.length > 0 ? ` ${sampleRosterNotice}` : ""}
+              {samplePeople.some((person) => !person.member) ? ` ${sampleRosterNotice}` : ""}
+              {shared && roster.length > 0 ? ` ${roster.length} other member${roster.length === 1 ? " is" : "s are"} shown as idle room characters.` : ""}
+              {shared && roomMembers.length > roster.length + 1 ? " Some members remain listed in the Members panel because this room has limited seats." : ""}
             </p>
             <button
               type="button"

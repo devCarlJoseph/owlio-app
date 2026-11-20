@@ -23,6 +23,7 @@ export type SpaceRoomSceneProps = {
   kind?: StudySpaceKind
   seats: SeatDef[]
   samplePeople?: SamplePerson[]
+  members?: SamplePerson[]
   tasks?: RoomTask[]
   tvHasVideo?: boolean
   lockers?: LockerSlot[]
@@ -63,6 +64,7 @@ export function SpaceRoomScene({
   kind = "collaborative",
   seats,
   samplePeople = [],
+  members = [],
   tasks = [],
   tvHasVideo = false,
   lockers = [],
@@ -87,7 +89,7 @@ export function SpaceRoomScene({
 }: SpaceRoomSceneProps) {
   const [hoveredSeatId, setHoveredSeatId] = useState<string | null>(null)
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
-  const takenBy = new Map(samplePeople.map((person) => [seats[person.seatIndex]?.id, person]))
+  const takenBy = new Map([...samplePeople, ...members].map((person) => [seats[person.seatIndex]?.id, person]))
   // A seated character only stands through the Stand up button, so a movement key just shows the hint.
   const { heldRef } = useWalkKeys(true, () => {
     if (seatedSeatId) onFloorPoint(walkTarget)
@@ -190,7 +192,7 @@ export function SpaceRoomScene({
         />
       ))}
 
-      {samplePeople.map((person, index) => {
+      {[...samplePeople, ...members].map((person, index) => {
         const seat = seats[person.seatIndex]
         if (!seat) return null
         const napping = seat.furniture === "mat"
@@ -209,7 +211,7 @@ export function SpaceRoomScene({
             {showNameTag ? (
               <Html position={[0, napping ? 1.5 : 2.1, napping ? 0.4 : 0]} center className="pointer-events-none" zIndexRange={[18, 0]}>
                 <span className="block rounded-md bg-white/90 surface-dark:bg-card/90 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-700 surface-dark:text-foreground shadow">
-                  {person.name} · {napping ? "napping · sample" : "sample"}
+                  {person.name} · {person.member ? "member" : napping ? "napping · sample" : "sample"}
                 </span>
               </Html>
             ) : null}
