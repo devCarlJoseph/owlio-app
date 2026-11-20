@@ -52,7 +52,7 @@ export function ClassroomDetailView() {
   if (!classroom || !visible) return <section className="space-y-3 rounded-xl border p-6"><h2>Classroom unavailable</h2>
     <p>This classroom is not available to your account in this workspace.</p><Link className="underline" to={'/' + role + '/classrooms'}>Back to classrooms</Link></section>
   const selectTab = (value: string) => setParams(current => { const next = new URLSearchParams(current); if (value === defaultTab) next.delete('tab'); else next.set('tab', value); return next }, { replace: true })
-  const meetingHref = classroom.meetingId ? `/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? '')}` : classroom.meetingCode ? `/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingCode)}` : null
+  const meetingHref = classroom.archivedAt ? null : classroom.meetingId ? `/${role}/classrooms/meeting-room?session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? '')}` : classroom.meetingCode ? `/${role}/classrooms/meeting-room?room=${encodeURIComponent(classroom.meetingCode)}` : null
   async function copyCode() {
     if (!classroom?.joinCode) return
     try { await navigator.clipboard.writeText(classroom.joinCode); setNotice('Classroom invite code copied.') }

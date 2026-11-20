@@ -1,12 +1,12 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createClassroom, getClassrooms, joinClassroomByCode } from '@/services/api/classroom.service'
+import { createClassroom, deleteEndedClassroom, endClassroom, getClassrooms, joinClassroomByCode } from '@/services/api/classroom.service'
 import { ClassroomsView } from '../view/classrooms-view'
 import { TestSession } from './classroom-test-fixtures'
 import { classroom, student, teacher } from './classroom-test-data'
 
-vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
+vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn(), endClassroom: vi.fn(), deleteEndedClassroom: vi.fn() }))
 afterEach(cleanup)
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]) })
 describe('API classroom list', () => {
@@ -20,6 +20,51 @@ describe('API classroom list', () => {
     vi.mocked(getClassrooms).mockResolvedValue([classroom])
     render(<TestSession><ClassroomsView /></TestSession>)
     expect(await screen.findByText(classroom.name)).toBeTruthy()
+  })
+  it.each([['EDUCATOR', '/educators'], ['ESL', '/esl'], ['TUTOR', '/tutors']] as const)(
+    'requires %s owners to confirm deletion and keeps a failed deletion visible', async (role, path) => {
+      const account = { ...teacher, roles: [role] }
+      vi.mocked(getClassrooms).mockResolvedValue([{ ...classroom, ownerId: account.id, archivedAt: '2026-11-20T00:00:00Z' }])
+      vi.mocked(deleteEndedClassroom).mockRejectedValueOnce(new Error('Deletion unavailable'))
+        .mockResolvedValueOnce({ id: classroom.id })
+      const user = userEvent.setup()
+      render(<TestSession user={account} path={path + '/classrooms'}><ClassroomsView /></TestSession>)
+      const options = await screen.findByRole('button', { name: 'More options for ' + classroom.name })
+      options.focus()
+      fireEvent.keyDown(options, { key: 'ArrowDown' })
+      await user.click(await screen.findByRole('menuitem', { name: 'Delete classroom' }))
+      const cancel = within(await screen.findByRole('dialog')).getByRole('button', { name: 'Cancel' })
+      await waitFor(() => expect(document.activeElement).toBe(cancel))
+      await user.click(cancel)
+      expect(deleteEndedClassroom).not.toHaveBeenCalled()
+      options.focus()
+      fireEvent.keyDown(options, { key: 'ArrowDown' })
+      await user.click(await screen.findByRole('menuitem', { name: 'Delete classroom' }))
+      const dialog = within(await screen.findByRole('dialog', { name: 'Delete classroom for everyone?' }))
+      await user.click(dialog.getByRole('button', { name: 'Delete classroom' }))
+      expect((await dialog.findByRole('alert')).textContent).toContain('Deletion unavailable')
+      await user.click(dialog.getByRole('button', { name: 'Delete classroom' }))
+      expect(await screen.findByText(classroom.name + ' was deleted for everyone.')).toBeTruthy()
+      expect(screen.queryByText(classroom.name)).toBeNull()
+    },
+  )
+  it('requires an active classroom to end before showing the delete action', async () => {
+    const current = { ...classroom, ownerId: teacher.id }
+    vi.mocked(getClassrooms).mockResolvedValue([current])
+    vi.mocked(endClassroom).mockResolvedValue({ id: current.id, archivedAt: '2026-11-20T00:00:00Z' })
+    const user = userEvent.setup()
+    render(<TestSession user={teacher} path="/educators/classrooms"><ClassroomsView /></TestSession>)
+    const options = await screen.findByRole('button', { name: 'More options for ' + current.name })
+    options.focus()
+    fireEvent.keyDown(options, { key: 'ArrowDown' })
+    const end = await screen.findByRole('menuitem', { name: 'End classroom' })
+    expect(screen.queryByRole('menuitem', { name: 'Delete classroom' })).toBeNull()
+    await user.click(end)
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'End classroom' }))
+    expect(await screen.findByText('Ended classroom')).toBeTruthy()
+    options.focus()
+    fireEvent.keyDown(options, { key: 'ArrowDown' })
+    expect(await screen.findByRole('menuitem', { name: 'Delete classroom' })).toBeTruthy()
   })
   it('keeps grid and list views backed by the same server records', async () => {
     vi.mocked(getClassrooms).mockResolvedValue([classroom])

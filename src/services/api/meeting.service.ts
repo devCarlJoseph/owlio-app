@@ -67,11 +67,18 @@ export async function openClassroomMeeting(classroomId: string) {
   return roomResult.extend({ sessionId: z.uuid() }).parse(
     await postApiWithCsrf('/api/v1/classrooms/' + id(classroomId) + '/native-meeting', {}))
 }
-export async function joinMeeting(sessionId: string) {
-  return joinResult.parse(await postApiWithCsrf(path(sessionId) + "/join", {}));
+export async function openPeerMeeting(spaceId?: string) {
+  const endpoint = spaceId ? '/api/v1/study-spaces/' + id(spaceId) + '/native-meeting' : '/api/v1/peer-meetings';
+  return roomResult.extend({ sessionId: z.uuid(), meetingCode: z.string() }).parse(await postApiWithCsrf(endpoint, {}));
+}
+export async function joinMeeting(sessionId: string, peerCode?: string) {
+  return joinResult.parse(await postApiWithCsrf(path(sessionId) + "/join", peerCode ? { peerCode } : {}));
 }
 export async function endMeeting(sessionId: string) {
   return roomResult.parse(await postApiWithCsrf(path(sessionId) + "/end", {}));
+}
+export async function endPeerMeeting(roomId: string) {
+  return roomResult.parse(await postApiWithCsrf('/api/v1/peer-meetings/' + id(roomId) + '/end', {}));
 }
 export async function getMeetingState(sessionId: string, signal?: AbortSignal) {
   return envelope(
@@ -212,6 +219,6 @@ export async function scheduleClassroomSession(
 
 export async function resolveMeetingInvite(value: string, signal?: AbortSignal) {
   const code = z.string().regex(/^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/).parse(value.trim().toUpperCase())
-  return envelope(z.object({ sessionId: z.uuid().nullable(), classroomId: z.uuid(), meetingCode: z.string() }),
+  return envelope(z.object({ sessionId: z.uuid().nullable(), classroomId: z.uuid().nullable(), meetingCode: z.string() }),
     (await api.get<unknown>('/api/v1/meeting-invitations/' + code, { signal })).data)
 }

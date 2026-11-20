@@ -34,6 +34,10 @@ Owlio authentication uses HttpOnly access/refresh cookies and in-memory CSRF, no
 | Notifications (all roles) | `/users/me/notifications`: paginated list and individual read confirmation. No sample inbox or unconfirmed read state. |
 | Schedule (all roles) and tutor sessions | Selected classroom, month window (UTC), time/id pagination; owners can create dated sessions in their local timezone. Session links lead to Meeting Room. |
 | Meeting Room | Open/join/end use `/sessions/:sessionId/native-meeting`, `/join`, `/end`, with empty JSON objects. LiveKit connects using the returned `url` and short-lived `token`. Host controls use server `isHost`. |
+
+Students can open a private-code room in **Meeting Room → Student meetings** using `POST /api/v1/peer-meetings`. The invitation resolver returns the active room ID. When a student joins a standalone peer room for the first time, the client passes its `OWLIO-PEER-…` code in the join body as `peerCode`. Hosts close student rooms via `POST /api/v1/peer-meetings/:roomId/end`.
+
+Shared Study Spaces show a reusable `OWLIO-SPACE-<UUID>` meeting code alongside the separate membership code. The space owner opens the meeting using `POST /api/v1/study-spaces/:spaceId/native-meeting`. The resolver and media join both check current student membership. Both meeting flows require the matching API and worker release, migration 0052, and the configured LiveKit provider.
 | In-call information | HTTP room state, authorized media directory, idempotent chat sends, and versioned own-hand changes. Chat uses the API’s cookie-authenticated Socket.IO channel; state/roster reads remain on a five-second refresh. Chat is independent of provider roster latency, with HTTP fallback and bounded reconnect recovery. Access failures disconnect media. No LiveKit data publishing. |
 
 Response records for the new personal/schedule/meeting clients are runtime-validated. UUID cursor loops fail explicitly. Connected records are cleared on account/role/path remounts; late/aborted account reads cannot populate another account's screen. Mutation success uses server confirmation and is not inferred from local edits.

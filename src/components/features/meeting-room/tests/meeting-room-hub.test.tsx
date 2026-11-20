@@ -4,11 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthSessionContext } from '@/components/features/auth/context/auth-session-context'
 import { ClassroomPrototypeProvider } from '@/components/features/classrooms/context/classroom-prototype-provider'
 import { getClassrooms } from '@/services/api/classroom.service'
-import { createMeeting, openClassroomMeeting, resolveMeetingInvite, joinMeeting, getClassroomSessions } from '@/services/api/meeting.service'
+import { createMeeting, openClassroomMeeting, openPeerMeeting, resolveMeetingInvite, joinMeeting, getClassroomSessions } from '@/services/api/meeting.service'
 import MeetingRoomPage from '../view/meeting-room-view'
 vi.mock('@/services/api/meeting-realtime', () => ({ watchMeetingChat: vi.fn(() => vi.fn()) }))
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
-vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), resolveMeetingInvite: vi.fn(), endMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), recoverMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
+vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), openPeerMeeting: vi.fn(), resolveMeetingInvite: vi.fn(), endMeeting: vi.fn(), endPeerMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), recoverMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]); vi.mocked(getClassroomSessions).mockResolvedValue([]) })
 afterEach(cleanup)
@@ -16,6 +16,24 @@ function open(path = '/students/classrooms/meeting-room', teacher = false) {
   return render(<MemoryRouter initialEntries={[path]}><AuthSessionContext.Provider value={{ user: { id: 'user', name: 'Test', email: 'test@example.test', roles: teacher ? ['EDUCATOR'] : ['STUDENT'], status: 'ACTIVE', emailVerifiedAt: '2026-11-14T00:00:00Z', createdAt: '2026-11-14T00:00:00Z' }, status: 'authenticated', error: null, signIn: vi.fn(), signOut: vi.fn(), refreshCurrentUser: vi.fn() }}><ClassroomPrototypeProvider><MeetingRoomPage /></ClassroomPrototypeProvider></AuthSessionContext.Provider></MemoryRouter>)
 }
 describe('connected meeting entry', () => {
+  it('creates a student room and joins using the confirmed meeting code', async () => {
+    const meetingCode = 'OWLIO-PEER-ABCDEF0123456789'
+    vi.mocked(openPeerMeeting).mockResolvedValue({ id, status: 'OPEN', sessionId: id, meetingCode })
+    vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: id, classroomId: null, meetingCode })
+    vi.mocked(joinMeeting).mockRejectedValue(new Error('Media unavailable'))
+    open()
+    fireEvent.click(screen.getByRole('button', { name: /Student meetings/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create meeting room' }))
+    expect(await screen.findByDisplayValue(meetingCode)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Copy meeting link' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
+    await waitFor(() => expect(joinMeeting).toHaveBeenCalledWith(id, meetingCode))
+    expect((await screen.findByRole('alert')).textContent).toContain('Media unavailable')
+  })
+  it('does not offer student room creation in a teaching workspace', () => {
+    open('/educators/classrooms/meeting-room', true)
+    expect(screen.queryByRole('button', { name: /Student meetings/ })).toBeNull()
+  })
   it('opens a reusable classroom meeting through the host operation without creating a second scheduled room', async () => {
     vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: null, classroomId: id, meetingCode: 'OWLIO-ABCDEFGH' })
     vi.mocked(openClassroomMeeting).mockResolvedValue({ id, status: 'OPEN', sessionId: id, meetingCode: 'OWLIO-ABCDEFGH' })

@@ -5,6 +5,7 @@ import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useClassroomPrototype } from '@/components/features/classrooms/context/classroom-prototype-context'
+import { StartPeerMeeting } from '../ui/start-peer-meeting'
 
 const categories = [
   { value: 'educators', label: 'Classroom', description: 'Meet with your school educator and classmates.', icon: School },
@@ -18,6 +19,8 @@ export function MeetingRoomHub() {
   const role = getDashboardRole(pathname) ?? 'students'
   const { getClassroomsForWorkspace, classroomsLoading, classroomsError, reloadClassrooms, connectedModeEnabled } = useClassroomPrototype()
   const selected = categories.find(item => item.value === params.get('category'))
+  const peerAvailable = role === 'students' && connectedModeEnabled
+  const peerSelected = peerAvailable && params.get('category') === 'students'
   const classrooms = getClassroomsForWorkspace(role)
   const matches = selected ? classrooms.filter(item => item.ownerWorkspace === selected.value) : []
   const base = `/${role}/classrooms/meeting-room`
@@ -34,7 +37,7 @@ export function MeetingRoomHub() {
         <Link to={`${base}?${selected && role === 'students' ? `category=${selected.value}&` : ''}join=1&layout-preview=1`} className={buttonVariants({ variant: 'outline' })}><Video aria-hidden="true" />Preview room layout</Link>
       </div>
     </div>
-    <div role="group" aria-label="Meeting categories" className="grid gap-4 lg:grid-cols-3">
+    <div role="group" aria-label="Meeting categories" className={peerAvailable ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-4' : 'grid gap-4 lg:grid-cols-3'}>
       {categories.map(({ value, label, description, icon: Icon }) => <Button
         key={value} variant="outline" aria-pressed={selected?.value === value}
         onClick={() => setParams({ category: value })}
@@ -43,8 +46,16 @@ export function MeetingRoomHub() {
         <Icon aria-hidden="true" className="mt-1 size-6 shrink-0 text-brand" />
         <span><span className="block text-base font-semibold">{label}</span><span className="mt-2 block text-sm font-normal leading-6 text-muted-foreground">{description}</span></span>
       </Button>)}
+      {peerAvailable && <Button variant="outline" aria-pressed={peerSelected} onClick={() => setParams({ category: 'students' })}
+        className="h-auto min-w-0 items-start justify-start gap-4 whitespace-normal rounded-2xl bg-card p-5 text-left aria-pressed:border-brand aria-pressed:bg-brand/5 aria-pressed:ring-1 aria-pressed:ring-brand">
+        <Video aria-hidden="true" className="mt-1 size-6 shrink-0 text-brand" />
+        <span><span className="block text-base font-semibold">Student meetings</span><span className="mt-2 block text-sm font-normal leading-6 text-muted-foreground">Start a study call or join one with a code.</span></span>
+      </Button>}
     </div>
-    {!selected ? <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Select Classroom, Tutor, or ESL to find your learning group.</div> : <section aria-labelledby="meeting-category-heading" className="space-y-4">
+    {peerSelected ? <section className="flex flex-wrap items-start gap-3" aria-label="Student meeting actions">
+      <StartPeerMeeting />
+      <Link className={buttonVariants({ variant: 'outline' })} to={`${base}?category=students&join=1`}>Join with a meeting code</Link>
+    </section> : !selected ? <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">Select a meeting category to get started.</div> : <section aria-labelledby="meeting-category-heading" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 id="meeting-category-heading" className="text-lg font-semibold">{selected.label} meetings</h3>
         <Link className={buttonVariants()} to={`${base}?category=${selected.value}&join=1`}><Video aria-hidden="true" />Use a meeting invite</Link>
@@ -55,7 +66,7 @@ export function MeetingRoomHub() {
         {matches.map(classroom => <Card key={classroom.id}>
           <CardHeader><h4 className="font-semibold">{classroom.name}</h4><p className="text-sm text-muted-foreground">{classroom.instructorName || 'Your teacher'}{classroom.isMock ? ' · Preview' : ''}</p></CardHeader>
           <CardContent>
-            {(classroom.meetingId || classroom.meetingCode) && !classroom.isMock ? <Link className={buttonVariants()} to={classroom.meetingId ? `${base}?category=${selected.value}&session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}` : `${base}?category=${selected.value}&room=${encodeURIComponent(classroom.meetingCode!)}`}>Join meeting</Link> : <p className="text-sm text-muted-foreground">No meeting linked. Ask your teacher for an invite.</p>}
+            {classroom.archivedAt ? <p className="text-sm text-muted-foreground">Classroom ended.</p> : (classroom.meetingId || classroom.meetingCode) && !classroom.isMock ? <Link className={buttonVariants()} to={classroom.meetingId ? `${base}?category=${selected.value}&session=${encodeURIComponent(classroom.meetingId)}&code=${encodeURIComponent(classroom.meetingCode ?? "")}` : `${base}?category=${selected.value}&room=${encodeURIComponent(classroom.meetingCode!)}`}>Join meeting</Link> : <p className="text-sm text-muted-foreground">No meeting linked. Ask your teacher for an invite.</p>}
             <Link className="rounded text-sm text-brand underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring" to={`/${role}/classrooms/${classroom.id}`}>Open class</Link>
           </CardContent>
         </Card>)}

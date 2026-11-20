@@ -7,6 +7,7 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import { issueStudySpaceInvitation } from "@/services/api/study-space.service"
+import { studyMeetingCode } from "@/lib/meeting-invite"
 
 export function InviteSpaceDialog({ spaceId, joinCode, onClose }: {
   spaceId: string
@@ -14,25 +15,26 @@ export function InviteSpaceDialog({ spaceId, joinCode, onClose }: {
   onClose: () => void
 }) {
   const [personalInvite, setPersonalInvite] = useState(false)
-  if (joinCode && !personalInvite) {
-    return <SpaceCodeDialog code={joinCode} onClose={onClose} onPersonalInvite={() => setPersonalInvite(true)} />
+  if (!personalInvite) {
+    return <SpaceCodeDialog code={joinCode} meetingCode={studyMeetingCode(spaceId)} onClose={onClose} onPersonalInvite={() => setPersonalInvite(true)} />
   }
   return <PersonalInvitationDialog spaceId={spaceId} onClose={onClose} />
 }
 
-function SpaceCodeDialog({ code, onClose, onPersonalInvite }: {
-  code: string
+function SpaceCodeDialog({ code, meetingCode, onClose, onPersonalInvite }: {
+  code?: string
+  meetingCode: string
   onClose: () => void
   onPersonalInvite: () => void
 }) {
   const [copyStatus, setCopyStatus] = useState("")
 
-  async function copyCode() {
+  async function copyCode(value: string, label: string) {
     try {
-      await navigator.clipboard.writeText(code)
-      setCopyStatus("Study space code copied.")
+      await navigator.clipboard.writeText(value)
+      setCopyStatus(label + " copied.")
     } catch {
-      setCopyStatus("Select the study space code and copy it manually.")
+      setCopyStatus("Select the code to copy it manually.")
     }
   }
 
@@ -40,18 +42,30 @@ function SpaceCodeDialog({ code, onClose, onPersonalInvite }: {
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Study space code</DialogTitle>
-          <DialogDescription>Share this code with students. They can enter it under <strong>Study Spaces → Join by code</strong>.</DialogDescription>
+          <DialogTitle>{code ? "Study space code" : "Invite students"}</DialogTitle>
+          <DialogDescription>{code
+            ? <>Share this code with students. They can enter it under <strong>Study Spaces → Join by code</strong>.</>
+            : "Send a personal invitation to add a student to this Study Space."}</DialogDescription>
         </DialogHeader>
-        <div className="rounded-xl border bg-muted/40 p-4">
+        {code && <div className="rounded-xl border bg-muted/40 p-4">
           <div className="flex items-center justify-between gap-3">
             <code className="select-all break-all text-lg font-semibold tracking-wide">{code}</code>
-            <Button type="button" size="icon" variant="outline" aria-label="Copy study space code" onClick={() => void copyCode()}>
+            <Button type="button" size="icon" variant="outline" aria-label="Copy study space code" onClick={() => void copyCode(code, "Study space code")}>
               <Copy aria-hidden="true" />
             </Button>
           </div>
-          {copyStatus && <p role="status" className="mt-2 text-xs text-muted-foreground">{copyStatus}</p>}
+        </div>}
+        <div className="space-y-2 rounded-xl border bg-muted/40 p-4">
+          <h3 className="font-semibold">Meeting code</h3>
+          <p className="text-xs text-muted-foreground">Members can use this code in Meeting Room after you open the study meeting.</p>
+          <div className="flex items-center justify-between gap-3">
+            <code className="select-all break-all text-sm">{meetingCode}</code>
+            <Button type="button" size="icon" variant="outline" aria-label="Copy study meeting code" onClick={() => void copyCode(meetingCode, "Study meeting code")}>
+              <Copy aria-hidden="true" />
+            </Button>
+          </div>
         </div>
+        {copyStatus && <p role="status" className="text-xs text-muted-foreground">{copyStatus}</p>}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onPersonalInvite}>Invite a specific student</Button>
           <Button type="button" onClick={onClose}>Done</Button>

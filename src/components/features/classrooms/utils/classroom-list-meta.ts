@@ -20,7 +20,7 @@ export function getClassroomMeta(classroom: Classroom, role: WorkspaceRole): { c
   if (role === "students") {
     return {
       cells: [{ label: "Educator", value: classroom.instructorName || "-" }, nextSession],
-      status: classroom.isMock ? { label: classroom.previewStatus === 'inactive' ? 'Inactive · demo' : 'Active · demo', tone: "demo" } : { label: "Enrolled", tone: "connected" },
+      status: classroom.archivedAt ? { label: "Ended", tone: "demo" } : classroom.isMock ? { label: classroom.previewStatus === 'inactive' ? 'Inactive · demo' : 'Active · demo', tone: "demo" } : { label: "Enrolled", tone: "connected" },
     }
   }
 
@@ -29,6 +29,6 @@ export function getClassroomMeta(classroom: Classroom, role: WorkspaceRole): { c
       { label: "Learners", value: classroom.isMock ? String(classroom.enrolledLearnerIds.length) : "-" },
       nextSession,
     ],
-    status: classroom.isMock ? { label: classroom.previewStatus === 'inactive' ? 'Inactive · demo' : 'Active · demo', tone: "demo" } : { label: "Connected", tone: "connected" },
+    status: classroom.archivedAt ? { label: "Ended", tone: "demo" } : classroom.isMock ? { label: classroom.previewStatus === 'inactive' ? 'Inactive · demo' : 'Active · demo', tone: "demo" } : { label: "Connected", tone: "connected" },
   }
 }

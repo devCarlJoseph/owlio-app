@@ -23,6 +23,7 @@ export type ClassroomPrototypeContextValue = {
   getClassroom: (classroomId: string) => Classroom | undefined
   getClassroomsForWorkspace: (role: WorkspaceRole) => Classroom[]
   reloadClassrooms: () => void
+  manageClassroom?: (classroomId: string, action: 'end' | 'delete') => Promise<void>
   createClassroom: (input: CreateClassroomInput, ownerWorkspace: Exclude<WorkspaceRole, "students">) => Promise<Classroom>
   joinClassroom: (joinCode: string) => Promise<JoinClassroomResult>
   createMeetingLink: (classroomId: string, meetingId: string) => void

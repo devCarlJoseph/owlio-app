@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useAuthSession } from '@/components/features/auth/context/auth-session-context'
 import { getApiErrorMessage } from '@/services/api/api-error'
 import type { AuthUser } from '@/services/api/api.types'
-import { createClassroom, getClassrooms, joinClassroomByCode, type ApiClassroom } from '@/services/api/classroom.service'
+import { createClassroom, deleteEndedClassroom, endClassroom, getClassrooms, joinClassroomByCode, type ApiClassroom } from '@/services/api/classroom.service'
 import { ClassroomPrototypeContext, type ClassroomPrototypeContextValue } from './classroom-prototype-context'
 import type { Classroom } from '../types/classroom-types'
 
@@ -13,8 +13,10 @@ function fromApi(record: ApiClassroom, user: AuthUser, joinCode: string | null =
   const teachingRoles = user.roles.filter(role => ['EDUCATOR', 'ESL', 'TUTOR'].includes(role))
   const ownWorkspace = owned && teachingRoles.length === 1 ? teachingRoles[0] === 'EDUCATOR' ? 'educators' : teachingRoles[0] === 'ESL' ? 'esl' : 'tutors' : null
   return { id: record.id, ownerId: record.ownerId, name: record.name, description: record.description,
-    subject: '', instructorName: owned ? user.name : '', ownerWorkspace: record.ownerWorkspace ?? ownWorkspace,
-    joinCode: record.joinCode ?? joinCode, meetingId: record.meetingId ?? null, meetingCode: record.meetingCode ?? null, access: owned ? 'owner' : 'student',
+    subject: '', instructorName: owned ? user.name : '', ownerWorkspace: record.ownerWorkspace ?? ownWorkspace, archivedAt: record.archivedAt,
+    joinCode: record.archivedAt ? null : record.joinCode ?? joinCode,
+    meetingId: record.archivedAt ? null : record.meetingId ?? null,
+    meetingCode: record.archivedAt ? null : record.meetingCode ?? null, access: owned ? 'owner' : 'student',
     members: [], memberRequests: [], enrolledLearnerIds: [], posts: [], chatMessages: [],
     materials: [], sessions: [], attendance: [], activities: [], progress: [], isMock: false }
 }
@@ -57,6 +59,19 @@ function ClassroomSessionProvider({ user, children }: { user: AuthUser | null; c
     getClassroom: id => classrooms.find(item => item.id === id),
     getClassroomsForWorkspace: role => classrooms.filter(item => role === 'students' ? item.access === 'student' : item.access === 'owner'),
     reloadClassrooms,
+    manageClassroom: async (id, action) => {
+      if (action === 'delete') {
+        await deleteEndedClassroom(id)
+        setClassrooms(current => current.filter(item => item.id !== id))
+      } else {
+        const { archivedAt } = await endClassroom(id)
+        setClassrooms(current => current.map(item => item.id === id
+          ? { ...item, archivedAt, joinCode: null, meetingCode: null, meetingId: null }
+          : item))
+      }
+      generation.current++
+      setLoading(false)
+    },
     createClassroom: async input => {
       if (!user) throw new Error('Sign in before creating a classroom.')
       const result = await createClassroom(input)

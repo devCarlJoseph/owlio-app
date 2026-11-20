@@ -1,10 +1,10 @@
 import api from '@/lib/axios'
 import type { AxiosResponse } from 'axios'
 import { z } from 'zod'
-import { postApiWithCsrf } from './auth.service'
+import { mutateApiWithCsrf, postApiWithCsrf } from './auth.service'
 import type { ApiSuccess } from './api.types'
 
-export type ApiClassroom = { id: string; ownerId: string; name: string; description: string; createdAt: string; ownerWorkspace?: 'educators' | 'esl' | 'tutors' | null; joinCode?: string | null; meetingId?: string | null; meetingCode?: string | null }
+export type ApiClassroom = { id: string; ownerId: string; name: string; description: string; createdAt: string; archivedAt?: string | null; ownerWorkspace?: 'educators' | 'esl' | 'tutors' | null; joinCode?: string | null; meetingId?: string | null; meetingCode?: string | null }
 export type ApiPage<T> = { items: T[]; nextCursor: string | null }
 export type ApiStudent = { studentId: string; name: string; joinedAt: string }
 const memberSchema = z.object({ id: z.uuid(), name: z.string(), role: z.enum(['owner', 'student']) })
@@ -33,6 +33,16 @@ export async function getClassrooms(signal?: AbortSignal) {
 
 export function createClassroom(input: CreateClassroomRequest) {
   return postApiWithCsrf<CreatedClassroom>('/api/v1/classrooms', { name: input.name, description: input.description })
+}
+
+export async function endClassroom(classroomId: string) {
+  const result = await postApiWithCsrf('/api/v1/classrooms/' + encodeURIComponent(classroomId) + '/archive', {})
+  return z.object({ id: z.literal(classroomId), archivedAt: z.iso.datetime({ offset: true }) }).parse(result)
+}
+
+export async function deleteEndedClassroom(classroomId: string) {
+  const result = await mutateApiWithCsrf('DELETE', '/api/v1/classrooms/' + encodeURIComponent(classroomId), {})
+  return z.object({ id: z.literal(classroomId) }).parse(result)
 }
 
 export async function getClassroom(id: string, signal?: AbortSignal) {

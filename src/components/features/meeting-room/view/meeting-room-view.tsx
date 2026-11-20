@@ -5,9 +5,9 @@ import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { useAuthSession } from '@/components/features/auth/context/auth-session-context'
 import { Button } from '@/components/ui/button'
 import { formatSessionCode, getSessionIdFromInvite } from '@/lib/session-code'
-import { parseMeetingInvite } from '@/lib/meeting-invite'
+import { isMeetingCode, isStandalonePeerCode, isStudyMeetingCode, parseMeetingInvite } from '@/lib/meeting-invite'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import { createMeeting, openClassroomMeeting, endMeeting, joinMeeting, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from '@/services/api/meeting.service'
+import { createMeeting, openClassroomMeeting, endMeeting, endPeerMeeting, joinMeeting, sendMeetingMessage, setMeetingHand, resolveMeetingInvite } from '@/services/api/meeting.service'
 import { ClassroomSessions } from '@/components/features/connected-workspace/view/classroom-sessions'
 import EslWhiteboardPreview from '@/components/features/esl-teaching/meeting-room/view/esl-whiteboard-preview'
 import { shouldShowEslWhiteboardPreview } from '@/components/features/esl-teaching/meeting-room/utils/esl-whiteboard-preview-route'
@@ -64,7 +64,7 @@ function MeetingRoomSession() {
   const [activeSessionId, setActiveSessionId] = useState(sessionId)
   const [shortCode, setShortCode] = useState(() => {
     const value = params.get('code') ?? params.get('room') ?? ''
-    return /^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/i.test(value) ? value.toUpperCase() : ''
+    return isMeetingCode(value) ? value.toUpperCase() : ''
   })
   const category = ['educators', 'esl', 'tutors'].includes(params.get('category') ?? '') ? params.get('category') as MeetingCategory : null
   const roomInputRef = useRef<HTMLInputElement>(null)
@@ -93,6 +93,9 @@ function MeetingRoomSession() {
   const data = useNativeMeetingData(room, activeSessionId)
   const code = shortCode || data.state?.meetingCode || (activeSessionId ? formatSessionCode(activeSessionId) : '')
   const canManage = Boolean(user?.roles.some(item => ['EDUCATOR', 'ESL', 'TUTOR'].includes(item)))
+  const peerMeeting = isStandalonePeerCode(code) || isStudyMeetingCode(code) ||
+    isStandalonePeerCode(data.state?.meetingCode ?? '') || isStudyMeetingCode(data.state?.meetingCode ?? '')
+  const studentEntry = peerMeeting || params.get('category') === 'students'
   useEffect(() => () => { ++operation.current; void roomRef.current?.disconnect(true); roomRef.current = null }, [])
   useEffect(() => {
     if (!room) return
@@ -119,10 +122,11 @@ function MeetingRoomSession() {
     if (invite && 'code' in invite) {
       const resolved = await resolveMeetingInvite(invite.code)
       setShortCode(resolved.meetingCode)
-      return { ...resolved, reusable: /^OWLIO-?[A-Z0-9]{8}$/.test(invite.code) }
+      return { ...resolved, reusable: /^OWLIO-?[A-Z0-9]{8}$/.test(invite.code),
+        peerCode: isStandalonePeerCode(invite.code) ? invite.code : undefined }
     }
     if (!invite) throw new Error('Enter your classroom meeting code or a scheduled-session invite.')
-    return { sessionId: invite.sessionId, classroomId: null, reusable: false }
+    return { sessionId: invite.sessionId, classroomId: null, reusable: false, peerCode: undefined }
   }
   const open = async () => {
     if (pending.current) return
@@ -149,10 +153,14 @@ function MeetingRoomSession() {
     pending.current = true; setBusy(true); setError('')
     const request = ++operation.current
     let selected: string
+    let peerCode: string | undefined
     try {
       const invite = await readInvite()
-      if (!invite.sessionId) throw new Error('Your teacher has not opened this classroom meeting yet. Try again when it starts.')
+      if (!invite.sessionId) throw new Error('meetingCode' in invite && isStudyMeetingCode(invite.meetingCode ?? '')
+        ? 'The Study Space owner has not opened this meeting yet. Try again when it starts.'
+        : 'Your teacher has not opened this classroom meeting yet. Try again when it starts.')
       selected = invite.sessionId
+      peerCode = invite.peerCode
     } catch (cause) { if (request !== operation.current) return; pending.current = false; setBusy(false); setError(getApiErrorMessage(cause, 'Could not resolve this meeting invite.')); return }
     if (request !== operation.current) return
     pending.current = true; setBusy(true); setError(''); setMessage(''); setStatus('joining')
@@ -160,7 +168,7 @@ function MeetingRoomSession() {
     roomRef.current = next
     let joiningTracks: (LocalAudioTrack | LocalVideoTrack)[] = []
     try {
-      const credentials = await joinMeeting(selected)
+      const credentials = peerCode ? await joinMeeting(selected, peerCode) : await joinMeeting(selected)
       if (request !== operation.current) return
       await next.connect(credentials.url, credentials.token, { autoSubscribe: true })
       if (request !== operation.current) { await next.disconnect(true); return }
@@ -193,7 +201,11 @@ function MeetingRoomSession() {
   const end = async () => {
     if (!activeSessionId || pending.current) return
     pending.current = true; setBusy(true); setError('')
-    try { await endMeeting(activeSessionId); await leave(); setStatus('ended'); setMessage('Meeting closure requested. Participants will be disconnected as the service completes cleanup.') }
+    try {
+      await (peerMeeting ? endPeerMeeting(activeSessionId) : endMeeting(activeSessionId))
+      await leave()
+      setStatus('ended'); setMessage('Meeting closure requested. Participants will be disconnected as the service completes cleanup.')
+    }
     catch (cause) { setError(getApiErrorMessage(cause, 'Could not end this meeting.')) }
     finally { pending.current = false; setBusy(false) }
   }
@@ -249,16 +261,28 @@ function MeetingRoomSession() {
   }
   const identity = (userId: string) => userId === user?.id ? room?.localParticipant.identity ?? userId : data.directory.find(item => item.userId === userId)?.mediaIdentity ?? userId
   const copy = async () => {
-    const invite = new URL(window.location.href); invite.search = ''; if (/^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/.test(code)) invite.searchParams.set('room', code); else invite.searchParams.set('session', activeSessionId)
+    const invite = new URL(window.location.href); invite.search = ''; if (isMeetingCode(code)) invite.searchParams.set('room', code); else invite.searchParams.set('session', activeSessionId)
     try { await navigator.clipboard.writeText(invite.toString()); setMessage('Session invite copied.') }
     catch { setMessage('Share this session code: ' + code) }
   }
+  const resetInvite = () => {
+    void leave()
+    setError('')
+    setMessage('')
+    setShortCode('')
+    setActiveSessionId('')
+    if (roomInputRef.current) roomInputRef.current.value = ''
+    setParams(studentEntry ? { join: '1', category: 'students' } : { join: '1' })
+  }
   return <MeetingRoomShell connected={Boolean(room)}>
-    {!room && <p className="text-sm text-muted-foreground">Use your classroom meeting code or a scheduled-session invite. Teachers can open their classroom room before joining. <Link className="underline" to={'/' + role + '/schedule?source=account'}>View sessions</Link></p>}
-    {room && <p className="shrink-0 text-xs text-muted-foreground">Connected to a scheduled session. Presence is not official attendance.</p>}
-    {room && data.state?.isHost && canManage && <MeetingAttendance sessionId={activeSessionId} role={role} />}
-    <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
-      status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage} isHost={data.state?.isHost ?? false} busy={busy}
+    {!room && (studentEntry
+      ? <div className="flex flex-wrap items-center gap-3"><p className="text-sm text-muted-foreground">Join with a student meeting code. Study Space meetings are available to current members.</p>
+        {isMeetingCode(code) && <Button size="sm" variant="outline" onClick={() => void copy()}>Copy meeting link</Button>}</div>
+      : <p className="text-sm text-muted-foreground">Use your classroom meeting code or a scheduled-session invite. Teachers can open their classroom room before joining. <Link className="underline" to={'/' + role + '/schedule?source=account'}>View sessions</Link></p>)}
+    {room && <p className="shrink-0 text-xs text-muted-foreground">{peerMeeting ? 'Connected to a student meeting.' : 'Connected to a scheduled session. Presence is not official attendance.'}</p>}
+    {room && data.state?.isHost && canManage && !peerMeeting && <MeetingAttendance sessionId={activeSessionId} role={role} />}
+    <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room' + (studentEntry ? '?category=students' : '')} roomId={activeSessionId} meetingCode={code} roomInputRef={roomInputRef}
+      status={status} preview={false} hasRoom={Boolean(room)} apiEnabled canCreate={canManage && !studentEntry} isHost={data.state?.isHost ?? false} busy={busy}
       message={message} error={error || devices.error || data.error} participants={room ? [room.localParticipant, ...room.remoteParticipants.values()] : []} localIdentity={room?.localParticipant.identity}
       participantNames={Object.fromEntries(data.directory.map(item => [item.mediaIdentity, item.name]))}
       pinnedIdentity={pinned} onPin={setPinned} raisedHands={Object.fromEntries((data.state?.raisedHands ?? []).map(item => [identity(item.userId), true]))} revision={revision}
@@ -266,6 +290,6 @@ function MeetingRoomSession() {
       messages={[...data.messages.map(item => ({ id: item.id, identity: identity(item.authorId), authorName: item.authorName, text: item.body, sentAt: Date.parse(item.createdAt) })), ...outgoing.map(item => ({ id: item.requestId, identity: room?.localParticipant.identity ?? '', text: item.body, sentAt: item.sentAt, delivery: item.failed ? 'failed' as const : 'sending' as const, onRetry: () => { void sendMessage(item.body, item.requestId) } }))]}
       chatDraft={chatDraft} onChatDraft={setChatDraft} chatSending={chatSending} onSendChat={event => void send(event)} onJoin={event => void join(event)} onCreate={() => void open()}
       onPreview={() => {}} onCopy={() => void copy()} onLeave={() => void leave()} onEnd={() => void end()} onMicrophone={() => void device('microphone')} onCamera={() => void device('camera')} onScreen={() => void device('screen')} onHand={() => void hand()} />
-    {!room && <Button variant="outline" disabled={busy} onClick={() => { void leave(); setError(''); setShortCode(''); setActiveSessionId(''); setParams({ join: '1' }) }}>Use another invite</Button>}
+    {!room && <Button variant="outline" disabled={busy} onClick={resetInvite}>Use another invite</Button>}
   </MeetingRoomShell>
 }

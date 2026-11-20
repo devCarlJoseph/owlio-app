@@ -26,7 +26,7 @@ export function ClassroomInformation({ classroom, owned, notice, onAbout, onCopy
         <summary className="cursor-pointer rounded-md text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring">Classroom invite</summary>
         <section aria-label="Classroom invite" className="mt-4 space-y-3">
           <h3 className="text-sm font-semibold">Student invite code</h3>
-          {classroom.joinCode ? (
+          {classroom.archivedAt ? <p className="text-sm leading-6 text-muted-foreground">Invites are closed for this ended classroom.</p> : classroom.joinCode ? (
             <>
               <code className="block select-all break-all rounded-lg bg-muted p-3 text-sm">{classroom.joinCode}</code>
               <Button variant="outline" className="w-full" onClick={onCopyCode}>Copy invite code</Button>

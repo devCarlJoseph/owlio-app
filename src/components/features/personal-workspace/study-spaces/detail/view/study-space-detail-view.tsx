@@ -21,12 +21,15 @@ import {
   Tags,
   Tv,
   UserPlus,
+  Video,
 } from "lucide-react"
 import { cn } from "cn"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
 import { useRoomDiscussion } from "@/components/features/connected-workspace/hooks/use-room-discussion"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import { getStudySpace } from "@/services/api/study-space.service"
+import { StartPeerMeeting } from "@/components/features/meeting-room/ui/start-peer-meeting"
+import { studyMeetingCode } from "@/lib/meeting-invite"
 import { StudySpaceSkeleton } from "../../ui/study-space-skeleton"
 import { InviteSpaceDialog } from "../forms/invite-space-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -378,6 +381,12 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
         </div>
 
         <div className="flex max-w-full flex-wrap items-center gap-0.5 [&>button]:text-slate-100 [&>button:hover]:bg-white/15 [&>button:hover]:text-white [&>a]:text-slate-100 [&>a:hover]:bg-white/15">
+          {shared && (space.role === "owner"
+            ? <StartPeerMeeting key={space.id} spaceId={space.id} />
+            : <Button type="button" size="sm" variant="ghost" nativeButton={false}
+                render={<Link to={"/students/classrooms/meeting-room?" + new URLSearchParams({ room: studyMeetingCode(space.id) })} />}>
+                <Video aria-hidden="true" />Join study meeting
+              </Button>)}
           {shared && space.role === "owner" && (
             <Button type="button" size="sm" variant="ghost" onClick={() => setInviteOpen(true)}>
               <UserPlus aria-hidden="true" />

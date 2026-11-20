@@ -173,6 +173,7 @@ export type Classroom = {
   description: string
   instructorName: string
   ownerWorkspace: Exclude<WorkspaceRole, "students"> | null
+  archivedAt?: string | null
   previewStatus?: "active" | "inactive"
   joinCode: string | null
   meetingId: string | null

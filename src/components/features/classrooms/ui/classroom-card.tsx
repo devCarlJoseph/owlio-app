@@ -18,9 +18,10 @@ type ClassroomCardProps = {
   classroom: Classroom
   href: string
   role: WorkspaceRole
+  onManage?: () => void
 }
 
-function ClassroomMenu({ classroom, href }: { classroom: Classroom; href: string }) {
+function ClassroomMenu({ classroom, href, onManage }: Pick<ClassroomCardProps, 'classroom' | 'href' | 'onManage'>) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -37,16 +38,19 @@ function ClassroomMenu({ classroom, href }: { classroom: Classroom; href: string
         <MoreHorizontal aria-hidden="true" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className={onManage ? 'min-w-40' : undefined}>
         <DropdownMenuItem render={<Link to={href} />}>Open class</DropdownMenuItem>
         <DropdownMenuItem render={<Link to={`${href}?tab=classwork`} />}>Classwork</DropdownMenuItem>
         <DropdownMenuItem render={<Link to={`${href}?tab=materials`} />}>Materials</DropdownMenuItem>
+        {onManage && <DropdownMenuItem variant="destructive" onClick={onManage}>
+          {classroom.archivedAt ? 'Delete classroom' : 'End classroom'}
+        </DropdownMenuItem>}
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
 
-export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
+export function ClassroomCard({ classroom, href, onManage }: ClassroomCardProps) {
   return <Card className="flex h-full flex-col gap-5 rounded-2xl border border-border bg-card p-5 shadow-none ring-0">
     <div className="flex flex-1 items-start gap-4">
       <img src={getClassroomBannerUrl(classroom.id)} alt="" loading="lazy" decoding="async" className="size-20 shrink-0 rounded-xl bg-brand-soft object-cover object-right sm:size-24" />
@@ -54,12 +58,12 @@ export function ClassroomCard({ classroom, href }: ClassroomCardProps) {
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-soft-foreground">{getClassroomCategory(classroom)}</p>
         <h3 className="line-clamp-2 text-base font-semibold leading-snug"><Link to={href} className="rounded outline-none hover:underline focus-visible:ring-2 focus-visible:ring-brand">{classroom.name}</Link></h3>
         <p className="mt-2 text-xs text-muted-foreground">{classroom.instructorName || 'Instructor details unavailable'}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{classroom.isMock ? `${classroom.previewStatus === 'inactive' ? 'Inactive' : 'Active'} · preview` : classroom.access === 'owner' ? 'Connected classroom' : 'Enrolled classroom'}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{classroom.archivedAt ? 'Ended classroom' : classroom.isMock ? `${classroom.previewStatus === 'inactive' ? 'Inactive' : 'Active'} · preview` : classroom.access === 'owner' ? 'Connected classroom' : 'Enrolled classroom'}</p>
       </div>
     </div>
     <div className="flex items-center gap-2.5">
       <Link to={href} aria-label={`View class ${classroom.name}`} className={cn(buttonVariants({ variant: 'secondary' }), 'h-10 flex-1 rounded-xl bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/70')}>View class</Link>
-      <ClassroomMenu classroom={classroom} href={href} />
+      <ClassroomMenu classroom={classroom} href={href} onManage={onManage} />
     </div>
   </Card>
 }
@@ -80,7 +84,7 @@ export function ClassroomListHeader({ role }: { role: WorkspaceRole }) {
   )
 }
 
-export function ClassroomListRow({ classroom, href, role }: ClassroomCardProps) {
+export function ClassroomListRow({ classroom, href, role, onManage }: ClassroomCardProps) {
   const { cells, status } = getClassroomMeta(classroom, role)
 
   return (
@@ -121,7 +125,7 @@ export function ClassroomListRow({ classroom, href, role }: ClassroomCardProps) 
         >
           Open class <ArrowRight aria-hidden="true" className="size-4" />
         </Link>
-        <ClassroomMenu classroom={classroom} href={href} />
+        <ClassroomMenu classroom={classroom} href={href} onManage={onManage} />
       </div>
     </div>
   )

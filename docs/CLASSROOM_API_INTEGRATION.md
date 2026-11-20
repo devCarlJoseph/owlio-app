@@ -1,5 +1,9 @@
 # Classroom API integration
 
+## End and delete classrooms
+
+In **My Classes**, an educator, tutor, or ESL teacher can end an owned classroom from its options menu. The action calls the existing archive endpoint. An ended classroom then offers **Delete classroom** with a confirmation dialog. The CSRF-protected `DELETE /api/v1/classrooms/:classroomId` requires an ended classroom and returns its ID on success. The list updates after the API confirms deletion. Deletion removes the classroom for the owner and enrolled learners while retaining academic records. The matching API release and migration 0052 are required.
+
 ## Classroom Grades & Feedback
 
 School classrooms expose **Grades & Feedback** at `/students/classrooms/:classroomId?tab=progress` and `/educators/classrooms/:classroomId?tab=progress`. Owners page through the roster and activities and can inspect drafts and releases. Learners use the self-scoped gradebook and see scores and written feedback only after the educator releases them. A submitted quiz or assessment also displays its released score and feedback in Classwork. Opening or refreshing the grades tab reads the current gradebook, and each row links to its original activity.

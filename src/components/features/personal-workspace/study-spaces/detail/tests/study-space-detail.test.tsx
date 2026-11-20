@@ -99,6 +99,7 @@ describe("study space detail room", () => {
 
     const codeDialog = await screen.findByRole("dialog", { name: "Study space code" })
     expect(within(codeDialog).getByText(joinCode)).toBeTruthy()
+    expect(within(codeDialog).getByText("OWLIO-SPACE-" + id.toUpperCase())).toBeTruthy()
     expect(screen.queryByText("Create your character")).toBeNull()
     await user.click(within(codeDialog).getByRole("button", { name: "Done" }))
     expect(await screen.findByText("Create your character")).toBeTruthy()
