@@ -26,14 +26,15 @@ type JoinSpaceDialogProps = {
   onSubmit: (draft: JoinSpaceDraft) => void | Promise<void>
   previewName?: string | null
   accountId?: string
+  serverSpace?: boolean
 }
 
-export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, accountId }: JoinSpaceDialogProps) {
+export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, accountId, serverSpace = false }: JoinSpaceDialogProps) {
   const [busy, setBusy] = useState(false)
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy) onOpenChange(next) }}>
       <DialogContent className="sm:max-w-lg">
-        {accountId ? <JoinByCodeForm key={String(open)} accountId={accountId} busy={busy} setBusy={setBusy} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} /> : <JoinSpaceForm
+        {accountId || serverSpace ? <JoinByCodeForm key={String(open)} accountId={accountId} previewName={serverSpace ? previewName : null} busy={busy} setBusy={setBusy} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} /> : <JoinSpaceForm
           key={open ? "join-space-open" : "join-space-closed"}
           onCancel={() => onOpenChange(false)}
           onSubmit={onSubmit}
@@ -44,8 +45,9 @@ export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, acc
   )
 }
 
-function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
-  accountId: string
+function JoinByCodeForm({ accountId, previewName, busy, setBusy, onSubmit, onCancel }: {
+  accountId?: string
+  previewName?: string | null
   busy: boolean
   setBusy: (busy: boolean) => void
   onSubmit: JoinSpaceDialogProps["onSubmit"]
@@ -57,8 +59,8 @@ function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
 
   async function submit() {
     const enteredCode = code.trim()
-    if (!isStudySpaceCode(enteredCode) && !isStudySpaceInvitationToken(enteredCode)) {
-      setError("Enter an OWLIO-SPS code or paste a personal invitation.")
+    if (previewName ? !isStudySpaceCode(enteredCode) : !isStudySpaceCode(enteredCode) && !isStudySpaceInvitationToken(enteredCode)) {
+      setError(previewName ? "Enter the OWLIO-SPS access code for this space." : "Enter an OWLIO-SPS code or paste a personal invitation.")
       return
     }
     setError("")
@@ -75,14 +77,16 @@ function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
   return (
     <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); if (!busy) void submit() }}>
       <DialogHeader>
-        <DialogTitle>Join a study space</DialogTitle>
-        <DialogDescription>Enter the room’s OWLIO-SPS code or paste a personal invitation from the owner.</DialogDescription>
+        <DialogTitle>{previewName ? `Join ${previewName}` : "Join a study space"}</DialogTitle>
+        <DialogDescription>{previewName
+          ? "Enter the owner’s OWLIO-SPS access code to join this shared space."
+          : "Enter the room’s OWLIO-SPS code or paste a personal invitation from the owner."}</DialogDescription>
       </DialogHeader>
       <Field>
         <FieldLabel htmlFor="account-space-code">Invitation code</FieldLabel>
         <Input id="account-space-code" value={code} onChange={(event) => setCode(event.target.value)} disabled={busy} autoComplete="off" placeholder="OWLIO-SPS-XXXX" />
       </Field>
-      <Field className="rounded-lg border bg-muted/30 p-3">
+      {accountId ? <Field className="rounded-lg border bg-muted/30 p-3">
         <FieldLabel htmlFor="study-space-account-id">Your account ID</FieldLabel>
         <p className="text-xs text-muted-foreground">Share this ID with a room owner so they can create a code for you.</p>
         <div className="flex gap-2">
@@ -93,7 +97,7 @@ function JoinByCodeForm({ accountId, busy, setBusy, onSubmit, onCancel }: {
           }}><Copy aria-hidden="true" /></Button>
         </div>
         {copyStatus && <p role="status" className="text-xs text-muted-foreground">{copyStatus}</p>}
-      </Field>
+      </Field> : null}
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Cancel</Button>

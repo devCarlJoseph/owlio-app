@@ -5,7 +5,7 @@ import { Globe2, Info, Layers, List, Maximize2, Minimize2, Plus, Search, Users }
 import { cn } from "cn"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
 import { getApiErrorMessage } from "@/services/api/api-error"
-import { createStudySpace, getStudySpaces, joinStudySpace, removeStudySpace } from "@/services/api/study-space.service"
+import { createStudySpace, getDiscoverableStudySpaces, getStudySpaces, joinStudySpace, removeStudySpace } from "@/services/api/study-space.service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -65,7 +65,8 @@ export function StudySpacesView() {
 function StudySpacesHall({ userId }: { userId?: string }) {
   const navigate = useNavigate()
   const [accountSpaces, setAccountSpaces] = useState<StudySpaceRecord[]>([])
-  const [directoryStatus, setDirectoryStatus] = useState(userId ? "Loading shared spaces…" : "")
+  const [discoverySpaces, setDiscoverySpaces] = useState<StudySpaceRecord[]>([])
+  const [directoryStatus, setDirectoryStatus] = useState(userId ? "Loading your spaces and the student directory…" : "")
   const [directoryError, setDirectoryError] = useState(false)
   const [refresh, setRefresh] = useState(0)
   const [localCreate, setLocalCreate] = useState(false)
@@ -90,14 +91,23 @@ function StudySpacesHall({ userId }: { userId?: string }) {
   useEffect(() => {
     if (!userId) return
     const controller = new AbortController()
-    void getStudySpaces(controller.signal).then((records) => {
+    const accountRequest = getStudySpaces(controller.signal).then((records) => {
+      if (!controller.signal.aborted) setAccountSpaces(records.map((space) => loadAccountRoomLayout(userId, { ...space, accountSpace: true })))
+    })
+    const discoveryRequest = getDiscoverableStudySpaces(controller.signal).then((records) => {
+      if (!controller.signal.aborted) setDiscoverySpaces(records)
+    })
+    void Promise.allSettled([accountRequest, discoveryRequest]).then((results) => {
       if (controller.signal.aborted) return
-      setAccountSpaces(records.map((space) => loadAccountRoomLayout(userId, { ...space, accountSpace: true })))
-      setDirectoryStatus("")
-    }).catch((error) => {
-      if (controller.signal.aborted) return
+      const failureIndex = results.findIndex((result) => result.status === "rejected")
+      if (failureIndex < 0) {
+        setDirectoryStatus("")
+        return
+      }
+      const failure = results[failureIndex]
+      const fallback = failureIndex === 0 ? "Could not load your shared study spaces." : "Could not load the student Study Spaces directory."
       setDirectoryError(true)
-      setDirectoryStatus(getApiErrorMessage(error, "Could not load shared study spaces."))
+      setDirectoryStatus(getApiErrorMessage(failure.status === "rejected" ? failure.reason : null, fallback))
     })
     return () => controller.abort()
   }, [userId, refresh])
@@ -135,13 +145,18 @@ function StudySpacesHall({ userId }: { userId?: string }) {
   )
 
   const lockedSpaces = useMemo(
-    () =>
-      sortSpaces(
-        sampleDiscoverySpaces.filter((space) => !joinedDiscoveryIds.includes(space.id) && matches(space)),
+    () => {
+      const joinedIds = new Set([...accountSpaces.map((space) => space.id), ...joinedDiscoveryIds])
+      return sortSpaces(
+        [
+          ...discoverySpaces.filter((space) => !joinedIds.has(space.id)),
+          ...sampleDiscoverySpaces.filter((space) => !joinedIds.has(space.id)),
+        ].filter(matches),
         sort
-      ),
+      )
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [joinedDiscoveryIds, sort, needle]
+    [accountSpaces, discoverySpaces, joinedDiscoveryIds, sort, needle]
   )
 
   const total = createdSpaces.length + joinedSpaces.length + lockedSpaces.length
@@ -175,6 +190,14 @@ function StudySpacesHall({ userId }: { userId?: string }) {
   }
 
   async function handleJoin(draft: JoinSpaceDraft) {
+    if (userId && joinTarget?.discoverySpace && !localJoin) {
+      const space = await joinStudySpace(draft.inviteCode, joinTarget.id)
+      if (active.current) {
+        setRefresh((current) => current + 1)
+        navigate(`/students/study-spaces/${space.id}`)
+      }
+      return
+    }
     if (userId && !joinTarget && !localJoin) {
       const space = await joinStudySpace(draft.inviteCode)
       if (active.current) navigate(`/students/study-spaces/${space.id}`)
@@ -339,7 +362,7 @@ function StudySpacesHall({ userId }: { userId?: string }) {
           {directoryStatus}
           {directoryError && <Button size="xs" variant="outline" onClick={() => {
             setDirectoryError(false)
-            setDirectoryStatus("Loading shared spaces…")
+            setDirectoryStatus("Loading your spaces and the student directory…")
             setRefresh((current) => current + 1)
           }}>Retry</Button>}
         </div>
@@ -417,7 +440,7 @@ function StudySpacesHall({ userId }: { userId?: string }) {
               <div className="space-y-3">
                 <div>
                   <h4 className="text-sm font-semibold text-slate-900 surface-dark:text-foreground">
-                    Preview spaces — locked ({lockedSpaces.length})
+                    Student study spaces — access code required ({lockedSpaces.length})
                   </h4>
                   <p className="mt-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">{studySpacesDiscoveryCaption}</p>
                 </div>
@@ -446,6 +469,7 @@ function StudySpacesHall({ userId }: { userId?: string }) {
         onSubmit={handleJoin}
         previewName={joinTarget?.name ?? null}
         accountId={joinTarget || localJoin ? undefined : userId}
+        serverSpace={Boolean(joinTarget?.discoverySpace)}
       />
     </div>
   )

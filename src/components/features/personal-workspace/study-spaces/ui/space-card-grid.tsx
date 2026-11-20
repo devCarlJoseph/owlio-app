@@ -113,6 +113,18 @@ function SpaceCard({
   space: StudySpaceRecord
   onRemove: (space: StudySpaceRecord) => void | Promise<void>
 }) {
+  const [copyStatus, setCopyStatus] = useState("")
+
+  async function copyInviteCode() {
+    if (!space.joinCode) return
+    try {
+      await navigator.clipboard.writeText(space.joinCode)
+      setCopyStatus("Invite code copied.")
+    } catch {
+      setCopyStatus("Select the invite code above and copy it manually.")
+    }
+  }
+
   return (
     <div className="flex h-full flex-col rounded-2xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm transition-colors hover:border-slate-300 surface-dark:hover:border-border">
       <div className="flex gap-3 p-3">
@@ -123,12 +135,23 @@ function SpaceCard({
           <h4 className="line-clamp-2 text-sm font-semibold leading-5 text-slate-900 surface-dark:text-foreground">
             {space.name}
           </h4>
-          <p className="mt-0.5 text-xs text-slate-500 surface-dark:text-muted-foreground">
-            {kindLabel(space.kind)} · {space.capacity} seats
-          </p>
+          {space.discoverySpace ? (
+            <p className="mt-0.5 line-clamp-2 text-xs text-slate-600 surface-dark:text-muted-foreground">
+              {space.about || "Student-created shared study space."}
+            </p>
+          ) : (
+            <p className="mt-0.5 text-xs text-slate-500 surface-dark:text-muted-foreground">
+              {kindLabel(space.kind)} · {space.capacity} seats
+            </p>
+          )}
           <p className="mt-1 text-xs leading-4 text-slate-500 surface-dark:text-muted-foreground">
             {space.accountSpace ? "Shared space" : `${metaLine(space)} · browser only`}
           </p>
+          {space.accountSpace && space.role === "owner" && space.joinCode ? (
+            <p className="mt-1 break-all text-xs text-slate-700 surface-dark:text-foreground">
+              Invite code: <code className="font-semibold">{space.joinCode}</code>
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -140,8 +163,14 @@ function SpaceCard({
         >
           Open room
         </Link>
+        {space.accountSpace && space.role === "owner" && space.joinCode ? (
+          <Button type="button" size="xs" variant="outline" onClick={() => void copyInviteCode()}>
+            Copy code
+          </Button>
+        ) : null}
         <SpaceActionsMenu space={space} onRemove={onRemove} />
       </div>
+      {copyStatus && <p role="status" className="px-3 pb-2 text-xs text-muted-foreground">{copyStatus}</p>}
     </div>
   )
 }
@@ -166,7 +195,7 @@ function LockedSpaceCard({
           </p>
           <p className="mt-1 flex items-center gap-1 text-xs leading-4 text-slate-600 surface-dark:text-muted-foreground">
             <Lock className="size-3 shrink-0" aria-hidden="true" />
-            {studySpacesLockedTooltip}
+            {space.discoverySpace ? "Student-created space · owner access code required" : studySpacesLockedTooltip}
           </p>
         </div>
       </div>
@@ -177,10 +206,10 @@ function LockedSpaceCard({
           variant="outline"
           size="sm"
           className="w-full"
-          aria-label={`${space.name} — locked preview, needs a space code`}
+          aria-label={`${space.name} — access code required to join`}
           onClick={() => onUnlock(space)}
         >
-          Enter space code
+          {space.discoverySpace ? "Join with code" : "Enter space code"}
         </Button>
       </div>
     </div>

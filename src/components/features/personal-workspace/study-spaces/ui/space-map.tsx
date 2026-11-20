@@ -53,7 +53,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 function tileAriaLabel(tile: MapTile): string {
   return tile.role === "visitor"
-    ? `${tile.space.name} — locked preview, needs a space code`
+    ? `${tile.space.name} — access code required to join`
     : `Open ${tile.space.name}`
 }
 
@@ -82,7 +82,7 @@ export function SpaceMap({ created, joined, locked, onUnlock, className }: Space
         {
           role: "visitor",
           label: "Locked wing",
-          emptyMessage: "All preview spaces have been unlocked in this browser.",
+          emptyMessage: "No other student-created Study Spaces are available right now.",
           spaces: locked,
         },
       ]),
@@ -529,7 +529,7 @@ function MapTileView({
           {isLocked ? studySpacesLockedTooltip : stateLabel(role)}
         </p>
         <p className="text-[11px] leading-4 text-slate-500 surface-dark:text-muted-foreground">
-          {isLocked ? "Preview only — not opened" : `${metaLine(space)} · browser only`}
+          {isLocked ? (space.discoverySpace ? "Shared student space · access code required" : "Local preview · access code required") : `${metaLine(space)} · browser only`}
         </p>
       </div>
     </div>

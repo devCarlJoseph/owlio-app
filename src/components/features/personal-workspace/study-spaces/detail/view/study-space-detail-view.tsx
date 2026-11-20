@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useNavigate, useParams } from "react-router"
 import {
   ArrowDown,
@@ -21,13 +21,15 @@ import {
   Tags,
   Tv,
   UserPlus,
+  Users,
   Video,
 } from "lucide-react"
 import { cn } from "cn"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
 import { useRoomDiscussion } from "@/components/features/connected-workspace/hooks/use-room-discussion"
 import { getApiErrorMessage } from "@/services/api/api-error"
-import { getStudySpace } from "@/services/api/study-space.service"
+import { getStudySpaceMembers, getStudySpace } from "@/services/api/study-space.service"
+import type { StudySpaceMember } from "@/services/api/study-space.service"
 import { StartPeerMeeting } from "@/components/features/meeting-room/ui/start-peer-meeting"
 import { studyMeetingCode } from "@/lib/meeting-invite"
 import { StudySpaceSkeleton } from "../../ui/study-space-skeleton"
@@ -35,6 +37,7 @@ import { InviteSpaceDialog } from "../forms/invite-space-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { CharacterDialog } from "../forms/character-dialog"
 import { DrawerPanel } from "../ui/drawer-panel"
@@ -148,6 +151,11 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   )
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [messages, setMessages] = useState<RoomMessage[]>([])
+  const [roomMembers, setRoomMembers] = useState<StudySpaceMember[]>([])
+  const [membersOpen, setMembersOpen] = useState(false)
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [membersError, setMembersError] = useState("")
+  const memberRequestRef = useRef(0)
   const [bubble, setBubble] = useState<{ id: string; text: string } | null>(null)
   const [showNameTags, setShowNameTags] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
@@ -178,6 +186,27 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const bubbleTimeoutRef = useRef<number | null>(null)
   const music = useFocusMusic()
   const timer = usePomodoro()
+
+  const refreshRoomMembers = useCallback(async () => {
+    if (!shared || !spaceId) return
+    const requestId = ++memberRequestRef.current
+    setMembersLoading(true)
+    setMembersError("")
+    try {
+      const members = await getStudySpaceMembers(spaceId)
+      if (requestId === memberRequestRef.current) setRoomMembers(members)
+    } catch (cause) {
+      if (requestId === memberRequestRef.current) setMembersError(getApiErrorMessage(cause, "Could not load this space’s members."))
+    } finally {
+      if (requestId === memberRequestRef.current) setMembersLoading(false)
+    }
+  }, [shared, spaceId])
+
+  useEffect(() => {
+    if (shared) void refreshRoomMembers()
+    else setRoomMembers([])
+    return () => { memberRequestRef.current += 1 }
+  }, [refreshRoomMembers, shared])
 
   useEffect(() => {
     if (spaceId && !shared) markStudySpaceVisited(spaceId)
@@ -394,6 +423,12 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
               Invite
             </Button>
           )}
+          {shared && (
+            <Button type="button" size="sm" variant="ghost" onClick={() => { setMembersOpen(true); void refreshRoomMembers() }}>
+              <Users aria-hidden="true" />
+              Members ({roomMembers.length})
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -592,7 +627,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
             <p className="flex-1">
               {shared
-                ? "Chat is shared with room members. Avatars, seats, and room tools are local to your device."
+                ? "Chat and the Members roster are shared. Room avatars, seats, and tools are local to your device."
                 : studySpaceRoomPreviewNotice}
               {shared && state?.layoutSaved === false ? " The selected layout could not be saved on this device." : ""}
               {samplePeople.length > 0 ? ` ${sampleRosterNotice}` : ""}
@@ -794,6 +829,38 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
       {showingInvite && (
         <InviteSpaceDialog spaceId={space.id} joinCode={space.joinCode} onClose={closeInvite} />
       )}
+      <Dialog open={membersOpen} onOpenChange={setMembersOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{space.name} members</DialogTitle>
+            <DialogDescription>
+              Students who joined this Study Space appear here. This membership list does not indicate who is currently in the room.
+            </DialogDescription>
+          </DialogHeader>
+          {membersError && <p role="alert" className="text-sm text-destructive">{membersError}</p>}
+          {membersLoading && <p role="status" className="text-sm text-muted-foreground">Refreshing members…</p>}
+          {!membersLoading && !membersError && roomMembers.length === 0 && (
+            <p className="text-sm text-muted-foreground">No members are listed in this Study Space yet.</p>
+          )}
+          {roomMembers.length > 0 && (
+            <ul className="max-h-72 space-y-2 overflow-y-auto" aria-label="Study Space members">
+              {roomMembers.map((member) => (
+                <li key={member.id} className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+                  <span className="min-w-0 truncate text-sm font-medium">{member.name}</span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    {member.userId === user?.id && <Badge variant="secondary">You</Badge>}
+                    <Badge variant="outline">{member.role === "OWNER" ? "Owner" : member.role === "MODERATOR" ? "Moderator" : "Member"}</Badge>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => void refreshRoomMembers()} disabled={membersLoading}>Refresh members</Button>
+            <Button type="button" onClick={() => setMembersOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <CharacterDialog
         open={characterDialogOpen && !showingInvite}
         onOpenChange={setEditDialogOpen}

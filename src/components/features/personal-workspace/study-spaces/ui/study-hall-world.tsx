@@ -718,7 +718,7 @@ function BuildingLabel({
 }) {
   const { space, role } = lot
   const locked = role === "visitor"
-  const ariaLabel = locked ? `${space.name} — locked preview, needs a space code (map)` : `Open ${space.name} (map)`
+  const ariaLabel = locked ? `${space.name} — access code required to join (map)` : `Open ${space.name} (map)`
 
   return (
     <Html position={[0, y, 0]} center zIndexRange={[20, 0]} className="pointer-events-none">
@@ -755,7 +755,7 @@ function BuildingLabel({
             {locked ? studySpacesLockedTooltip : statusLabel(lot)}
           </p>
           <p className="text-[11px] leading-4 text-slate-500 surface-dark:text-muted-foreground">
-            {locked ? "Preview only — not opened" : `${metaLine(space)} · browser only`}
+            {locked ? (space.discoverySpace ? "Shared student space · access code required" : "Local preview · access code required") : `${metaLine(space)} · browser only`}
           </p>
         </div>
       </div>

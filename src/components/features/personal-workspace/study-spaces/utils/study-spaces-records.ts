@@ -14,6 +14,7 @@ export type StudySpaceRecord = {
   inviteCode?: string
   joinCode?: string
   accountSpace?: true
+  discoverySpace?: true
   // Local-only timestamp of the last time this browser opened the room.
   lastVisitedAt?: string
 }
@@ -78,9 +79,9 @@ export const sampleJoinedSpaces: StudySpaceRecord[] = []
 export const studySpaceJoinedDiscoveryStorageKey = "owlio.study-space-joined-discovery.v1"
 
 export const studySpacesDiscoveryCaption =
-  "Preview spaces — joining is local only and codes are not verified."
+  "Student-created shared spaces are listed here. Each space requires the owner’s access code to join."
 
-export const studySpacesLockedTooltip = "Locked — preview space, needs a space code"
+export const studySpacesLockedTooltip = "Locked — an access code is required to join"
 
 // Sample preview spaces for the locked wing. They are not saved spaces until joined locally,
 // and they carry no members, owners, or activity.
