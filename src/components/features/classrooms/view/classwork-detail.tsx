@@ -1,15 +1,19 @@
 import { ClassworkDetailSkeleton } from "../ui/classroom-skeletons";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowLeft, Check, Clock3, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Clock3, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClassworkReview } from "../context/classwork-review-context";
 import { Textarea } from "@/components/ui/textarea";
 import { getApiErrorMessage } from "@/services/api/api-error";
-import type { Submission } from "@/services/api/academic.service";
+import { beginSubmissionUpload, completeSubmissionUpload, transferSubmissionFile, type Submission, type SubmissionUpload } from "@/services/api/academic.service";
 import {
   addClassworkQuestion,
+  editableQuestion,
+  savedQuestion,
+  updateClassworkQuestion,
+  type QuestionAnswer,
   loadClassroomWork,
   publishClassroomWork,
   removeClassworkQuestion,
@@ -19,7 +23,9 @@ import {
   type ClassworkEntry,
   type QuestionInput,
 } from "@/services/api/classwork-workspace.service";
-import { ClassworkFields, QuestionEditor } from "../forms/classwork-editor";
+import { ClassworkFields } from "../forms/classwork-editor";
+import { QuestionEditor } from "../forms/classwork-question-editor";
+import { FormQuestionResponse } from "../ui/classwork-question-response";
 import { useClassworkClock } from "../hooks/use-classwork-clock";
 import {
   classworkClosed,
@@ -150,8 +156,11 @@ function ClassworkContent({
   const [choices, setChoices] = useState<Submission["choiceAnswers"]>(
     entry.submission?.choiceAnswers ?? [],
   );
+  const [answers, setAnswers] = useState<QuestionAnswer[]>(entry.submission?.questionAnswers ?? []);
+  const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
+  const [upload, setUpload] = useState<{ questionId: string; file: File; slot: SubmissionUpload; transferred: boolean } | null>(null);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -218,12 +227,76 @@ function ClassworkContent({
       );
       setQuestions((current) => ({
         version: result.version,
-        questions: [...current.questions, { ...input, id: result.question.id }],
+        questions: [...current.questions, savedQuestion(result.question.id, input)],
       }));
       setNotice("Question saved.");
       saved = true;
     });
     return saved;
+  }
+
+  async function editQuestion(id: string, input: QuestionInput) {
+    let saved = false;
+    await run(async () => {
+      const result = await updateClassworkQuestion(work.id, id, questions.version, input);
+      setQuestions(current => ({
+        version: result.version,
+        questions: current.questions.map(question => question.id === id ? savedQuestion(id, input) : question),
+      }));
+      setEditingQuestion(null);
+      setNotice("Question saved.");
+      saved = true;
+    });
+    return saved;
+  }
+
+  function setAnswer(questionId: string, answer: QuestionAnswer | null) {
+    setAnswers(current => [...current.filter(item => item.questionId !== questionId), ...(answer ? [answer] : [])]);
+  }
+
+  const hasFormAnswers = questions.questions.some(question => question.definition);
+
+  function isAnswered(answer: QuestionAnswer) {
+    return answer.type === "short_answer" || answer.type === "paragraph" ? !!answer.text.trim() : true;
+  }
+
+  function persistResponse(current: Submission | null, nextAnswers: QuestionAnswer[]) {
+    const written = nextAnswers.filter(isAnswered);
+    if (written.reduce((count, answer) => count + (answer.type === "short_answer" || answer.type === "paragraph" ? answer.text.trim().length : 0), 0) > 4000)
+      throw new Error("Written form answers may contain up to 4,000 characters in total.");
+    const params = [work.id, current?.version ?? 0, text, choices] as const;
+    return hasFormAnswers ? saveClassworkResponse(...params, written) : saveClassworkResponse(...params);
+  }
+
+  async function uploadResponse(questionId: string, file: File) {
+    await run(async () => {
+      if (classworkClosed(work.dueAt) || serverClosed) throw new Error("The deadline has passed.");
+      let current = upload;
+      if (!current) {
+        if (submission && submission.files.length + submission.pendingUploadCount >= 5)
+          throw new Error("A submission can include up to five files.");
+        const draft = submission ?? await persistResponse(null, answers);
+        setSubmission(draft);
+        const slot = await beginSubmissionUpload(work.id, draft, file);
+        current = { questionId, file, slot, transferred: false };
+        setUpload(current);
+      }
+      if (current.questionId !== questionId) throw new Error("Finish the previous file upload first.");
+      if (!current.transferred) {
+        await transferSubmissionFile(current.slot, current.file);
+        setUpload({ ...current, transferred: true });
+      }
+      const uploaded = await completeSubmissionUpload(work.id, current.slot);
+      setSubmission(uploaded);
+      setUpload(null);
+      if (!uploaded.files.some(item => item.id === current.slot.fileId))
+        throw new Error("The uploaded file could not be confirmed. Reload saved work.");
+      const answer: QuestionAnswer = { questionId, type: "file_upload", fileId: current.slot.fileId };
+      setAnswer(questionId, answer);
+      const saved = await persistResponse(uploaded, [...answers.filter(item => item.questionId !== questionId), answer]);
+      setSubmission(saved);
+      setNotice("File attached to your draft.");
+    });
   }
 
   async function saveResponse(final: boolean) {
@@ -232,20 +305,16 @@ function ClassworkContent({
         throw new Error(
           "The deadline has passed. Submissions are no longer accepted.",
         );
-      if (final && quiz && choices.length === 0 && !text.trim())
+      if (upload) throw new Error("Retry the pending upload before saving or submitting.");
+      if (final && quiz && choices.length === 0 && !answers.some(isAnswered) && !text.trim())
         throw new Error(
-          "Answer at least one question before finishing the quiz.",
+          "Answer at least one question before submitting.",
         );
       if (final && !quiz && !text.trim())
         throw new Error(
           "Write your response before submitting the assessment.",
         );
-      const saved = await saveClassworkResponse(
-        work.id,
-        submission?.version ?? 0,
-        text,
-        choices,
-      );
+      const saved = await persistResponse(submission, answers);
       setSubmission(saved);
       if (!final) {
         setNotice("Draft saved. Remember to submit before the deadline.");
@@ -286,7 +355,7 @@ function ClassworkContent({
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-7">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Badge className="bg-brand-soft text-brand-soft-foreground">
-              {quiz ? "Quiz" : "Assessment"}
+              {hasFormAnswers ? "Form" : quiz ? "Quiz" : "Assessment"}
             </Badge>
             {work.gradingPeriod && (
               <Badge variant="outline">
@@ -310,7 +379,7 @@ function ClassworkContent({
                   <Button
                     size="sm"
                     className="bg-brand text-brand-foreground hover:bg-brand/90"
-                    disabled={busy || editing || !work.dueAt || closed}
+                    disabled={busy || editing || editingQuestion !== null || !work.dueAt || closed}
                     onClick={() =>
                       void run(async () => {
                         if (!work.dueAt || classworkClosed(work.dueAt))
@@ -343,6 +412,8 @@ function ClassworkContent({
                   <Check />
                   Submitted
                 </>
+              ) : hasFormAnswers ? (
+                "Submit form"
               ) : quiz ? (
                 "Finish quiz"
               ) : (
@@ -358,7 +429,7 @@ function ClassworkContent({
             className="mx-5 mt-4 border-b border-border sm:mx-7"
           >
             <TabsTrigger value="form">
-              {quiz ? "Quiz form" : "Assessment form"}
+              {hasFormAnswers ? "Classwork form" : quiz ? "Quiz form" : "Assessment form"}
             </TabsTrigger>
             <TabsTrigger value="student-work" disabled={draft}>
               Student work
@@ -460,66 +531,86 @@ function ClassworkContent({
             </section>
           )}
           <div className="space-y-6">
-            {questions.questions.map((question, index) => (
-              <div key={question.id} className="space-y-2">
-                <fieldset disabled={locked} className="min-w-0 space-y-3">
-                  <legend className="mb-3 w-full break-words text-sm font-semibold">
-                    {index + 1}. {question.prompt}
-                  </legend>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {question.options.map((option, optionIndex) => (
-                      <label
-                        key={optionIndex}
-                        className={`flex min-h-11 min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${choices.some((answer) => answer.questionId === question.id && answer.optionIndex === optionIndex) ? "border-brand/40 bg-brand-soft text-brand-soft-foreground" : "border-border bg-card"} ${locked ? "cursor-default" : "cursor-pointer hover:border-brand/50"}`}
-                      >
-                        <input
-                          className="sr-only"
-                          type="radio"
-                          name={`answer-${question.id}`}
-                          value={optionIndex}
-                          checked={choices.some(
-                            (answer) =>
-                              answer.questionId === question.id &&
-                              answer.optionIndex === optionIndex,
-                          )}
-                          onChange={() =>
-                            setChoices((current) => [
-                              ...current.filter(
-                                (answer) => answer.questionId !== question.id,
-                              ),
-                              { questionId: question.id, optionIndex },
-                            ])
-                          }
-                        />
-                        <span
-                          aria-hidden="true"
-                          className="grid size-6 shrink-0 place-items-center rounded bg-black/5"
+            {questions.questions.map((question, index) => {
+              const initial = owned && draft ? editableQuestion(question) : undefined;
+              if (editingQuestion === question.id && initial) return (
+                <QuestionEditor key={question.id} position={question.position} initial={initial} disabled={busy}
+                  onSave={input => editQuestion(question.id, input)} onCancel={() => setEditingQuestion(null)} />
+              );
+              return (
+                <div key={question.id} className="space-y-2 rounded-xl border border-border p-4">
+                  <fieldset disabled={locked && !question.definition} className="min-w-0 space-y-3">
+                    <legend className="mb-3 w-full break-words text-sm font-semibold">
+                      {index + 1}. {question.prompt}
+                    </legend>
+                    {question.definition ? (
+                      <FormQuestionResponse question={question} answer={answers.find(answer => answer.questionId === question.id)}
+                        submission={submission} owned={owned} locked={locked}
+                        onAnswer={answer => setAnswer(question.id, answer)}
+                        availableFiles={(submission?.files ?? []).filter(file => !answers.some(answer =>
+                          answer.type === "file_upload" && answer.fileId === file.id))}
+                        uploadBlocked={upload !== null}
+                        retryUpload={upload?.questionId === question.id ? () => void uploadResponse(question.id, upload.file) : undefined}
+                        onUpload={file => void uploadResponse(question.id, file)} />
+                    ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {question.options.map((option, optionIndex) => (
+                        <label
+                          key={optionIndex}
+                          className={`flex min-h-11 min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring ${choices.some((answer) => answer.questionId === question.id && answer.optionIndex === optionIndex) ? "border-brand/40 bg-brand-soft text-brand-soft-foreground" : "border-border bg-card"} ${locked ? "cursor-default" : "cursor-pointer hover:border-brand/50"}`}
                         >
-                          {String.fromCharCode(65 + optionIndex)}
-                        </span>
-                        <span className="min-w-0 break-words">{option}</span>
-                        {owned && question.answerIndex === optionIndex && (
-                          <Check
-                            aria-label="Correct answer"
-                            className="ml-auto size-4 shrink-0 text-brand"
+                          <input
+                            className="sr-only"
+                            type="radio"
+                            name={`answer-${question.id}`}
+                            value={optionIndex}
+                            checked={choices.some(
+                              (answer) =>
+                                answer.questionId === question.id &&
+                                answer.optionIndex === optionIndex,
+                            )}
+                            onChange={() =>
+                              setChoices((current) => [
+                                ...current.filter(
+                                  (answer) => answer.questionId !== question.id,
+                                ),
+                                { questionId: question.id, optionIndex },
+                              ])
+                            }
                           />
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                {owned && draft && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={busy || editing}
-                    onClick={() =>
-                      void run(async () => {
-                        const result = await removeClassworkQuestion(
-                          work.id,
-                          question.id,
-                          questions.version,
+                          <span
+                            aria-hidden="true"
+                            className="grid size-6 shrink-0 place-items-center rounded bg-black/5"
+                          >
+                            {String.fromCharCode(65 + optionIndex)}
+                          </span>
+                          <span className="min-w-0 break-words">{option}</span>
+                          {owned && question.answerIndex === optionIndex && (
+                            <Check
+                              aria-label="Correct answer"
+                              className="ml-auto size-4 shrink-0 text-brand"
+                            />
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                    )}
+                  </fieldset>
+                  {owned && draft && (
+                    <div className="flex flex-wrap gap-2">
+                      {initial && <Button type="button" variant="ghost" size="sm" disabled={busy || editing || editingQuestion !== null}
+                        onClick={() => setEditingQuestion(question.id)}><Pencil />Edit question {index + 1}</Button>}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy || editing || editingQuestion !== null}
+                      onClick={() =>
+                        void run(async () => {
+                          const result = await removeClassworkQuestion(
+                            work.id,
+                            question.id,
+                            questions.version,
                         );
                         setQuestions((current) => ({
                           version: result.version,
@@ -534,13 +625,15 @@ function ClassworkContent({
                     <Trash2 />
                     Remove question {index + 1}
                   </Button>
-                )}
-              </div>
-            ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           {owned &&
             draft &&
-            !editing &&
+            !editing && editingQuestion === null &&
             (Math.max(
               0,
               ...questions.questions.map((question) => question.position),

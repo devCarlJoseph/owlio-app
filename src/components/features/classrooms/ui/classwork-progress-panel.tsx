@@ -52,7 +52,7 @@ export function ClassworkProgressPanel({ items, active, owned, loading, error, n
       {owned && active.work.status === 'PUBLISHED' && review && <Button size="sm" className="w-full bg-brand text-brand-foreground hover:bg-brand/90" onClick={() => review.setPanel('student-work')}>Student work</Button>}
       {owned ? active.work.status === 'DRAFT' ? <p className="text-xs text-muted-foreground">Private draft. Publish to assign it to your students.</p> : <ClassSubmissionProgress key={active.work.id} classroomId={active.work.classroomId} classworkId={active.work.id} closed={classworkClosed(active.work.dueAt, now)} /> : <div className="space-y-2 text-xs text-muted-foreground">
         <p>{classworkStatus(active.work, active.submission, now)}</p>
-        {active.questions.questions.length > 0 && <p>{active.submission?.choiceAnswers.length ?? 0} of {active.questions.questions.length} answers saved</p>}
+        {active.questions.questions.length > 0 && <p>{(active.submission?.choiceAnswers.length ?? 0) + (active.submission?.questionAnswers?.length ?? 0)} of {active.questions.questions.length} answers saved</p>}
         {active.submission?.submittedAt && <p>Submitted {formatClassworkDate(active.submission.submittedAt)}</p>}
         <p className="leading-5">Progress reflects saved work. Drafts must be submitted before closing.</p>
       </div>}

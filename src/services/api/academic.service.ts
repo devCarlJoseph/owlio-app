@@ -35,10 +35,21 @@ export async function uploadClassworkFile(classworkId: string, file: File) {
   await putStorage(upload, file)
   return requestOperation('POST /api/v1/classwork/{classworkId}/files/{fileId}/complete', { params: { classworkId, fileId: upload.fileId }, body: {} })
 }
-export async function uploadSubmissionFile(classworkId: string, submission: Submission, file: File) {
-  const upload = await requestOperation('POST /api/v1/classwork/{classworkId}/submissions/me/files/uploads', { params: { classworkId }, body: { file: fileMetadata(file), expectedVersion: submission.version } })
-  await putStorage(upload, file)
+export function beginSubmissionUpload(classworkId: string, submission: Submission, file: File) {
+  return requestOperation('POST /api/v1/classwork/{classworkId}/submissions/me/files/uploads', { params: { classworkId }, body: { file: fileMetadata(file), expectedVersion: submission.version } })
+}
+
+export type SubmissionUpload = Awaited<ReturnType<typeof beginSubmissionUpload>>
+export const transferSubmissionFile = putStorage
+
+export function completeSubmissionUpload(classworkId: string, upload: SubmissionUpload) {
   return requestOperation('POST /api/v1/classwork/{classworkId}/submissions/me/files/{fileId}/complete', { params: { classworkId, fileId: upload.fileId }, body: { expectedVersion: upload.version } })
+}
+
+export async function uploadSubmissionFile(classworkId: string, submission: Submission, file: File) {
+  const upload = await beginSubmissionUpload(classworkId, submission, file)
+  await transferSubmissionFile(upload, file)
+  return completeSubmissionUpload(classworkId, upload)
 }
 
 export async function openDownload(load: () => Promise<{ url: string }>) {

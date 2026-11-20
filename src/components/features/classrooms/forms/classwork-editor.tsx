@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useId, useRef, useState, type FormEvent } from "react";
+import { QuestionEditor } from "./classwork-question-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,127 +131,6 @@ export function ClassworkFields({
   );
 }
 
-export function QuestionEditor({
-  position,
-  disabled,
-  onSave,
-}: {
-  position: number;
-  disabled: boolean;
-  onSave: (input: QuestionInput) => Promise<boolean>;
-}) {
-  const [options, setOptions] = useState(["", "", "", ""]);
-  const [correct, setCorrect] = useState(0);
-  const [error, setError] = useState("");
-  async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const prompt = String(new FormData(form).get("prompt") ?? "").trim();
-    const values = options.map((value) => value.trim());
-    if (
-      !prompt ||
-      values.some((value) => !value) ||
-      new Set(values).size !== values.length
-    ) {
-      setError("Add a question and distinct, nonempty answer choices.");
-      return;
-    }
-    setError("");
-    if (
-      await onSave({ position, prompt, options: values, answerIndex: correct })
-    ) {
-      form.reset();
-      setOptions(["", "", "", ""]);
-      setCorrect(0);
-    }
-  }
-  return (
-    <form
-      onSubmit={save}
-      className="space-y-4 rounded-xl border border-dashed border-border p-4"
-    >
-      <h4 className="text-sm font-semibold">Add a multiple-choice question</h4>
-      <div className="space-y-2">
-        <Label htmlFor="question-prompt">Question</Label>
-        <Textarea
-          id="question-prompt"
-          name="prompt"
-          maxLength={1000}
-          required
-          disabled={disabled}
-        />
-      </div>
-      <fieldset disabled={disabled} className="space-y-3">
-        <legend className="mb-2 text-xs text-muted-foreground">
-          Select the correct answer. Students will not see the answer key.
-        </legend>
-        {options.map((option, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="correct"
-              aria-label={`Mark choice ${index + 1} as correct`}
-              checked={correct === index}
-              onChange={() => setCorrect(index)}
-              className="size-4 accent-brand"
-            />
-            <Input
-              aria-label={`Choice ${index + 1}`}
-              maxLength={200}
-              required
-              value={option}
-              onChange={(event) =>
-                setOptions((current) =>
-                  current.map((value, i) =>
-                    i === index ? event.target.value : value,
-                  ),
-                )
-              }
-            />
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              aria-label={`Remove choice ${index + 1}`}
-              disabled={options.length <= 2}
-              onClick={() => {
-                setOptions((current) => current.filter((_, i) => i !== index));
-                setCorrect(0);
-              }}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        ))}
-        {options.length < 8 && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setOptions((current) => [...current, ""])}
-          >
-            <Plus />
-            Add choice
-          </Button>
-        )}
-      </fieldset>
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      <Button
-        type="submit"
-        variant="outline"
-        className="border-brand/30 text-brand hover:bg-brand-soft hover:text-brand"
-        disabled={disabled}
-      >
-        Save question
-      </Button>
-    </form>
-  );
-}
-
 export function ClassworkCreator({
   classroomId,
   schoolClassroom,
@@ -265,24 +144,27 @@ export function ClassworkCreator({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  // Questions define a quiz; written assessments use the API's text response.
-  const [kind, setKind] = useState("assessment");
+  const [kind, setKind] = useState("form");
+  const formId = useId();
+  const pending = useRef(false);
+  const [editingFirst, setEditingFirst] = useState(true);
   const [firstQuestion, setFirstQuestion] = useState<QuestionInput | null>(
     null,
   );
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (pending.current) return;
     try {
       const input = readClassworkFields(new FormData(event.currentTarget));
-      if (kind === "quiz" && !firstQuestion)
+      if (kind === "form" && (!firstQuestion || editingFirst))
         throw new Error(
-          "Save the first quiz question before creating the draft.",
+          "Save the first question before creating the draft.",
         );
+      pending.current = true;
       setBusy(true);
       setError("");
       const draft = await createClassroomWork(classroomId, input);
-      if (kind === "quiz" && firstQuestion) {
+      if (kind === "form" && firstQuestion) {
         try {
           await addClassworkQuestion(
             draft.id,
@@ -301,6 +183,7 @@ export function ClassworkCreator({
       onCreated(draft.id);
     } catch (cause) {
       setError(getApiErrorMessage(cause, "Could not create classwork."));
+      pending.current = false;
       setBusy(false);
     }
   }
@@ -314,7 +197,7 @@ export function ClassworkCreator({
           Create classwork
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Save a draft, review it, then publish to this class.
+          Save a draft to add more questions, review, and publish.
         </p>
       </header>
       <div className="space-y-2">
@@ -322,12 +205,12 @@ export function ClassworkCreator({
         <Select
           value={kind}
           disabled={busy}
-          onValueChange={(value) => setKind(value ?? "assessment")}
+          onValueChange={(value) => setKind(value ?? "form")}
         >
           <SelectTrigger id="classwork-kind" className="h-10 w-full">
             <SelectValue>
-              {kind === "quiz"
-                ? "Quiz — multiple choice"
+              {kind === "form"
+                ? "Form — questions"
                 : "Assessment — written response"}
             </SelectValue>
           </SelectTrigger>
@@ -335,13 +218,16 @@ export function ClassworkCreator({
             <SelectItem value="assessment">
               Assessment — written response
             </SelectItem>
-            <SelectItem value="quiz">Quiz — multiple choice</SelectItem>
+            <SelectItem value="form">Form — questions</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      {kind === "quiz" && (
+      <form id={formId} onSubmit={create}>
+        <ClassworkFields disabled={busy} schoolClassroom={schoolClassroom} />
+      </form>
+      {kind === "form" && (
         <div className="space-y-3">
-          {firstQuestion ? (
+          {firstQuestion && !editingFirst ? (
             <div className="rounded-lg bg-muted p-3 text-sm">
               <p className="font-medium">
                 First question: {firstQuestion.prompt}
@@ -350,7 +236,7 @@ export function ClassworkCreator({
                 variant="ghost"
                 size="sm"
                 disabled={busy}
-                onClick={() => setFirstQuestion(null)}
+                onClick={() => setEditingFirst(true)}
               >
                 Change first question
               </Button>
@@ -358,40 +244,36 @@ export function ClassworkCreator({
           ) : (
             <QuestionEditor
               position={1}
+              initial={firstQuestion ?? undefined}
               disabled={busy}
+              onCancel={firstQuestion ? () => setEditingFirst(false) : undefined}
               onSave={async (input) => {
                 setFirstQuestion(input);
+                setEditingFirst(false);
                 return true;
               }}
             />
           )}
         </div>
       )}
-      <form onSubmit={create} className="space-y-5">
-        <ClassworkFields disabled={busy} schoolClassroom={schoolClassroom} />
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="submit"
-            className="bg-brand text-brand-foreground hover:bg-brand/90"
-            disabled={busy}
-          >
-            {busy ? "Saving…" : "Create draft"}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="submit"
+          form={formId}
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
+          disabled={busy}
+        >
+          {busy ? "Saving…" : "Create draft"}
+        </Button>
+        <Button type="button" variant="ghost" disabled={busy} onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
     </section>
   );
 }

@@ -12,6 +12,7 @@ import { getClassworkAnswerScore, getClassworkEvaluation, getClassworkRubric, re
 import type { ReviewSelection } from '../context/classwork-review-context'
 import { formatClassworkDate } from '../utils/classwork-deadline'
 import { GradeComments } from '../ui/grade-comments'
+import { SubmissionFileLink } from '../ui/classwork-question-response'
 import { ReleasedFeedbackEditor } from '../ui/released-feedback-editor'
 
 type ReviewData = {
@@ -41,23 +42,62 @@ export function ClassworkSubmissionReview({ work, questions, selection, schoolOw
     }).catch(cause => { if (!controller.signal.aborted) setError(getApiErrorMessage(cause, 'Could not load this submission for grading.')) })
     return () => controller.abort()
   }, [selection.id, selection.studentId, work.id, work.maxPoints, questions.length, revision])
+  const otherFiles = data?.submission.files.filter(file =>
+    !data.submission.questionAnswers?.some(answer => answer.type === 'file_upload' && answer.fileId === file.id)) ?? []
   return <section className="space-y-5" aria-label={`Review ${selection.name}`}>
     <header className="flex flex-wrap items-center justify-between gap-2"><Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft />All submissions</Button><Button variant="ghost" size="sm" onClick={() => { setData(null); setError(''); setRevision(value => value + 1) }}>Reload saved grade</Button></header>
     <div><h4 className="break-words text-base font-semibold">{selection.name}</h4><p className="mt-1 text-xs text-muted-foreground">{work.title}</p></div>
     {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !data ? <ClassworkReviewSkeleton answers /> : <>
       <p className="text-xs text-muted-foreground">Attempt {data.submission.attempt} · Submitted {formatClassworkDate(data.submission.submittedAt)}</p>
-      {data.answerScore && <p className="rounded-xl bg-brand-soft p-3 text-sm font-medium text-brand-soft-foreground">Answer-key check: {data.answerScore.correct} of {data.answerScore.total} correct<span className="mt-1 block text-xs font-normal">This is a review aid. Save and release the grade separately.</span></p>}
-      <ol className="space-y-5">{questions.map((question, index) => {
-        const chosen = data.submission.choiceAnswers.find(answer => answer.questionId === question.id)
-        const hasKey = question.answerIndex !== undefined
-        const correct = hasKey && chosen?.optionIndex === question.answerIndex
-        return <li key={question.id} className="space-y-3 rounded-xl border border-border p-4"><h5 className="break-words text-sm font-semibold">{index + 1}. {question.prompt}</h5><p className="flex items-center gap-2 text-xs font-medium">{hasKey ? correct ? <><Check aria-hidden="true" className="size-4 text-brand" />Correct</> : <><X aria-hidden="true" className="size-4 text-destructive" />{chosen ? 'Incorrect' : 'Unanswered'}</> : 'Answer key unavailable'}</p><dl className="space-y-2 text-sm"><div><dt className="text-xs text-muted-foreground">Student answer</dt><dd className="mt-1 break-words">{chosen ? question.options[chosen.optionIndex] ?? 'Unavailable answer' : 'No answer'}</dd></div><div><dt className="text-xs text-muted-foreground">Correct answer</dt><dd className="mt-1 break-words">{hasKey ? question.options[question.answerIndex!] : 'Unavailable'}</dd></div></dl></li>
-      })}</ol>
+      {data.answerScore && data.answerScore.total > 0 && <p className="rounded-xl bg-brand-soft p-3 text-sm font-medium text-brand-soft-foreground">Answer-key check: {data.answerScore.correct} of {data.answerScore.total} correct<span className="mt-1 block text-xs font-normal">This is a review aid. Save and release the grade separately.</span></p>}
+      <ol className="space-y-5">{questions.map((question, index) => (
+        <QuestionReview key={question.id} question={question} number={index + 1} submission={data.submission} />
+      ))}</ol>
       {data.submission.textAnswer && <section className="space-y-2 rounded-xl border border-border p-4"><h5 className="text-sm font-semibold">Written response</h5><p className="whitespace-pre-wrap break-words text-sm leading-6">{data.submission.textAnswer}</p></section>}
-      {data.submission.files.length > 0 && <p className="text-xs text-muted-foreground">This submission has {data.submission.files.length} attachment(s). Attachment review is not available here.</p>}
+      {otherFiles.length > 0 && (
+        <section className="space-y-2">
+          <h5 className="text-sm font-semibold">Other attachments</h5>
+          {otherFiles.map(file => (
+            <SubmissionFileLink key={file.id} file={file} submissionId={data.submission.id} />
+          ))}
+        </section>
+      )}
       <GradeEditor key={revision} work={work} data={data} schoolOwnerId={schoolOwnerId} />
     </>}
   </section>
+}
+
+function QuestionReview({ question, number, submission }: { question: ClassworkQuestion; number: number; submission: Submission }) {
+  const definition = question.definition
+  const answer = submission.questionAnswers?.find(item => item.questionId === question.id)
+  const choice = submission.choiceAnswers.find(item => item.questionId === question.id)
+  const options = definition?.type === 'checkboxes' || definition?.type === 'dropdown' ? definition.options : question.options
+  const key = !definition && question.answerIndex !== undefined ? [question.answerIndex]
+    : definition?.type === 'dropdown' && definition.answerIndex !== undefined ? [definition.answerIndex]
+      : definition?.type === 'checkboxes' ? definition.answerIndexes : undefined
+  const selected = choice ? [choice.optionIndex] : answer?.type === 'dropdown' ? [answer.optionIndex]
+    : answer?.type === 'checkboxes' ? answer.optionIndexes : undefined
+  const correct = key && selected && key.length === selected.length && key.every(index => selected.includes(index))
+  const file = answer?.type === 'file_upload' ? submission.files.find(item => item.id === answer.fileId) : undefined
+  let response = 'No answer'
+  if (selected) response = selected.map(index => options[index] ?? 'Unavailable answer').join(', ')
+  else if (answer?.type === 'short_answer' || answer?.type === 'paragraph') response = answer.text
+  else if (answer?.type === 'linear_scale' || answer?.type === 'rating') response = answer.type === 'rating'
+    ? `${answer.value} of ${definition?.type === 'rating' ? definition.max : '?'} stars` : String(answer.value)
+
+  return <li className="space-y-3 rounded-xl border border-border p-4">
+    <h5 className="break-words text-sm font-semibold">{number}. {question.prompt}</h5>
+    {key && <p className="flex items-center gap-2 text-xs font-medium">
+      {correct ? <><Check aria-hidden="true" className="size-4 text-brand" />Correct</>
+        : <><X aria-hidden="true" className="size-4 text-destructive" />{selected ? 'Incorrect' : 'Unanswered'}</>}
+    </p>}
+    <dl className="space-y-2 text-sm">
+      <div><dt className="text-xs text-muted-foreground">Student answer</dt><dd className="mt-1 whitespace-pre-wrap break-words">
+        {file ? <SubmissionFileLink submissionId={submission.id} file={file} /> : response}
+      </dd></div>
+      {key && <div><dt className="text-xs text-muted-foreground">Correct answer</dt><dd className="mt-1 break-words">{key.map(index => options[index]).join(', ')}</dd></div>}
+    </dl>
+  </li>
 }
 
 function GradeEditor({ work, data, schoolOwnerId }: { work: Classwork; data: ReviewData; schoolOwnerId?: string }) {
@@ -104,7 +144,7 @@ function GradeEditor({ work, data, schoolOwnerId }: { work: Classwork; data: Rev
 
   return <><form onSubmit={save} className="space-y-4 rounded-xl border border-border bg-muted/20 p-4">
     <header><h5 className="text-sm font-semibold">{released ? 'Released grade' : 'Grade and feedback'}</h5><p className="mt-1 text-xs leading-5 text-muted-foreground">{released ? 'This result is visible to the student.' : 'Saving keeps this grade private. Release it only after reviewing the submitted answers.'}</p></header>
-    {maximum === null ? <p className="text-xs leading-5 text-muted-foreground">This activity was published as feedback-only. Its maximum points cannot be changed now. Set maximum points on a new draft to enable numeric grades.</p> : <div className="space-y-2"><Label htmlFor="review-score">Score out of {maximum}</Label><Input id="review-score" type="number" min={0} max={maximum} step={1} value={score} onChange={event => setScore(event.target.value)} disabled={busy || released} />{data.answerScore && data.answerScore.total === maximum && criteria.length === 0 && !released && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setScore(String(data.answerScore!.correct))}>Use answer-key count · 1 point per question</Button>}</div>}
+    {maximum === null ? <p className="text-xs leading-5 text-muted-foreground">This activity was published as feedback-only. Its maximum points cannot be changed now. Set maximum points on a new draft to enable numeric grades.</p> : <div className="space-y-2"><Label htmlFor="review-score">Score out of {maximum}</Label><Input id="review-score" type="number" min={0} max={maximum} step={1} value={score} onChange={event => setScore(event.target.value)} disabled={busy || released} />{data.answerScore && data.answerScore.total > 0 && data.answerScore.total === maximum && criteria.length === 0 && !released && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setScore(String(data.answerScore!.correct))}>Use answer-key count · 1 point per question</Button>}</div>}
     {criteria.map(item => <div key={item.id} className="space-y-2"><Label htmlFor={`criterion-${item.id}`}>{item.label} · out of {item.maxPoints}</Label><Input id={`criterion-${item.id}`} type="number" min={0} max={item.maxPoints} step={1} value={points[item.id] ?? ''} disabled={busy || released} onChange={event => setPoints(current => ({ ...current, [item.id]: event.target.value }))} /></div>)}
     <div className="space-y-2"><Label htmlFor="review-feedback">Feedback for the student</Label><Textarea id="review-feedback" maxLength={6000} value={feedback} onChange={event => setFeedback(event.target.value)} disabled={busy || released} className="min-h-28" /></div>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm">{notice}</p>}

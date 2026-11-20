@@ -7,7 +7,8 @@ import * as service from '@/services/api/classwork-workspace.service'
 import { ClassroomClassworkView } from '../view/classroom-classwork-view'
 import { classworkClosed, classworkStatus } from '../utils/classwork-deadline'
 
-vi.mock('@/services/api/classwork-workspace.service', () => ({
+vi.mock('@/services/api/classwork-workspace.service', async (load) => ({
+  ...await load<typeof service>(),
   listClassroomWork: vi.fn(), loadClassroomWork: vi.fn(), saveClassworkResponse: vi.fn(), submitClassworkResponse: vi.fn(),
   createClassroomWork: vi.fn(), addClassworkQuestion: vi.fn(), removeClassworkQuestion: vi.fn(),
   updateClassroomWork: vi.fn(), publishClassroomWork: vi.fn(), listClassworkLearners: vi.fn(), listClassworkSubmissions: vi.fn(), getClassworkSubmission: vi.fn(),
@@ -67,7 +68,7 @@ describe('classwork deadlines', () => {
     vi.mocked(service.saveClassworkResponse).mockRejectedValue(new Error('Save unavailable'))
     await open()
     await userEvent.click(screen.getByRole('button', { name: 'Finish quiz' }))
-    await screen.findByText('Answer at least one question before finishing the quiz.')
+    await screen.findByText('Answer at least one question before submitting.')
     expect(service.saveClassworkResponse).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('radio', { name: 'Detect environment' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save draft' }))
@@ -124,6 +125,31 @@ describe('classwork deadlines', () => {
   })
 })
 
+it('submits a mixed form with legacy choices, written answers, checkboxes and a zero scale value', async () => {
+  const form: service.ClassworkQuestions = { ...questions, questions: [
+    ...questions.questions,
+    { id: 'written', position: 2, prompt: 'Explain your choice', options: [], definition: { type: 'paragraph' } },
+    { id: 'scale', position: 3, prompt: 'Confidence', options: [], definition: { type: 'linear_scale', min: 0, max: 2 } },
+    { id: 'checks', position: 4, prompt: 'Which terms apply?', options: [], definition: { type: 'checkboxes', options: ['Analog', 'Digital'] } },
+  ] }
+  vi.mocked(service.loadClassroomWork).mockResolvedValue({ ...entry, questions: form })
+  vi.mocked(service.saveClassworkResponse).mockResolvedValue(draft)
+  vi.mocked(service.submitClassworkResponse).mockResolvedValue({ ...draft, status: 'SUBMITTED', submittedAt: closing })
+  await open()
+  await userEvent.click(screen.getByRole('radio', { name: 'Detect environment' }))
+  await userEvent.type(screen.getByRole('textbox', { name: 'Answer: Explain your choice' }), 'My explanation')
+  await userEvent.click(screen.getByRole('radio', { name: '0' }))
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Analog' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Submit form' }))
+  await screen.findByText('Your classwork was submitted.')
+  expect(service.saveClassworkResponse).toHaveBeenCalledWith(work.id, 0, '',
+    [{ questionId: 'question-id', optionIndex: 1 }], [
+      { questionId: 'written', type: 'paragraph', text: 'My explanation' },
+      { questionId: 'scale', type: 'linear_scale', value: 0 },
+      { questionId: 'checks', type: 'checkboxes', optionIndexes: [0] },
+    ])
+})
+
 describe('educator classwork', () => {
   it('publishes a reviewed draft and loads the roster only for owner review', async () => {
     vi.mocked(service.loadClassroomWork).mockResolvedValue({ ...entry, work: { ...work, status: 'DRAFT', version: 3 } })
@@ -148,6 +174,20 @@ describe('educator classwork', () => {
     expect(screen.queryByRole('button', { name: 'Review Learner One' })).toBeNull()
   })
 
+  it('provides all eight question types and configures a scale starting at zero', async () => {
+    vi.mocked(service.listClassroomWork).mockResolvedValue([])
+    render(<ClassroomClassworkView classroom={{ ...room, access: 'owner' }} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Create classwork' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Question type' }))
+    expect((await screen.findAllByRole('option')).map(option => option.textContent?.trim())).toEqual([
+      'Short answer', 'Paragraph', 'Multiple choice', 'Checkboxes', 'Dropdown', 'File upload', 'Linear scale', 'Rating',
+    ])
+    await userEvent.click(screen.getByRole('option', { name: 'Linear scale' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Starts at' }))
+    await userEvent.click(await screen.findByRole('option', { name: '0' }))
+    expect(screen.getByRole('combobox', { name: 'Starts at' }).textContent).toContain('0')
+  })
+
   it('does not recreate a draft when its first quiz question fails to save', async () => {
     const owner = { ...room, access: 'owner' as const }
     vi.mocked(service.listClassroomWork).mockResolvedValue([])
@@ -156,8 +196,6 @@ describe('educator classwork', () => {
     vi.mocked(service.loadClassroomWork).mockResolvedValue({ ...entry, work: { ...work, status: 'DRAFT', version: 0 }, questions: { version: 0, questions: [] } })
     render(<ClassroomClassworkView classroom={owner} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Create classwork' }))
-    await userEvent.click(screen.getByRole('combobox', { name: 'Classwork type' }))
-    await userEvent.click(await screen.findByRole('option', { name: 'Quiz — multiple choice' }))
     await userEvent.type(screen.getByRole('textbox', { name: 'Question' }), 'Which one?')
     for (let i = 1; i <= 4; i++) await userEvent.type(screen.getByRole('textbox', { name: `Choice ${i}` }), `Option ${i}`)
     await userEvent.click(screen.getByRole('button', { name: 'Save question' }))

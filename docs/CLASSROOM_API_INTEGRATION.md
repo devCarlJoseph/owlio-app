@@ -16,6 +16,14 @@ Each released submission has a private comment thread for its author and the cur
 
 Period assignment, period releases, private comments, and feedback revisions require the matching Owlio API release and additive migration `0049_classroom_grades_and_periods`. The migration was generated locally. Database application and live writes require separate authorization.
 
+## Classroom Classwork form builder
+
+Classroom owners can choose a question form or a written assessment in **Classwork → Create classwork**. The question picker groups short answer, paragraph, multiple choice, checkboxes, dropdown, file upload, linear scale, and rating. Owners configure choice keys, scale endpoints, and star counts. Save the first question with the draft, then add, edit, or remove questions before publishing.
+
+The question endpoints accept typed definitions alongside the existing multiple-choice wire format. Learners save versioned answers and can submit any nonempty response before the closing time. File answers use ready attachments from the same attempt through the existing private upload and download routes. Educators review all response types. Advisory checks cover multiple-choice, dropdown, and checkbox keys. Official grades still use the existing review and release flow.
+
+The sibling API reuses the existing JSONB columns and keeps legacy questions and submissions readable. Release the matching frontend and API together before publishing typed forms. See the API checkout's `docs/ASSESSMENT_API.md` for field limits and projections.
+
 ## Classwork theme alignment — 17 November 2026
 
 Student and educator Classwork surfaces use semantic brand/brand-soft colors for badges, activity icons, selected answers, finish/submit actions, timeline markers, active activity buttons, progress fills, and correct-answer checks. Lime/green decorative accents from the original reference were removed at the user's request. Error and missing states retain destructive colors and text labels. This is a scoped presentation change with no API, grading, deadline, or data changes. Browser rendering remains unverified because the available browser cannot reach the local server.

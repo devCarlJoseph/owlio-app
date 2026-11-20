@@ -6,7 +6,33 @@ export type ClassworkQuestions = OperationData<'GET /api/v1/classwork/{classwork
 export type ClassworkQuestion = ClassworkQuestions['questions'][number]
 export type ClassworkEntry = { work: Classwork; questions: ClassworkQuestions; submission: Submission | null }
 export type ClassworkInput = OperationBody<'POST /api/v1/classrooms/{classroomId}/classwork'>
-export type QuestionInput = Pick<OperationBody<'POST /api/v1/classwork/{classworkId}/questions'>, 'position' | 'prompt' | 'options' | 'answerIndex'>
+type QuestionBody = OperationBody<'POST /api/v1/classwork/{classworkId}/questions'>
+export type QuestionDefinition = Extract<QuestionBody, { definition: unknown }>['definition']
+export type QuestionInput = { position: number; prompt: string } & (
+  { options: string[]; answerIndex: number } | { definition: QuestionDefinition }
+)
+export type QuestionAnswer = NonNullable<Submission['questionAnswers']>[number]
+
+export function savedQuestion(id: string, input: QuestionInput): ClassworkQuestion {
+  return 'definition' in input ? { ...input, id, options: [] } : { ...input, id }
+}
+
+export function editableQuestion(question: ClassworkQuestion): QuestionInput | undefined {
+  const { position, prompt, definition } = question
+  if (!definition) {
+    return question.answerIndex === undefined ? undefined
+      : { position, prompt, options: question.options, answerIndex: question.answerIndex }
+  }
+  if (definition.type === 'dropdown') {
+    if (definition.answerIndex === undefined) return undefined
+    return { position, prompt, definition: { ...definition, answerIndex: definition.answerIndex } }
+  }
+  if (definition.type === 'checkboxes') {
+    if (!definition.answerIndexes) return undefined
+    return { position, prompt, definition: { ...definition, answerIndexes: definition.answerIndexes } }
+  }
+  return { position, prompt, definition }
+}
 
 export const getClassworkQuestions = (classworkId: string, signal?: AbortSignal) =>
   requestOperation('GET /api/v1/classwork/{classworkId}/questions', { params: { classworkId }, signal })
@@ -42,10 +68,12 @@ export const publishClassroomWork = (classworkId: string) =>
   requestOperation('POST /api/v1/classwork/{classworkId}/publish', { params: { classworkId }, body: {} })
 export const addClassworkQuestion = (classworkId: string, expectedVersion: number, input: QuestionInput) =>
   requestOperation('POST /api/v1/classwork/{classworkId}/questions', { params: { classworkId }, body: { ...input, expectedVersion } })
+export const updateClassworkQuestion = (classworkId: string, questionId: string, expectedVersion: number, input: QuestionInput) =>
+  requestOperation('PATCH /api/v1/classwork/{classworkId}/questions/{questionId}', { params: { classworkId, questionId }, body: { ...input, expectedVersion } })
 export const removeClassworkQuestion = (classworkId: string, questionId: string, expectedVersion: number) =>
   requestOperation('DELETE /api/v1/classwork/{classworkId}/questions/{questionId}', { params: { classworkId, questionId }, body: { expectedVersion } })
-export const saveClassworkResponse = (classworkId: string, expectedVersion: number, textAnswer: string, choiceAnswers: Submission['choiceAnswers']) =>
-  requestOperation('PUT /api/v1/classwork/{classworkId}/submissions/me', { params: { classworkId }, body: { expectedVersion, textAnswer, choiceAnswers } })
+export const saveClassworkResponse = (classworkId: string, expectedVersion: number, textAnswer: string, choiceAnswers: NonNullable<OperationBody<'PUT /api/v1/classwork/{classworkId}/submissions/me'>['choiceAnswers']>, questionAnswers?: QuestionAnswer[]) =>
+  requestOperation('PUT /api/v1/classwork/{classworkId}/submissions/me', { params: { classworkId }, body: { expectedVersion, textAnswer, choiceAnswers, ...(questionAnswers && { questionAnswers }) } })
 export const submitClassworkResponse = (classworkId: string, expectedVersion: number) =>
   requestOperation('POST /api/v1/classwork/{classworkId}/submissions/me/submit', { params: { classworkId }, body: { expectedVersion } })
 export const listClassworkSubmissions = (classworkId: string, signal?: AbortSignal) =>
@@ -54,3 +82,6 @@ export const listClassworkLearners = (classroomId: string, signal?: AbortSignal)
   collectOperation('GET /api/v1/classrooms/{classroomId}/students', { params: { classroomId }, signal })
 export const getClassworkSubmission = (submissionId: string, signal?: AbortSignal) =>
   requestOperation('GET /api/v1/submissions/{submissionId}', { params: { submissionId }, signal })
+
+export const getSubmissionFileDownload = (submissionId: string, fileId: string) =>
+  requestOperation('GET /api/v1/submissions/{submissionId}/files/{fileId}/download', { params: { submissionId, fileId } })

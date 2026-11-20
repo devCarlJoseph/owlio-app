@@ -119,7 +119,7 @@ export function ClassroomClassworkView({
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
               {owned
-                ? "Prepare quizzes and assessments for your class."
+                ? "Prepare forms, quizzes, and written assessments for your class."
                 : "Your educator’s quizzes and assessments, all in one place."}
             </p>
           </div>
@@ -189,7 +189,7 @@ export function ClassroomClassworkView({
             <h4 className="text-sm font-medium">No classwork yet</h4>
             <p className="max-w-xs text-sm leading-6 text-muted-foreground">
               {owned
-                ? "Create a quiz or written assessment, set its closing time, and publish it to your students."
+                ? "Create a form or written assessment, set its closing time, and publish it to your students."
                 : "Published classwork will appear here when your educator assigns it."}
             </p>
           </div>
@@ -224,7 +224,7 @@ export function ClassroomClassworkView({
                       </span>
                       <span className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline">
-                          {quiz ? "Quiz" : "Assessment"}
+                          {questions.questions.some(question => question.definition) ? "Form" : quiz ? "Quiz" : "Assessment"}
                         </Badge>
                         {work.gradingPeriod && (
                           <Badge variant="outline">
