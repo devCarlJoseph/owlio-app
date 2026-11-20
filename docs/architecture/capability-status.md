@@ -29,6 +29,10 @@ Migration 0052 and the matching API release enable owner-confirmed deletion of e
 | Other learning/teaching tools | Original layouts and local tools remain routed. Demo collection cleanup does not add server persistence for unconnected actions. | `src/main.tsx`, original feature components |
 | AI | Original draft/example screens are routed; no inference provider or credentials in the browser. | [AI plan](../../OWLIO_AI_IMPLEMENTATION_PLAN.md) |
 
+## Private classroom and locker files
+
+The Materials tab, draft Classwork attachments, and account Study Space locker now have upload/view/download interfaces. Account lockers are private to their owner; device rooms and older device files remain local. The API adds resource-file endpoints and migration 0053, applied only to the explicitly approved local API database target. The corrected server key pair passed a live synthetic test through the actual R2Storage adapter, including byte validation, final write and signed inline view; both configured origins passed preflight and actual request Origin checks. Synthetic test objects were removed. Other environments still require migration reconciliation, API S3_* configuration, matching releases, and live application verification. See [R2 integration](../R2_FILE_INTEGRATION.md).
+
 ## Verification
 
 See [API connection](../API_CONNECTION.md) for contract evidence, feature limits, and the distinction between mocked tests, browser reads, and live persistence/media checks. Historical integration checks describe the app at their recorded date, before the original layouts were restored.

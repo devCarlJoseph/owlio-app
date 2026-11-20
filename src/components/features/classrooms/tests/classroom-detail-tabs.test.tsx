@@ -6,12 +6,16 @@ import { getClassrooms, getClassroomMembers } from '@/services/api/classroom.ser
 import { ClassroomDetailView } from '../view/classroom-detail-view'
 import { TestSession } from './classroom-test-fixtures'
 import { classroom, teacher, student } from './classroom-test-data'
+import { listPrivateFiles, listClassroomLinks } from '@/services/api/private-files.service'
 import { listClassroomWork } from '@/services/api/classwork-workspace.service'
+vi.mock('@/services/api/private-files.service', () => ({ listPrivateFiles: vi.fn(), listClassroomLinks: vi.fn() }))
 vi.mock('@/services/api/classwork-workspace.service', () => ({ listClassroomWork: vi.fn() }))
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), getClassroomMembers: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 afterEach(cleanup)
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(listPrivateFiles).mockResolvedValue([])
+  vi.mocked(listClassroomLinks).mockResolvedValue({ items: [], nextCursor: null })
   vi.mocked(getClassrooms).mockResolvedValue([classroom])
   vi.mocked(getClassroomMembers).mockResolvedValue({ items: [], nextCursor: null })
   vi.mocked(listClassroomWork).mockResolvedValue([])
@@ -32,7 +36,11 @@ describe('connected classroom details', () => {
       expect(screen.queryByText('Classroom invite')).toBeNull()
       expect(screen.queryByText('Classroom meeting code')).toBeNull()
     }
-    else expect(screen.getByText('This section is under development.')).toBeTruthy()
+    else {
+      expect(await screen.findByText('No files yet.')).toBeTruthy()
+      expect(screen.getByRole('region', { name: 'Classroom materials' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Add file' })).toBeNull()
+    }
   })
   it('defaults unknown tabs to real classroom details', async () => {
     render(<TestSession path="/students/classrooms/class-id?tab=unknown"><Routes><Route path="/students/classrooms/:classroomId" element={<ClassroomDetailView />} /></Routes></TestSession>)

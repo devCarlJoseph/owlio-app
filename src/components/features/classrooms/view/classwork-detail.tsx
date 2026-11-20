@@ -37,6 +37,8 @@ import { ClassworkReview } from "./classwork-review";
 import { gradingPeriodLabels } from "../contents/grading-periods";
 import { ClassworkReleasedResult } from "../ui/classwork-released-result";
 
+import { PrivateFileManager } from "@/components/common/files/private-file-manager";
+
 const finishClass =
   "border border-brand bg-brand text-brand-foreground hover:bg-brand/90";
 
@@ -150,6 +152,7 @@ function ClassworkContent({
 }) {
   const review = useClassworkReview();
   const [work, setWork] = useState(entry.work);
+  const [attachmentsBusy, setAttachmentsBusy] = useState(false);
   const [questions, setQuestions] = useState(entry.questions);
   const [submission, setSubmission] = useState(entry.submission);
   const [text, setText] = useState(entry.submission?.textAnswer ?? "");
@@ -379,7 +382,7 @@ function ClassworkContent({
                   <Button
                     size="sm"
                     className="bg-brand text-brand-foreground hover:bg-brand/90"
-                    disabled={busy || editing || editingQuestion !== null || !work.dueAt || closed}
+                    disabled={busy || attachmentsBusy || editing || editingQuestion !== null || !work.dueAt || closed}
                     onClick={() =>
                       void run(async () => {
                         if (!work.dueAt || classworkClosed(work.dueAt))
@@ -530,6 +533,7 @@ function ClassworkContent({
               </p>
             </section>
           )}
+          <PrivateFileManager kind="classwork" id={work.id} canUpload={owned && draft} disabled={busy} title="Classwork attachments" onBusyChange={setAttachmentsBusy} />
           <div className="space-y-6">
             {questions.questions.map((question, index) => {
               const initial = owned && draft ? editableQuestion(question) : undefined;

@@ -38,6 +38,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { CharacterDialog } from "../forms/character-dialog"
 import { DrawerPanel } from "../ui/drawer-panel"
+import { LockerFilesPanel } from "../ui/locker-files-panel"
 import { LockerPanel } from "../ui/locker-panel"
 import type { LockerSlot } from "../ui/room-extras"
 import { LIGHT_LABELS, useLightPhase, useSharedLightSetting } from "../utils/room-ambience"
@@ -619,10 +620,11 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           />
         ) : null}
 
-        {panel === "drawer" ? <DrawerPanel spaceId={space.id} onClose={() => setPanel(null)} /> : null}
+        {panel === "drawer" ? (shared ? <LockerFilesPanel spaceId={space.id} onClose={() => setPanel(null)} /> : <DrawerPanel spaceId={space.id} onClose={() => setPanel(null)} />) : null}
 
         {panel === "lockers" ? (
           <LockerPanel
+            accountBacked={shared}
             lockers={lockers}
             selectedId={selectedLockerId}
             unlockedIds={unlockedLockerIds}

@@ -11,6 +11,7 @@ import {
 } from "../utils/room-lockers"
 
 type LockerPanelProps = {
+  accountBacked?: boolean
   lockers: SampleLocker[]
   selectedId: string | null
   unlockedIds: string[]
@@ -23,6 +24,7 @@ type LockerPanelProps = {
 }
 
 export function LockerPanel({
+  accountBacked = false,
   lockers,
   selectedId,
   unlockedIds,
@@ -60,7 +62,7 @@ export function LockerPanel({
         </Button>
       </div>
 
-      <p className="border-b border-slate-100 surface-dark:border-border bg-amber-50 surface-dark:bg-surface-amber-soft px-3 py-2 text-xs leading-5 text-amber-900 surface-dark:text-amber-200">{lockerPreviewNotice}</p>
+      <p className="border-b border-slate-100 surface-dark:border-border bg-amber-50 surface-dark:bg-surface-amber-soft px-3 py-2 text-xs leading-5 text-amber-900 surface-dark:text-amber-200">{accountBacked ? "Your locker files are private to your signed-in account. Sharing with other members is not enabled." : lockerPreviewNotice}</p>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {selected ? (
@@ -79,13 +81,13 @@ export function LockerPanel({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-slate-900 surface-dark:text-foreground">Your locker</p>
-                  <p className="text-xs text-slate-600 surface-dark:text-muted-foreground">{ownCode ? "Code set" : "No code set"}</p>
+                  <p className="text-xs text-slate-600 surface-dark:text-muted-foreground">{accountBacked ? "Private account storage" : ownCode ? "Code set" : "No code set"}</p>
                 </div>
                 <Button type="button" size="xs" onClick={onOpenMine}>
                   Open
                 </Button>
               </div>
-              <OwnCodeForm key={ownCode ?? "none"} ownCode={ownCode} onChange={onOwnCodeChange} />
+              {!accountBacked && <OwnCodeForm key={ownCode ?? "none"} ownCode={ownCode} onChange={onOwnCodeChange} />}
             </li>
             {lockers.map((locker) => {
               const open = unlockedIds.includes(locker.owner.id)

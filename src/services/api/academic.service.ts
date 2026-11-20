@@ -13,7 +13,7 @@ export async function listClasswork(classroomId: string, signal?: AbortSignal): 
   return z.array(classworkSchema).parse(await collectOperation('GET /api/v1/classrooms/{classroomId}/classwork', { params: { classroomId }, signal }))
 }
 
-function fileMetadata(file: File) {
+export function fileMetadata(file: Pick<File, "name" | "size" | "type">) {
   if (file.size <= 0 || file.size > 5 * 1024 * 1024) throw new Error('Choose a file between 1 byte and 5 MB.')
   if (!['application/pdf', 'image/png', 'image/jpeg'].includes(file.type)) throw new Error('Choose a PDF, PNG, or JPEG file.')
   if (!/^[A-Za-z0-9][A-Za-z0-9 ._()-]{0,119}$/.test(file.name)) throw new Error('Use a filename starting with a letter or number, with only spaces, letters, numbers, dots, underscores, parentheses and hyphens (120 characters maximum).')
@@ -23,7 +23,7 @@ function fileMetadata(file: File) {
 }
 
 // Use fetch instead of the API Axios instance: cookies and CSRF must never go to storage.
-async function putStorage(upload: { uploadUrl: string; headers: { 'Content-Type': string } }, file: File) {
+export async function putStorage(upload: { uploadUrl: string; headers: { 'Content-Type': string } }, file: File) {
   const url = new URL(upload.uploadUrl)
   if (url.protocol !== 'https:' || url.username || url.password) throw new Error('The API returned an invalid storage URL.')
   const response = await fetch(url, { method: 'PUT', credentials: 'omit', headers: upload.headers, body: file, referrerPolicy: 'no-referrer' })

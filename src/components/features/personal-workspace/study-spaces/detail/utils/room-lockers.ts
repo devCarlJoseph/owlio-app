@@ -9,7 +9,7 @@ export type SampleLocker = {
 }
 
 export const lockerPreviewNotice =
-  "Shared lockers and files are not connected yet. Local locker codes are not an access control for server files."
+  "This device room stores files locally. Open an account study space to use a private cloud locker. Local locker codes do not grant access to account files."
 
 export const ownLockerCodeNotice =
   "Your locker code is saved in this browser only. No one else can open your locker because nothing is shared yet."

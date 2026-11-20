@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Classroom } from '../types/classroom-types'
 import type { Classwork, Submission } from '@/services/api/academic.service'
+import { listPrivateFiles } from '@/services/api/private-files.service'
+vi.mock('@/services/api/private-files.service', () => ({ listPrivateFiles: vi.fn() }))
 import * as service from '@/services/api/classwork-workspace.service'
 import { ClassroomClassworkView } from '../view/classroom-classwork-view'
 import { classworkClosed, classworkStatus } from '../utils/classwork-deadline'
@@ -24,6 +26,7 @@ const entry: service.ClassworkEntry = { work, questions, submission: null }
 
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(listPrivateFiles).mockResolvedValue([])
   vi.mocked(service.listClassroomWork).mockResolvedValue([entry])
   vi.mocked(service.loadClassroomWork).mockResolvedValue(entry)
   vi.mocked(service.listClassworkLearners).mockResolvedValue([])
