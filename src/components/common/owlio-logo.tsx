@@ -12,7 +12,7 @@ export function OwlioLogo({ alt, className }: OwlioLogoProps) {
       alt={alt}
       width={2172}
       height={724}
-      className={cn('h-10 w-auto object-contain surface-dark:rounded-lg surface-dark:bg-white', className)}
+      className={cn('h-10 w-auto object-contain surface-dark:brightness-0 surface-dark:invert', className)}
     />
   )
 }
