@@ -56,6 +56,8 @@ The original auth showcase includes rotating feature artwork, a practice questio
 
 Theme selection is browser-local via `src/lib/theme.ts`, not an account-profile update. Implement component styling with Tailwind utilities rather than standalone stylesheets or CSS modules. Prefer semantic color tokens; explicit `surface-dark:` variants preserve the existing dark palette while excluding authored content marked with `data-theme-content`. The Tailwind entry file owns imports, theme tokens, base `@apply` defaults, and animation tokens/keyframes. Keep inline styles only for runtime values such as drawing coordinates, user-selected colors, and calculated geometry.
 
+The shared `Button` variants and selected tab states use the Owlio brand tokens for both themes. Use these defaults for general actions and reserve color overrides for contextual cues such as destructive actions, meeting device states, and resource categories.
+
 ## Data and persistence
 
 Classroom chat read positions are account/classroom API records, not browser storage. Chat exposes server total/unread/mention counts and cursor-paginated navigation to unread or notification-linked messages. Scoped member mentions and owner-only `@students` create durable in-app alerts. The notification bell/panel/inbox displays authorized classroom mentions; other notification categories retain their separate account-record view and explicit examples. Migration/release requirements and unread acknowledgment behavior are recorded in the [classroom integration contract](../CLASSROOM_API_INTEGRATION.md).

@@ -242,7 +242,6 @@ export function NotesView() {
           <Button
             type="button"
             onClick={openCreateDialog}
-            className="bg-blue-700 text-white hover:bg-blue-800"
           >
             <Plus aria-hidden="true" />
             New note

@@ -10,6 +10,7 @@ vi.mock('@/services/api/meeting-realtime', () => ({ watchMeetingChat: vi.fn(() =
 vi.mock('@/services/api/classroom.service', () => ({ getClassrooms: vi.fn(), createClassroom: vi.fn(), joinClassroomByCode: vi.fn() }))
 vi.mock('@/services/api/meeting.service', () => ({ createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), openPeerMeeting: vi.fn(), resolveMeetingInvite: vi.fn(), endMeeting: vi.fn(), endPeerMeeting: vi.fn(), joinMeeting: vi.fn(), getClassroomSessions: vi.fn(), scheduleClassroomSession: vi.fn(), getMeetingState: vi.fn(), getMeetingParticipants: vi.fn(), getMeetingMessages: vi.fn(), recoverMeetingMessages: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
+const studyCode = 'OWLIO-SPACE-AABBCCDD-EEEE-4111-8222-ABCDEF012345'
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(getClassrooms).mockResolvedValue([]); vi.mocked(getClassroomSessions).mockResolvedValue([]) })
 afterEach(cleanup)
 function open(path = '/students/classrooms/meeting-room', teacher = false) {
@@ -33,6 +34,23 @@ describe('connected meeting entry', () => {
   it('does not offer student room creation in a teaching workspace', () => {
     open('/educators/classrooms/meeting-room', true)
     expect(screen.queryByRole('button', { name: /Student meetings/ })).toBeNull()
+  })
+  it('joins an open Study Space meeting by its reusable code using the member session', async () => {
+    vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: id, classroomId: null, meetingCode: studyCode })
+    vi.mocked(joinMeeting).mockRejectedValue(new Error('Media unavailable'))
+    open('/students/classrooms/meeting-room?room=' + studyCode)
+    fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
+    await waitFor(() => expect(joinMeeting).toHaveBeenCalledExactlyOnceWith(id))
+    expect(resolveMeetingInvite).toHaveBeenCalledExactlyOnceWith(studyCode)
+    expect((await screen.findByRole('alert')).textContent).toContain('Media unavailable')
+  })
+  it('asks the member to wait until the Study Space owner opens the meeting', async () => {
+    vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: null, classroomId: null, meetingCode: studyCode })
+    open('/students/classrooms/meeting-room?room=' + studyCode)
+    fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
+    expect((await screen.findByRole('alert')).textContent).toContain('The Study Space owner has not opened this meeting yet.')
+    expect(joinMeeting).not.toHaveBeenCalled()
+    expect(openPeerMeeting).not.toHaveBeenCalled()
   })
   it('opens a reusable classroom meeting through the host operation without creating a second scheduled room', async () => {
     vi.mocked(resolveMeetingInvite).mockResolvedValue({ sessionId: null, classroomId: id, meetingCode: 'OWLIO-ABCDEFGH' })

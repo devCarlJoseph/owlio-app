@@ -8,7 +8,7 @@ type AuthFormActionsProps = {
 
 export function AuthFormActions({ label, disabled }: AuthFormActionsProps) {
   return (
-    <Button type="submit" disabled={disabled} className="h-11 w-full rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">
+    <Button type="submit" disabled={disabled} className="h-11 w-full rounded-lg">
       {label}<ArrowRight aria-hidden="true" />
     </Button>
   )

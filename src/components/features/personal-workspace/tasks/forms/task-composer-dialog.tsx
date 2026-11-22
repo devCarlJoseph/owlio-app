@@ -176,7 +176,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
                   onClick={() => setDraft((current) => ({ ...current, priority: option.value as TaskPriority }))}
                   className={
                     isActive
-                      ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
+                      ? "border-brand bg-brand text-brand-foreground hover:bg-brand/90"
                       : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
                   }
                 >
@@ -203,7 +203,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
                   onClick={() => setDraft((current) => ({ ...current, status: option.value as TaskStatus }))}
                   className={
                     isActive
-                      ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
+                      ? "border-brand bg-brand text-brand-foreground hover:bg-brand/90"
                       : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
                   }
                 >
@@ -236,7 +236,7 @@ function TaskComposerForm({ task, initialSubject, initialStatus, onCancel, onSub
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="button" className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleSubmit}>
+        <Button type="button" onClick={handleSubmit}>
           Save task
         </Button>
       </DialogFooter>

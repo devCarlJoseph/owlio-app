@@ -50,7 +50,7 @@ export function OnboardingCompleted({ entity, values, headingRef }: OnboardingCo
           <Button
             type="button"
             disabled
-            className="h-11 w-full rounded-lg bg-indigo-600 px-6 text-white shadow-sm shadow-indigo-600/20 sm:w-auto"
+            className="h-11 w-full rounded-lg px-6 shadow-sm shadow-brand/20 sm:w-auto"
             aria-describedby="destination-unavailable"
           >
             {nextStep.label} <ArrowRight aria-hidden="true" />

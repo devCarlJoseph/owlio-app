@@ -10,7 +10,7 @@ Auth/session and role guards always run. The compatibility export in `src/lib/ap
 
 ## Capability map
 
-Migration 0052 and the matching API release enable owner-confirmed deletion of ended classrooms and student-only live meetings. Shared Study Spaces show a reusable meeting code for members. The student Meeting Room offers standalone create and join by code. Student calls also require the matching worker release and LiveKit configuration. See [classroom lifecycle](../CLASSROOM_API_INTEGRATION.md#end-and-delete-classrooms) and [meeting integration](../API_CONNECTION.md).
+Migration 0052 and the matching API release enable owner-confirmed deletion of ended classrooms and student-only live meetings. Shared Study Space owners can open a meeting, and current members can use the reusable meeting code to join. The student Meeting Room offers standalone create and join by code. Student calls also require the matching worker release and LiveKit configuration. See [classroom lifecycle](../CLASSROOM_API_INTEGRATION.md#end-and-delete-classrooms) and [meeting integration](../API_CONNECTION.md).
 
 | Area | Current routed behavior | Evidence |
 | --- | --- | --- |

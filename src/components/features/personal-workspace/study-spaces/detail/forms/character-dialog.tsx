@@ -209,7 +209,7 @@ function CharacterForm({
             Cancel
           </Button>
         )}
-        <Button type="button" className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleSubmit}>
+        <Button type="button" onClick={handleSubmit}>
           <UserRound aria-hidden="true" />
           {submitLabel}
         </Button>

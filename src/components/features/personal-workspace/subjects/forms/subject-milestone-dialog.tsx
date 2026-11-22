@@ -93,7 +93,6 @@ function SubjectMilestoneForm({
         </Button>
         <Button
           type="button"
-          className="bg-blue-700 text-white hover:bg-blue-800"
           onClick={handleSubmit}
         >
           {milestone ? "Save milestone" : "Add milestone"}

@@ -31,7 +31,7 @@ export function LibraryCategoryRow({
           onClick={onClearKinds}
           className={
             selectedKinds.length === 0
-              ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
+              ? "border-brand bg-brand text-brand-foreground hover:bg-brand/90"
               : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
           }
         >
@@ -51,7 +51,7 @@ export function LibraryCategoryRow({
               onClick={() => onToggleKind(kind)}
               className={
                 isActive
-                  ? "border-blue-700 bg-blue-700 text-white hover:bg-blue-800"
+                  ? "border-brand bg-brand text-brand-foreground hover:bg-brand/90"
                   : "border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground hover:bg-slate-50 surface-dark:hover:bg-background"
               }
             >

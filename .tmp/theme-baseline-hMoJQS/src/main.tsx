@@ -1,0 +1,299 @@
+import "@/styles/global.css";
+
+import { createRoot } from "react-dom/client";
+import { Suspense } from "react";
+import { NotFoundPage } from "@/components/common/not-found-page";
+import { UnderDevelopmentPage } from "@/components/common/under-development-page";
+import { getPlannedDashboardPages } from "@/components/common/dashboard-navigation";
+import { MeetingRoomRouteSkeleton } from "@/components/features/meeting-room/ui/meeting-room-route-skeleton";
+import { StudySpaceSkeleton } from "@/components/features/personal-workspace/study-spaces/ui/study-space-skeleton";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router";
+import RegisterPage from "@/pages/auth/register";
+import LoginPage from "@/pages/auth/login";
+import EmailVerificationPage from "@/pages/auth/email-verification";
+import ForgotPasswordPage from "@/pages/auth/forgot-password";
+import PasswordResetPage from "@/pages/auth/password-reset";
+import GoogleOAuthCallbackPage from "@/pages/auth/google-oauth-callback";
+import PlatformLayout from "@/pages/dashboard/layout";
+import AccountSecurityPage from "@/pages/dashboard/account-security";
+import StudentsPage from "@/pages/dashboard/students";
+import EducatorsPage from "@/pages/dashboard/educators";
+import TutorsPage from "@/pages/dashboard/tutors";
+import EslPage from "@/pages/dashboard/esl";
+import StudentSubjectsPage from "@/pages/dashboard/students/subjects";
+import StudentSubjectDetailPage from "@/pages/dashboard/students/subjects/detail";
+import StudentTasksPage from "@/pages/dashboard/students/tasks";
+import StudentProgressPage from "@/pages/dashboard/students/progress";
+import StudentNotesPage from "@/pages/dashboard/students/notes";
+import StudentStudySpacesPage from "@/pages/dashboard/students/study-spaces";
+import StudentStudySpaceDetailPage from "@/pages/dashboard/students/study-spaces/detail/lazy";
+import StudentClassworkPage from "@/pages/dashboard/students/classwork";
+import StudentMaterialsPage from "@/pages/dashboard/students/materials";
+import StudentPersonalMaterialsPage from "@/pages/dashboard/students/materials/personal";
+import StudentLibraryWorkspacePage from "@/pages/dashboard/students/materials/workspace";
+import StudentPersonalMaterialSubjectPage from "@/pages/dashboard/students/materials/personal/subject";
+import StudentClassroomMaterialSubjectPage from "@/pages/dashboard/students/materials/classroom/subject";
+import StudentStudySpaceMaterialSubjectPage from "@/pages/dashboard/students/materials/study-spaces/subject";
+import StudentClassroomMaterialsPage from "@/pages/dashboard/students/materials/classroom";
+import StudentStudySpaceMaterialsPage from "@/pages/dashboard/students/materials/study-spaces";
+import EducatorClassworkPage from "@/pages/dashboard/educators/classwork";
+import EducatorAttendancePage from "@/pages/dashboard/educators/attendance";
+import EducatorLearnersPage from "@/pages/dashboard/educators/learners";
+import TutorSessionsPage from "@/pages/dashboard/tutors/sessions";
+import TutorClassworkPage from "@/pages/dashboard/tutors/classwork";
+import TutorAttendancePage from "@/pages/dashboard/tutors/attendance";
+import TutorLearnersPage from "@/pages/dashboard/tutors/learners";
+import TutorLearnerDetailPage from "@/pages/dashboard/tutors/learners/detail";
+import TutorLearningPlansPage from "@/pages/dashboard/tutors/learning-plans";
+import TutorSessionNotesPage from "@/pages/dashboard/tutors/session-notes";
+import TutorAnnouncementsPage from "@/pages/dashboard/tutors/announcements";
+import TutorMaterialsPage from "@/pages/dashboard/tutors/materials";
+import TutorProgressPage from "@/pages/dashboard/tutors/progress";
+import TutorCommunicationPage from "@/pages/dashboard/tutors/communication";
+import TutorNotificationsPage from "@/pages/dashboard/tutors/notifications";
+import TutorAiAssistantPage from "@/pages/dashboard/tutors/ai-assistant";
+import ProfilePage from "@/pages/dashboard/account/profile";
+import SettingsPage from "@/pages/dashboard/account/settings";
+import SupportPage from "@/pages/dashboard/account/support";
+import EslLessonsPage from "@/pages/dashboard/esl/lessons";
+import EslClassworkPage from "@/pages/dashboard/esl/classwork";
+import EslAttendancePage from "@/pages/dashboard/esl/attendance";
+import EslLearnersPage from "@/pages/dashboard/esl/learners";
+import EslMaterialContextPage from "@/pages/dashboard/esl/materials";
+import ClassroomsPage from "@/pages/dashboard/classroom";
+import ClassroomDetailPage from "@/pages/dashboard/classroom/detail";
+import ClassroomActivityPage from "@/pages/dashboard/classroom/activity";
+import MeetingRoomPage from "@/pages/dashboard/classroom/meeting-room.lazy";
+import SchedulePage from "@/pages/dashboard/schedule";
+import MaterialsPage from "@/pages/dashboard/materials";
+import CommunicationPage from "@/pages/dashboard/communication";
+import NotificationsPage from "@/pages/dashboard/notifications";
+import ProgressPage from "@/pages/dashboard/progress";
+import AiAssistantPage from "@/pages/dashboard/ai-assistant";
+import { AuthRouteRedirect } from "@/components/common/auth-route-redirect";
+import { AppProviders } from "@/context/app-providers";
+import { RequireAuth } from "@/components/features/auth/view/require-auth";
+import { RequireGuest } from "@/components/features/auth/view/require-guest";
+import { RequireRole } from "@/components/features/auth/view/require-role";
+import { NoWorkspaceView } from "@/components/features/auth/view/no-workspace-view";
+import { initializeTheme } from '@/lib/theme';
+
+initializeTheme();
+
+createRoot(document.getElementById("root")!).render(
+  <BrowserRouter>
+    <AppProviders>
+      <Routes>
+        <Route element={<RequireGuest />}>
+          <Route path="/onboarding" element={<Navigate to="/register" replace />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/email-verification" element={<EmailVerificationPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/password-reset" element={<PasswordResetPage />} />
+          <Route path="/auth/*" element={<AuthRouteRedirect />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Route>
+        <Route path="/oauth/google/callback" element={<GoogleOAuthCallbackPage />} />
+        <Route path="/access-denied" element={<NoWorkspaceView />} />
+
+        {/*App Pages */}
+        <Route
+          element={
+            <RequireAuth>
+              <Outlet />
+            </RequireAuth>
+          }
+        >
+          <Route path="/students" element={<RequireRole role="STUDENT"><PlatformLayout /></RequireRole>}>
+            <Route index element={<StudentsPage />} />
+            {getPlannedDashboardPages("/students").map(page => <Route key={page.href} path={page.href.replace("/students/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
+            <Route path="subjects" element={<StudentSubjectsPage />} />
+            <Route path="subjects/:subjectId" element={<StudentSubjectDetailPage />} />
+            <Route path="tasks" element={<StudentTasksPage />} />
+            <Route path="notes" element={<StudentNotesPage />} />
+            <Route path="study-spaces" element={<StudentStudySpacesPage />} />
+            <Route
+              path="study-spaces/:spaceId"
+              element={
+                <Suspense
+                  fallback={
+                    <StudySpaceSkeleton />
+                  }
+                >
+                  <StudentStudySpaceDetailPage />
+                </Suspense>
+              }
+            />
+            <Route path="classwork" element={<StudentClassworkPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <MeetingRoomRouteSkeleton />
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<StudentMaterialsPage />} />
+            <Route path="materials/workspace/:resourceId" element={<StudentLibraryWorkspacePage />} />
+            <Route path="materials/personal" element={<StudentPersonalMaterialsPage />} />
+            <Route path="materials/personal/:subject" element={<StudentPersonalMaterialSubjectPage />} />
+            <Route path="materials/classroom/:subject" element={<StudentClassroomMaterialSubjectPage />} />
+            <Route path="materials/study-spaces/:subject" element={<StudentStudySpaceMaterialSubjectPage />} />
+            <Route path="materials/classroom" element={<StudentClassroomMaterialsPage />} />
+            <Route path="materials/study-spaces" element={<StudentStudySpaceMaterialsPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<StudentProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
+          </Route>
+          <Route path="/educators" element={<RequireRole role="EDUCATOR"><PlatformLayout /></RequireRole>}>
+            <Route index element={<EducatorsPage />} />
+            {getPlannedDashboardPages("/educators").map(page => <Route key={page.href} path={page.href.replace("/educators/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
+            <Route path="classwork" element={<EducatorClassworkPage />} />
+            <Route path="attendance" element={<EducatorAttendancePage />} />
+            <Route path="learners" element={<EducatorLearnersPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <MeetingRoomRouteSkeleton />
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
+          </Route>
+          <Route path="/tutors" element={<RequireRole role="TUTOR"><PlatformLayout /></RequireRole>}>
+            <Route index element={<TutorsPage />} />
+            {getPlannedDashboardPages("/tutors").map(page => <Route key={page.href} path={page.href.replace("/tutors/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
+            <Route path="sessions" element={<TutorSessionsPage />} />
+            <Route path="classwork" element={<TutorClassworkPage />} />
+            <Route path="attendance" element={<TutorAttendancePage />} />
+            <Route path="learners" element={<TutorLearnersPage />} />
+            <Route path="learners/detail/:learnerId" element={<TutorLearnerDetailPage />} />
+            <Route path="learning-plans" element={<TutorLearningPlansPage />} />
+            <Route path="session-notes" element={<TutorSessionNotesPage />} />
+            <Route path="announcements" element={<TutorAnnouncementsPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <MeetingRoomRouteSkeleton />
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<TutorMaterialsPage />} />
+            <Route path="communication" element={<TutorCommunicationPage />} />
+            <Route path="notifications" element={<TutorNotificationsPage />} />
+            <Route path="progress" element={<TutorProgressPage />} />
+            <Route path="ai-assistant" element={<TutorAiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
+          </Route>
+          <Route path="/esl" element={<RequireRole role="ESL"><PlatformLayout /></RequireRole>}>
+            <Route index element={<EslPage />} />
+            {getPlannedDashboardPages("/esl").map(page => <Route key={page.href} path={page.href.replace("/esl/", "")} element={<UnderDevelopmentPage />} />)}
+            <Route path="*" element={<NotFoundPage />} />
+            <Route path="lessons" element={<EslLessonsPage />} />
+            <Route path="classwork" element={<EslClassworkPage />} />
+            <Route path="attendance" element={<EslAttendancePage />} />
+            <Route path="learners" element={<EslLearnersPage />} />
+            <Route path="classrooms" element={<ClassroomsPage />} />
+            <Route
+              path="classrooms/meeting-room"
+              element={
+                <Suspense
+                  fallback={
+                    <MeetingRoomRouteSkeleton />
+                  }
+                >
+                  <MeetingRoomPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="classrooms/:classroomId"
+              element={<ClassroomDetailPage />}
+            />
+            <Route
+              path="classrooms/:classroomId/classwork/:activityId"
+              element={<ClassroomActivityPage />}
+            />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="materials" element={<MaterialsPage />} />
+            <Route path="materials/:context" element={<EslMaterialContextPage />} />
+            <Route path="communication" element={<CommunicationPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ai-assistant" element={<AiAssistantPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="help" element={<SupportPage />} />
+            <Route path="account/security" element={<AccountSecurityPage />} />
+          </Route>
+        </Route>
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </AppProviders>
+  </BrowserRouter>,
+);

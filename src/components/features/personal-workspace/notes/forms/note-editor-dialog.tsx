@@ -213,7 +213,7 @@ export function NoteEditorDialog({
               autoFocus
               className="h-9 rounded-lg border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
             />
-            <Button type="button" size="sm" onClick={handleAddLabel} className="bg-blue-700 text-white hover:bg-blue-800">
+            <Button type="button" size="sm" onClick={handleAddLabel}>
               <Check aria-hidden="true" />
               Add
             </Button>

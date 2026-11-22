@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import api from '@/lib/axios'
 import { postApiWithCsrf } from './auth.service'
-import { createMeeting, openClassroomMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, recoverMeetingMessages, setMeetingHand, resolveMeetingInvite } from './meeting.service'
+import { createMeeting, openClassroomMeeting, openPeerMeeting, endMeeting, getClassroomSessions, joinMeeting, scheduleClassroomSession, sendMeetingMessage, recoverMeetingMessages, setMeetingHand, resolveMeetingInvite } from './meeting.service'
 vi.mock('@/lib/axios', () => ({ default: { get: vi.fn() } }))
 vi.mock('./auth.service', () => ({ postApiWithCsrf: vi.fn() }))
 const id = '11111111-1111-4111-8111-111111111111'
@@ -56,7 +56,7 @@ describe('scheduled-session meeting contracts', () => {
   })
 })
 
-describe('short meeting invitations', () => {
+describe('meeting invitations', () => {
   it('resolves a reusable classroom code before its host opens and opens using only the classroom selector', async () => {
     vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: { sessionId: null, classroomId: other, meetingCode: 'OWLIO-ABCDEFGH' } } })
     expect(await resolveMeetingInvite(' owlio-abcdefgh ')).toEqual({ sessionId: null, classroomId: other, meetingCode: 'OWLIO-ABCDEFGH' })
@@ -72,8 +72,29 @@ describe('short meeting invitations', () => {
   })
   it('propagates denied membership instead of opening a local room', async () => {
     vi.mocked(api.get).mockRejectedValue(new Error('NOT_FOUND'))
-    await expect(resolveMeetingInvite('OWLIOA7K2')).rejects.toThrow('NOT_FOUND')
+    await expect(resolveMeetingInvite('OWLIO-SPACE-' + id)).rejects.toThrow('NOT_FOUND')
     expect(postApiWithCsrf).not.toHaveBeenCalled()
+  })
+  it.each([
+    ['OWLIO-SPACE-AABBCCDD-EEEE-4111-8222-ABCDEF012345', null],
+    ['OWLIO-SPACE-AABBCCDD-EEEE-4111-8222-ABCDEF012345', id],
+    ['OWLIO-PEER-ABCDEF0123456789', id],
+  ] as const)('resolves %s with session %s through the API', async (meetingCode, sessionId) => {
+    const invitation = { sessionId, classroomId: null, meetingCode }
+    const signal = new AbortController().signal
+    vi.mocked(api.get).mockResolvedValue({ data: { status: 'success', data: invitation } })
+    await expect(resolveMeetingInvite(` ${meetingCode.toLowerCase()} `, signal)).resolves.toEqual(invitation)
+    expect(api.get).toHaveBeenCalledExactlyOnceWith('/api/v1/meeting-invitations/' + meetingCode, { signal })
+  })
+  it('opens a Study Space meeting with the scoped owner operation', async () => {
+    const room = { id: other, sessionId: other, status: 'OPEN', meetingCode: 'OWLIO-SPACE-' + id }
+    vi.mocked(postApiWithCsrf).mockResolvedValue(room)
+    await expect(openPeerMeeting(id)).resolves.toEqual(room)
+    expect(postApiWithCsrf).toHaveBeenCalledExactlyOnceWith('/api/v1/study-spaces/' + id + '/native-meeting', {})
+  })
+  it('rejects an invalid Study Space code before sending a request', async () => {
+    await expect(resolveMeetingInvite('OWLIO-SPACE-invalid')).rejects.toThrow('Enter a valid meeting code.')
+    expect(api.get).not.toHaveBeenCalled()
   })
 })
 

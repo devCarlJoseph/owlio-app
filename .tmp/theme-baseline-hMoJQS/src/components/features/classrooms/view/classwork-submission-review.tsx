@@ -1,0 +1,159 @@
+import { ClassworkReviewSkeleton } from '../ui/classwork-review-skeleton'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ArrowLeft, Check, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { getApiErrorMessage } from '@/services/api/api-error'
+import type { Classwork, Submission } from '@/services/api/academic.service'
+import { getClassworkSubmission, type ClassworkQuestion } from '@/services/api/classwork-workspace.service'
+import { getClassworkAnswerScore, getClassworkEvaluation, getClassworkRubric, releaseClassworkEvaluation, saveClassworkEvaluation, type ClassworkEvaluation } from '@/services/api/classwork-grading.service'
+import type { ReviewSelection } from '../context/classwork-review-context'
+import { formatClassworkDate } from '../utils/classwork-deadline'
+import { GradeComments } from '../ui/grade-comments'
+import { SubmissionFileLink } from '../ui/classwork-question-response'
+import { ReleasedFeedbackEditor } from '../ui/released-feedback-editor'
+
+type ReviewData = {
+  submission: Submission; evaluation: ClassworkEvaluation | null
+  answerScore: Awaited<ReturnType<typeof getClassworkAnswerScore>> | null
+  rubric: Awaited<ReturnType<typeof getClassworkRubric>>['criteria']
+}
+
+export function ClassworkSubmissionReview({ work, questions, selection, schoolOwnerId, onClose }: {
+  work: Classwork; questions: ClassworkQuestion[]; selection: ReviewSelection; schoolOwnerId?: string; onClose: () => void
+}) {
+  const [data, setData] = useState<ReviewData | null>(null)
+  const [error, setError] = useState('')
+  const [revision, setRevision] = useState(0)
+  useEffect(() => {
+    const controller = new AbortController()
+    Promise.all([
+      getClassworkSubmission(selection.id, controller.signal), getClassworkEvaluation(selection.id, controller.signal),
+      questions.length ? getClassworkAnswerScore(selection.id, controller.signal) : Promise.resolve(null),
+      work.maxPoints !== null ? getClassworkRubric(work.id, controller.signal) : Promise.resolve({ criteria: null }),
+    ]).then(([submission, evaluation, answerScore, rubric]) => {
+      if (controller.signal.aborted) return
+      if (submission.classworkId !== work.id || submission.studentId !== selection.studentId || submission.status !== 'SUBMITTED') throw new Error('This submission is not available for review in this activity.')
+      if (evaluation && evaluation.submissionId !== submission.id) throw new Error('The grade does not belong to this submission.')
+      if (answerScore && answerScore.id !== submission.id) throw new Error('The answer-key check does not belong to this submission.')
+      setData({ submission, evaluation, answerScore, rubric: rubric.criteria }); setError('')
+    }).catch(cause => { if (!controller.signal.aborted) setError(getApiErrorMessage(cause, 'Could not load this submission for grading.')) })
+    return () => controller.abort()
+  }, [selection.id, selection.studentId, work.id, work.maxPoints, questions.length, revision])
+  const otherFiles = data?.submission.files.filter(file =>
+    !data.submission.questionAnswers?.some(answer => answer.type === 'file_upload' && answer.fileId === file.id)) ?? []
+  return <section className="space-y-5" aria-label={`Review ${selection.name}`}>
+    <header className="flex flex-wrap items-center justify-between gap-2"><Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft />All submissions</Button><Button variant="ghost" size="sm" onClick={() => { setData(null); setError(''); setRevision(value => value + 1) }}>Reload saved grade</Button></header>
+    <div><h4 className="break-words text-base font-semibold">{selection.name}</h4><p className="mt-1 text-xs text-muted-foreground">{work.title}</p></div>
+    {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : !data ? <ClassworkReviewSkeleton answers /> : <>
+      <p className="text-xs text-muted-foreground">Attempt {data.submission.attempt} · Submitted {formatClassworkDate(data.submission.submittedAt)}</p>
+      {data.answerScore && data.answerScore.total > 0 && <p className="rounded-xl bg-brand-soft p-3 text-sm font-medium text-brand-soft-foreground">Answer-key check: {data.answerScore.correct} of {data.answerScore.total} correct<span className="mt-1 block text-xs font-normal">This is a review aid. Save and release the grade separately.</span></p>}
+      <ol className="space-y-5">{questions.map((question, index) => (
+        <QuestionReview key={question.id} question={question} number={index + 1} submission={data.submission} />
+      ))}</ol>
+      {data.submission.textAnswer && <section className="space-y-2 rounded-xl border border-border p-4"><h5 className="text-sm font-semibold">Written response</h5><p className="whitespace-pre-wrap break-words text-sm leading-6">{data.submission.textAnswer}</p></section>}
+      {otherFiles.length > 0 && (
+        <section className="space-y-2">
+          <h5 className="text-sm font-semibold">Other attachments</h5>
+          {otherFiles.map(file => (
+            <SubmissionFileLink key={file.id} file={file} submissionId={data.submission.id} />
+          ))}
+        </section>
+      )}
+      <GradeEditor key={revision} work={work} data={data} schoolOwnerId={schoolOwnerId} />
+    </>}
+  </section>
+}
+
+function QuestionReview({ question, number, submission }: { question: ClassworkQuestion; number: number; submission: Submission }) {
+  const definition = question.definition
+  const answer = submission.questionAnswers?.find(item => item.questionId === question.id)
+  const choice = submission.choiceAnswers.find(item => item.questionId === question.id)
+  const options = definition?.type === 'checkboxes' || definition?.type === 'dropdown' ? definition.options : question.options
+  const key = !definition && question.answerIndex !== undefined ? [question.answerIndex]
+    : definition?.type === 'dropdown' && definition.answerIndex !== undefined ? [definition.answerIndex]
+      : definition?.type === 'checkboxes' ? definition.answerIndexes : undefined
+  const selected = choice ? [choice.optionIndex] : answer?.type === 'dropdown' ? [answer.optionIndex]
+    : answer?.type === 'checkboxes' ? answer.optionIndexes : undefined
+  const correct = key && selected && key.length === selected.length && key.every(index => selected.includes(index))
+  const file = answer?.type === 'file_upload' ? submission.files.find(item => item.id === answer.fileId) : undefined
+  let response = 'No answer'
+  if (selected) response = selected.map(index => options[index] ?? 'Unavailable answer').join(', ')
+  else if (answer?.type === 'short_answer' || answer?.type === 'paragraph') response = answer.text
+  else if (answer?.type === 'linear_scale' || answer?.type === 'rating') response = answer.type === 'rating'
+    ? `${answer.value} of ${definition?.type === 'rating' ? definition.max : '?'} stars` : String(answer.value)
+
+  return <li className="space-y-3 rounded-xl border border-border p-4">
+    <h5 className="break-words text-sm font-semibold">{number}. {question.prompt}</h5>
+    {key && <p className="flex items-center gap-2 text-xs font-medium">
+      {correct ? <><Check aria-hidden="true" className="size-4 text-brand" />Correct</>
+        : <><X aria-hidden="true" className="size-4 text-destructive" />{selected ? 'Incorrect' : 'Unanswered'}</>}
+    </p>}
+    <dl className="space-y-2 text-sm">
+      <div><dt className="text-xs text-muted-foreground">Student answer</dt><dd className="mt-1 whitespace-pre-wrap break-words">
+        {file ? <SubmissionFileLink submissionId={submission.id} file={file} /> : response}
+      </dd></div>
+      {key && <div><dt className="text-xs text-muted-foreground">Correct answer</dt><dd className="mt-1 break-words">{key.map(index => options[index]).join(', ')}</dd></div>}
+    </dl>
+  </li>
+}
+
+function GradeEditor({ work, data, schoolOwnerId }: { work: Classwork; data: ReviewData; schoolOwnerId?: string }) {
+  const [evaluation, setEvaluation] = useState(data.evaluation)
+  const [score, setScore] = useState(data.evaluation?.score?.toString() ?? '')
+  const [feedback, setFeedback] = useState(data.evaluation?.feedback ?? '')
+  const criteria = data.evaluation?.rubric ?? data.rubric ?? []
+  const [points, setPoints] = useState<Record<string, string>>(() => Object.fromEntries((data.evaluation?.criterionScores ?? []).map(item => [item.criterionId, String(item.points)])))
+  const [busy, setBusy] = useState(false)
+  const lock = useRef(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const released = evaluation?.status === 'RELEASED'
+  const maximum = evaluation ? evaluation.maxPoints : work.maxPoints
+  const dirty = !evaluation || score !== (evaluation.score?.toString() ?? '') || feedback !== evaluation.feedback || criteria.some(item => (points[item.id] ?? '') !== String(evaluation.criterionScores?.find(value => value.criterionId === item.id)?.points ?? ''))
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (lock.current || released) return
+    setError(''); setNotice('')
+    const value = score.trim() === '' ? null : Number(score)
+    if (maximum !== null && value !== null && (!Number.isInteger(value) || value < 0 || value > maximum)) { setError(`Enter a whole-number score from 0 to ${maximum}.`); return }
+    const criterionScores = criteria.filter(item => points[item.id]?.trim()).map(item => ({ criterionId: item.id, points: Number(points[item.id]) }))
+    if (criterionScores.some(item => !Number.isInteger(item.points) || item.points < 0 || item.points > criteria.find(criterion => criterion.id === item.criterionId)!.maxPoints)) { setError('Each criterion needs a whole-number score within its maximum.'); return }
+    lock.current = true; setBusy(true)
+    try {
+      const saved = await saveClassworkEvaluation(data.submission.id, { score: maximum === null ? null : value, feedback, expectedVersion: evaluation?.version ?? 0, ...(criteria.length ? { criterionScores } : {}) })
+      setEvaluation(saved); setScore(saved.score?.toString() ?? ''); setFeedback(saved.feedback)
+      setPoints(Object.fromEntries((saved.criterionScores ?? []).map(item => [item.criterionId, String(item.points)])))
+      setNotice('Grade draft saved. It is private until released.')
+    } catch (cause) { setError(getApiErrorMessage(cause, 'Could not save this grade. Your edits are still here.')) }
+    finally { lock.current = false; setBusy(false) }
+  }
+
+  async function release() {
+    if (lock.current || !evaluation || dirty || released) return
+    if ((maximum !== null && evaluation.score === null) || (maximum === null && !evaluation.feedback.trim())) { setError('Save a complete score or feedback before releasing.'); return }
+    if (criteria.length && (evaluation.criterionScores?.length !== criteria.length || evaluation.criterionScores.reduce((sum, item) => sum + item.points, 0) !== evaluation.score)) { setError('Complete rubric scores must add up to the grade before release.'); return }
+    lock.current = true; setBusy(true); setError(''); setNotice('')
+    try { const result = await releaseClassworkEvaluation(data.submission.id, evaluation.version); setEvaluation(result); setNotice('Grade released to the student.') }
+    catch (cause) { setError(getApiErrorMessage(cause, 'Release was not confirmed. Reload the saved grade before retrying.')) }
+    finally { lock.current = false; setBusy(false) }
+  }
+
+  return <><form onSubmit={save} className="space-y-4 rounded-xl border border-border bg-muted/20 p-4">
+    <header><h5 className="text-sm font-semibold">{released ? 'Released grade' : 'Grade and feedback'}</h5><p className="mt-1 text-xs leading-5 text-muted-foreground">{released ? 'This result is visible to the student.' : 'Saving keeps this grade private. Release it only after reviewing the submitted answers.'}</p></header>
+    {maximum === null ? <p className="text-xs leading-5 text-muted-foreground">This activity was published as feedback-only. Its maximum points cannot be changed now. Set maximum points on a new draft to enable numeric grades.</p> : <div className="space-y-2"><Label htmlFor="review-score">Score out of {maximum}</Label><Input id="review-score" type="number" min={0} max={maximum} step={1} value={score} onChange={event => setScore(event.target.value)} disabled={busy || released} />{data.answerScore && data.answerScore.total > 0 && data.answerScore.total === maximum && criteria.length === 0 && !released && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => setScore(String(data.answerScore!.correct))}>Use answer-key count · 1 point per question</Button>}</div>}
+    {criteria.map(item => <div key={item.id} className="space-y-2"><Label htmlFor={`criterion-${item.id}`}>{item.label} · out of {item.maxPoints}</Label><Input id={`criterion-${item.id}`} type="number" min={0} max={item.maxPoints} step={1} value={points[item.id] ?? ''} disabled={busy || released} onChange={event => setPoints(current => ({ ...current, [item.id]: event.target.value }))} /></div>)}
+    <div className="space-y-2"><Label htmlFor="review-feedback">Feedback for the student</Label><Textarea id="review-feedback" maxLength={6000} value={feedback} onChange={event => setFeedback(event.target.value)} disabled={busy || released} className="min-h-28" /></div>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}{notice && <p role="status" className="text-sm">{notice}</p>}
+    {!released && <div className="flex flex-wrap gap-2"><Button type="submit" disabled={busy} className="bg-brand text-brand-foreground hover:bg-brand/90">Save grade draft</Button><Button type="button" variant="outline" disabled={busy || dirty || !evaluation} onClick={() => void release()}>Release grade to student</Button></div>}
+  </form>
+    {evaluation?.status === 'RELEASED' && schoolOwnerId && <section className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+      <ReleasedFeedbackEditor evaluation={evaluation} onSave={saved => { setEvaluation(saved); setFeedback(saved.feedback) }} />
+      <h5 className="text-sm font-semibold">Private comments</h5>
+      <GradeComments submissionId={data.submission.id} accountId={schoolOwnerId} owned />
+    </section>}
+  </>
+}

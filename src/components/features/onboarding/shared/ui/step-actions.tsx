@@ -27,7 +27,7 @@ export function StepActions({
       )}
       <Button
         type="button"
-        className="h-11 flex-1 rounded-lg bg-indigo-600 px-6 text-white shadow-sm shadow-indigo-600/20 hover:bg-indigo-700 sm:flex-none"
+        className="h-11 flex-1 rounded-lg px-6 shadow-sm shadow-brand/20 sm:flex-none"
         onClick={onNext}
         disabled={nextDisabled || isFinishing}
       >

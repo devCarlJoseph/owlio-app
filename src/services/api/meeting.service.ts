@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { AxiosResponse } from "axios";
 import api from "@/lib/axios";
+import { isMeetingCode } from "@/lib/meeting-invite";
 import { postApiWithCsrf } from "./auth.service";
 
 const id = (value: string) => z.uuid().parse(value);
@@ -262,10 +263,8 @@ export async function resolveMeetingInvite(
   value: string,
   signal?: AbortSignal,
 ) {
-  const code = z
-    .string()
-    .regex(/^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/)
-    .parse(value.trim().toUpperCase());
+  const code = value.trim().toUpperCase();
+  if (!isMeetingCode(code)) throw new Error("Enter a valid meeting code.");
   return envelope(
     z.object({
       sessionId: z.uuid().nullable(),

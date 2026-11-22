@@ -14,7 +14,7 @@ export default function Navbar() {
           <Link to="/login" className="text-sm font-semibold text-slate-700 surface-dark:text-foreground transition hover:text-indigo-700 surface-dark:hover:text-indigo-300">
             Sign in
           </Link>
-          <Button render={<Link to="/register" />} className="rounded-full bg-indigo-600 px-5 text-white hover:bg-indigo-700">
+          <Button render={<Link to="/register" />} className="rounded-full px-5">
             Get started <ArrowUpRight aria-hidden="true" />
           </Button>
         </div>

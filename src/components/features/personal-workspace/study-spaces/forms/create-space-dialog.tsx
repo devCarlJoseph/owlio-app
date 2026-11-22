@@ -247,7 +247,7 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
         <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
           Cancel
         </Button>
-        <Button type="submit" disabled={busy} className="bg-teal-800 text-white hover:bg-teal-700">
+        <Button type="submit" disabled={busy}>
           <Users aria-hidden="true" />
           {busy ? "Creating…" : "Create space"}
         </Button>

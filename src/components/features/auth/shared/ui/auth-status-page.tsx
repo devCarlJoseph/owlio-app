@@ -15,7 +15,7 @@ export function AuthStatusPanel({ statusTitle, status, actionLabel, actionTo, pr
   return (
     <div className="space-y-5">
       <AuthFeedback title={statusTitle} tone="success" preview={preview}>{status}</AuthFeedback>
-      <Button render={<Link to={actionTo} />} className="h-11 w-full rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">
+      <Button render={<Link to={actionTo} />} className="h-11 w-full rounded-lg">
         {actionLabel}
       </Button>
     </div>

@@ -34,7 +34,7 @@ export function ClassworkHighlight() {
         <Button
           render={<Link to="/students/classwork" />}
           size="sm"
-          className="w-fit bg-blue-700 text-white hover:bg-blue-800"
+          className="w-fit"
         >
           View classwork
           <ArrowUpRight aria-hidden="true" />

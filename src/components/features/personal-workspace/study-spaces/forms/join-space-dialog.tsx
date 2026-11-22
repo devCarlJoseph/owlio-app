@@ -194,7 +194,7 @@ function JoinSpaceForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="button" className="bg-blue-700 text-white hover:bg-blue-800" onClick={handleSubmit}>
+        <Button type="button" onClick={handleSubmit}>
           <LogIn aria-hidden="true" />
           {isPreview ? "Unlock space" : "Join space"}
         </Button>
