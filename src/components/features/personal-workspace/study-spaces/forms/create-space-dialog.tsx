@@ -229,7 +229,7 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
               </Button>
             </div>
             <p id="space-capacity-hint" className="flex-1 text-xs leading-5 text-slate-500 surface-dark:text-muted-foreground">
-              {minSpaceCapacity}–{maxSpaceCapacity} seats{accountSpace ? " · Layout saved on this device" : ""}
+              {minSpaceCapacity}–{maxSpaceCapacity} seats{accountSpace ? " · Shared room layout" : ""}
             </p>
           </div>
           <figure className="overflow-hidden rounded-lg bg-teal-100/60 surface-dark:bg-muted sm:col-start-2 sm:row-span-3 sm:row-start-1">

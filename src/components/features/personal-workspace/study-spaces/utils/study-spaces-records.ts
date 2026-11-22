@@ -48,6 +48,10 @@ export type StudySpaceCharacter = {
   createdAt: string
 }
 
+export function accountStudyCharacter(name: string, saved: StudySpaceCharacter | null): StudySpaceCharacter {
+  return { bodyColor: "#2563eb", accentColor: "#f59e0b", createdAt: "", ...saved, name }
+}
+
 export const studySpacesStorageKey = "owlio.student-study-spaces.v1"
 
 export const studySpaceCharacterStoragePrefix = "owlio.study-space-character."
@@ -271,10 +275,10 @@ export function saveSpaceCharacter(spaceId: string, character: StudySpaceCharact
 }
 
 // One browser-local character for walking the study hall; rooms default to it until customized.
-export function loadHallCharacter(): StudySpaceCharacter | null {
-  return loadCharacter(studyHallCharacterStorageKey)
+export function loadHallCharacter(accountId?: string): StudySpaceCharacter | null {
+  return loadCharacter(accountId ? `${studyHallCharacterStorageKey}.${accountId}` : studyHallCharacterStorageKey)
 }
 
-export function saveHallCharacter(character: StudySpaceCharacter): void {
-  saveCharacter(studyHallCharacterStorageKey, character)
+export function saveHallCharacter(character: StudySpaceCharacter, accountId?: string): void {
+  saveCharacter(accountId ? `${studyHallCharacterStorageKey}.${accountId}` : studyHallCharacterStorageKey, character)
 }

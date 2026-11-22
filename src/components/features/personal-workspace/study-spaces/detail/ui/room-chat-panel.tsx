@@ -8,6 +8,7 @@ import { studySpaceChatLocalNotice } from "../../utils/study-spaces-records"
 export type RoomMessage = {
   id: string
   author: string
+  authorId?: string
   text: string
   sentAt: number
 }

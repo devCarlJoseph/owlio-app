@@ -7,11 +7,13 @@ import { parseYouTubeId, roomTvNotice, youTubeEmbedUrl, type RoomTvVideo } from 
 type TvPanelProps = {
   video: RoomTvVideo | null
   isLeader: boolean
+  autoPlay?: boolean
   onSave: (video: RoomTvVideo | null) => void
   onClose: () => void
 }
 
-export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
+export function TvPanel({ video, isLeader, autoPlay = false, onSave, onClose }: TvPanelProps) {
+  const [playRequest, setPlayRequest] = useState(0)
   const [draft, setDraft] = useState(video?.url ?? "")
   const [error, setError] = useState<string | null>(null)
 
@@ -23,6 +25,7 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
     }
     setError(null)
     onSave({ url: draft.trim(), videoId })
+    setPlayRequest((current) => current + 1)
   }
 
   return (
@@ -48,9 +51,10 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
         <div className="aspect-video w-full bg-black">
           <iframe
             title="Room TV video"
-            src={youTubeEmbedUrl(video.videoId)}
+            key={playRequest}
+            src={youTubeEmbedUrl(video.videoId, autoPlay || playRequest > 0)}
             sandbox="allow-scripts allow-same-origin allow-presentation"
-            allow="encrypted-media; picture-in-picture; fullscreen"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"
             className="size-full border-0"
@@ -59,7 +63,7 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
       ) : (
         <div className="flex aspect-video w-full items-center justify-center bg-slate-900 px-6 text-center text-sm text-slate-300">
           {isLeader
-            ? "The TV is off. Paste a YouTube link below to set the video for this room."
+            ? "The TV is off. Paste a YouTube link below to watch a video."
             : "No video is set. Paste a YouTube link below to watch something on your own TV."}
         </div>
       )}
@@ -72,7 +76,7 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
         }}
       >
         <label htmlFor="tv-url" className="text-xs font-medium text-slate-600 surface-dark:text-muted-foreground">
-          {isLeader ? "Video for the group (leader)" : "Your video (only you see this)"}
+          Video link
         </label>
         <div className="flex gap-2">
           <Input
@@ -94,6 +98,7 @@ export function TvPanel({ video, isLeader, onSave, onClose }: TvPanelProps) {
               onClick={() => {
                 setDraft("")
                 setError(null)
+                setPlayRequest(0)
                 onSave(null)
               }}
             >

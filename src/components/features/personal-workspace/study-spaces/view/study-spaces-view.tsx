@@ -1,6 +1,6 @@
 import { StudySpaceSkeleton } from '../ui/study-space-skeleton'
 import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate } from "react-router"
+import { useLocation, useNavigate } from "react-router"
 import { Globe2, Info, Layers, List, Maximize2, Minimize2, Plus, Search, Users } from "lucide-react"
 import { cn } from "cn"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
@@ -21,11 +21,9 @@ import { LockedSpaceGrid, SpaceGrid, SpaceGridEmptyState } from "../ui/space-car
 import { SpaceMap } from "../ui/space-map"
 import {
   createStudySpaceId,
-  loadAccountRoomLayout,
   loadJoinedDiscoveryIds,
   loadStudySpaces,
   sampleDiscoverySpaces,
-  saveAccountRoomLayout,
   saveJoinedDiscoveryIds,
   saveStudySpaces,
   sortSpaces,
@@ -58,11 +56,13 @@ function hasWebGL(): boolean {
 }
 
 export function StudySpacesView() {
-  const userId = useContext(AuthSessionContext)?.user?.id
-  return <StudySpacesHall key={userId ?? "local"} userId={userId} />
+  const user = useContext(AuthSessionContext)?.user
+  const { hash } = useLocation()
+  const code = new URLSearchParams(hash.slice(1)).get("join") ?? ""
+  return <StudySpacesHall key={`${user?.id ?? "local"}:${code}`} userId={user?.id} accountName={user?.name} invitationCode={code} />
 }
 
-function StudySpacesHall({ userId }: { userId?: string }) {
+function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: string; accountName?: string; invitationCode: string }) {
   const navigate = useNavigate()
   const [accountSpaces, setAccountSpaces] = useState<StudySpaceRecord[]>([])
   const [discoverySpaces, setDiscoverySpaces] = useState<StudySpaceRecord[]>([])
@@ -75,7 +75,7 @@ function StudySpacesHall({ userId }: { userId?: string }) {
   const [spaces, setSpaces] = useState<StudySpaceRecord[]>(() => loadStudySpaces())
   const [joinedDiscoveryIds, setJoinedDiscoveryIds] = useState<string[]>(() => loadJoinedDiscoveryIds())
   const [createOpen, setCreateOpen] = useState(false)
-  const [joinOpen, setJoinOpen] = useState(false)
+  const [joinOpen, setJoinOpen] = useState(Boolean(userId && invitationCode))
   const [joinTarget, setJoinTarget] = useState<StudySpaceRecord | null>(null)
   const [sort, setSort] = useState<SpaceSortKey>("recent")
   const [query, setQuery] = useState("")
@@ -92,7 +92,7 @@ function StudySpacesHall({ userId }: { userId?: string }) {
     if (!userId) return
     const controller = new AbortController()
     const accountRequest = getStudySpaces(controller.signal).then((records) => {
-      if (!controller.signal.aborted) setAccountSpaces(records.map((space) => loadAccountRoomLayout(userId, { ...space, accountSpace: true })))
+      if (!controller.signal.aborted) setAccountSpaces(records.map((space) => ({ ...space, accountSpace: true })))
     })
     const discoveryRequest = getDiscoverableStudySpaces(controller.signal).then((records) => {
       if (!controller.signal.aborted) setDiscoverySpaces(records)
@@ -163,10 +163,9 @@ function StudySpacesHall({ userId }: { userId?: string }) {
 
   async function handleCreate(draft: SpaceDraft) {
     if (userId && !localCreate) {
-      const space = await createStudySpace(draft.name, draft.about)
+      const space = await createStudySpace(draft.name, draft.about, draft)
       if (!active.current) return
-      const layoutSaved = saveAccountRoomLayout(userId, space.id, draft)
-      navigate(`/students/study-spaces/${space.id}`, { state: { offerInvite: true, layoutSaved } })
+      navigate(`/students/study-spaces/${space.id}`, { state: { offerInvite: true } })
       return
     }
     const space: StudySpaceRecord = {
@@ -384,6 +383,8 @@ function StudySpacesHall({ userId }: { userId?: string }) {
               }
             >
               <StudyHallWorld
+                accountName={accountName}
+                accountId={userId}
                 created={createdSpaces}
                 joined={joinedSpaces}
                 locked={lockedSpaces}
@@ -466,6 +467,7 @@ function StudySpacesHall({ userId }: { userId?: string }) {
       <JoinSpaceDialog
         open={joinOpen}
         onOpenChange={setJoinOpen}
+        initialCode={invitationCode}
         onSubmit={handleJoin}
         previewName={joinTarget?.name ?? null}
         accountId={joinTarget || localJoin ? undefined : userId}

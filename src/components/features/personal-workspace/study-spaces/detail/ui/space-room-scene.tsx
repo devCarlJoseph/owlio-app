@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { Html, OrbitControls, useCursor } from "@react-three/drei"
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace, Spherical, type Group, type OrthographicCamera } from "three"
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib"
+import type { StudyRoomAvatar, StudyRoomPose } from "@/services/api/study-space-realtime"
 import type { SamplePerson } from "../../utils/space-roster"
 import type { StudySpaceCharacter, StudySpaceKind } from "../../utils/study-spaces-records"
 import { useWalkKeys, walkDirection, type WalkKey } from "../../hooks/use-walk-keys"
@@ -23,7 +24,10 @@ export type SpaceRoomSceneProps = {
   kind?: StudySpaceKind
   seats: SeatDef[]
   samplePeople?: SamplePerson[]
-  members?: SamplePerson[]
+  activeMembers?: StudyRoomAvatar[]
+  remotePoses?: RefObject<Map<string, StudyRoomPose>>
+  remoteBubbles?: Record<string, string>
+  onPose?: (pose: Omit<StudyRoomPose, "bodyColor" | "accentColor">) => void
   tasks?: RoomTask[]
   tvHasVideo?: boolean
   lockers?: LockerSlot[]
@@ -64,7 +68,10 @@ export function SpaceRoomScene({
   kind = "collaborative",
   seats,
   samplePeople = [],
-  members = [],
+  activeMembers = [],
+  remotePoses,
+  remoteBubbles,
+  onPose,
   tasks = [],
   tvHasVideo = false,
   lockers = [],
@@ -89,7 +96,8 @@ export function SpaceRoomScene({
 }: SpaceRoomSceneProps) {
   const [hoveredSeatId, setHoveredSeatId] = useState<string | null>(null)
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
-  const takenBy = new Map([...samplePeople, ...members].map((person) => [seats[person.seatIndex]?.id, person]))
+  const takenBy = new Map(samplePeople.map((person) => [seats[person.seatIndex]?.id, person.name]))
+  for (const person of activeMembers) if (person.pose?.seatId) takenBy.set(person.pose.seatId, person.name)
   // A seated character only stands through the Stand up button, so a movement key just shows the hint.
   const { heldRef } = useWalkKeys(true, () => {
     if (seatedSeatId) onFloorPoint(walkTarget)
@@ -186,13 +194,13 @@ export function SpaceRoomScene({
           hovered={hoveredSeatId === seat.id}
           selected={selectedSeatId === seat.id}
           occupied={seatedSeatId === seat.id}
-          takenBy={takenBy.get(seat.id)?.name ?? null}
+          takenBy={takenBy.get(seat.id) ?? null}
           onHover={setHoveredSeatId}
           onSelect={onSeatSelect}
         />
       ))}
 
-      {[...samplePeople, ...members].map((person, index) => {
+      {samplePeople.map((person, index) => {
         const seat = seats[person.seatIndex]
         if (!seat) return null
         const napping = seat.furniture === "mat"
@@ -219,7 +227,13 @@ export function SpaceRoomScene({
         )
       })}
 
+      {remotePoses && activeMembers.map((person) => person.pose && (
+        <RemoteCharacter key={person.userId} person={person} initial={person.pose} poses={remotePoses}
+          showNameTag={showNameTag} bubbleText={remoteBubbles?.[person.userId]} />
+      ))}
+
       <SpaceCharacter
+        onPose={onPose}
         character={character}
         target={destination}
         seatedSeat={seatedSeat}
@@ -656,7 +670,9 @@ function SpaceCharacter({
   heldRef,
   showNameTag,
   bubbleText,
+  onPose,
 }: {
+  onPose?: SpaceRoomSceneProps["onPose"]
   character: StudySpaceCharacter
   target: { x: number; z: number }
   seatedSeat: SeatDef | null
@@ -667,6 +683,7 @@ function SpaceCharacter({
   const groupRef = useRef<Group>(null)
   const modeRef = useRef<FigureMode>("idle")
   const [seated, setSeated] = useState(false)
+  const lastPose = useRef<{ time: number; key: string }>({ time: -Infinity, key: "" })
   // Fixed start position: a position prop that follows the target would teleport the character on every click.
   const [start] = useState(target)
   // Keyboard walking takes over until the next click or seat choice sets a new target.
@@ -711,7 +728,7 @@ function SpaceCharacter({
     }
 
     if (distance > 0.02) {
-      const step = Math.min(distance, WALK_SPEED * delta)
+      const step = Math.min(distance, WALK_SPEED * Math.min(delta, 0.05))
       node.position.x += (dx / distance) * step
       node.position.z += (dz / distance) * step
       node.rotation.y = Math.atan2(dx, dz)
@@ -721,8 +738,19 @@ function SpaceCharacter({
     }
   })
 
-  const tagY = napping ? 1.5 : seated ? 2.1 : 1.85
-  const bubbleY = napping ? 1.9 : seated ? 2.5 : 2.25
+  useFrame(({ clock }) => {
+    const node = groupRef.current
+    if (!onPose || !node || clock.elapsedTime - lastPose.current.time < 0.1) return
+    const mode = modeRef.current
+    const seatId = mode === "seated" || mode === "nap" ? seatedSeat?.id ?? null : null
+    const x = Math.round(node.position.x * 100) / 100
+    const z = Math.round(node.position.z * 100) / 100
+    const rotation = Math.round(node.rotation.y * 100) / 100
+    const key = [x, z, rotation, mode, seatId].join("/")
+    if (key === lastPose.current.key) return
+    lastPose.current = { time: clock.elapsedTime, key }
+    onPose({ x, z, rotation, mode, seatId })
+  })
 
   return (
     <group ref={groupRef} position={[start.x, 0, start.z]}>
@@ -735,26 +763,64 @@ function SpaceCharacter({
       />
       {napping ? <SleepBubble y={1.15} /> : null}
 
-      {showNameTag ? (
-        <Html position={[0, tagY, napping ? 0.4 : 0]} center className="pointer-events-none" zIndexRange={[20, 0]}>
-          <span className="block rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-white shadow">
-            {character.name}
-            {napping ? " · napping" : ""}
-          </span>
-        </Html>
-      ) : null}
-
-      {bubbleText ? (
-        <Html position={[0, bubbleY, 0]} center className="pointer-events-none" zIndexRange={[30, 0]}>
-          <span className="relative block max-w-48 rounded-xl bg-white surface-dark:bg-card px-3 py-2 text-xs leading-4 break-words text-slate-800 surface-dark:text-foreground shadow-lg">
-            {bubbleText}
-            <span
-              aria-hidden="true"
-              className="absolute -bottom-1 left-1/2 size-2.5 -translate-x-1/2 rotate-45 bg-white surface-dark:bg-card"
-            />
-          </span>
-        </Html>
-      ) : null}
+      <CharacterLabels name={character.name} napping={napping} seated={seated}
+        showNameTag={showNameTag} bubbleText={bubbleText} />
     </group>
+  )
+}
+
+function RemoteCharacter({ person, initial, poses, showNameTag, bubbleText }: {
+  person: StudyRoomAvatar
+  initial: StudyRoomPose
+  poses: RefObject<Map<string, StudyRoomPose>>
+  showNameTag: boolean
+  bubbleText?: string
+}) {
+  const group = useRef<Group>(null)
+  const [start] = useState(initial)
+  const mode = () => poses.current.get(person.userId)?.mode ?? initial.mode
+  useFrame((_, delta) => {
+    const node = group.current
+    const target = poses.current.get(person.userId)
+    if (!node || !target) return
+    const speed = Math.hypot(target.x - node.position.x, target.z - node.position.z) > 4
+      ? 1 : 1 - Math.exp(-14 * Math.min(delta, 0.05))
+    node.position.x += (target.x - node.position.x) * speed
+    node.position.z += (target.z - node.position.z) * speed
+    const angle = target.rotation - node.rotation.y
+    node.rotation.y += Math.atan2(Math.sin(angle), Math.cos(angle)) * speed
+  })
+  return (
+    <group ref={group} position={[start.x, 0, start.z]} rotation={[0, start.rotation, 0]}>
+      <CharacterFigure bodyColor={initial.bodyColor} accentColor={initial.accentColor} getMode={mode} reducedMotion={reducedMotion} />
+      {initial.mode === "nap" && <SleepBubble y={1.15} />}
+      <CharacterLabels name={person.name} napping={initial.mode === "nap"} seated={initial.mode === "seated"}
+        showNameTag={showNameTag} bubbleText={bubbleText} />
+    </group>
+  )
+}
+
+function CharacterLabels({ name, napping, seated, showNameTag, bubbleText }: {
+  name: string; napping: boolean; seated: boolean; showNameTag: boolean; bubbleText?: string | null
+}) {
+  if (!showNameTag && !bubbleText) return null
+  const height = napping ? 1.5 : seated ? 2.1 : 1.85
+  return (
+    <Html position={[0, height, napping ? 0.4 : 0]} zIndexRange={[30, 0]}
+      className="pointer-events-none">
+      <div className="flex w-max max-w-48 -translate-x-1/2 -translate-y-full flex-col items-center gap-2">
+        {bubbleText && (
+          <div className="relative rounded-xl bg-white px-3 py-2 text-xs leading-4 text-slate-800 shadow-lg surface-dark:bg-card surface-dark:text-foreground">
+            <span className="line-clamp-4 whitespace-pre-wrap wrap-anywhere">{bubbleText}</span>
+            <span aria-hidden="true" className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-white surface-dark:bg-card" />
+          </div>
+        )}
+        {showNameTag && (
+          <span className="max-w-full truncate rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-medium text-white shadow">
+            {name}{napping ? " · napping" : ""}
+          </span>
+        )}
+      </div>
+    </Html>
   )
 }

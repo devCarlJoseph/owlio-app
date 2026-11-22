@@ -22,7 +22,7 @@ describe('study-space API workflows', () => {
   })
 
   it('keeps the newly created code available for the owner only', async () => {
-    const room = { id: 'space', name: 'Group study', description: '', role: 'OWNER', joinCode: 'OWLIO-SPS-A7K2' } as const
+    const room = { id: 'space', name: 'Group study', description: '', role: 'OWNER', joinCode: 'OWLIO-SPS-A7K2', layout: 'lounge', seatCount: 5 } as const
     vi.mocked(requestOperation).mockResolvedValue(room)
     expect(await createStudySpace(room.name, '')).toMatchObject({ role: 'owner', joinCode: room.joinCode })
     expect(toStudySpaceView({ ...room, role: 'MEMBER' })).not.toHaveProperty('joinCode')

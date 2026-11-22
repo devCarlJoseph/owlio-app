@@ -31,8 +31,8 @@ export function parseYouTubeId(input: string): string | null {
   return id && VIDEO_ID.test(id) ? id : null
 }
 
-export function youTubeEmbedUrl(videoId: string): string {
-  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`
+export function youTubeEmbedUrl(videoId: string, autoplay = false): string {
+  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1${autoplay ? "&autoplay=1" : ""}`
 }
 
 export function loadRoomTvVideo(spaceId: string): RoomTvVideo | null {

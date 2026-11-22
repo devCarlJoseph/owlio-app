@@ -1,8 +1,9 @@
-import { cleanup, render, screen, within } from "@testing-library/react"
+import { act, cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
+import { connectStudyRoom } from "@/services/api/study-space-realtime"
 import { getStudySpace, listRoomDiscussions } from "@/services/api/study-space.service"
 import { StudySpaceDetailView } from "../view/study-space-detail-view"
 import { getSampleNappers, getSampleRoster } from "../../utils/space-roster"
@@ -17,13 +18,18 @@ import type { SpaceRoomSceneProps } from "../ui/space-room-scene"
 
 vi.mock("@/services/api/study-space.service", () => ({
   getStudySpace: vi.fn(),
+  getStudySpaceMembers: vi.fn(async () => []),
+  listStudySpaceTasks: vi.fn(async () => []),
   listRoomDiscussions: vi.fn(),
 }))
+
+vi.mock("@/services/api/study-space-realtime", () => ({ connectStudyRoom: vi.fn(() => ({ disconnect: vi.fn(), publish: vi.fn() })) }))
 
 vi.mock("../ui/space-room-scene", () => ({
   SpaceRoomScene: (props: SpaceRoomSceneProps) => (
     <div data-testid="room-scene">
       {props.showNameTag ? <span data-testid="name-tag">{props.character.name}</span> : null}
+      {Object.entries(props.remoteBubbles ?? {}).map(([id, text]) => <span key={id} data-testid="remote-chat-bubble">{text}</span>)}
       {props.bubbleText ? <span data-testid="chat-bubble">{props.bubbleText}</span> : null}
       <button type="button" onClick={() => props.onFloorPoint({ x: 0, z: 0 })}>
         Room floor
@@ -75,7 +81,7 @@ function seedCharacter(name = "Sam") {
 }
 
 describe("study space detail room", () => {
-  it("shows the created room code before avatar setup", async () => {
+  it("shows the created room code and enters with the registered account name", async () => {
     const id = "22222222-2222-4222-8222-222222222222"
     const joinCode = "OWLIO-SPS-A7K2"
     vi.mocked(getStudySpace).mockResolvedValue({
@@ -102,7 +108,18 @@ describe("study space detail room", () => {
     expect(within(codeDialog).getByText("OWLIO-SPACE-" + id.toUpperCase())).toBeTruthy()
     expect(screen.queryByText("Create your character")).toBeNull()
     await user.click(within(codeDialog).getByRole("button", { name: "Done" }))
-    expect(await screen.findByText("Create your character")).toBeTruthy()
+    expect((await screen.findByTestId("name-tag")).textContent).toBe("Sam")
+    await user.click(screen.getByRole("button", { name: "Edit character" }))
+    expect(screen.queryByLabelText("Display name")).toBeNull()
+    expect(screen.getByRole("radio", { name: "Black" })).toBeTruthy()
+    await user.click(screen.getByRole("radio", { name: "Black" }))
+    await user.click(screen.getByRole("button", { name: "Save character" }))
+    const listener = vi.mocked(connectStudyRoom).mock.lastCall?.[2]
+    expect(listener).toBeDefined()
+    act(() => listener?.onChange({ kind: "chat", message: {
+      id: "message", authorId: "f07a33ae-4a75-415a-a63b-47c47b2e766a", text: "Ready to study?", sentAt: Date.now(),
+    } }))
+    expect((await screen.findByTestId("remote-chat-bubble")).textContent).toBe("Ready to study?")
   })
 
   it("shows a not-found state for an unknown space id", () => {
@@ -223,7 +240,7 @@ describe("study space detail room", () => {
     expect(screen.getByRole("button", { name: "Pause" })).toBeTruthy()
   })
 
-  it("lists focus-music categories and marks file tracks as needing audio", async () => {
+  it("makes the two previously unavailable tracks playable", async () => {
     const user = userEvent.setup()
     seedCharacter()
     renderAt(sampleSpaceId)
@@ -233,7 +250,8 @@ describe("study space detail room", () => {
 
     expect(panel.textContent).toContain("Gentle Rain")
     expect(panel.textContent).toContain("Deep Focus Pad")
-    expect(panel.textContent).toContain("needs an audio file")
+    expect((within(panel).getByRole("button", { name: /Lo-fi Study Beats/ }) as HTMLButtonElement).disabled).toBe(false)
+    expect((within(panel).getByRole("button", { name: /^Soft Piano/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 
   it("keeps the character seated when the room floor is clicked", async () => {
@@ -313,12 +331,12 @@ describe("study space detail room", () => {
 
     await user.click(screen.getByRole("button", { name: "Room TV" }))
     const tv = screen.getByRole("dialog", { name: "Room TV" })
-    await user.type(within(tv).getByLabelText(/Video for the group/), "https://example.com/video")
+    await user.type(within(tv).getByLabelText("Video link"), "https://example.com/video")
     await user.click(within(tv).getByRole("button", { name: "Play" }))
     expect(within(tv).getByRole("alert").textContent).toContain("YouTube")
 
-    await user.clear(within(tv).getByLabelText(/Video for the group/))
-    await user.type(within(tv).getByLabelText(/Video for the group/), "https://youtu.be/dQw4w9WgXcQ")
+    await user.clear(within(tv).getByLabelText("Video link"))
+    await user.type(within(tv).getByLabelText("Video link"), "https://youtu.be/dQw4w9WgXcQ")
     await user.click(within(tv).getByRole("button", { name: "Play" }))
     expect(within(tv).getByTitle("Room TV video").getAttribute("src")).toContain("youtube-nocookie.com/embed/dQw4w9WgXcQ")
   })

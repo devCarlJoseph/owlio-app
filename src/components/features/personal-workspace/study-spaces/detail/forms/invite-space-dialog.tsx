@@ -54,6 +54,11 @@ function SpaceCodeDialog({ code, meetingCode, onClose, onPersonalInvite }: {
               <Copy aria-hidden="true" />
             </Button>
           </div>
+          <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => {
+            const link = new URL("/students/study-spaces", window.location.origin)
+            link.hash = new URLSearchParams({ join: code }).toString()
+            void copyCode(link.href, "Invitation link")
+          }}>Copy invitation link</Button>
         </div>}
         <div className="space-y-2 rounded-xl border bg-muted/40 p-4">
           <h3 className="font-semibold">Meeting code</h3>

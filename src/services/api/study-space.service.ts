@@ -1,18 +1,17 @@
 import type { StudySpaceRecord } from '@/components/features/personal-workspace/study-spaces/utils/study-spaces-records'
 import { isStudySpaceCode, isStudySpaceInvitationToken } from '@/components/features/personal-workspace/study-spaces/utils/study-space-code'
 import { collectOperation, requestOperation } from './contract-client'
-import type { OperationData } from './generated-contract'
+import type { OperationBody, OperationData } from './generated-contract'
 
 type StudySpaceSummary = OperationData<'GET /api/v1/study-spaces'>['items'][number]
 type DiscoverableStudySpace = OperationData<'GET /api/v1/study-spaces/discover'>['items'][number]
 export type StudySpaceMember = OperationData<'GET /api/v1/study-spaces/{spaceId}/members'>['items'][number]
 
 export function toStudySpaceView(record: StudySpaceSummary & { joinCode?: string | null }): StudySpaceRecord {
-  // These two values choose the existing room illustration, not stored membership limits.
   const owner = record.role === 'OWNER'
   return {
     id: record.id, name: record.name, about: record.description, role: owner ? 'owner' : 'member',
-    kind: 'collaborative', capacity: 4, createdAt: '',
+    kind: record.layout ?? 'collaborative', capacity: record.seatCount ?? 4, createdAt: '',
     ...(owner && record.joinCode ? { joinCode: record.joinCode } : {}),
   }
 }
@@ -25,8 +24,8 @@ export async function getDiscoverableStudySpaces(signal?: AbortSignal) {
     name: record.name,
     about: record.description,
     role: 'member' as const,
-    kind: 'collaborative' as const,
-    capacity: 4,
+    kind: record.layout ?? 'collaborative',
+    capacity: record.seatCount ?? 4,
     createdAt: '',
     discoverySpace: true as const,
   }))
@@ -37,13 +36,15 @@ export function getStudySpaceMembers(spaceId: string, signal?: AbortSignal) {
 export async function getStudySpace(spaceId: string, signal?: AbortSignal) {
   return toStudySpaceView(await requestOperation('GET /api/v1/study-spaces/{spaceId}', { params: { spaceId }, signal }))
 }
-export async function createStudySpace(name: string, description: string) {
-  return toStudySpaceView(await requestOperation('POST /api/v1/study-spaces', { body: { name, description } }))
+export async function createStudySpace(name: string, description: string, layout?: Pick<StudySpaceRecord, "kind" | "capacity">) {
+  return toStudySpaceView(await requestOperation('POST /api/v1/study-spaces', {
+    body: { name, description, ...(layout ? { layout: layout.kind, seatCount: layout.capacity } : {}) },
+  }))
 }
 export async function joinStudySpace(value: string, expectedSpaceId?: string) {
   const code = value.trim()
   const roomCode = isStudySpaceCode(code)
-  if (!roomCode && !isStudySpaceInvitationToken(code)) throw new Error('Enter an OWLIO-SPS code or the invitation token supplied by the space owner.')
+  if (!roomCode && !isStudySpaceInvitationToken(code)) throw new Error('Enter a study space code or the invitation token supplied by the space owner.')
   const { spaceId } = roomCode
     ? await requestOperation('POST /api/v1/study-spaces/join', { body: { code: code.toUpperCase(), ...(expectedSpaceId ? { spaceId: expectedSpaceId } : {}) } })
     : await requestOperation('POST /api/v1/study-space-invitations/accept', { body: { token: code } })
@@ -54,6 +55,18 @@ export async function joinStudySpace(value: string, expectedSpaceId?: string) {
       : 'Your invitation was accepted, but the space could not be loaded. Refresh your spaces before retrying.')
   }
 }
+export function listStudySpaceTasks(spaceId: string, signal?: AbortSignal) {
+  return collectOperation('GET /api/v1/study-spaces/{spaceId}/tasks', { params: { spaceId }, signal })
+}
+
+export function createStudySpaceTask(spaceId: string, body: OperationBody<'POST /api/v1/study-spaces/{spaceId}/tasks'>) {
+  return requestOperation('POST /api/v1/study-spaces/{spaceId}/tasks', { params: { spaceId }, body })
+}
+
+export function changeStudySpaceTask(spaceId: string, taskId: string, body: OperationBody<'POST /api/v1/study-spaces/{spaceId}/tasks/{taskId}/actions'>) {
+  return requestOperation('POST /api/v1/study-spaces/{spaceId}/tasks/{taskId}/actions', { params: { spaceId, taskId }, body })
+}
+
 export function issueStudySpaceInvitation(spaceId: string, recipientId: string) {
   return requestOperation('POST /api/v1/study-spaces/{spaceId}/invitations', { params: { spaceId }, body: { recipientId } })
 }

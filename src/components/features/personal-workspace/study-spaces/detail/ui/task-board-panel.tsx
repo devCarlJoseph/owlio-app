@@ -1,45 +1,62 @@
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { ArrowDown, ArrowUp, ClipboardList, Plus, Trash2, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { SamplePerson } from "../../utils/space-roster"
+import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+type TaskPerson = { id: string; name: string }
 import { roomTasksNotice, canTickTask, type RoomTask, type RoomTaskAssignee } from "../utils/room-tasks"
 
 type TaskBoardPanelProps = {
   tasks: RoomTask[]
-  people: SamplePerson[]
+  people: TaskPerson[]
+  shared?: boolean
+  busy?: boolean
+  loading?: boolean
+  loadError?: string
   isLeader: boolean
-  onAdd: (draft: { title: string; notes: string; due: string; assignee: RoomTaskAssignee }) => void
+  onAdd: (draft: { title: string; notes: string; due: string | null; assignee: RoomTaskAssignee }) => void | boolean | Promise<boolean>
   onToggle: (taskId: string) => void
   onRemove: (taskId: string) => void
   onMove: (taskId: string, direction: -1 | 1) => void
   onClose: () => void
 }
 
-function assigneeLabel(assignee: RoomTaskAssignee, people: SamplePerson[]): string {
+function assigneeLabel(assignee: RoomTaskAssignee, people: TaskPerson[]): string {
   if (assignee === "everyone") return "Everyone"
   if (assignee === "me") return "You"
   const person = people.find((entry) => entry.id === assignee)
-  return person ? `${person.name} (sample)` : "Someone"
+  return person?.name ?? "Former member"
 }
 
-export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRemove, onMove, onClose }: TaskBoardPanelProps) {
+export function TaskBoardPanel({ tasks, people, isLeader, shared, busy, loading, loadError, onAdd, onToggle, onRemove, onMove, onClose }: TaskBoardPanelProps) {
   const [title, setTitle] = useState("")
   const [notes, setNotes] = useState("")
-  const [due, setDue] = useState("")
+  const [dueReset, setDueReset] = useState(0)
   const [assignee, setAssignee] = useState<RoomTaskAssignee>("everyone")
   const [error, setError] = useState<string | null>(null)
 
-  function submit() {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (busy) return
     if (title.trim().length < 2) {
       setError("Add a task title of at least 2 characters.")
       return
     }
-    onAdd({ title, notes, due, assignee })
+    const selected = new FormData(event.currentTarget).get("due")
+    const due = typeof selected === "string" && selected ? new Date(selected) : null
+    if (due && (!Number.isFinite(due.getTime()) || due.getTime() <= Date.now())) {
+      setError("Choose a due date in the future.")
+      return
+    }
+    setError(null)
+    const accepted = await onAdd({ title, notes, assignee, due: due ? (shared ? due.toISOString() : String(selected).slice(0, 10)) : null })
+    if (accepted === false) return
     setTitle("")
     setNotes("")
-    setDue("")
+    setDueReset((current) => current + 1)
     setError(null)
   }
 
@@ -50,7 +67,7 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
-      className="absolute inset-y-3 right-3 z-20 flex w-96 max-w-[94%] flex-col overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg"
+      className="absolute inset-y-3 right-3 z-20 flex w-96 max-w-[94%] flex-col overflow-y-auto rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg"
     >
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 surface-dark:border-border px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">
@@ -65,12 +82,13 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
         </Button>
       </div>
 
-      <p className="border-b border-slate-100 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-3 py-2 text-xs leading-5 text-slate-600 surface-dark:text-muted-foreground">{roomTasksNotice}</p>
+      <p className="border-b border-slate-100 surface-dark:border-border bg-slate-50 surface-dark:bg-background px-3 py-2 text-xs leading-5 text-slate-600 surface-dark:text-muted-foreground">{shared ? "Tasks are shared with assignees. Each member tracks their own completion." : roomTasksNotice}</p>
+      {loadError && <p role="alert" className="px-3 pt-2 text-xs text-destructive">{loadError}</p>}
 
-      <ul aria-label="Group tasks" className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
-        {tasks.length === 0 ? (
+      <ul aria-label="Group tasks" className="flex-1 space-y-2 p-3">
+        {tasks.length === 0 && !loadError ? (
           <li className="rounded-lg border border-dashed border-slate-200 surface-dark:border-border p-4 text-center text-xs text-slate-500 surface-dark:text-muted-foreground">
-            {isLeader ? "No tasks yet. Add the first task for your group below." : "The leader has not set any tasks."}
+            {loading ? "Loading tasks…" : isLeader ? "No tasks yet. Add the first task for your group below." : "No tasks assigned to you."}
           </li>
         ) : null}
         {tasks.map((task, index) => {
@@ -82,7 +100,7 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
                   type="checkbox"
                   id={`task-${task.id}`}
                   checked={task.done}
-                  disabled={!tickable}
+                  disabled={!tickable || busy}
                   onChange={() => onToggle(task.id)}
                   className="mt-1 size-4 accent-emerald-700"
                 />
@@ -95,23 +113,23 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
                     <Badge variant="outline" className="border-slate-200 surface-dark:border-border text-slate-600 surface-dark:text-muted-foreground">
                       {assigneeLabel(task.assignee, people)}
                     </Badge>
-                    {task.due ? <span>Due {task.due}</span> : null}
+                    {task.due ? <span>Due {shared ? new Date(task.due).toLocaleDateString() : task.due}</span> : null}
                     {task.sample ? <span>Sample task</span> : null}
                     {!tickable ? <span>Only they can tick this</span> : null}
                   </span>
                 </label>
                 {isLeader ? (
                   <span className="flex shrink-0 flex-col">
-                    <Button type="button" variant="ghost" size="icon-xs" aria-label={`Move ${task.title} up`} disabled={index === 0} onClick={() => onMove(task.id, -1)}>
+                    <Button type="button" variant="ghost" size="icon-xs" aria-label={`Move ${task.title} up`} disabled={busy || index === 0} onClick={() => onMove(task.id, -1)}>
                       <ArrowUp aria-hidden="true" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon-xs" aria-label={`Move ${task.title} down`} disabled={index === tasks.length - 1} onClick={() => onMove(task.id, 1)}>
+                    <Button type="button" variant="ghost" size="icon-xs" aria-label={`Move ${task.title} down`} disabled={busy || index === tasks.length - 1} onClick={() => onMove(task.id, 1)}>
                       <ArrowDown aria-hidden="true" />
                     </Button>
                   </span>
                 ) : null}
                 {isLeader ? (
-                  <Button type="button" variant="ghost" size="icon-xs" aria-label={`Delete ${task.title}`} onClick={() => onRemove(task.id)}>
+                  <Button type="button" variant="ghost" size="icon-xs" aria-label={`Delete ${task.title}`} disabled={busy} onClick={() => onRemove(task.id)}>
                     <Trash2 aria-hidden="true" />
                   </Button>
                 ) : null}
@@ -124,10 +142,7 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
       {isLeader ? (
         <form
           className="space-y-2 border-t border-slate-100 surface-dark:border-border p-3"
-          onSubmit={(event) => {
-            event.preventDefault()
-            submit()
-          }}
+          onSubmit={(event) => { void submit(event) }}
         >
           <label htmlFor="task-title" className="sr-only">
             Task title
@@ -137,41 +152,23 @@ export function TaskBoardPanel({ tasks, people, isLeader, onAdd, onToggle, onRem
             Task notes
           </label>
           <Input id="task-notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Notes (optional)" maxLength={200} />
-          <div className="flex gap-2">
-            <label htmlFor="task-assignee" className="sr-only">
-              Assign to
-            </label>
-            <select
-              id="task-assignee"
-              value={assignee}
-              onChange={(event) => setAssignee(event.target.value)}
-              className="h-8 min-w-0 flex-1 rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-2 text-sm"
-            >
-              <option value="everyone">Everyone</option>
-              <option value="me">Me</option>
-              {people.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name} (sample)
-                </option>
-              ))}
-            </select>
-            <label htmlFor="task-due" className="sr-only">
-              Due date
-            </label>
-            <input
-              id="task-due"
-              type="date"
-              value={due}
-              onChange={(event) => setDue(event.target.value)}
-              className="h-8 rounded-lg border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card px-2 text-sm"
-            />
-          </div>
+          <Select value={assignee} onValueChange={(value) => { if (value) setAssignee(value) }}
+            items={[{ value: "everyone", label: "Everyone" }, { value: "me", label: "Me" }, ...people.map((person) => ({ value: person.id, label: person.name }))]}>
+            <SelectTrigger aria-label="Assign to" className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="everyone">Everyone</SelectItem>
+              <SelectItem value="me">Me</SelectItem>
+              {people.map((person) => <SelectItem key={person.id} value={person.id}>{person.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <DateTimePicker key={dueReset} name="due" label="Due date" placeholder="Due date (optional)"
+            dateOnly minToday defaultTime="23:59" />
           {error ? (
             <p role="alert" className="text-xs text-red-700 surface-dark:text-red-300">
               {error}
             </p>
           ) : null}
-          <Button type="submit" size="sm" className="w-full">
+          <Button type="submit" size="sm" disabled={busy} className="w-full">
             <Plus aria-hidden="true" />
             Add task
           </Button>

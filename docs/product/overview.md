@@ -24,7 +24,7 @@ Accounts may hold multiple API-assigned roles. A URL, sidebar selection, or onbo
 | Context | Ownership and boundary |
 | --- | --- |
 | Personal learning | Student-owned subjects, notes, tasks, and editor files remain distinct from assigned classwork and official results. Browser-local storage is not account sync. |
-| Peer study | Student-created study spaces support peer learning. Their local/demo membership is not proof of real shared access or official classroom authority. Wider creator/access policy requires an explicit product decision. |
+| Peer study | Student-created shared spaces support peer learning with account-backed membership, live room presence, discussion, and peer task assignments. Browser-only rooms remain local. Group tasks stay separate from official classwork. |
 | Educator-led learning | Official work and records belong to an authorized classroom or learning context. Read/write/release permissions come from confirmed service contracts. |
 | Private teaching notes | Teacher/tutor notes remain separate from deliberately published learner feedback. |
 | Progress and evaluation | Personal completion, tutor evaluation, ESL feedback, and institutional grades have distinct meanings. Summaries need real sources; sample metrics remain labeled. |

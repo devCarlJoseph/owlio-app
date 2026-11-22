@@ -52,6 +52,7 @@ import { HALL_LIGHTING, LIGHT_LABELS, useLightPhase, useSharedLightSetting, type
 import { CharacterFigure, type FigureMode } from "../detail/ui/character-figure"
 import { kindLabel, metaLine } from "../utils/space-format"
 import {
+  accountStudyCharacter,
   loadHallCharacter,
   saveHallCharacter,
   studySpacesDiscoveryCaption,
@@ -68,6 +69,8 @@ type Point = { x: number; z: number }
 type RigHandle = { zoomBy: (factor: number) => void; reset: () => void }
 
 export type StudyHallWorldProps = {
+  accountName?: string
+  accountId?: string
   created: StudySpaceRecord[]
   joined: StudySpaceRecord[]
   locked: StudySpaceRecord[]
@@ -95,7 +98,7 @@ function statusLabel(lot: CityLot) {
   return lot.role === "owner" ? "Yours" : "Joined"
 }
 
-export default function StudyHallWorld({ created, joined, locked, toolbar, onOpen, onUnlock }: StudyHallWorldProps) {
+export default function StudyHallWorld({ accountName, accountId, created, joined, locked, toolbar, onOpen, onUnlock }: StudyHallWorldProps) {
   const layout = useMemo(
     () =>
       layoutCity([
@@ -106,7 +109,11 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
     [created, joined, locked]
   )
   const [mode, setMode] = useState<Mode>("explore")
-  const [character, setCharacter] = useState<StudySpaceCharacter | null>(() => loadHallCharacter())
+  const [character, setCharacter] = useState<StudySpaceCharacter | null>(() => {
+    const saved = loadHallCharacter(accountId)
+    const legacy = loadHallCharacter()
+    return accountName ? accountStudyCharacter(accountName, saved ?? (legacy?.name === accountName ? legacy : null)) : saved
+  })
   const [characterOpen, setCharacterOpen] = useState(false)
   const [nearby, setNearby] = useState<CityLot | null>(null)
   const [street, setStreet] = useState(1)
@@ -132,7 +139,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
 
   function handleCharacterSubmit(draft: Pick<StudySpaceCharacter, "name" | "bodyColor" | "accentColor">) {
     const next: StudySpaceCharacter = { ...draft, createdAt: new Date().toISOString() }
-    saveHallCharacter(next)
+    saveHallCharacter(next, accountId)
     setCharacter(next)
     setCharacterOpen(false)
     setMode("walk")
@@ -321,6 +328,7 @@ export default function StudyHallWorld({ created, joined, locked, toolbar, onOpe
       </div>
 
       <CharacterDialog
+        accountName={accountName}
         open={characterOpen}
         onOpenChange={setCharacterOpen}
         required={false}

@@ -1,4 +1,4 @@
-export type GeneratedPreset = "rain" | "meadow" | "drone" | "lofi" | "piano"
+export type GeneratedPreset = "rain" | "meadow" | "drone" | "lofi" | "piano" | "lofi-beats" | "soft-piano"
 
 export type MusicTrackSource =
   | { type: "generated"; preset: GeneratedPreset }
@@ -11,7 +11,6 @@ export type MusicTrack = {
   source: MusicTrackSource
 }
 
-// File tracks need a licensed audio asset or URL before they can play.
 export const focusMusicTracks: MusicTrack[] = [
   {
     id: "lofi-loop",
@@ -46,14 +45,14 @@ export const focusMusicTracks: MusicTrack[] = [
   {
     id: "lofi-beats",
     title: "Lo-fi Study Beats",
-    category: "Lo-fi beats",
-    source: { type: "file", src: null },
+    category: "Lo-fi beats (generated)",
+    source: { type: "generated", preset: "lofi-beats" },
   },
   {
     id: "soft-piano",
     title: "Soft Piano",
-    category: "Soft piano",
-    source: { type: "file", src: null },
+    category: "Soft piano (generated)",
+    source: { type: "generated", preset: "soft-piano" },
   },
 ]
 
@@ -67,6 +66,7 @@ type StopHandle = () => void
 // file tracks play through an <audio> element routed into the same volume control.
 export class FocusMusicEngine {
   private ctx: AudioContext | null = null
+  private volume = 0.7
   private master: GainNode | null = null
   private stops: StopHandle[] = []
   private element: HTMLAudioElement | null = null
@@ -79,6 +79,7 @@ export class FocusMusicEngine {
     if (!this.ctx || !this.master) {
       this.ctx = new AudioContext()
       this.master = this.ctx.createGain()
+      this.master.gain.value = this.volume
       this.master.connect(this.ctx.destination)
     }
     return { ctx: this.ctx, master: this.master }
@@ -108,7 +109,9 @@ export class FocusMusicEngine {
   }
 
   private buildPreset(ctx: AudioContext, master: GainNode, preset: GeneratedPreset): StopHandle {
-    if (preset === "lofi" || preset === "piano") return this.buildMelodic(ctx, master, preset)
+    if (preset === "lofi" || preset === "piano" || preset === "lofi-beats" || preset === "soft-piano") {
+      return this.buildMelodic(ctx, master, preset)
+    }
     const noise = this.createNoiseSource(ctx)
 
     if (preset === "drone") {
@@ -191,8 +194,9 @@ export class FocusMusicEngine {
   }
 
   // Chord loops are scheduled a short time ahead, so nothing needs an audio file.
-  private buildMelodic(ctx: AudioContext, master: GainNode, preset: "lofi" | "piano"): StopHandle {
-    const lofi = preset === "lofi"
+  private buildMelodic(ctx: AudioContext, master: GainNode, preset: "lofi" | "piano" | "lofi-beats" | "soft-piano"): StopHandle {
+    const lofi = preset === "lofi" || preset === "lofi-beats"
+    const alternate = preset === "lofi-beats" || preset === "soft-piano"
     const bus = ctx.createGain()
     bus.gain.value = lofi ? 0.55 : 0.6
     const lowpass = ctx.createBiquadFilter()
@@ -201,8 +205,13 @@ export class FocusMusicEngine {
     bus.connect(lowpass)
     lowpass.connect(master)
 
-    const beat = 60 / (lofi ? 72 : 58)
-    const chords = [
+    const beat = 60 / (lofi ? (alternate ? 84 : 72) : (alternate ? 52 : 58))
+    const chords = alternate ? [
+      [55, 59, 62, 66],
+      [52, 55, 59, 62],
+      [48, 52, 55, 59],
+      [50, 54, 57, 60],
+    ] : [
       [57, 60, 64, 67],
       [53, 57, 60, 64],
       [48, 55, 60, 64],
@@ -316,7 +325,15 @@ export class FocusMusicEngine {
   }
 
   setVolume(volume: number): void {
+    this.volume = volume
     if (this.master) this.master.gain.value = volume
+  }
+
+  dispose(): void {
+    this.stop()
+    void this.ctx?.close().catch(() => undefined)
+    this.ctx = null
+    this.master = null
   }
 
   stop(): void {

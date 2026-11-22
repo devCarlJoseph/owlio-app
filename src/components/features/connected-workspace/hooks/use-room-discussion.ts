@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import type { StudyRoomChange } from "@/services/api/study-space-realtime"
 import type { RoomMessage } from "@/components/features/personal-workspace/study-spaces/detail/ui/room-chat-panel"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import { createRoomDiscussion, getDiscussionReplies, listRoomDiscussions, postRoomReply } from "@/services/api/study-space.service"
@@ -38,6 +39,7 @@ export function useRoomDiscussion(spaceId?: string, user?: { id: string; name: s
         if (controller.signal.aborted || revision !== mutation.revision) return
         const updated = latestMessages(groups.flat().map((reply) => ({
           id: reply.id,
+          authorId: reply.authorId,
           author: reply.authorId === userId ? userName ?? "You" : "Member",
           text: reply.body,
           sentAt: Date.parse(reply.createdAt),
@@ -84,7 +86,7 @@ export function useRoomDiscussion(spaceId?: string, user?: { id: string; name: s
       if (!mutation.active) return null
       const reply = await postRoomReply(thread.id, body)
       if (!mutation.active) return null
-      const message = { id: reply.id, author: user.name, text: body, sentAt: Date.parse(reply.createdAt) }
+      const message = { id: reply.id, authorId: user.id, author: user.name, text: body, sentAt: Date.parse(reply.createdAt) }
       setMessages((current) => latestMessages([...current.filter((item) => item.id !== reply.id), message]))
       setReadError("")
       return message
@@ -97,5 +99,14 @@ export function useRoomDiscussion(spaceId?: string, user?: { id: string; name: s
     }
   }
 
-  return { messages, readError, sendError, busy, send }
+  function receive(message: Extract<StudyRoomChange, { kind: "chat" }>["message"]) {
+    write.current.revision++
+    setMessages((current) => latestMessages([
+      ...current.filter((item) => item.id !== message.id),
+      { ...message, author: message.authorId === userId ? userName ?? "You" : "Member" },
+    ]))
+    setReadError("")
+  }
+
+  return { messages, readError, sendError, busy, send, receive }
 }

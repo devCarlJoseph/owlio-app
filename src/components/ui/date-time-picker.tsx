@@ -24,6 +24,8 @@ export function DateTimePicker({
   initialValue = "",
   defaultTime = "09:00",
   disabled = false,
+  dateOnly = false,
+  minToday = false,
 }: {
   name: string;
   label: string;
@@ -33,6 +35,8 @@ export function DateTimePicker({
   initialValue?: string;
   defaultTime?: string;
   disabled?: boolean;
+  dateOnly?: boolean;
+  minToday?: boolean;
 }) {
   const parsed = initialValue ? new Date(initialValue) : null;
   const initial = parsed && Number.isFinite(parsed.getTime()) ? parsed : null;
@@ -121,6 +125,7 @@ export function DateTimePicker({
         return;
     }
     event.preventDefault();
+    if (minToday && dateKey(next) < dateKey(today)) return;
     setMonth(new Date(next.getFullYear(), next.getMonth(), 1));
     setFocused(dateKey(next));
   }
@@ -156,11 +161,11 @@ export function DateTimePicker({
                 }).format(selected)
               : placeholder}
           </span>
-          <span className="mt-0.5 block text-xs text-muted-foreground">
+          {!dateOnly && <span className="mt-0.5 block text-xs text-muted-foreground">
             {selected && validTime
               ? `${pad(Number(hour))}:${pad(Number(minute))} ${period}`
               : "Select a date and set the time"}
-          </span>
+          </span>}
         </span>
         <ChevronDown
           aria-hidden="true"
@@ -170,7 +175,7 @@ export function DateTimePicker({
       {open && (
         <section
           id={panelId}
-          aria-label={`${label} date and time picker`}
+          aria-label={dateOnly ? label : `${label} date and time picker`}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               event.stopPropagation();
@@ -186,7 +191,7 @@ export function DateTimePicker({
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Previous month"
-                disabled={disabled}
+                disabled={disabled || (minToday && month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth())}
                 onClick={() =>
                   setMonth(
                     (current) =>
@@ -247,7 +252,7 @@ export function DateTimePicker({
                     }}
                     type="button"
                     variant="ghost"
-                    disabled={disabled}
+                    disabled={disabled || (minToday && key < dateKey(today))}
                     aria-label={dayLabel(date)}
                     aria-pressed={Boolean(active)}
                     aria-current={key === dateKey(today) ? "date" : undefined}
@@ -273,6 +278,7 @@ export function DateTimePicker({
             </div>
           </div>
           <div className="space-y-3 border-t border-border bg-muted/30 p-4 sm:p-5">
+            {!dateOnly && <>
             <p className="flex items-center gap-2 text-xs font-semibold">
               <Clock3 aria-hidden="true" className="size-4 text-brand" />
               {label} time
@@ -357,6 +363,7 @@ export function DateTimePicker({
                 Use an hour from 1 to 12 and minutes from 00 to 59.
               </p>
             )}
+            </>}
             <footer className="flex items-center justify-between gap-2 pt-1">
               <Button
                 type="button"

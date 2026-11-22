@@ -27,14 +27,15 @@ type JoinSpaceDialogProps = {
   previewName?: string | null
   accountId?: string
   serverSpace?: boolean
+  initialCode?: string
 }
 
-export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, accountId, serverSpace = false }: JoinSpaceDialogProps) {
+export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, accountId, serverSpace = false, initialCode = "" }: JoinSpaceDialogProps) {
   const [busy, setBusy] = useState(false)
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy) onOpenChange(next) }}>
       <DialogContent className="sm:max-w-lg">
-        {accountId || serverSpace ? <JoinByCodeForm key={String(open)} accountId={accountId} previewName={serverSpace ? previewName : null} busy={busy} setBusy={setBusy} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} /> : <JoinSpaceForm
+        {accountId || serverSpace ? <JoinByCodeForm key={String(open)} initialCode={initialCode} accountId={accountId} previewName={serverSpace ? previewName : null} busy={busy} setBusy={setBusy} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} /> : <JoinSpaceForm
           key={open ? "join-space-open" : "join-space-closed"}
           onCancel={() => onOpenChange(false)}
           onSubmit={onSubmit}
@@ -45,7 +46,8 @@ export function JoinSpaceDialog({ open, onOpenChange, onSubmit, previewName, acc
   )
 }
 
-function JoinByCodeForm({ accountId, previewName, busy, setBusy, onSubmit, onCancel }: {
+function JoinByCodeForm({ initialCode, accountId, previewName, busy, setBusy, onSubmit, onCancel }: {
+  initialCode: string
   accountId?: string
   previewName?: string | null
   busy: boolean
@@ -53,14 +55,14 @@ function JoinByCodeForm({ accountId, previewName, busy, setBusy, onSubmit, onCan
   onSubmit: JoinSpaceDialogProps["onSubmit"]
   onCancel: () => void
 }) {
-  const [code, setCode] = useState("")
+  const [code, setCode] = useState(initialCode)
   const [error, setError] = useState("")
   const [copyStatus, setCopyStatus] = useState("")
 
   async function submit() {
     const enteredCode = code.trim()
     if (previewName ? !isStudySpaceCode(enteredCode) : !isStudySpaceCode(enteredCode) && !isStudySpaceInvitationToken(enteredCode)) {
-      setError(previewName ? "Enter the OWLIO-SPS access code for this space." : "Enter an OWLIO-SPS code or paste a personal invitation.")
+      setError(previewName ? "Enter the study space access code for this space." : "Enter a study space code or paste a personal invitation.")
       return
     }
     setError("")
@@ -79,12 +81,12 @@ function JoinByCodeForm({ accountId, previewName, busy, setBusy, onSubmit, onCan
       <DialogHeader>
         <DialogTitle>{previewName ? `Join ${previewName}` : "Join a study space"}</DialogTitle>
         <DialogDescription>{previewName
-          ? "Enter the owner’s OWLIO-SPS access code to join this shared space."
-          : "Enter the room’s OWLIO-SPS code or paste a personal invitation from the owner."}</DialogDescription>
+          ? "Enter the owner’s study space access code to join this shared space."
+          : "Enter the room’s study space code or paste a personal invitation from the owner."}</DialogDescription>
       </DialogHeader>
       <Field>
         <FieldLabel htmlFor="account-space-code">Invitation code</FieldLabel>
-        <Input id="account-space-code" value={code} onChange={(event) => setCode(event.target.value)} disabled={busy} autoComplete="off" placeholder="OWLIO-SPS-XXXX" />
+        <Input id="account-space-code" value={code} onChange={(event) => setCode(event.target.value)} disabled={busy} autoComplete="off" placeholder="SPS-OWLIO-XXXX" />
       </Field>
       {accountId ? <Field className="rounded-lg border bg-muted/30 p-3">
         <FieldLabel htmlFor="study-space-account-id">Your account ID</FieldLabel>

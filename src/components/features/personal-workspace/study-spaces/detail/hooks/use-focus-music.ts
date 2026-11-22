@@ -45,7 +45,8 @@ export function useFocusMusic() {
 
   useEffect(() => {
     return () => {
-      engineRef.current?.stop()
+      engineRef.current?.dispose()
+      engineRef.current = null
     }
   }, [])
 

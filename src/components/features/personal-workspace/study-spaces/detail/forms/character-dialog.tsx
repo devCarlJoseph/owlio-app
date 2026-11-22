@@ -21,6 +21,7 @@ const BODY_COLORS = [
   { value: "#dc2626", label: "Red" },
   { value: "#7c3aed", label: "Purple" },
   { value: "#0891b2", label: "Cyan" },
+  { value: "#111827", label: "Black" },
 ] as const
 
 const ACCENT_COLORS = [
@@ -39,6 +40,7 @@ type CharacterDialogProps = {
   onOpenChange: (open: boolean) => void
   required: boolean
   initial: StudySpaceCharacter | null
+  accountName?: string
   onSubmit: (draft: CharacterDraft) => void
   // "hall" is the study hall map character; "room" is the per-room character.
   context?: "room" | "hall"
@@ -49,6 +51,7 @@ export function CharacterDialog({
   onOpenChange,
   required,
   initial,
+  accountName,
   onSubmit,
   context = "room",
 }: CharacterDialogProps) {
@@ -59,6 +62,7 @@ export function CharacterDialog({
           key={`${open ? "open" : "closed"}-${initial?.createdAt ?? "new"}`}
           required={required}
           initial={initial}
+          accountName={accountName}
           context={context}
           onCancel={required ? undefined : () => onOpenChange(false)}
           onSubmit={onSubmit}
@@ -97,12 +101,14 @@ function ColorSwatch({
 function CharacterForm({
   required,
   initial,
+  accountName,
   context,
   onCancel,
   onSubmit,
 }: {
   required: boolean
   initial: StudySpaceCharacter | null
+  accountName?: string
   context: "room" | "hall"
   onCancel?: () => void
   onSubmit: (draft: CharacterDraft) => void
@@ -123,6 +129,10 @@ function CharacterForm({
   const [nameError, setNameError] = useState<string | null>(null)
 
   function handleSubmit() {
+    if (accountName) {
+      onSubmit({ name: accountName, bodyColor, accentColor })
+      return
+    }
     const nextError = name.trim().length < 2 ? "Add a display name of at least 2 characters." : null
 
     setNameError(nextError)
@@ -136,13 +146,13 @@ function CharacterForm({
       <DialogHeader>
         <DialogTitle className="text-lg font-semibold text-slate-900 surface-dark:text-foreground">{title}</DialogTitle>
         <DialogDescription className="text-slate-600 surface-dark:text-muted-foreground">
-          Your Owlio owl only appears in this browser preview. It is not shown to other students.
-          {hall ? " Rooms use it by default, and you can still customize it per room." : ""}
+          {accountName ? "Choose colors for your owl." : "Choose a name and colors for your local character."}
+          {hall ? " Rooms use these colors by default." : ""}
         </DialogDescription>
       </DialogHeader>
 
       <div className="grid gap-4">
-        <Field data-invalid={nameError !== null}>
+        {!accountName && <Field data-invalid={nameError !== null}>
           <FieldLabel htmlFor="character-name" className="text-slate-700 surface-dark:text-foreground">
             Display name
           </FieldLabel>
@@ -156,7 +166,7 @@ function CharacterForm({
             className="border-slate-200 surface-dark:border-border bg-slate-50 surface-dark:bg-background"
           />
           <FieldError id="character-name-error">{nameError}</FieldError>
-        </Field>
+        </Field>}
 
         <div role="radiogroup" aria-label="Owl feather color" className="grid gap-2">
           <span className="text-sm font-medium text-slate-700 surface-dark:text-foreground">Feather color</span>

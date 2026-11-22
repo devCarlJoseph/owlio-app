@@ -3,13 +3,14 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
 import { StudySpacesView } from "../view/study-spaces-view"
-import { loadAccountRoomLayout, studySpacesStorageKey, type StudySpaceRecord } from "../utils/study-spaces-records"
+import { studySpacesStorageKey, type StudySpaceRecord } from "../utils/study-spaces-records"
 import { AuthSessionContext, type AuthSessionContextValue } from "@/components/features/auth/context/auth-session-context"
 import { createStudySpace, getStudySpaces, joinStudySpace } from "@/services/api/study-space.service"
 
 vi.mock("@/services/api/study-space.service", () => ({
   createStudySpace: vi.fn(),
   getStudySpaces: vi.fn(),
+  getDiscoverableStudySpaces: vi.fn(async () => []),
   joinStudySpace: vi.fn(),
 }))
 
@@ -35,9 +36,9 @@ const sharedSpace: StudySpaceRecord = {
   id: "22222222-2222-4222-8222-222222222222", name: "Peer study", about: "", kind: "collaborative", capacity: 4, role: "owner", createdAt: "",
 }
 
-function renderList(account = false) {
+function renderList(account = false, path = "/students/study-spaces") {
   const router = (
-    <MemoryRouter initialEntries={["/students/study-spaces"]}>
+    <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/students/study-spaces" element={<StudySpacesView />} />
         <Route path="/students/study-spaces/:spaceId" element={<div>study room route</div>} />
@@ -121,10 +122,20 @@ describe("shared study spaces", () => {
     await user.click(form.getByRole("button", { name: "Create space" }))
 
     expect(await screen.findByText("study room route")).toBeTruthy()
-    expect(createStudySpace).toHaveBeenCalledWith("Peer study", "")
+    expect(createStudySpace).toHaveBeenCalledWith("Peer study", "", { name: "Peer study", about: "", kind: "lounge", capacity: 5 })
     expect(JSON.parse(localStorage.getItem(studySpacesStorageKey) ?? "[]")).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: sharedSpace.id })]))
-    expect(loadAccountRoomLayout(accountId, sharedSpace)).toMatchObject({ kind: "lounge", capacity: 5 })
-    expect(loadAccountRoomLayout("other-account", sharedSpace)).toEqual(sharedSpace)
+  })
+
+  it("opens a reusable invitation link with its short code prefilled", async () => {
+    vi.mocked(getStudySpaces).mockResolvedValue([])
+    vi.mocked(joinStudySpace).mockResolvedValue({ ...sharedSpace, role: "member" })
+    const user = userEvent.setup()
+    renderList(true, "/students/study-spaces#join=SPS-OWLIO-XW2A")
+    const dialog = within(screen.getByRole("dialog", { name: "Join a study space" }))
+    expect((dialog.getByLabelText("Invitation code") as HTMLInputElement).value).toBe("SPS-OWLIO-XW2A")
+    await user.click(dialog.getByRole("button", { name: "Join space" }))
+    expect(await screen.findByText("study room route")).toBeTruthy()
+    expect(joinStudySpace).toHaveBeenCalledWith("SPS-OWLIO-XW2A")
   })
 
   it("opens the accepted room with the exact invitation code", async () => {

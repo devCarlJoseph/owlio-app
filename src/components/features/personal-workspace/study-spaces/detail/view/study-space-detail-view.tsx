@@ -63,15 +63,18 @@ import {
   type RoomTask,
 } from "../utils/room-tasks"
 import { loadRoomTvVideo, saveRoomTvVideo, type RoomTvVideo } from "../utils/room-tv"
-import { getMemberRoster, getSampleNappers, getSampleRoster, sampleRosterNotice } from "../../utils/space-roster"
+import { getSampleNappers, getSampleRoster, sampleRosterNotice } from "../../utils/space-roster"
 import { SpaceRoomScene, type CameraResetHandle } from "../ui/space-room-scene"
 import { focusMusicTracks } from "../utils/focus-music"
 import { buildRoomSpots, buildSeats, roomSpawnPoint } from "../utils/study-space-seats"
 import { useFocusMusic } from "../hooks/use-focus-music"
+import { useStudyRoom } from "../hooks/use-study-room"
+import { useStudyRoomTasks } from "../hooks/use-study-room-tasks"
+import { useRoomBubbles } from "../hooks/use-room-bubbles"
 import { usePomodoro } from "../hooks/use-pomodoro"
 import {
   createStudySpaceId,
-  loadAccountRoomLayout,
+  accountStudyCharacter,
   loadHallCharacter,
   loadSpaceCharacter,
   loadStudySpaces,
@@ -107,7 +110,7 @@ function RoomLoader({ spaceId, user }: { spaceId?: string; user?: RoomAccount | 
     if (local || !spaceId || !userId) return
     const controller = new AbortController()
     void getStudySpace(spaceId, controller.signal).then((space) => {
-      if (!controller.signal.aborted) setShared(loadAccountRoomLayout(userId, { ...space, accountSpace: true }))
+      if (!controller.signal.aborted) setShared({ ...space, accountSpace: true })
     }).catch((cause) => {
       if (!controller.signal.aborted) setError(getApiErrorMessage(cause, "Could not open this study space."))
     })
@@ -140,28 +143,27 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const discussion = useRoomDiscussion(shared ? spaceId : undefined, user)
   const tableSeats = useMemo(() => (space ? buildSeats(space.kind, space.capacity) : []), [space])
   const seats = useMemo(() => [...tableSeats, ...ROOM_SPOTS], [tableSeats])
-  const roster = useMemo(() => {
-    if (!space) return []
-    return shared
-      ? getMemberRoster(roomMembers, user?.id, Math.max(0, tableSeats.length - 1))
-      : getSampleRoster(space, tableSeats.length)
-  }, [roomMembers, shared, space, tableSeats.length, user?.id])
+  const roster = useMemo(() => space && !shared ? getSampleRoster(space, tableSeats.length) : [],
+    [shared, space, tableSeats.length])
   const samplePeople = useMemo(
     () => (space && !shared ? [...roster, ...getSampleNappers(space, roster, tableSeats.length, NAP_MAT_COUNT)] : []),
     [roster, shared, space, tableSeats.length]
   )
 
-  // A room-specific character wins; otherwise the study hall character walks in by default.
-  const [character, setCharacter] = useState<StudySpaceCharacter | null>(() =>
-    spaceId ? loadSpaceCharacter(spaceId) ?? loadHallCharacter() : null
-  )
+  const characterKey = shared && user ? user.id + "." + spaceId : spaceId
+  const [savedCharacter, setCharacter] = useState<StudySpaceCharacter | null>(() => {
+    const roomCharacter = characterKey ? loadSpaceCharacter(characterKey) : null
+    if (!shared || !user) return roomCharacter ?? loadHallCharacter()
+    const legacy = spaceId ? loadSpaceCharacter(spaceId) ?? loadHallCharacter() : null
+    return roomCharacter ?? loadHallCharacter(user.id) ?? (legacy?.name === user.name ? legacy : null)
+  })
+  const character = user ? accountStudyCharacter(user.name, savedCharacter) : savedCharacter
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [messages, setMessages] = useState<RoomMessage[]>([])
   const [membersOpen, setMembersOpen] = useState(false)
   const [membersLoading, setMembersLoading] = useState(false)
   const [membersError, setMembersError] = useState("")
-  const memberRequestRef = useRef(0)
-  const memberRequestBusyRef = useRef(false)
+  const memberRequest = useRef<AbortController | null>(null)
   const [bubble, setBubble] = useState<{ id: string; text: string } | null>(null)
   const [showNameTags, setShowNameTags] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
@@ -173,12 +175,16 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const [unlockedLockerIds, setUnlockedLockerIds] = useState<string[]>([])
   const [selectedLockerId, setSelectedLockerId] = useState<string | null>(null)
   const [ownLockerCode, setOwnLockerCode] = useState<string | null>(() => (spaceId ? loadOwnLockerCode(spaceId) : null))
-  const [tasks, setTasks] = useState<RoomTask[]>(() => (space ? loadRoomTasks(space) : []))
+  const [localTasks, setTasks] = useState<RoomTask[]>(() => (space && !shared ? loadRoomTasks(space) : []))
+  const board = useStudyRoomTasks(shared ? spaceId : undefined, user?.id)
+  const tasks = shared ? board.tasks : localTasks
   const [tvVideo, setTvVideo] = useState<RoomTvVideo | null>(() => (spaceId ? loadRoomTvVideo(spaceId) : null))
+  const [tvAutoPlay, setTvAutoPlay] = useState(false)
   const [standHint, setStandHint] = useState(false)
   const musicOpen = panel === "music"
   const timerOpen = panel === "timer"
   const togglePanel = (name: NonNullable<typeof panel>) => {
+    if (name === "tv") setTvAutoPlay(false)
     setPanel((current) => (current === name ? null : name))
     setChatOpen(false)
   }
@@ -194,33 +200,45 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const timer = usePomodoro()
 
   const refreshRoomMembers = useCallback(async () => {
-    if (!shared || !spaceId || memberRequestBusyRef.current) return
-    memberRequestBusyRef.current = true
-    const requestId = ++memberRequestRef.current
+    if (!shared || !spaceId) return
+    memberRequest.current?.abort()
+    const controller = new AbortController()
+    memberRequest.current = controller
     setMembersLoading(true)
     setMembersError("")
     try {
-      const members = await getStudySpaceMembers(spaceId)
-      if (requestId === memberRequestRef.current) setRoomMembers(members)
+      const members = await getStudySpaceMembers(spaceId, controller.signal)
+      if (!controller.signal.aborted) setRoomMembers(members)
     } catch (cause) {
-      if (requestId === memberRequestRef.current) setMembersError(getApiErrorMessage(cause, "Could not load this space’s members."))
+      if (!controller.signal.aborted) setMembersError(getApiErrorMessage(cause, "Could not load this space’s members."))
     } finally {
-      if (requestId === memberRequestRef.current) setMembersLoading(false)
-      memberRequestBusyRef.current = false
+      if (!controller.signal.aborted) setMembersLoading(false)
     }
   }, [shared, spaceId])
 
+  const live = useStudyRoom(shared ? spaceId : undefined, user?.id, character, (event) => {
+    if (event.kind === "chat") discussion.receive(event.message)
+    if (event.kind === "tasks") void board.refresh()
+    if (event.kind === "members") void refreshRoomMembers()
+  })
+  const remoteBubbles = useRoomBubbles(discussion.messages, user?.id)
+  const onlineIds = new Set(live.members.map((member) => member.userId))
+  const chatMessages = discussion.messages.map((message) => ({
+    ...message,
+    author: roomMembers.find((member) => member.userId === message.authorId)?.name ??
+      live.members.find((member) => member.userId === message.authorId)?.name ?? message.author,
+  }))
+
   useEffect(() => {
-    if (shared) void refreshRoomMembers()
-    else setRoomMembers([])
-    const refreshInterval = shared
-      ? window.setInterval(() => {
-          if (document.visibilityState === "visible") void refreshRoomMembers()
-        }, 10_000)
-      : undefined
+    if (!shared) return
+    const initial = window.setTimeout(() => { void refreshRoomMembers() }, 0)
+    const refreshInterval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshRoomMembers()
+    }, 10_000)
     return () => {
-      if (refreshInterval !== undefined) window.clearInterval(refreshInterval)
-      memberRequestRef.current += 1
+      window.clearTimeout(initial)
+      window.clearInterval(refreshInterval)
+      memberRequest.current?.abort()
     }
   }, [refreshRoomMembers, shared])
 
@@ -269,14 +287,17 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
     )
   }
 
-  // The character dialog must stay open until a character exists; the footer offers a way back.
   const characterDialogOpen = character === null || editDialogOpen
   const showingInvite = inviteOpen && shared && space.role === "owner" && (Boolean(space.joinCode) || !characterDialogOpen)
   const selectedSeat = seats.find((seat) => seat.id === selectedSeatId) ?? null
   const seatedSeat = seats.find((seat) => seat.id === seatedSeatId) ?? null
-  const freeSeats = tableSeats.length - roster.length - (seatedSeat?.zone === "discussion" ? 1 : 0)
+  const occupiedSeats = new Set(live.members.flatMap((member) => member.pose?.seatId ? [member.pose.seatId] : []))
+  for (const person of samplePeople) if (seats[person.seatIndex]) occupiedSeats.add(seats[person.seatIndex].id)
+  if (seatedSeat) occupiedSeats.add(seatedSeat.id)
+  const freeSeats = tableSeats.filter((seat) => !occupiedSeats.has(seat.id)).length
   const napping = seatedSeat?.furniture === "mat"
-  const selectedTaker = selectedSeat ? [...samplePeople, ...roster].find((person) => seats[person.seatIndex]?.id === selectedSeat.id) ?? null : null
+  const selectedTaker = selectedSeat ? (live.members.find((member) => member.pose?.seatId === selectedSeat.id)
+    ?? samplePeople.find((person) => seats[person.seatIndex]?.id === selectedSeat.id) ?? null) : null
   const isLeader = canManageTasks(space)
   const activeTrack =
     focusMusicTracks.find((track) => track.id === music.playback.trackId) ?? null
@@ -284,13 +305,13 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   function closeInvite() {
     setInviteOpen(false)
     if (state?.offerInvite) {
-      navigate(location.pathname, { replace: true, state: { layoutSaved: state.layoutSaved } })
+      navigate(location.pathname, { replace: true, state: null })
     }
   }
 
   function handleCharacterSubmit(draft: Pick<StudySpaceCharacter, "name" | "bodyColor" | "accentColor">) {
     const next: StudySpaceCharacter = { ...draft, createdAt: new Date().toISOString() }
-    if (spaceId) saveSpaceCharacter(spaceId, next)
+    if (characterKey) saveSpaceCharacter(characterKey, next)
     setCharacter(next)
     setEditDialogOpen(false)
   }
@@ -311,6 +332,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
     setSelectedSeatId(null)
     if (selectedSeat.furniture === "sofa") {
       setChatOpen(false)
+      setTvAutoPlay(false)
       setPanel("tv")
     }
   }
@@ -422,7 +444,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
             {shared ? "Shared space" : "Local preview"}
           </Badge>
           <span className="hidden text-xs text-slate-300 sm:inline">
-            {freeSeats} of {tableSeats.length} table seats open{shared ? " on this device" : ""}
+            {freeSeats} of {tableSeats.length} table seats open
           </span>
         </div>
 
@@ -612,7 +634,10 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
             kind={space.kind}
             seats={seats}
             samplePeople={samplePeople}
-            members={roster}
+            activeMembers={live.members}
+            remotePoses={live.poses}
+            remoteBubbles={remoteBubbles}
+            onPose={shared ? live.publish : undefined}
             tasks={tasks}
             tvHasVideo={tvVideo !== null}
             lockers={lockerSlots}
@@ -620,7 +645,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
             gardenSoundOn={gardenSoundOn}
             musicPlaying={music.playback.playing}
             onOpenTasks={() => setPanel("tasks")}
-            onOpenTv={() => setPanel("tv")}
+            onOpenTv={() => { setTvAutoPlay(Boolean(tvVideo)); setChatOpen(false); setPanel("tv") }}
             onSelectLocker={openLocker}
             onToggleGardenSound={toggleGardenSound}
             onToggleMusic={music.toggle}
@@ -640,16 +665,14 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           <div aria-hidden="true" className="absolute inset-0 bg-[#ded9ee]" />
         )}
 
-        {!noticeDismissed ? (
+        {shared && live.status && (
+          <p role="status" className="absolute bottom-24 left-3 z-10 rounded-md bg-slate-900/90 px-2 py-1 text-xs text-white">{live.status}</p>
+        )}
+        {!noticeDismissed && !shared ? (
           <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
             <p className="flex-1">
-              {shared
-                ? "Chat and the Members roster are shared. Other joined members appear as idle room characters; their custom colors and movement are not synced."
-                : studySpaceRoomPreviewNotice}
-              {shared && state?.layoutSaved === false ? " The selected layout could not be saved on this device." : ""}
+              {studySpaceRoomPreviewNotice}
               {samplePeople.some((person) => !person.member) ? ` ${sampleRosterNotice}` : ""}
-              {shared && roster.length > 0 ? ` ${roster.length} other member${roster.length === 1 ? " is" : "s are"} shown as idle room characters.` : ""}
-              {shared && roomMembers.length > roster.length + 1 ? " Some members remain listed in the Members panel because this room has limited seats." : ""}
             </p>
             <button
               type="button"
@@ -696,23 +719,32 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
         {panel === "tasks" ? (
           <TaskBoardPanel
             tasks={tasks}
-            people={samplePeople}
+            people={shared ? roomMembers.filter((member) => member.userId !== user?.id)
+              .map((member) => ({ id: member.userId, name: member.name })) : samplePeople}
             isLeader={isLeader}
-            onAdd={(draft) => updateTasks((current) => [...current, createRoomTask(draft)])}
-            onToggle={(taskId) => updateTasks((current) => toggleRoomTask(current, taskId))}
-            onRemove={(taskId) => updateTasks((current) => current.filter((task) => task.id !== taskId))}
-            onMove={(taskId, direction) => updateTasks((current) => moveRoomTask(current, taskId, direction))}
+            shared={shared}
+            busy={shared && board.busy}
+            loading={shared && board.loading}
+            loadError={shared ? board.error : undefined}
+            onAdd={(draft) => shared ? board.add(draft) : updateTasks((current) => [...current, createRoomTask(draft)])}
+            onToggle={(taskId) => {
+              const task = tasks.find((entry) => entry.id === taskId)
+              if (shared && task) board.toggle(task)
+              else if (!shared) updateTasks((current) => toggleRoomTask(current, taskId))
+            }}
+            onRemove={(taskId) => shared ? board.remove(taskId) : updateTasks((current) => current.filter((task) => task.id !== taskId))}
+            onMove={(taskId, direction) => shared ? board.move(taskId, direction) : updateTasks((current) => moveRoomTask(current, taskId, direction))}
             onClose={() => setPanel(null)}
           />
         ) : null}
 
         {panel === "tv" ? (
-          <TvPanel video={tvVideo} isLeader={isLeader} onSave={handleTvSave} onClose={() => setPanel(null)} />
+          <TvPanel video={tvVideo} autoPlay={tvAutoPlay} isLeader={isLeader} onSave={handleTvSave} onClose={() => setPanel(null)} />
         ) : null}
 
         {chatOpen ? (
           <RoomChatPanel
-            messages={shared ? discussion.messages : messages}
+            messages={shared ? chatMessages : messages}
             shared={shared}
             error={discussion.readError}
             onClose={() => setChatOpen(false)}
@@ -853,7 +885,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           <DialogHeader>
             <DialogTitle>{space.name} members</DialogTitle>
             <DialogDescription>
-              Students who joined this Study Space appear here. This membership list does not indicate who is currently in the room.
+              {live.status ? "Live presence is currently unavailable." : `${live.members.length + 1} currently in the room.`}
             </DialogDescription>
           </DialogHeader>
           {membersError && <p role="alert" className="text-sm text-destructive">{membersError}</p>}
@@ -868,6 +900,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
                   <span className="min-w-0 truncate text-sm font-medium">{member.name}</span>
                   <span className="flex shrink-0 items-center gap-2">
                     {member.userId === user?.id && <Badge variant="secondary">You</Badge>}
+                    {!live.status && (member.userId === user?.id || onlineIds.has(member.userId)) && <Badge variant="secondary">In room</Badge>}
                     <Badge variant="outline">{member.role === "OWNER" ? "Owner" : member.role === "MODERATOR" ? "Moderator" : "Member"}</Badge>
                   </span>
                 </li>
@@ -881,6 +914,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
         </DialogContent>
       </Dialog>
       <CharacterDialog
+        accountName={user?.name}
         open={characterDialogOpen && !showingInvite}
         onOpenChange={setEditDialogOpen}
         required={character === null}
