@@ -8,6 +8,7 @@ import type { SamplePerson } from "../../utils/space-roster"
 import type { StudySpaceCharacter, StudySpaceKind } from "../../utils/study-spaces-records"
 import { useWalkKeys, walkDirection, type WalkKey } from "../../hooks/use-walk-keys"
 import { CharacterFigure, type FigureMode } from "./character-figure"
+import { RemoteStudyCharacter } from "../../ui/remote-study-character"
 import { LockerWall, RadioSet, TaskWhiteboard, type LockerSlot } from "./room-extras"
 import { LIGHTING, type LightPhase } from "../utils/room-ambience"
 import { RoomGarden } from "./room-garden"
@@ -228,8 +229,11 @@ export function SpaceRoomScene({
       })}
 
       {remotePoses && activeMembers.map((person) => person.pose && (
-        <RemoteCharacter key={person.userId} person={person} initial={person.pose} poses={remotePoses}
-          showNameTag={showNameTag} bubbleText={remoteBubbles?.[person.userId]} />
+        <RemoteStudyCharacter key={person.userId} userId={person.userId} pose={person.pose} poses={remotePoses} reducedMotion={reducedMotion}>
+          {person.pose.mode === "nap" && <SleepBubble y={1.15} />}
+          <CharacterLabels name={person.name} napping={person.pose.mode === "nap"} seated={person.pose.mode === "seated"}
+            showNameTag={showNameTag} bubbleText={remoteBubbles?.[person.userId]} />
+        </RemoteStudyCharacter>
       ))}
 
       <SpaceCharacter
@@ -764,37 +768,6 @@ function SpaceCharacter({
       {napping ? <SleepBubble y={1.15} /> : null}
 
       <CharacterLabels name={character.name} napping={napping} seated={seated}
-        showNameTag={showNameTag} bubbleText={bubbleText} />
-    </group>
-  )
-}
-
-function RemoteCharacter({ person, initial, poses, showNameTag, bubbleText }: {
-  person: StudyRoomAvatar
-  initial: StudyRoomPose
-  poses: RefObject<Map<string, StudyRoomPose>>
-  showNameTag: boolean
-  bubbleText?: string
-}) {
-  const group = useRef<Group>(null)
-  const [start] = useState(initial)
-  const mode = () => poses.current.get(person.userId)?.mode ?? initial.mode
-  useFrame((_, delta) => {
-    const node = group.current
-    const target = poses.current.get(person.userId)
-    if (!node || !target) return
-    const speed = Math.hypot(target.x - node.position.x, target.z - node.position.z) > 4
-      ? 1 : 1 - Math.exp(-14 * Math.min(delta, 0.05))
-    node.position.x += (target.x - node.position.x) * speed
-    node.position.z += (target.z - node.position.z) * speed
-    const angle = target.rotation - node.rotation.y
-    node.rotation.y += Math.atan2(Math.sin(angle), Math.cos(angle)) * speed
-  })
-  return (
-    <group ref={group} position={[start.x, 0, start.z]} rotation={[0, start.rotation, 0]}>
-      <CharacterFigure bodyColor={initial.bodyColor} accentColor={initial.accentColor} getMode={mode} reducedMotion={reducedMotion} />
-      {initial.mode === "nap" && <SleepBubble y={1.15} />}
-      <CharacterLabels name={person.name} napping={initial.mode === "nap"} seated={initial.mode === "seated"}
         showNameTag={showNameTag} bubbleText={bubbleText} />
     </group>
   )

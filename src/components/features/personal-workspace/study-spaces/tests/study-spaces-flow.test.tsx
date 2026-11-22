@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react"
+import { act, cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router"
@@ -6,12 +6,17 @@ import { StudySpacesView } from "../view/study-spaces-view"
 import { studySpacesStorageKey, type StudySpaceRecord } from "../utils/study-spaces-records"
 import { AuthSessionContext, type AuthSessionContextValue } from "@/components/features/auth/context/auth-session-context"
 import { createStudySpace, getStudySpaces, joinStudySpace } from "@/services/api/study-space.service"
+import { connectStudyRoom } from "@/services/api/study-space-realtime"
 
 vi.mock("@/services/api/study-space.service", () => ({
   createStudySpace: vi.fn(),
   getStudySpaces: vi.fn(),
   getDiscoverableStudySpaces: vi.fn(async () => []),
   joinStudySpace: vi.fn(),
+}))
+
+vi.mock("@/services/api/study-space-realtime", () => ({
+  connectStudyRoom: vi.fn(() => ({ disconnect: vi.fn(), publish: vi.fn() })),
 }))
 
 vi.setConfig({ testTimeout: 20000 })
@@ -120,6 +125,21 @@ describe("study spaces create flow", () => {
 })
 
 describe("shared study spaces", () => {
+  it("shows active hall peers to signed-in students and removes peers when they leave", async () => {
+    vi.mocked(getStudySpaces).mockResolvedValue([])
+    renderList(true)
+
+    const [scope, initial, listener] = vi.mocked(connectStudyRoom).mock.lastCall!
+    expect(scope).toBe("hall")
+    expect(initial.mode).toBe("idle")
+    const peer = { userId: "33333333-3333-4333-8333-333333333333", name: "Alex Chen", pose: initial }
+    act(() => listener.onReady([peer]))
+    expect(await screen.findByText(/Alex Chen/)).toBeTruthy()
+
+    act(() => listener.onLeave(peer.userId))
+    expect(screen.queryByText(/Alex Chen/)).toBeNull()
+  })
+
   it("creates a shared room without inserting it into the local directory", async () => {
     vi.mocked(getStudySpaces).mockResolvedValue([])
     vi.mocked(createStudySpace).mockResolvedValue(sharedSpace)

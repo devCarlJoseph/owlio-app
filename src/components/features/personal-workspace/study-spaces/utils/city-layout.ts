@@ -1,4 +1,5 @@
 import type { StudySpaceKind, StudySpaceRecord } from "./study-spaces-records"
+import { hashString } from "./space-roster"
 
 export type CityRole = "owner" | "member" | "visitor"
 
@@ -95,6 +96,24 @@ export function layoutCity(groups: { role: CityRole; spaces: StudySpaceRecord[] 
 }
 
 const AVATAR_RADIUS = 0.45
+
+export function hallSpawn(layout: CityLayout, accountId?: string) {
+  if (!accountId) return layout.spawn
+  // Spread arrivals across the plaza so idle avatars do not all cover one another.
+  const hash = hashString(accountId)
+  return {
+    x: layout.spawn.x - 2 + (hash % 1024) / 1023 * 10,
+    z: layout.spawn.z - 2 + ((hash >>> 10) % 1024) / 1023 * 3.5,
+  }
+}
+
+export function normalizeHallPosition(point: { x: number; z: number }, layout: CityLayout) {
+  return { x: point.x / (layout.width / 2), z: point.z / (layout.depth / 2) }
+}
+
+export function projectHallPosition(point: { x: number; z: number }, layout: CityLayout) {
+  return constrainWalker({ x: point.x * (layout.width / 2), z: point.z * (layout.depth / 2) }, layout)
+}
 
 // Keeps a walker inside the city and outside every building footprint.
 export function constrainWalker(point: { x: number; z: number }, layout: CityLayout) {

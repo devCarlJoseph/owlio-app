@@ -19,12 +19,17 @@ import { CreateSpaceDialog, type SpaceDraft } from "../forms/create-space-dialog
 import { JoinSpaceDialog, type JoinSpaceDraft } from "../forms/join-space-dialog"
 import { LockedSpaceGrid, SpaceGrid, SpaceGridEmptyState } from "../ui/space-card-grid"
 import { SpaceMap } from "../ui/space-map"
+import { useStudyPresence } from "../hooks/use-study-presence"
+import { hallSpawn, layoutCity, normalizeHallPosition } from "../utils/city-layout"
 import {
+  accountStudyCharacter,
   createStudySpaceId,
+  loadHallCharacter,
   loadJoinedDiscoveryIds,
   loadStudySpaces,
   sampleDiscoverySpaces,
   saveJoinedDiscoveryIds,
+  saveHallCharacter,
   saveStudySpaces,
   sortSpaces,
   studySpacesDiscoveryCaption,
@@ -32,10 +37,12 @@ import {
   studySpacesOpenHint,
   studySpacesStorageNotice,
   type SpaceSortKey,
+  type StudySpaceCharacter,
   type StudySpaceRecord,
 } from "../utils/study-spaces-records"
 
 const StudyHallWorld = lazy(() => import("../ui/study-hall-world"))
+const emptyHallLayout = layoutCity([])
 
 type HallView = "world" | "list"
 
@@ -81,6 +88,20 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
   const [query, setQuery] = useState("")
   const [webgl] = useState(hasWebGL)
   const [view, setView] = useState<HallView>(() => (webgl ? "world" : "list"))
+  const [character, setCharacter] = useState(() => {
+    const saved = loadHallCharacter(userId)
+    const legacy = loadHallCharacter()
+    return accountName ? accountStudyCharacter(accountName, saved ?? (legacy?.name === accountName ? legacy : null)) : saved
+  })
+  const hallPresence = useStudyPresence(userId ? "hall" : undefined, userId, character, {
+    ...normalizeHallPosition(hallSpawn(emptyHallLayout, userId), emptyHallLayout),
+    mode: "idle", rotation: 0, seatId: null,
+  })
+
+  function saveCharacter(next: StudySpaceCharacter) {
+    saveHallCharacter(next, userId)
+    setCharacter(next)
+  }
 
   useEffect(() => {
     active.current = true
@@ -274,7 +295,7 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
           variant={view === "list" ? "default" : "ghost"}
           className="rounded-full"
           aria-pressed={view === "list"}
-          onClick={() => setView("list")}
+          onClick={() => { hallPresence.stopWalking(); setView("list") }}
         >
           <List className="hidden sm:block" aria-hidden="true" />
           List
@@ -338,6 +359,9 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
           }}>Retry</Button>}
         </div>
       )}
+      {userId && hallPresence.status && (
+        <p role="status" className="shrink-0 border-b bg-card px-3 py-1 text-xs text-muted-foreground">{hallPresence.status}</p>
+      )}
       {view === "world" ? (
         <section
           aria-labelledby="study-hall-title"
@@ -350,8 +374,11 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
               }
             >
               <StudyHallWorld
-                accountName={accountName}
                 accountId={userId}
+                accountName={accountName}
+                character={character}
+                onCharacterChange={saveCharacter}
+                presence={hallPresence}
                 created={createdSpaces}
                 joined={joinedSpaces}
                 locked={lockedSpaces}
@@ -381,6 +408,11 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
           </div>
 
           <div className="space-y-6">
+            {hallPresence.members.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                <strong>In the hall</strong> {hallPresence.members.map(({ name }) => name).join(", ")}
+              </p>
+            )}
             <h3 className="flex items-baseline gap-2 text-2xl font-bold text-slate-900 surface-dark:text-foreground">
               Spaces
               <span className="text-sm font-semibold text-slate-500 surface-dark:text-muted-foreground">{total}</span>

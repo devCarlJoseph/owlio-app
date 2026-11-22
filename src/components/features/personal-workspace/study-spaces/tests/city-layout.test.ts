@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { constrainWalker, layoutCity, nearestDoor, ROAD, streetAt } from "../utils/city-layout"
+import { constrainWalker, hallSpawn, layoutCity, nearestDoor, normalizeHallPosition, projectHallPosition, ROAD, streetAt } from "../utils/city-layout"
 import { sampleCreatedSpaces, sampleDiscoverySpaces, sampleJoinedSpaces } from "@/test/legacy-demo-fixtures"
 
 function sampleCity() {
@@ -53,6 +53,21 @@ describe("study hall city layout", () => {
     expect(city.lots).toHaveLength(0)
     expect(city.width).toBeGreaterThan(0)
     expect(streetAt(-city.depth / 2 + 6, city)).toBe(1)
+  })
+
+  it("separates student spawns and projects peer positions into maps of different depths", () => {
+    const small = layoutCity([])
+    const large = layoutCity([{ role: "visitor", spaces: Array.from({ length: 24 }, (_, index) => ({
+      ...sampleCreatedSpaces[0], id: String(index),
+    })) }])
+    expect(large.depth).toBeGreaterThan(small.depth)
+    const spawn = hallSpawn(small, "student-one")
+    expect(hallSpawn(small, "student-two")).not.toEqual(spawn)
+    expect(Math.abs(spawn.x - small.plaza.x)).toBeLessThan(small.plaza.w / 2)
+    const remote = normalizeHallPosition({ x: 0, z: large.depth / 2 - 1 }, large)
+    const projected = projectHallPosition(remote, small)
+    expect(projected.z).toBeGreaterThan(0)
+    expect(projected.z).toBeLessThan(small.depth / 2)
   })
 
   it("keeps the central plaza free of buildings and puts the fountain roundabout on its corner intersection", () => {

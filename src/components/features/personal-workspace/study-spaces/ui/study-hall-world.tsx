@@ -32,14 +32,18 @@ import {
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type { StudyPosition } from "@/services/api/study-space-realtime"
 import { cn } from "cn"
 import { Building, StreetLamp, Tree } from "./city-buildings"
 import {
   constrainWalker,
+  hallSpawn,
   layoutCity,
   LOT_D,
   LOT_W,
   nearestDoor,
+  normalizeHallPosition,
+  projectHallPosition,
   ROAD,
   streetAt,
   type CityLayout,
@@ -52,9 +56,6 @@ import { HALL_LIGHTING, LIGHT_LABELS, useLightPhase, useSharedLightSetting, type
 import { CharacterFigure, type FigureMode } from "../detail/ui/character-figure"
 import { kindLabel, metaLine } from "../utils/space-format"
 import {
-  accountStudyCharacter,
-  loadHallCharacter,
-  saveHallCharacter,
   studySpacesDiscoveryCaption,
   studySpacesGuidance,
   studySpacesLockedTooltip,
@@ -63,6 +64,8 @@ import {
   type StudySpaceRecord,
 } from "../utils/study-spaces-records"
 import { useWalkKeys, walkDirection, type WalkKey } from "../hooks/use-walk-keys"
+import type { useStudyPresence } from "../hooks/use-study-presence"
+import { RemoteStudyCharacter } from "./remote-study-character"
 
 type Mode = "explore" | "walk"
 type Point = { x: number; z: number }
@@ -71,6 +74,9 @@ type RigHandle = { zoomBy: (factor: number) => void; reset: () => void }
 export type StudyHallWorldProps = {
   accountName?: string
   accountId?: string
+  character: StudySpaceCharacter | null
+  onCharacterChange: (character: StudySpaceCharacter) => void
+  presence: ReturnType<typeof useStudyPresence>
   created: StudySpaceRecord[]
   joined: StudySpaceRecord[]
   locked: StudySpaceRecord[]
@@ -97,7 +103,7 @@ function statusLabel(lot: CityLot) {
   return lot.role === "owner" ? "Yours" : "Joined"
 }
 
-export default function StudyHallWorld({ accountName, accountId, created, joined, locked, onOpen, onUnlock }: StudyHallWorldProps) {
+export default function StudyHallWorld({ accountName, accountId, character, onCharacterChange, presence, created, joined, locked, onOpen, onUnlock }: StudyHallWorldProps) {
   const layout = useMemo(
     () =>
       layoutCity([
@@ -108,11 +114,6 @@ export default function StudyHallWorld({ accountName, accountId, created, joined
     [created, joined, locked]
   )
   const [mode, setMode] = useState<Mode>("explore")
-  const [character, setCharacter] = useState<StudySpaceCharacter | null>(() => {
-    const saved = loadHallCharacter(accountId)
-    const legacy = loadHallCharacter()
-    return accountName ? accountStudyCharacter(accountName, saved ?? (legacy?.name === accountName ? legacy : null)) : saved
-  })
   const [characterOpen, setCharacterOpen] = useState(false)
   const [nearby, setNearby] = useState<CityLot | null>(null)
   const [street, setStreet] = useState(1)
@@ -138,8 +139,7 @@ export default function StudyHallWorld({ accountName, accountId, created, joined
 
   function handleCharacterSubmit(draft: Pick<StudySpaceCharacter, "name" | "bodyColor" | "accentColor">) {
     const next: StudySpaceCharacter = { ...draft, createdAt: new Date().toISOString() }
-    saveHallCharacter(next, accountId)
-    setCharacter(next)
+    onCharacterChange(next)
     setCharacterOpen(false)
     setMode("walk")
   }
@@ -172,6 +172,8 @@ export default function StudyHallWorld({ accountName, accountId, created, joined
       >
         <CityScene
           layout={layout}
+          accountId={accountId}
+          presence={presence}
           mode={mode}
           character={character}
           heldRef={walk.heldRef}
@@ -371,6 +373,8 @@ function WalkPad({ onPress }: { onPress: (key: WalkKey, pressed: boolean) => voi
 
 function CityScene({
   layout,
+  accountId,
+  presence,
   mode,
   character,
   heldRef,
@@ -382,6 +386,8 @@ function CityScene({
   onStreet,
 }: {
   layout: CityLayout
+  accountId?: string
+  presence: ReturnType<typeof useStudyPresence>
   mode: Mode
   character: StudySpaceCharacter | null
   heldRef: RefObject<Set<WalkKey>>
@@ -392,10 +398,11 @@ function CityScene({
   onNearby: (lot: CityLot | null) => void
   onStreet: (street: number) => void
 }) {
-  const walkerRef = useRef<Point>({ ...layout.spawn })
+  const walkerRef = useRef<Point>(hallSpawn(layout, accountId))
   const clickTargetRef = useRef<Point | null>(null)
   const walking = mode === "walk" && character !== null
   const span = Math.max(layout.width, layout.depth)
+  const project = useCallback((point: Point) => projectHallPosition(point, layout), [layout])
 
   useEffect(() => {
     const constrained = constrainWalker(walkerRef.current, layout)
@@ -452,9 +459,22 @@ function CityScene({
         />
       ))}
 
-      {walking && character ? (
+      {presence.members.map(({ userId, name, pose }) => pose && (
+        <RemoteStudyCharacter key={userId} userId={userId} pose={pose} poses={presence.poses} project={project}
+          reducedMotion={reducedMotion}>
+          <Html position={[0, 2.2, 0]} center zIndexRange={[25, 0]} className="pointer-events-none">
+            <span className="block max-w-36 truncate rounded-md bg-slate-900/85 px-2 py-0.5 text-[11px] font-medium text-white shadow">
+              {name}
+            </span>
+          </Html>
+        </RemoteStudyCharacter>
+      ))}
+
+      {character && (walking || accountId) ? (
         <Walker
           layout={layout}
+          walking={walking}
+          onPose={accountId ? presence.publish : undefined}
           character={character}
           heldRef={heldRef}
           walkerRef={walkerRef}
@@ -770,6 +790,8 @@ function BuildingLabel({
 
 function Walker({
   layout,
+  walking,
+  onPose,
   character,
   heldRef,
   walkerRef,
@@ -778,6 +800,8 @@ function Walker({
   onStreet,
 }: {
   layout: CityLayout
+  walking: boolean
+  onPose?: (pose: StudyPosition) => void
   character: StudySpaceCharacter
   heldRef: RefObject<Set<WalkKey>>
   walkerRef: RefObject<Point>
@@ -787,6 +811,7 @@ function Walker({
 }) {
   const group = useRef<Group>(null)
   const figureMode = useRef<FigureMode>("idle")
+  const lastPose = useRef({ time: -Infinity, key: "" })
   const nearRef = useRef<string | null | undefined>(undefined)
   const streetRef = useRef(0)
   const controls = useThree((state) => state.controls) as MapControlsImpl | null
@@ -800,7 +825,8 @@ function Walker({
     if (!node) return
     const position = walkerRef.current
     const step = WALK_SPEED * Math.min(delta, 0.05)
-    const direction = walkDirection(heldRef.current, camera, controls?.target ?? position)
+    if (!walking) clickTargetRef.current = null
+    const direction = walking ? walkDirection(heldRef.current, camera, controls?.target ?? position) : null
     let next: Point | null = null
 
     if (direction) {
@@ -831,6 +857,8 @@ function Walker({
 
     node.position.set(walkerRef.current.x, 0, walkerRef.current.z)
 
+    if (!walking) return
+
     const near = nearestDoor(walkerRef.current, layout)
     const nearId = near?.space.id ?? null
     if (nearId !== nearRef.current) {
@@ -842,6 +870,20 @@ function Walker({
       streetRef.current = street
       onStreet(street)
     }
+  })
+
+  useFrame(({ clock }) => {
+    const node = group.current
+    if (!node || !onPose || clock.elapsedTime - lastPose.current.time < 0.1) return
+    const point = normalizeHallPosition(walkerRef.current, layout)
+    const x = Math.round(point.x * 10000) / 10000
+    const z = Math.round(point.z * 10000) / 10000
+    const rotation = Math.round(node.rotation.y * 100) / 100
+    const mode = figureMode.current
+    const key = [x, z, rotation, mode].join("/")
+    if (key === lastPose.current.key) return
+    lastPose.current = { time: clock.elapsedTime, key }
+    onPose({ x, z, rotation, mode, seatId: null })
   })
 
   return (

@@ -17,6 +17,12 @@ describe('production API routing', () => {
       expect(config.rewrites[apiIndex].destination.replace(':path*', path)).toBe('https://owlio-api.onrender.com/api/' + path)
     }
   })
+  it('routes a slashless Study Spaces handshake to the Render Socket.IO listener', () => {
+    const socketIndex = config.rewrites.findIndex(rule => rule.source === '/api/study-realtime')
+    expect(socketIndex).toBeGreaterThanOrEqual(0)
+    expect(socketIndex).toBeLessThan(config.rewrites.findIndex(rule => rule.source === '/api/:path*'))
+    expect(config.rewrites[socketIndex].destination).toBe('https://owlio-api.onrender.com/api/socket.io')
+  })
   it('prevents browser and CDN caching of private API responses', () => {
     expect(config.headers.find(rule => rule.source === '/api/:path*')?.headers).toEqual(expect.arrayContaining([
       { key: 'Cache-Control', value: 'private, no-store' },

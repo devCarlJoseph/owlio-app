@@ -65,7 +65,7 @@ import { SpaceRoomScene, type CameraResetHandle } from "../ui/space-room-scene"
 import { focusMusicTracks } from "../utils/focus-music"
 import { buildRoomSpots, buildSeats, roomSpawnPoint } from "../utils/study-space-seats"
 import { useFocusMusic } from "../hooks/use-focus-music"
-import { useStudyRoom } from "../hooks/use-study-room"
+import { useStudyPresence } from "../../hooks/use-study-presence"
 import { useStudyRoomTasks } from "../hooks/use-study-room-tasks"
 import { useRoomBubbles } from "../hooks/use-room-bubbles"
 import { usePomodoro } from "../hooks/use-pomodoro"
@@ -212,11 +212,12 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
     }
   }, [shared, spaceId])
 
-  const live = useStudyRoom(shared ? spaceId : undefined, user?.id, character, (event) => {
-    if (event.kind === "chat") discussion.receive(event.message)
-    if (event.kind === "tasks") void board.refresh()
-    if (event.kind === "members") void refreshRoomMembers()
-  })
+  const live = useStudyPresence(shared ? spaceId : undefined, user?.id, character,
+    { ...roomSpawnPoint, rotation: 0, mode: "idle", seatId: null }, (event) => {
+      if (event.kind === "chat") discussion.receive(event.message)
+      if (event.kind === "tasks") void board.refresh()
+      if (event.kind === "members") void refreshRoomMembers()
+    })
   const remoteBubbles = useRoomBubbles(discussion.messages, user?.id)
   const onlineIds = new Set(live.members.map((member) => member.userId))
   const chatMessages = discussion.messages.map((message) => ({

@@ -64,7 +64,9 @@ Room chat persists in discussion replies. Socket.IO delivers committed messages 
 
 The owner can share tasks with everyone, themselves, or an individual member. The API validates the assignee and deadline. Members see the tasks assigned to them and track their own completion. The board uses the existing room task list plus shared task actions for completion, order and removal.
 
-Release the API with migration `0054_shared_study_spaces` before the frontend. Older reusable codes still work. Existing rooms start with the shared-table layout and four seats. Historical browser-only records remain in browser storage. Live room updates use authenticated `/api/socket.io` with WebSocket and HTTP polling fallback. Connected peers must reach the same API instance.
+Release the API before the frontend. Migration `0054_shared_study_spaces` remains the schema baseline. Older reusable codes still work. Existing rooms start with the shared-table layout and four seats. Historical browser-only records remain in browser storage.
+
+Study Hall shares idle and moving avatars across signed-in students who have the hall open. Room avatars represent members who have the same room open. The hosted browser uses a slashless `/api/study-realtime` rewrite to Render's `/api/socket.io` listener and starts with authenticated HTTP polling. The older trailing-slash URL returned the frontend HTML instead of a Socket.IO handshake on the production site. After release, verify the new path returns an Engine.IO handshake, then enter the same hall and room from different student accounts. Connected peers must reach the same API instance.
 
 ## Verification boundary
 

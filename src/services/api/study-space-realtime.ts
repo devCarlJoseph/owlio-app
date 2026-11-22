@@ -19,6 +19,7 @@ const change = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("members") }),
 ])
 export type StudyRoomPose = z.infer<typeof poseSchema>
+export type StudyPosition = Omit<StudyRoomPose, "bodyColor" | "accentColor">
 export type StudyRoomAvatar = z.infer<typeof avatar>
 export type StudyRoomChange = z.infer<typeof change>
 
@@ -31,9 +32,13 @@ type Listener = {
   onChange: (event: StudyRoomChange) => void
 }
 
-export function connectStudyRoom(spaceId: string, initial: StudyRoomPose, listener: Listener) {
+export function connectStudyRoom(scope: string, initial: StudyRoomPose, listener: Listener) {
   const socket = io(api.defaults.baseURL!, {
-    path: "/api/socket.io", transports: ["websocket", "polling"], tryAllTransports: true,
+    // The production rewrite uses a slashless HTTP endpoint so it reaches Render before the SPA fallback.
+    path: import.meta.env.PROD ? "/api/study-realtime" : "/api/socket.io",
+    addTrailingSlash: false,
+    transports: import.meta.env.PROD ? ["polling", "websocket"] : ["websocket", "polling"],
+    tryAllTransports: true,
     upgrade: false, withCredentials: true,
     autoConnect: false, forceNew: true, timeout: 5000,
     reconnectionDelay: 1000, reconnectionDelayMax: 5000,
@@ -57,7 +62,8 @@ export function connectStudyRoom(spaceId: string, initial: StudyRoomPose, listen
   }
 
   socket.on("connect", () => {
-    socket.timeout(5000).emit("study:watch", { spaceId }, (error: Error | null, value: unknown) => {
+    const selector = scope === "hall" ? { hall: true } : { spaceId: scope }
+    socket.timeout(5000).emit("study:watch", selector, (error: Error | null, value: unknown) => {
       if (stopped || !socket.connected) return
       const result = watchReply.safeParse(value)
       if (error || !result.success) {

@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
-import { connectStudyRoom, type StudyRoomAvatar, type StudyRoomChange, type StudyRoomPose } from "@/services/api/study-space-realtime"
-import type { StudySpaceCharacter } from "../../utils/study-spaces-records"
-import { roomSpawnPoint } from "../utils/study-space-seats"
+import { connectStudyRoom, type StudyPosition, type StudyRoomAvatar, type StudyRoomChange, type StudyRoomPose } from "@/services/api/study-space-realtime"
+import type { StudySpaceCharacter } from "../utils/study-spaces-records"
 
-type Position = Omit<StudyRoomPose, "bodyColor" | "accentColor">
-const spawn: Position = { ...roomSpawnPoint, rotation: 0, mode: "idle", seatId: null }
-
-export function useStudyRoom(spaceId: string | undefined, userId: string | undefined, character: StudySpaceCharacter | null, onChange: (event: StudyRoomChange) => void) {
+export function useStudyPresence(scope: string | undefined, userId: string | undefined, character: StudySpaceCharacter | null,
+  spawn: StudyPosition, onChange?: (event: StudyRoomChange) => void) {
   const [members, setMembers] = useState<StudyRoomAvatar[]>([])
-  const [status, setStatus] = useState("Connecting to the room…")
+  const area = scope === "hall" ? "Study Hall" : "room"
+  const [status, setStatus] = useState(`Connecting to the ${area}…`)
   const poses = useRef(new Map<string, StudyRoomPose>())
   const connection = useRef<ReturnType<typeof connectStudyRoom> | null>(null)
-  const position = useRef<Position>(spawn)
-  const receive = useEffectEvent(onChange)
+  const position = useRef(spawn)
+  const receive = useEffectEvent((event: StudyRoomChange) => onChange?.(event))
   const bodyColor = character?.bodyColor
   const accentColor = character?.accentColor
   const initialPose = useEffectEvent(() => ({
@@ -20,24 +18,26 @@ export function useStudyRoom(spaceId: string | undefined, userId: string | undef
   }))
 
   useEffect(() => {
-    if (!spaceId || !userId) return
+    if (!scope || !userId) return
     const activePoses = poses.current
-    const live = connectStudyRoom(spaceId, initialPose(), {
+    const live = connectStudyRoom(scope, initialPose(), {
       onReady(peers) {
         activePoses.clear()
         const others = peers.filter((peer) => peer.userId !== userId)
         for (const peer of others) if (peer.pose) activePoses.set(peer.userId, peer.pose)
         setMembers(others)
         setStatus("")
-        receive({ kind: "members" })
-        receive({ kind: "tasks" })
+        if (scope !== "hall") {
+          receive({ kind: "members" })
+          receive({ kind: "tasks" })
+        }
       },
       onOffline(code) {
         activePoses.clear()
         setMembers([])
-        setStatus(code === "REPLACED" ? "This room is open in another tab or device."
-          : code === "NOT_FOUND" ? "Room access is unavailable."
-          : "Reconnecting live room…")
+        setStatus(code === "REPLACED" ? `The ${area} is open in another tab or device.`
+          : code === "NOT_FOUND" ? `Access to the ${area} is unavailable.`
+          : `Reconnecting to the ${area}…`)
       },
       onMember(peer) {
         if (peer.userId === userId) return
@@ -52,7 +52,7 @@ export function useStudyRoom(spaceId: string | undefined, userId: string | undef
         activePoses.delete(id)
         setMembers((current) => current.filter((entry) => entry.userId !== id))
       },
-      onChange: receive,
+      onChange: (event) => receive(event),
     })
     connection.current = live
     return () => {
@@ -60,16 +60,20 @@ export function useStudyRoom(spaceId: string | undefined, userId: string | undef
       activePoses.clear()
       connection.current = null
     }
-  }, [spaceId, userId])
+  }, [area, scope, userId])
 
   useEffect(() => {
     if (bodyColor && accentColor) connection.current?.publish({ ...position.current, bodyColor, accentColor })
   }, [bodyColor, accentColor])
 
-  const publish = useCallback((next: Position) => {
+  const publish = useCallback((next: StudyPosition) => {
     position.current = next
     if (bodyColor && accentColor) connection.current?.publish({ ...next, bodyColor, accentColor })
   }, [bodyColor, accentColor])
 
-  return { members, status, poses, publish }
+  function stopWalking() {
+    if (position.current.mode === "walk") publish({ ...position.current, mode: "idle" })
+  }
+
+  return { members, status, poses, publish, stopWalking }
 }

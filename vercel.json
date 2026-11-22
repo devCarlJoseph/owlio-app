@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/api/study-realtime",
+      "destination": "https://owlio-api.onrender.com/api/socket.io"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://owlio-api.onrender.com/api/:path*"
     },
