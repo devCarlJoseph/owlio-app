@@ -27,9 +27,9 @@ export function SubjectsTable() {
           </div>
           <Button
             render={<Link to="/students/subjects" />}
-            variant="outline"
+            variant="secondary"
             size="sm"
-            className="border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
+            className="border-brand/30"
           >
             Manage subjects
             <ArrowUpRight aria-hidden="true" />

@@ -368,9 +368,9 @@ export function NotesView() {
                     <Button
                       type="button"
                       size="sm"
-                      variant="outline"
+                      variant="secondary"
                       onClick={() => setActiveLabel(null)}
-                      className="w-fit border-blue-200 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft text-blue-700 surface-dark:text-blue-300 hover:bg-blue-100 surface-dark:hover:bg-surface-blue-soft hover:text-blue-800 surface-dark:hover:text-blue-300"
+                      className="w-fit border-brand/30"
                     >
                       {activeLabel}
                       <X aria-hidden="true" />
