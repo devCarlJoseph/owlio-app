@@ -40,7 +40,7 @@ export function CreateSpaceDialog({ open, onOpenChange, onSubmit, accountSpace }
   const [busy, setBusy] = useState(false)
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy) onOpenChange(next) }}>
-      <DialogContent overlayClassName="bg-slate-950/55" className="max-h-[calc(100dvh-2rem)] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-3xl [&>[data-slot=dialog-close]]:text-white [&>[data-slot=dialog-close]]:hover:bg-white/15">
+      <DialogContent overlayClassName="bg-slate-950/55" className="max-h-[calc(100dvh-2rem)] gap-0 overflow-y-auto rounded-2xl p-0 sm:max-w-3xl [&>[data-slot=dialog-close]]:text-brand-foreground [&>[data-slot=dialog-close]]:hover:bg-brand-foreground/15 [&>[data-slot=dialog-close]]:focus-visible:ring-brand-foreground">
         <CreateSpaceForm
           key={open ? "create-space-open" : "create-space-closed"}
           onCancel={() => onOpenChange(false)}
@@ -96,10 +96,10 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
 
   return (
     <form onSubmit={(event) => { event.preventDefault(); void handleSubmit() }}>
-      <DialogHeader className="border-b border-teal-900/15 bg-teal-950 px-5 py-6 pr-14 text-white sm:px-7">
-        <span className="mb-1 grid size-9 place-items-center rounded-xl bg-white/15"><LayoutGrid className="size-4" aria-hidden="true" /></span>
+      <DialogHeader className="bg-brand px-5 py-6 pr-14 text-brand-foreground sm:px-7">
+        <span className="mb-1 grid size-9 place-items-center rounded-xl bg-brand-foreground/15"><LayoutGrid className="size-4" aria-hidden="true" /></span>
         <DialogTitle className="text-2xl font-semibold tracking-tight">Create a study space</DialogTitle>
-        <DialogDescription className="max-w-md text-teal-100">
+        <DialogDescription className="max-w-md text-brand-foreground">
           Set up a room for independent study or group work. {accountSpace ? "" : "This room stays on this device."}
           {accountSpace ? " You’ll get a study space code to share after you create it." : ""}
         </DialogDescription>
@@ -149,9 +149,9 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
               return (
                 <label
                   key={kind.value}
-                  className={`relative grid cursor-pointer grid-cols-[4.25rem_1fr] items-center gap-x-3 rounded-xl border p-2.5 text-left transition-colors has-focus-visible:ring-2 has-focus-visible:ring-teal-600 has-focus-visible:ring-offset-2 min-[460px]:block ${
+                  className={`relative grid cursor-pointer grid-cols-[4.25rem_1fr] items-center gap-x-3 rounded-xl border p-2.5 text-left transition-colors has-focus-visible:ring-2 has-focus-visible:ring-brand has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-popover min-[460px]:block ${
                     selected
-                      ? "border-emerald-700 bg-emerald-50/50 surface-dark:bg-surface-emerald-soft/50"
+                      ? "border-brand bg-brand-soft"
                       : "border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card hover:border-slate-300 surface-dark:hover:border-border"
                   }`}
                 >
@@ -170,7 +170,7 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
                       className="h-12 w-full min-[460px]:h-21"
                     />
                     {selected ? (
-                      <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-emerald-700 text-white shadow-sm">
+                      <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm">
                         <Check className="size-3" aria-hidden="true" />
                       </span>
                     ) : null}
@@ -232,7 +232,7 @@ function CreateSpaceForm({ onCancel, onSubmit, accountSpace, busy, setBusy }: Pi
               {minSpaceCapacity}–{maxSpaceCapacity} seats{accountSpace ? " · Shared room layout" : ""}
             </p>
           </div>
-          <figure className="overflow-hidden rounded-lg bg-teal-100/60 surface-dark:bg-muted sm:col-start-2 sm:row-span-3 sm:row-start-1">
+          <figure className="overflow-hidden rounded-lg bg-brand-soft sm:col-start-2 sm:row-span-3 sm:row-start-1">
             <RoomPlanPreview kind={draft.kind} capacity={draft.capacity} className="h-28 w-full" />
             <figcaption className="bg-background/80 px-2 py-1 text-center text-xs text-muted-foreground">
               {layoutName} · {draft.capacity} seats
