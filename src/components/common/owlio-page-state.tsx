@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react'
+import { OwlioLogo } from './owlio-logo'
 
 type OwlioPageStateProps = {
   title: string
@@ -16,7 +17,7 @@ export function OwlioPageState({ title, description, tone = 'info', code, action
     <main className="flex min-h-screen min-h-dvh bg-background text-foreground">
       <div className="flex w-full flex-col">
         <header className="flex items-center gap-2 px-6 py-6 sm:px-10">
-          <img src="/logo.png" alt="Owlio" className="h-10 w-auto object-contain surface-dark:rounded-lg surface-dark:bg-white surface-dark:px-2" />
+          <OwlioLogo alt="Owlio" />
         </header>
         <section aria-labelledby={id + '-title'} className="flex flex-1 flex-col items-center justify-center px-6 pb-16 pt-8 text-center sm:pb-24">
           {code !== undefined

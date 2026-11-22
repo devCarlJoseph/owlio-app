@@ -3,6 +3,7 @@ import { Bell, CircleHelp, LogOut, Menu, Search, Settings, ShieldCheck, UserRoun
 import { Link, Outlet, useLocation, useMatch, useNavigate } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { DashboardChromeContext } from "@/components/common/dashboard-chrome"
+import { OwlioLogo } from "@/components/common/owlio-logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -116,7 +117,7 @@ export default function PlatformLayout() {
             <Menu aria-hidden="true" />
           </Button>
           <Link to={homeHref} aria-label="Owlio home" className="flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand">
-            <img src="/logo.png" alt="" className="h-9 w-auto object-contain" />
+            <OwlioLogo alt="" className="h-9" />
           </Link>
           <form
             role="search"

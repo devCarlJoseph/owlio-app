@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router"
 import { Home, PanelLeftClose, PanelLeftOpen, X } from "lucide-react"
 import { cn } from "cn"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { OwlioLogo } from './owlio-logo'
 import { ThemeSelector } from './theme-selector'
 import { getActiveDashboardHref, getDashboardSidebarNavigation, getDashboardWorkspace } from "./dashboard-navigation"
 
@@ -208,7 +209,7 @@ export function AppSidebar({ mobileOpen, onMobileClose, badges }: AppSidebarProp
                   showLabels ? "flex-1" : "mx-auto w-12"
                 )}
               >
-                <img src="/logo.png" alt="" className="h-10 w-auto object-contain md:hidden" />
+                <OwlioLogo alt="" className="md:hidden" />
                 <Home className="hidden size-5 md:block" aria-hidden="true" />
                 {showLabels && <span className="hidden md:inline">Home</span>}
               </Link>
