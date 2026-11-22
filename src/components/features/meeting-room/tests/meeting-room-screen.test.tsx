@@ -14,7 +14,7 @@ function state(overrides: Partial<MeetingRoomScreenProps> = {}): MeetingRoomScre
     status: 'idle', preview: true, hasRoom: false, apiEnabled: false, canCreate: false, isHost: false, busy: false, message: '', error: '',
     participants: [], pinnedIdentity: null, onPin: vi.fn(), raisedHands: {}, revision: 0, micOn: false, cameraOn: false, screenOn: false,
     handUpdating: false, activePanel: null, onPanel: vi.fn(), unreadMessages: 0, messages: [], chatDraft: '', onChatDraft: vi.fn(), chatSending: false,
-    onSendChat: vi.fn(event => event.preventDefault()), onJoin: vi.fn(event => event.preventDefault()), onCreate: vi.fn(), onPreview: vi.fn(), onCopy: vi.fn(), onLeave: vi.fn(), onEnd: vi.fn(), onMicrophone: vi.fn(), onCamera: vi.fn(), onScreen: vi.fn(), onHand: vi.fn(), ...overrides,
+    onSendChat: vi.fn(event => event.preventDefault()), onJoin: vi.fn(event => event.preventDefault()), onCreate: vi.fn(), onCopy: vi.fn(), onLeave: vi.fn(), onEnd: vi.fn(), onMicrophone: vi.fn(), onCamera: vi.fn(), onSwitchCamera: vi.fn(), onScreen: vi.fn(), onHand: vi.fn(), ...overrides,
   }
 }
 function show(props: MeetingRoomScreenProps) { return render(<MemoryRouter><MeetingRoomScreen {...props} /></MemoryRouter>) }
@@ -34,15 +34,16 @@ describe('role-specific meeting layouts', () => {
     view.unmount()
     expect(person.off).toHaveBeenCalledWith(ParticipantEvent.IsSpeakingChanged, update)
   })
-  it('prioritizes a real screen share in spotlight and preserves contain-fit media', () => {
+  it('features a real screen share automatically, fits the full frame, and still allows grid view', () => {
     const presenter = participant('b', 'Presenter')
     const track = { attach: vi.fn(), detach: vi.fn() }
     vi.spyOn(presenter, 'getTrackPublication').mockImplementation(source => source === Track.Source.ScreenShare ? { track, isMuted: false } as unknown as ReturnType<Participant['getTrackPublication']> : undefined)
     const view = show(state({ preview: false, hasRoom: true, status: 'connected', participants: [participant('a', 'Alex'), presenter] }))
-    fireEvent.click(screen.getByRole('button', { name: 'Spotlight view' }))
     expect(screen.getByRole('article', { name: 'Presenter' }).closest('[data-featured]')).toBeTruthy()
     expect(screen.getByLabelText('Presenter video').classList.contains('object-contain')).toBe(true)
     expect(track.attach).toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Grid view' }))
+    expect(screen.getByRole('article', { name: 'Presenter' }).hasAttribute('data-featured')).toBe(false)
     view.unmount()
     expect(track.detach).toHaveBeenCalled()
   })
@@ -191,7 +192,7 @@ describe('role-specific meeting layouts', () => {
   })
   it.each(['esl', 'tutors'] as const)('keeps the %s whiteboard unavailable in a live room', role => {
     show(state({ role, preview: false, hasRoom: true, status: 'connected', localIdentity: 'local', participants: [participant('local', 'Teacher')] }))
-    expect(screen.getByRole('button', { name: 'Whiteboard (available in layout preview for now)' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.queryByRole('button', { name: /Whiteboard/ })).toBeNull()
     expect(screen.queryByRole('region', { name: 'Whiteboard' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Open participants, 1 connected' })).toBeTruthy()
   })

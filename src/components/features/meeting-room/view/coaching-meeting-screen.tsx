@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { ArrowLeft, Copy, Hand, MessageSquareText, Mic, MicOff, MonitorUp, PhoneOff, Presentation, Users, Video, VideoOff } from 'lucide-react'
+import { ArrowLeft, Copy, Hand, MessageSquareText, Mic, MicOff, MonitorUp, PhoneOff, Presentation, SwitchCamera, Users, Video, VideoOff } from 'lucide-react'
 import { cn } from 'cn'
 import { useImmersiveDashboard } from '@/components/common/dashboard-chrome'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import { createBoardSeed, type BoardState } from '../utils/meeting-whiteboard-mo
 import { meetGrid } from '../utils/meeting-grid'
 import { PrejoinDevicePreview } from '../ui/prejoin-device-preview'
 import { ParticipantStrip } from '../ui/participant-strip'
+import { getScreenTrack } from '../hooks/use-participant-video'
 import type { MeetingRoomScreenProps, RoomStatus } from '../types/meeting-room-types'
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }
@@ -43,8 +44,8 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     }))
   const messages = state.preview ? [] : state.messages
   const showBoard = boardOpen && state.preview
-  const pinned = people.find(person => person.identity === state.pinnedIdentity)
-  const strip = showBoard ? people : pinned ? people.filter(person => person !== pinned) : []
+  const featured = people.find(person => person.identity === state.pinnedIdentity) ?? people.find(person => getScreenTrack(person.participant))
+  const strip = showBoard ? people : featured ? people.filter(person => person !== featured) : []
   const raised = Boolean(state.raisedHands[state.localIdentity ?? ''])
   const title = state.preview ? sample.title : kind === 'esl' ? 'Language learning session' : 'Tutoring session'
   const panel = state.activePanel
@@ -62,7 +63,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     {(state.message || state.error) && <div className="space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
     <div className={cn(card, 'grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)] lg:gap-10 lg:p-8')}>
       <PrejoinDevicePreview cameraTrack={state.previewCameraTrack} micOn={state.micOn} cameraOn={state.cameraOn}
-        disabled={state.busy || Boolean(state.deviceBusy)} onMicrophone={state.onMicrophone} onCamera={state.onCamera} />
+        disabled={state.busy || Boolean(state.deviceBusy)} onMicrophone={state.onMicrophone} onCamera={state.onCamera} onSwitchCamera={state.onSwitchCamera} />
       <div className="space-y-5 self-center">
         <div>
           <p className="text-[10px] font-semibold tracking-widest text-brand uppercase">Your learning session</p>
@@ -75,7 +76,7 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
           <Button type="submit" disabled={state.busy || state.deviceBusy || !state.apiEnabled} className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
         </form>
         {state.canCreate && <Button variant="outline" className="h-10 w-full" disabled={state.busy || state.deviceBusy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
-        {!state.apiEnabled && <p role="status" className="rounded-xl bg-muted p-3 text-xs leading-5 text-muted-foreground">Live meetings are unavailable while API integrations are paused. You can explore the layout without connecting or enabling devices.</p>}
+        {!state.apiEnabled && <p role="status" className="rounded-xl bg-muted p-3 text-xs leading-5 text-muted-foreground">Live meetings are currently unavailable.</p>}
       </div>
     </div>
   </section>
@@ -101,14 +102,14 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
     <div className="relative flex min-h-0 min-w-0 flex-1 gap-3 overflow-hidden">
       <section aria-label="Meeting stage" className={cn('flex min-h-0 min-w-0 flex-1 gap-3', strip.length > 0 && 'flex-col lg:flex-row', panel && 'max-lg:invisible')}>
         {showBoard ? <MeetingWhiteboard board={board} onChange={setBoard} host={{ id: sample.people[0]?.identity ?? '', name: sample.people[0]?.name ?? 'Teacher' }} hostLabel={sample.hostLabel} learner={{ id: sample.people[1]?.identity ?? '', name: sample.people[1]?.name ?? 'Learner' }} names={names} learnerOnly={learnerView} onClose={() => setBoardOpen(false)} />
-          : pinned ? <CallTile person={pinned} featured updateKey={state.revision} className="min-h-0 flex-1" />
+          : featured ? <CallTile person={featured} featured updateKey={state.revision} className="min-h-0 flex-1" />
             : people.length === 0 ? <div className={cn('flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl text-center', stageSurface)}><span className="grid size-16 place-items-center rounded-full bg-card text-brand shadow-sm"><VideoOff aria-hidden="true" className="size-7" /></span><p className="text-sm font-medium">Waiting for participants</p></div>
               : <div className={grid.container}>
                 {gridPeople.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className={gridTile} />)}
                 {hiddenCount > 0 && <button type="button" onClick={() => state.onPanel('people')} className={cn(gridTile, 'grid place-items-center rounded-2xl bg-muted text-sm font-medium text-muted-foreground hover:bg-accent')}>+{hiddenCount} others</button>}
               </div>}
         {strip.length > 0 && <ParticipantStrip label={showBoard ? 'Participants beside the whiteboard' : 'Other participants'} className="lg:w-52">
-          {strip.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className="h-24 w-40 shrink-0 lg:h-32 lg:w-auto" />)}
+          {strip.map(person => <CallTile key={person.identity} person={person} updateKey={state.revision} className="h-19 w-30 shrink-0 sm:h-24 sm:w-40 lg:h-32 lg:w-auto" />)}
         </ParticipantStrip>}
       </section>
 
@@ -119,14 +120,15 @@ export function CoachingMeetingScreen({ roomInputRef, ...state }: MeetingRoomScr
       </aside>}
     </div>
 
-    <footer className="flex shrink-0 flex-wrap items-center justify-center gap-1.5 pb-1 sm:gap-3 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-      <div className="hidden min-w-0 items-center gap-3 text-sm md:flex"><MeetingClock /><span aria-hidden="true" className="h-4 w-px bg-border" /><span className="truncate font-medium">{state.meetingCode || title}</span></div>
-      <div role="group" aria-label="Meeting controls" className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3">
+    <footer className="flex shrink-0 flex-wrap items-center justify-center gap-1.5 rounded-2xl py-1.5 max-lg:bg-muted/70 max-sm:pb-[max(.375rem,env(safe-area-inset-bottom))] sm:gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+      <div className="hidden min-w-0 items-center gap-3 text-sm lg:flex"><MeetingClock /><span aria-hidden="true" className="h-4 w-px bg-border" /><span className="truncate font-medium">{state.meetingCode || title}</span></div>
+      <div role="group" aria-label="Meeting controls" className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 sm:gap-2">
         <CallButton label={state.micOn ? 'Turn microphone off' : 'Turn microphone on'} pressed={state.micOn} tone={state.micOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onMicrophone}>{state.micOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}</CallButton>
         <CallButton label={state.cameraOn ? 'Turn camera off' : 'Turn camera on'} pressed={state.cameraOn} tone={state.cameraOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onCamera}>{state.cameraOn ? <Video aria-hidden="true" /> : <VideoOff aria-hidden="true" />}</CallButton>
+        {state.cameraOn && <CallButton label="Switch front or rear camera" disabled={!enabled || state.deviceBusy} onClick={state.onSwitchCamera}><SwitchCamera aria-hidden="true" /></CallButton>}
         <CallButton label={raised ? 'Lower hand' : 'Raise hand'} pressed={raised} disabled={!enabled || state.handUpdating} onClick={state.onHand}><Hand aria-hidden="true" /></CallButton>
-        <CallButton label={state.screenOn ? 'Stop presenting' : 'Share screen'} pressed={state.screenOn} disabled={!enabled} onClick={state.onScreen} className="max-sm:hidden"><MonitorUp aria-hidden="true" /></CallButton>
-        <CallButton label={state.preview ? 'Whiteboard' : 'Whiteboard (available in layout preview for now)'} pressed={showBoard} disabled={!state.preview} onClick={() => setBoardOpen(open => !open)}><Presentation aria-hidden="true" /></CallButton>
+        <CallButton label={state.screenOn ? 'Stop presenting' : 'Share screen'} pressed={state.screenOn} disabled={!enabled || state.deviceBusy || (!state.screenOn && !navigator.mediaDevices?.getDisplayMedia)} onClick={state.onScreen}><MonitorUp aria-hidden="true" /></CallButton>
+        {state.preview && <CallButton label="Whiteboard" pressed={showBoard} onClick={() => setBoardOpen(open => !open)}><Presentation aria-hidden="true" /></CallButton>}
         <CallButton label={state.preview ? 'Exit preview' : 'Leave meeting'} tone="leave" wide onClick={state.onLeave}><PhoneOff aria-hidden="true" /></CallButton>
       </div>
       <div role="group" aria-label="Meeting panels" className="flex items-center justify-end gap-1.5 sm:gap-2">

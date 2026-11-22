@@ -13,14 +13,22 @@ vi.mock('../hooks/use-native-meeting-data', () => ({ useNativeMeetingData: () =>
 vi.mock('@/services/api/meeting.service', () => ({ joinMeeting: vi.fn(), createMeeting: vi.fn(), openClassroomMeeting: vi.fn(), endMeeting: vi.fn(), sendMeetingMessage: vi.fn(), setMeetingHand: vi.fn(), resolveMeetingInvite: vi.fn() }))
 const session = '11111111-1111-4111-8111-111111111111'
 function fakeTrack(source = Track.Source.Camera) {
-  return { source, stop: vi.fn(), attach: vi.fn(), detach: vi.fn(), on: vi.fn().mockReturnThis(), off: vi.fn().mockReturnThis() } as unknown as LocalVideoTrack
+  let facingMode = 'user'
+  const track = { source, stop: vi.fn(), attach: vi.fn(), detach: vi.fn(), on: vi.fn().mockReturnThis(), off: vi.fn().mockReturnThis(),
+    mediaStreamTrack: { readyState: 'live', getSettings: () => ({ facingMode }) },
+    restartTrack: vi.fn(async (options) => { facingMode = options.facingMode ?? facingMode }),
+  }
+  return track as unknown as LocalVideoTrack
 }
 function show(role = 'educators') { return render(<MemoryRouter initialEntries={['/' + role + '/classrooms/meeting-room?session=' + session]}><MeetingRoomPage /></MemoryRouter>) }
 function fakeRoom() {
   const localParticipant = { identity: 'fixture-peer', name: 'You', isCameraEnabled: false, isMicrophoneEnabled: false, isScreenShareEnabled: false, on: vi.fn(), off: vi.fn(), audioTrackPublications: new Map(), getTrackPublication: vi.fn(), publishTrack: vi.fn(), setMicrophoneEnabled: vi.fn(), setCameraEnabled: vi.fn() }
   const room = { state: 'connected', localParticipant, remoteParticipants: new Map(), connect: vi.fn().mockResolvedValue(undefined), disconnect: vi.fn().mockResolvedValue(undefined), on: vi.fn().mockReturnThis(), off: vi.fn().mockReturnThis() }
   localParticipant.publishTrack.mockImplementation(async track => {
-    if (track.source === Track.Source.Camera) localParticipant.isCameraEnabled = true
+    if (track.source === Track.Source.Camera) {
+      localParticipant.isCameraEnabled = true
+      localParticipant.getTrackPublication.mockImplementation(source => source === Track.Source.Camera ? { track, videoTrack: track, isMuted: false } : undefined)
+    }
     if (track.source === Track.Source.Microphone) localParticipant.isMicrophoneEnabled = true
   })
   vi.mocked(Room).mockImplementation(function () { return room as unknown as Room })
@@ -82,6 +90,31 @@ describe('local device preview ownership', () => {
 })
 
 describe('pre-join meeting controls', () => {
+  it('switches to the rear camera before joining and back to the front camera in the call without republishing', async () => {
+    const camera = fakeTrack(), room = fakeRoom()
+    vi.mocked(createLocalVideoTrack).mockResolvedValue(camera)
+    show()
+    expect(screen.queryByRole('button', { name: 'Switch front or rear camera' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Turn camera on' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Switch front or rear camera' }))
+    await waitFor(() => expect(screen.getByLabelText('Your camera preview').classList.contains('-scale-x-100')).toBe(false))
+    fireEvent.click(screen.getByRole('button', { name: 'Join meeting' }))
+    await screen.findByText('Connected')
+    fireEvent.click(screen.getByRole('button', { name: 'Switch front or rear camera' }))
+    await waitFor(() => expect(camera.restartTrack).toHaveBeenLastCalledWith({ facingMode: 'user' }))
+    expect(camera.restartTrack).toHaveBeenNthCalledWith(1, { facingMode: 'environment' })
+    expect(room.localParticipant.publishTrack).toHaveBeenCalledExactlyOnceWith(camera)
+  })
+  it('reports when the browser returns the same camera instead of the rear camera', async () => {
+    const camera = fakeTrack()
+    vi.mocked(camera.restartTrack).mockResolvedValueOnce(undefined)
+    vi.mocked(createLocalVideoTrack).mockResolvedValue(camera)
+    show()
+    fireEvent.click(screen.getByRole('button', { name: 'Turn camera on' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Switch front or rear camera' }))
+    expect((await screen.findByRole('alert')).textContent).toContain('Could not switch cameras')
+    expect(screen.getByRole('button', { name: 'Turn camera off' })).toBeTruthy()
+  })
   it.each(['educators', 'students', 'esl', 'tutors'])('offers real preview buttons in the %s room', async role => {
     const camera = fakeTrack(); vi.mocked(createLocalVideoTrack).mockResolvedValue(camera)
     const view = show(role)

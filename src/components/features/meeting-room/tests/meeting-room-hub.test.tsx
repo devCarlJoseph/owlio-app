@@ -72,25 +72,21 @@ describe('connected meeting entry', () => {
   it.each(['students', 'educators', 'tutors', 'esl'])('restores the %s meeting hub without opening a live room', async role => {
     open('/' + role + '/classrooms/meeting-room')
     expect(await screen.findByRole('group', { name: 'Meeting categories' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Preview room layout' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Preview room layout' })).toBeNull()
     expect(screen.getByRole('link', { name: 'Scheduled sessions' }).getAttribute('href')).toContain('source=account')
     expect(createMeeting).not.toHaveBeenCalled()
   })
-  it.each(['students', 'educators', 'tutors', 'esl'])('opens the %s room layout without connecting to media', async role => {
-    open('/' + role + '/classrooms/meeting-room?layout-preview=1')
-    expect(await screen.findByText('Layout preview')).toBeTruthy()
+  it.each(['students', 'educators', 'tutors', 'esl'])('redirects old %s room preview links to the hub without joining', async role => {
+    open('/' + role + '/classrooms/meeting-room?category=educators&layout-preview=1&join=1')
+    expect(await screen.findByRole('heading', { name: 'Classroom meetings' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Turn camera on' })).toBeNull()
+    expect(joinMeeting).not.toHaveBeenCalled()
     expect(createMeeting).not.toHaveBeenCalled()
   })
   it('keeps connected scheduled sessions accessible from the restored hub', async () => {
     open('/students/classrooms/meeting-room?source=account')
     expect(await screen.findByText('Join or create a class to see its sessions.')).toBeTruthy()
     expect(screen.queryByRole('group', { name: 'Meeting categories' })).toBeNull()
-  })
-  it('returns from a layout preview to the category hub without opening a live room', async () => {
-    open('/tutors/classrooms/meeting-room?layout-preview=1&join=1')
-    fireEvent.click(await screen.findByRole('button', { name: 'Exit preview' }))
-    expect(await screen.findByRole('group', { name: 'Meeting categories' })).toBeTruthy()
-    expect(createMeeting).not.toHaveBeenCalled()
   })
   it('rejects legacy room invites without opening a fabricated live room', async () => {
     open('/students/classrooms/meeting-room?room=' + id)

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Room, RoomEvent, type LocalAudioTrack, type LocalVideoTrack } from 'livekit-client'
-import { Link, useLocation, useSearchParams } from 'react-router'
+import { Room, RoomEvent, Track, type LocalAudioTrack, type LocalVideoTrack } from 'livekit-client'
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router'
 import { getDashboardRole } from '@/components/common/dashboard-navigation'
 import { useAuthSession } from '@/components/features/auth/context/auth-session-context'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,7 @@ import { MeetingRoomShell } from '../ui/meeting-room-shell'
 import { MeetingAttendance } from '../ui/meeting-attendance'
 import { useNativeMeetingData } from '../hooks/use-native-meeting-data'
 import { usePrejoinDevices } from '../hooks/use-prejoin-devices'
+import { cameraSwitchError, switchCamera } from '../utils/switch-camera'
 import type { MeetingCategory, MeetingPanel, RoomStatus } from '../types/meeting-room-types'
 
 export default function MeetingRoomPage() {
@@ -25,7 +26,10 @@ export default function MeetingRoomPage() {
   const [params] = useSearchParams()
   const role = getDashboardRole(pathname) ?? 'students'
   if (shouldShowEslWhiteboardPreview(role, params.get('whiteboard-preview'))) return <EslWhiteboardPreview />
-  if (params.get('layout-preview') === '1') return <MeetingLayoutPreview />
+  if (params.get('layout-preview') === '1') {
+    const category = params.get('category')
+    return <Navigate replace to={{ pathname, search: category ? new URLSearchParams({ category }).toString() : '' }} />
+  }
   return params.has('session') || params.has('join') || params.has('room') ? <MeetingRoomSession key={(user?.id ?? 'anonymous') + ':' + role + ':' + (params.get('session') ?? params.get('room') ?? 'join')} /> : <MeetingDirectory />
 }
 function MeetingDirectory() {
@@ -36,25 +40,6 @@ function MeetingDirectory() {
     : <MeetingRoomHub />
 }
 
-// Layout previews never request media permissions or call meeting mutation APIs.
-function MeetingLayoutPreview() {
-  const { pathname } = useLocation()
-  const role = getDashboardRole(pathname) ?? 'students'
-  const [params, setParams] = useSearchParams()
-  const roomInputRef = useRef<HTMLInputElement>(null)
-  const [panel, setPanel] = useState<MeetingPanel | null>(null)
-  const [pinned, setPinned] = useState<string | null>(null)
-  const category = ['educators', 'esl', 'tutors'].includes(params.get('category') ?? '') ? params.get('category') as MeetingCategory : null
-  const leave = () => { const next = new URLSearchParams(params); next.delete('layout-preview'); next.delete('join'); setParams(next) }
-  return <MeetingRoomScreen role={role} meetingCategory={category} backHref={'/' + role + '/classrooms/meeting-room'}
-    roomId={null} meetingCode="" roomInputRef={roomInputRef} status="idle" preview hasRoom={false} apiEnabled={false}
-    canCreate={false} isHost={false} busy={false} message="" error="" participants={[]} pinnedIdentity={pinned} onPin={setPinned}
-    raisedHands={{}} revision={0} micOn={false} cameraOn={false} screenOn={false} handUpdating={false}
-    activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0} messages={[]}
-    chatDraft="" onChatDraft={() => {}} chatSending={false} onSendChat={event => event.preventDefault()}
-    onJoin={event => event.preventDefault()} onCreate={() => {}} onPreview={() => {}} onCopy={() => {}} onLeave={leave}
-    onEnd={() => {}} onMicrophone={() => {}} onCamera={() => {}} onScreen={() => {}} onHand={() => {}} />
-}
 function MeetingRoomSession() {
   const { pathname } = useLocation()
   const role = getDashboardRole(pathname) ?? 'students'
@@ -227,6 +212,28 @@ function MeetingRoomSession() {
     } catch { if (roomRef.current === current) setError('Could not change your ' + kind + '. Check device permissions and room settings.') }
     finally { devicePending.current = false; setDeviceBusy(false) }
   }
+  const flipCamera = async () => {
+    if (pending.current || devicePending.current) return
+    setError('')
+    if (!room) { await devices.flipCamera(); return }
+    if (status !== 'connected' || !room.localParticipant.isCameraEnabled) return
+    const camera = room.localParticipant.getTrackPublication(Track.Source.Camera)?.videoTrack
+    if (!camera) return
+    const isCurrent = () => roomRef.current === room
+    devicePending.current = true
+    setDeviceBusy(true)
+    try {
+      const switched = await switchCamera(camera, isCurrent)
+      if (!isCurrent()) return
+      if (camera.mediaStreamTrack.readyState === 'ended') await room.localParticipant.unpublishTrack(camera)
+      if (isCurrent() && !switched) setError(cameraSwitchError)
+    } catch {
+      if (isCurrent()) setError(cameraSwitchError)
+    } finally {
+      devicePending.current = false
+      setDeviceBusy(false)
+    }
+  }
   const hand = async () => {
     const own = data.state?.ownParticipant
     if (!room || !own || handUpdating) return
@@ -289,7 +296,7 @@ function MeetingRoomSession() {
       previewCameraTrack={devices.cameraTrack} deviceBusy={devices.busy || deviceBusy} micOn={room ? micOn : devices.micOn} cameraOn={room ? cameraOn : devices.cameraOn} screenOn={screenOn} handUpdating={handUpdating} activePanel={panel} onPanel={next => setPanel(current => current === next ? null : next)} unreadMessages={0}
       messages={[...data.messages.map(item => ({ id: item.id, identity: identity(item.authorId), authorName: item.authorName, text: item.body, sentAt: Date.parse(item.createdAt) })), ...outgoing.map(item => ({ id: item.requestId, identity: room?.localParticipant.identity ?? '', text: item.body, sentAt: item.sentAt, delivery: item.failed ? 'failed' as const : 'sending' as const, onRetry: () => { void sendMessage(item.body, item.requestId) } }))]}
       chatDraft={chatDraft} onChatDraft={setChatDraft} chatSending={chatSending} onSendChat={event => void send(event)} onJoin={event => void join(event)} onCreate={() => void open()}
-      onPreview={() => {}} onCopy={() => void copy()} onLeave={() => void leave()} onEnd={() => void end()} onMicrophone={() => void device('microphone')} onCamera={() => void device('camera')} onScreen={() => void device('screen')} onHand={() => void hand()} />
+      onCopy={() => void copy()} onLeave={() => void leave()} onEnd={() => void end()} onMicrophone={() => void device('microphone')} onCamera={() => void device('camera')} onSwitchCamera={() => void flipCamera()} onScreen={() => void device('screen')} onHand={() => void hand()} />
     {!room && <Button variant="outline" disabled={busy} onClick={resetInvite}>Use another invite</Button>}
   </MeetingRoomShell>
 }

@@ -37,7 +37,7 @@ export function Avatar({ person, className }: { person: Pick<CallPerson, 'identi
 export function CallTile({ person, updateKey, featured = false, className }: { person: CallPerson; updateKey: number; featured?: boolean; className?: string }) {
   const { videoRef, videoTrack, screenTrack } = useParticipantVideo(person.participant, updateKey)
   return <article aria-label={`${person.name}${person.local ? ', you' : ''}`} className={cn('@container relative isolate min-h-0 min-w-0 overflow-hidden rounded-2xl text-foreground [container-type:size]', tileSurface, className)}>
-    {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={person.local} aria-label={`${person.name} video`} className={cn('absolute inset-0 size-full', screenTrack ? 'object-contain' : 'object-cover')} />
+    {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={person.local} aria-label={`${person.name} video`} className="absolute inset-0 size-full bg-black object-contain" />
       : <div className="absolute inset-x-0 top-0 bottom-6 grid place-items-center">
         <Avatar person={person} className={cn('size-10 text-sm ring-2 ring-card/70 supports-[container-type:size]:text-[clamp(.625rem,min(10cqw,12cqh),2rem)]', featured ? 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),7rem)]' : 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),5rem)]')} />
       </div>}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createLocalAudioTrack, createLocalVideoTrack, TrackEvent, type LocalAudioTrack, type LocalVideoTrack } from 'livekit-client'
+import { cameraSwitchError, switchCamera } from '../utils/switch-camera'
 
 export type PreviewDevice = 'microphone' | 'camera'
 type PreviewTrack = LocalAudioTrack | LocalVideoTrack
@@ -80,5 +81,25 @@ export function usePrejoinDevices() {
       if (request === generation.current) { pending.current.delete(kind); setBusy(pending.current.size > 0) }
     }
   }
-  return { cameraTrack: tracks.camera as LocalVideoTrack | undefined, micOn: Boolean(tracks.microphone), cameraOn: Boolean(tracks.camera), busy, error, toggle, takeTracks, stop }
+  const flipCamera = async () => {
+    const camera = owned.current.camera as LocalVideoTrack | undefined
+    if (!camera || pending.current.has('camera')) return
+    const request = generation.current
+    const isCurrent = () => request === generation.current && owned.current.camera === camera
+    pending.current.add('camera')
+    setBusy(true)
+    setError('')
+    try {
+      const switched = await switchCamera(camera, isCurrent)
+      if (!isCurrent()) return
+      if (camera.mediaStreamTrack.readyState === 'ended') endedHandlers.current.get(camera)?.()
+      if (!switched) setError(cameraSwitchError)
+    } finally {
+      if (request === generation.current) {
+        pending.current.delete('camera')
+        setBusy(pending.current.size > 0)
+      }
+    }
+  }
+  return { cameraTrack: tracks.camera as LocalVideoTrack | undefined, micOn: Boolean(tracks.microphone), cameraOn: Boolean(tracks.camera), busy, error, toggle, flipCamera, takeTracks, stop }
 }

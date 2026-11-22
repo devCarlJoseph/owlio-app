@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useEffect, useRef, useState } from 'react'
 import { getApiErrorMessage } from '@/services/api/api-error'
-import { createClassroomPost, getClassroomPosts, setClassReaction, type DiscussionCursor, type DiscussionPostRecord } from '@/services/api/classroom-discussion.service'
+import { createClassroomPost, editClassroomPost, getClassroomPosts, setClassReaction, type DiscussionCursor, type DiscussionPostRecord } from '@/services/api/classroom-discussion.service'
 
 const merge = (current: DiscussionPostRecord[], added: DiscussionPostRecord[]) =>
   [...new Map([...current, ...added].map(post => [post.id, post])).values()]
@@ -80,5 +80,16 @@ export function useClassroomDiscussion(classroomId: string) {
     } catch (cause) { if (!controller.signal.aborted) setError(getApiErrorMessage(cause, 'Reaction was not confirmed. Try again.')) }
     finally { pending.current = false; if (!controller.signal.aborted) setBusy(false) }
   }
-  return { posts, next, loading, busy, error, readOnly, create, react, loadOlder, reload: () => reloadRef.current() }
+  const edit = async (postId: string, body: string, expectedEditedAt: string | null) => {
+    const controller = active.current
+    if (!controller || controller.signal.aborted || pending.current || readOnly) return false
+    pending.current = true; revision.current++; setBusy(true)
+    try {
+      const saved = await editClassroomPost(classroomId, postId, { body, expectedEditedAt })
+      if (controller.signal.aborted) return false
+      setPosts(current => merge(current, [saved]))
+      return true
+    } finally { pending.current = false; if (!controller.signal.aborted) setBusy(false) }
+  }
+  return { posts, next, loading, busy, error, readOnly, create, react, edit, loadOlder, reload: () => reloadRef.current() }
 }

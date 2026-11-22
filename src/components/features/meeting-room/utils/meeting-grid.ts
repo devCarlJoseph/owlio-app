@@ -12,7 +12,7 @@ export function meetGrid<T>(people: T[]) {
   return {
     visible,
     hidden,
-    container: 'grid min-h-0 min-w-0 flex-1 auto-rows-fr grid-cols-2 gap-3 overflow-hidden sm:flex sm:flex-wrap sm:content-center sm:justify-center',
+    container: 'grid min-h-0 min-w-0 flex-1 auto-rows-[minmax(5rem,1fr)] grid-cols-2 gap-3 overflow-y-auto overscroll-contain sm:flex sm:flex-wrap sm:content-center sm:justify-center sm:overflow-hidden',
     tile: ['min-h-0 min-w-0 sm:shrink-0 sm:grow-0', basis[columns], height[rows], visible.length === 1 ? 'col-span-2' : ''].join(' '),
   }
 }

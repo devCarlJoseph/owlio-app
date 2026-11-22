@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { Link } from 'react-router'
-import { ParticipantEvent, Track, type Participant } from 'livekit-client'
-import { ArrowLeft, AudioLines, Copy, Grid2X2, Hand, Info, LockKeyhole, MessageSquareText, Mic, MicOff, MonitorUp, PanelLeft, PhoneOff, Pin, Users, Video, VideoOff, X } from 'lucide-react'
+import { ParticipantEvent, type Participant } from 'livekit-client'
+import { ArrowLeft, AudioLines, Copy, Grid2X2, Hand, Info, LockKeyhole, MessageSquareText, Mic, MicOff, MonitorUp, PanelLeft, PhoneOff, Pin, SwitchCamera, Users, Video, VideoOff, X } from 'lucide-react'
 import { cn } from 'cn'
 import { useImmersiveDashboard } from '@/components/common/dashboard-chrome'
 import { Button } from '@/components/ui/button'
@@ -13,12 +13,12 @@ import { ChatPanel, PeoplePanel, type CallPerson } from '../ui/coaching-meeting-
 import { meetGrid } from '../utils/meeting-grid'
 import { PrejoinDevicePreview } from '../ui/prejoin-device-preview'
 import { ParticipantStrip } from '../ui/participant-strip'
-import { useParticipantVideo } from '../hooks/use-participant-video'
+import { getScreenTrack, useParticipantVideo } from '../hooks/use-participant-video'
 import type { MeetingPanel, MeetingRoomScreenProps, RoomStatus } from '../types/meeting-room-types'
 
 const statusLabels: Record<RoomStatus, string> = { idle: 'Not connected', joining: 'Connecting…', connected: 'Connected', reconnecting: 'Reconnecting', ended: 'Meeting ended' }
 const avatarColors = ['bg-sky-600', 'bg-violet-600', 'bg-emerald-600', 'bg-rose-600', 'bg-amber-600', 'bg-indigo-600', 'bg-teal-600']
-const tileSurface = 'bg-slate-200 surface-dark:bg-muted'
+const tileSurface = 'bg-slate-200 surface-dark:bg-muted max-lg:bg-slate-800 max-lg:text-slate-100'
 
 function colorFor(identity: string) {
   let hash = 0
@@ -46,7 +46,7 @@ function MeetTile({ person, pinned, onPin, updateKey, featured = false, classNam
   const speaking = useSpeaking(person.participant)
   return <article data-featured={featured || undefined} aria-label={`${person.name}${person.local ? ', you' : ''}${speaking ? ', speaking' : ''}`}
     className={cn('@container group relative isolate min-h-0 min-w-0 overflow-hidden rounded-xl text-foreground [container-type:size]', tileSurface, speaking && 'ring-3 ring-brand ring-inset', className)}>
-    {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={person.local} aria-label={`${person.name} video`} className={cn('absolute inset-0 -z-10 size-full', screenTrack ? 'object-contain' : 'object-cover')} />
+    {videoTrack ? <video ref={videoRef} autoPlay playsInline muted={person.local} aria-label={`${person.name} video`} className="absolute inset-0 -z-10 size-full bg-black object-contain" />
       : <div className="absolute inset-x-0 top-0 bottom-6 -z-10 grid place-items-center"><MeetAvatar person={person} className={cn('size-12 text-xl supports-[container-type:size]:text-[clamp(.625rem,min(10cqw,12cqh),2.5rem)]', featured ? 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),8rem)]' : 'supports-[container-type:size]:size-[clamp(1rem,min(28cqw,32cqh),6rem)]')} /></div>}
     {person.participant && !person.local && [...person.participant.audioTrackPublications.values()].map(publication => publication.track ? <AudioTrack key={publication.trackSid} track={publication.track} /> : null)}
     {person.raised && <span title="Hand raised" className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-amber-100 surface-dark:bg-surface-amber-soft px-2 py-1 text-[11px] font-medium text-amber-700 surface-dark:text-amber-300"><Hand aria-hidden="true" className="size-3.5" /><span className="sr-only @[12rem]:not-sr-only">Hand raised</span></span>}
@@ -54,10 +54,10 @@ function MeetTile({ person, pinned, onPin, updateKey, featured = false, classNam
       {speaking ? <AudioLines aria-hidden="true" className="size-4" /> : person.micOn ? <Mic aria-hidden="true" className="size-3.5" /> : <MicOff aria-hidden="true" className="size-3.5" />}
     </span>
     <button type="button" onClick={onPin} aria-pressed={pinned} aria-label={`${pinned ? 'Unpin' : 'Pin'} ${person.name} ${pinned ? 'from' : 'for'} your view`}
-      className={cn('absolute top-1/2 left-1/2 grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-opacity focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/60 focus-visible:outline-none group-hover:opacity-100', pinned ? 'bg-brand text-brand-foreground opacity-100' : 'bg-foreground/55 text-background opacity-0')}>
+      className={cn('absolute top-1/2 left-1/2 grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-opacity focus-visible:opacity-100 focus-visible:ring-3 focus-visible:ring-ring/60 focus-visible:outline-none group-hover:opacity-100 pointer-coarse:top-auto pointer-coarse:right-1 pointer-coarse:bottom-1 pointer-coarse:left-auto pointer-coarse:translate-none pointer-coarse:opacity-100', pinned ? 'bg-brand text-brand-foreground opacity-100' : 'bg-black/55 text-white opacity-0')}>
       <Pin aria-hidden="true" className={cn('size-4', pinned && 'fill-current')} />
     </button>
-    <span className={cn('absolute bottom-2 left-2.5 max-w-[calc(100%-1.25rem)] truncate text-[13px] font-medium', videoTrack ? 'rounded bg-black/45 px-1.5 text-white' : 'text-foreground')}>{person.name}{person.local ? ' (You)' : ''}{screenTrack ? ' · Presenting' : ''}</span>
+    <span className={cn('absolute bottom-2 left-2.5 max-w-[calc(100%-1.25rem)] truncate text-[13px] font-medium pointer-coarse:max-w-[calc(100%-3.5rem)]', videoTrack && 'rounded bg-black/60 px-1.5 text-white')}>{person.name}{person.local ? ' (You)' : ''}{screenTrack ? ' · Presenting' : ''}</span>
   </article>
 }
 
@@ -94,7 +94,7 @@ function InfoPanel({ meetingCode, preview, onCopy, onClose }: { meetingCode: str
 }
 
 export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomScreenProps) {
-  const [layout, setLayout] = useState<'grid' | 'spotlight'>('grid')
+  const [layout, setLayout] = useState<'auto' | 'grid' | 'spotlight'>('auto')
   const panelRef = useRef<HTMLElement>(null)
   const chatTrigger = useRef<HTMLButtonElement>(null)
   const peopleTrigger = useRef<HTMLButtonElement>(null)
@@ -120,12 +120,9 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
       local: participant.identity === state.localIdentity,
       participant,
     }))
-  const presenter = people.find(person => {
-    const publication = person.participant?.getTrackPublication(Track.Source.ScreenShare)
-    return publication?.track && !publication.isMuted
-  })
+  const presenter = people.find(person => getScreenTrack(person.participant))
   const featured = people.find(person => person.identity === state.pinnedIdentity)
-    ?? (layout === 'spotlight' ? presenter ?? people.find(person => !person.local) ?? people[0] : undefined)
+    ?? (layout === 'spotlight' ? presenter ?? people.find(person => !person.local) ?? people[0] : layout === 'auto' ? presenter : undefined)
   const others = people.filter(person => person !== featured)
   const grid = meetGrid(people)
   const raised = Boolean(state.raisedHands[state.localIdentity ?? ''])
@@ -147,7 +144,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
     {(state.message || state.error) && <div className="space-y-1 text-xs leading-5">{state.message && <p role="status">{state.message}</p>}{state.error && <p role="alert" className="font-medium text-destructive">{state.error}</p>}</div>}
     <div className="grid items-center gap-8 py-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)] lg:gap-12 lg:py-10">
       <PrejoinDevicePreview cameraTrack={state.previewCameraTrack} micOn={state.micOn} cameraOn={state.cameraOn}
-        disabled={state.busy || Boolean(state.deviceBusy)} onMicrophone={state.onMicrophone} onCamera={state.onCamera} />
+        disabled={state.busy || Boolean(state.deviceBusy)} onMicrophone={state.onMicrophone} onCamera={state.onCamera} onSwitchCamera={state.onSwitchCamera} />
       <div className="mx-auto flex w-full max-w-sm flex-col gap-4 text-center lg:text-left">
         <span className="text-[11px] font-semibold tracking-widest text-brand">OWLIO CLASSROOM</span>
         <h3 className="text-3xl font-normal tracking-tight">{state.status === 'ended' ? 'This meeting has ended' : state.roomId ? 'Ready to join?' : 'Join your learning group'}</h3>
@@ -158,7 +155,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
           <Button type="submit" disabled={state.busy || state.deviceBusy || !state.apiEnabled} className="h-11 rounded-full bg-brand text-brand-foreground hover:bg-brand/90">{state.status === 'joining' ? 'Connecting…' : 'Join meeting'}</Button>
         </form>
         {state.canCreate && <Button variant="outline" className="h-11 rounded-full" disabled={state.busy || state.deviceBusy || !state.apiEnabled} onClick={state.onCreate}>{state.busy && state.status !== 'joining' ? 'Opening…' : 'Open session room'}</Button>}
-        {!state.apiEnabled && <p role="status" className="rounded-xl bg-slate-200 surface-dark:bg-muted p-3 text-left text-xs leading-5 text-muted-foreground">Live meetings are currently unavailable. You can preview the layout without connecting or enabling devices.</p>}
+        {!state.apiEnabled && <p role="status" className="rounded-xl bg-slate-200 surface-dark:bg-muted p-3 text-left text-xs leading-5 text-muted-foreground">Live meetings are currently unavailable.</p>}
       </div>
     </div>
   </section>
@@ -172,7 +169,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
         <span role="status" className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-200 surface-dark:bg-muted px-2.5 py-1 text-[11px] font-medium whitespace-nowrap"><span aria-hidden="true" className={cn('size-1.5 rounded-full', enabled ? 'bg-emerald-500' : 'bg-slate-500')} />{state.preview ? 'Layout preview' : statusLabels[state.status]}</span>
       </div>
       <div role="group" aria-label="Video layout" className="flex shrink-0 items-center rounded-full bg-slate-200 surface-dark:bg-muted p-0.5">
-        <Button variant="ghost" size="icon-sm" className="rounded-full aria-pressed:bg-card aria-pressed:shadow-xs" title="Grid view" aria-label="Grid view" aria-pressed={!featured && layout === 'grid'} onClick={() => { state.onPin(null); setLayout('grid') }}><Grid2X2 aria-hidden="true" /></Button>
+        <Button variant="ghost" size="icon-sm" className="rounded-full aria-pressed:bg-card aria-pressed:shadow-xs" title="Grid view" aria-label="Grid view" aria-pressed={!featured && layout !== 'spotlight'} onClick={() => { state.onPin(null); setLayout(presenter ? 'grid' : 'auto') }}><Grid2X2 aria-hidden="true" /></Button>
         <Button variant="ghost" size="icon-sm" className="rounded-full aria-pressed:bg-card aria-pressed:shadow-xs" title="Spotlight view" aria-label="Spotlight view" aria-pressed={Boolean(featured) || layout === 'spotlight'} onClick={() => setLayout('spotlight')}><PanelLeft aria-hidden="true" /></Button>
       </div>
       {state.isHost && !state.preview && <Button variant="outline" size="sm" className="shrink-0 rounded-full border-rose-300 surface-dark:border-surface-rose-border text-rose-700 surface-dark:text-rose-300 hover:text-rose-700 surface-dark:hover:text-rose-300" disabled={state.busy} onClick={state.onEnd}>End meeting for everyone</Button>}
@@ -189,7 +186,7 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
         </div>
           : featured ? <>
             {tile(featured, 'min-h-0 flex-1', true)}
-            {others.length > 0 && <ParticipantStrip label="Other participants">{others.map(person => tile(person, 'h-24 w-40 shrink-0 lg:h-32 lg:w-auto'))}</ParticipantStrip>}
+            {others.length > 0 && <ParticipantStrip label="Other participants">{others.map(person => tile(person, 'h-19 w-30 shrink-0 sm:h-24 sm:w-40 lg:h-32 lg:w-auto'))}</ParticipantStrip>}
           </>
             : <div className={grid.container}>
               {grid.visible.map(person => tile(person, cn(grid.tile)))}
@@ -204,17 +201,18 @@ export function ClassroomMeetingScreen({ roomInputRef, ...state }: MeetingRoomSc
       </aside>}
     </div>
 
-    <footer className="flex h-auto shrink-0 flex-wrap items-center justify-center gap-2 py-1 md:grid md:h-16 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-      <div className="hidden min-w-0 items-center gap-3 text-sm font-medium md:flex"><MeetingClock /><span aria-hidden="true" className="h-4 w-px bg-border" /><span className="truncate">{state.meetingCode || (state.preview ? 'Room preview' : 'Learning together')}</span></div>
-      <div role="group" aria-label="Meeting controls" className="flex items-center justify-center gap-2 sm:gap-3">
+    <footer className="flex shrink-0 flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-2xl py-1.5 max-lg:bg-muted/70 max-sm:pb-[max(.375rem,env(safe-area-inset-bottom))] lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+      <div className="hidden min-w-0 items-center gap-3 text-sm font-medium lg:flex"><MeetingClock /><span aria-hidden="true" className="h-4 w-px bg-border" /><span className="truncate">{state.meetingCode || (state.preview ? 'Room preview' : 'Learning together')}</span></div>
+      <div role="group" aria-label="Meeting controls" className="flex min-w-0 flex-wrap items-center justify-center gap-1 sm:gap-2">
         <MeetButton label={state.micOn ? 'Turn microphone off' : 'Turn microphone on'} pressed={state.micOn} tone={state.micOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onMicrophone}>{state.micOn ? <Mic aria-hidden="true" /> : <MicOff aria-hidden="true" />}</MeetButton>
         <MeetButton label={state.cameraOn ? 'Turn camera off' : 'Turn camera on'} pressed={state.cameraOn} tone={state.cameraOn ? undefined : 'off'} disabled={!enabled || state.deviceBusy} onClick={state.onCamera}>{state.cameraOn ? <Video aria-hidden="true" /> : <VideoOff aria-hidden="true" />}</MeetButton>
+        {state.cameraOn && <MeetButton label="Switch front or rear camera" disabled={!enabled || state.deviceBusy} onClick={state.onSwitchCamera}><SwitchCamera aria-hidden="true" /></MeetButton>}
         <MeetButton label={raised ? 'Lower hand' : 'Raise hand'} pressed={raised} disabled={!enabled || state.handUpdating} onClick={state.onHand}><Hand aria-hidden="true" /></MeetButton>
-        <MeetButton label={state.screenOn ? 'Stop presenting' : 'Share screen'} pressed={state.screenOn} disabled={!enabled} onClick={state.onScreen} className="max-sm:hidden"><MonitorUp aria-hidden="true" /></MeetButton>
+        <MeetButton label={state.screenOn ? 'Stop presenting' : 'Share screen'} pressed={state.screenOn} disabled={!enabled || state.deviceBusy || (!state.screenOn && !navigator.mediaDevices?.getDisplayMedia)} onClick={state.onScreen}><MonitorUp aria-hidden="true" /></MeetButton>
         <MeetButton label={state.preview ? 'Exit preview' : 'Leave meeting'} tone="leave" onClick={state.onLeave}><PhoneOff aria-hidden="true" /></MeetButton>
       </div>
       <div role="group" aria-label="Meeting panels" className="flex items-center justify-end gap-1">
-        <MeetButton controlRef={infoTrigger} tone="panel" label="Meeting details" pressed={panel === 'info'} onClick={() => togglePanel('info')} className="max-sm:hidden"><Info aria-hidden="true" /></MeetButton>
+        <MeetButton controlRef={infoTrigger} tone="panel" label="Meeting details" pressed={panel === 'info'} onClick={() => togglePanel('info')}><Info aria-hidden="true" /></MeetButton>
         <MeetButton controlRef={peopleTrigger} tone="panel" label={`Open participants, ${people.length} ${state.preview ? 'sample' : 'connected'}`} pressed={panel === 'people'} badge={people.length} onClick={() => togglePanel('people')}><Users aria-hidden="true" /></MeetButton>
         <MeetButton controlRef={chatTrigger} tone="panel" label={`Open chat${!state.preview && state.unreadMessages ? `, ${state.unreadMessages} unread` : ''}`} pressed={panel === 'chat'} badge={state.preview ? 0 : state.unreadMessages} onClick={() => togglePanel('chat')}><MessageSquareText aria-hidden="true" /></MeetButton>
       </div>

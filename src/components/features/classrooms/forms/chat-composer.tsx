@@ -139,7 +139,7 @@ export function ChatComposer({
         aria-controls={mentionsOpen ? mentionsId : undefined}
         aria-activedescendant={mentionsOpen ? activeOptionId : undefined}
         placeholder="Your message"
-        className="max-h-28 min-h-8 min-w-0 flex-1 resize-none rounded-lg border-0 bg-transparent px-1.5 py-1.5 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring dark:bg-transparent @min-[30rem]/class-chat:min-h-9 @min-[30rem]/class-chat:px-2"
+        className="max-h-28 min-h-8 min-w-0 flex-1 resize-none rounded-lg border-0 bg-transparent px-1.5 py-1.5 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:border-transparent focus-visible:bg-background/60 focus-visible:ring-0 dark:bg-transparent dark:focus-visible:bg-background/60 @min-[30rem]/class-chat:min-h-9 @min-[30rem]/class-chat:px-2"
       />
       <button type="button" disabled={disabled} className={iconButton} aria-label="Add emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((current) => !current)}>
         <Smile aria-hidden="true" className="size-4" />

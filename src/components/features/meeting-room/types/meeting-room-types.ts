@@ -46,12 +46,12 @@ export type MeetingRoomScreenProps = {
   onSendChat: (event: FormEvent<HTMLFormElement>) => void
   onJoin: (event: FormEvent<HTMLFormElement>) => void
   onCreate: () => void
-  onPreview: () => void
   onCopy: () => void
   onLeave: () => void
   onEnd: () => void
   onMicrophone: () => void
   onCamera: () => void
+  onSwitchCamera: () => void
   onScreen: () => void
   onHand: () => void
 }

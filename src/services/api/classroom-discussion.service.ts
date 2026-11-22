@@ -1,8 +1,9 @@
 import { z } from "zod";
 import api from "@/lib/axios";
-import { postApiWithCsrf } from "./auth.service";
+import { mutateApiWithCsrf, postApiWithCsrf } from "./auth.service";
 
 const cursor = z.object({ beforeCreatedAt: z.string(), beforeId: z.uuid() });
+const editedAt = z.iso.datetime().nullable();
 const comment = z.object({
   id: z.uuid(),
   authorId: z.uuid(),
@@ -10,6 +11,7 @@ const comment = z.object({
   authorRole: z.enum(["student", "educator"]),
   body: z.string(),
   createdAt: z.string(),
+  editedAt: editedAt.optional(),
 });
 const post = z.object({
   id: z.uuid(),
@@ -17,6 +19,7 @@ const post = z.object({
   authorName: z.string(),
   body: z.string(),
   createdAt: z.string(),
+  editedAt: editedAt.optional(),
   commentCount: z.number().int().nonnegative(),
   lastCommentAt: z.string().nullable(),
   repliers: z.array(z.object({ id: z.uuid(), name: z.string() })),
@@ -31,6 +34,7 @@ const post = z.object({
 export type DiscussionPostRecord = z.infer<typeof post>;
 export type DiscussionCommentRecord = z.infer<typeof comment>;
 export type DiscussionCursor = z.infer<typeof cursor>;
+type DiscussionEdit = { body: string; expectedEditedAt: string | null };
 const path = (classroomId: string) =>
   `/api/v1/classrooms/${encodeURIComponent(classroomId)}/posts`;
 const thread = (classroomId: string, postId: string) =>
@@ -66,6 +70,11 @@ export async function createClassroomPost(
 ) {
   return post.parse(
     await postApiWithCsrf(path(classroomId), { requestId, body }),
+  );
+}
+export async function editClassroomPost(classroomId: string, postId: string, input: DiscussionEdit) {
+  return post.extend({ editedAt }).parse(
+    await mutateApiWithCsrf("PATCH", thread(classroomId, postId), input),
   );
 }
 export async function getClassComments(
@@ -112,5 +121,10 @@ export async function setClassReaction(
       emoji,
       active,
     }),
+  );
+}
+export async function editClassComment(classroomId: string, postId: string, commentId: string, input: DiscussionEdit) {
+  return comment.extend({ editedAt }).parse(
+    await mutateApiWithCsrf("PATCH", `${thread(classroomId, postId)}/comments/${encodeURIComponent(commentId)}`, input),
   );
 }
