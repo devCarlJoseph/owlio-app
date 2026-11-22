@@ -43,6 +43,10 @@ export function GoogleOAuthCallbackView() {
       })
       return
     }
+    if (result === 'account_banned') {
+      navigate('/login', { replace: true, state: { accountBanned: true } })
+      return
+    }
     if (result !== 'authenticated' && result !== 'linked') {
       navigate('/login', {
         replace: true,

@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getApiErrorMessage } from '@/services/api/api-error'
+import { readAccountBanNotice, type AccountBanNotice } from '../account-ban-notice'
+import { AccountBanDialog } from '../ui/account-ban-dialog'
 import { getLoginDestination } from '@/lib/workspace-path'
 import { startGoogleOAuth } from '@/services/api/auth.service'
 import { useAuthSession } from '../../context/auth-session-context'
@@ -16,6 +18,11 @@ export function LoginView() {
   const location = useLocation()
   const { signIn } = useAuthSession()
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [banNotice, setBanNotice] = useState<AccountBanNotice | null>(() =>
+    (location.state as { accountBanned?: unknown } | null)?.accountBanned === true
+      ? { kind: 'unspecified' }
+      : null,
+  )
   const [googlePending, setGooglePending] = useState(false)
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -25,11 +32,18 @@ export function LoginView() {
 
   const onSubmit = async (values: LoginValues) => {
     setSubmitError(null)
+    setBanNotice(null)
     try {
       const session = await signIn(values)
       const state = location.state as { from?: unknown; connectGoogle?: boolean } | null
       navigate(getLoginDestination(session.user.roles, state?.from, state?.connectGoogle === true), { replace: true })
     } catch (error) {
+      const notice = readAccountBanNotice(error)
+      if (notice) {
+        setBanNotice(notice)
+        form.resetField('password')
+        return
+      }
       setSubmitError(getApiErrorMessage(error, 'Could not sign in. Check your credentials and try again.'))
     }
   }
@@ -61,6 +75,7 @@ export function LoginView() {
           {submitError && <AuthFeedback title="Sign-in failed" tone="error">{submitError}</AuthFeedback>}
           <LoginForm onSubmit={onSubmit} onGoogle={onGoogle} googlePending={googlePending} />
         </div>
+        <AccountBanDialog notice={banNotice} onClose={() => setBanNotice(null)} />
       </AuthShowcaseLayout>
     </FormProvider>
   )

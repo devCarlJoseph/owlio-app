@@ -74,3 +74,7 @@ An existing password account must explicitly connect Google. The setup screen of
 Run npm test -- --pool=threads, npm run build, npm run lint, and git diff --check.
 
 Regression tests mock API responses; they do not validate deployed cookies, CORS, Google/Brevo configuration, live credentials, or database state. For a browser integration check, use your test accounts against the configured API and verify each role's direct URLs, login redirects, logout plus Back, expired-session restoration, and Google callback/linking. Backend authorization remains authoritative for all data access.
+
+## Banned account notice
+
+Owlio displays a dismissible ban dialog when the API returns `ACCOUNT_BANNED` after checking the password or confirms an active ban through the verified Google callback. Password sign-in shows the ban type and the local display time for temporary expiry when supplied by the API. The Google redirect carries only the outcome. The form stays on sign-in, and the API does not create a session while the ban applies.
