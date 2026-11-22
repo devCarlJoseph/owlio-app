@@ -35,7 +35,7 @@ export function TvPanel({ video, isLeader, autoPlay = false, onSave, onClose }: 
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
-      className="absolute inset-x-3 top-3 z-20 mx-auto flex w-[720px] max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg"
+      className="absolute inset-x-3 top-3 z-20 mx-auto max-h-[calc(100%-1.5rem)] w-[720px] max-w-[calc(100%-1.5rem)] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-lg"
     >
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 surface-dark:border-border px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-medium text-slate-800 surface-dark:text-foreground">

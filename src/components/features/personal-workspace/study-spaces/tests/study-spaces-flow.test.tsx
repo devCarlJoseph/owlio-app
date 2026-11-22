@@ -40,6 +40,7 @@ function renderList(account = false, path = "/students/study-spaces") {
   const router = (
     <MemoryRouter initialEntries={[path]}>
       <Routes>
+        <Route path="/students" element={<h1>Student home</h1>} />
         <Route path="/students/study-spaces" element={<StudySpacesView />} />
         <Route path="/students/study-spaces/:spaceId" element={<div>study room route</div>} />
       </Routes>
@@ -49,6 +50,17 @@ function renderList(account = false, path = "/students/study-spaces") {
 }
 
 describe("study spaces create flow", () => {
+  it("keeps Exit available in both hall views and returns to student home", async () => {
+    const user = userEvent.setup()
+    renderList()
+
+    expect(screen.getByRole("link", { name: "Exit" }).getAttribute("href")).toBe("/students")
+    await user.click(screen.getByRole("button", { name: "World" }))
+    await user.click(screen.getByRole("link", { name: "Exit" }))
+
+    expect(screen.getByRole("heading", { name: "Student home" })).toBeTruthy()
+  })
+
   it("creates a space with a room type and seats, then opens the room", async () => {
     const user = userEvent.setup()
     renderList()

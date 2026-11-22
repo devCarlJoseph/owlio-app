@@ -54,6 +54,7 @@ function renderAt(spaceId: string) {
   return render(
     <MemoryRouter initialEntries={[`/students/study-spaces/${spaceId}`]}>
       <Routes>
+        <Route path="/students/study-spaces" element={<h1>Study hall</h1>} />
         <Route path="/students/study-spaces/:spaceId" element={<StudySpaceDetailView />} />
       </Routes>
     </MemoryRouter>
@@ -388,16 +389,15 @@ describe("study space detail room", () => {
     expect(window.localStorage.getItem(`owlio.study-space-locker-code.${sampleSpaceId}`)).toBe("1234")
   })
 
-  it("expands the room to full screen and cycles room lighting", async () => {
+  it("keeps room controls available and lets the student return to the hall", async () => {
     const user = userEvent.setup()
     seedCharacter()
     renderAt(sampleSpaceId)
 
-    await user.click(screen.getByRole("button", { name: "Expand room to full screen" }))
-    expect(screen.getByRole("button", { name: "Exit full screen" }).getAttribute("aria-pressed")).toBe("true")
-
     await user.click(screen.getByRole("button", { name: "Room lighting: Auto light" }))
     expect(screen.getByRole("button", { name: "Room lighting: Morning light" })).toBeTruthy()
+    await user.click(screen.getByRole("button", { name: "Back to study hall" }))
+    expect(screen.getByRole("heading", { name: "Study hall" })).toBeTruthy()
   })
 
   it("lets the owl nap on a mat with a napping status and wake up again", async () => {

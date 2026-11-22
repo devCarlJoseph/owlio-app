@@ -8,9 +8,7 @@ import {
   DoorOpen,
   FolderOpen,
   KeyRound,
-  Maximize2,
   MessageCircle,
-  Minimize2,
   Moon,
   Music,
   PencilLine,
@@ -24,7 +22,6 @@ import {
   Users,
   Video,
 } from "lucide-react"
-import { cn } from "cn"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
 import { useRoomDiscussion } from "@/components/features/connected-workspace/hooks/use-room-discussion"
 import { getApiErrorMessage } from "@/services/api/api-error"
@@ -120,7 +117,7 @@ function RoomLoader({ spaceId, user }: { spaceId?: string; user?: RoomAccount | 
   if (!local && !shared && user && spaceId) {
     if (!error) return <StudySpaceSkeleton />
     return (
-      <div className="space-y-3 rounded-xl border bg-card p-5">
+      <div className="m-3 space-y-3 rounded-xl border bg-card p-5">
         <p role="alert">{error}</p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => { setError(""); setReload((current) => current + 1) }}>Retry</Button>
@@ -168,7 +165,6 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   const [showNameTags, setShowNameTags] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
   const [panel, setPanel] = useState<"music" | "timer" | "drawer" | "lockers" | "tasks" | "tv" | null>(null)
-  const [expanded, setExpanded] = useState(false)
   const { setting: lightSetting, cycle: cycleLight } = useSharedLightSetting()
   const lightPhase = useLightPhase(lightSetting)
   const lockers = useMemo(() => (space ? getSampleLockers(space.id, samplePeople) : []), [space, samplePeople])
@@ -246,22 +242,13 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
     if (spaceId && !shared) markStudySpaceVisited(spaceId)
   }, [shared, spaceId])
 
-  useEffect(() => {
-    if (!expanded) return
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape" && !document.querySelector("[data-slot='dialog-content']")) setExpanded(false)
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [expanded])
-
   useEffect(() => () => {
     if (bubbleTimeoutRef.current !== null) window.clearTimeout(bubbleTimeoutRef.current)
   }, [])
 
   if (!space) {
     return (
-      <div className="mx-auto w-full max-w-3xl">
+      <div className="mx-auto w-full max-w-3xl p-3">
         <Card className="border border-slate-200 surface-dark:border-border bg-white surface-dark:bg-card shadow-sm ring-0">
           <CardHeader>
             <CardTitle>
@@ -420,16 +407,20 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
   }
 
   return (
-    <div
-      className={cn(
-        "flex w-full flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#151f31] shadow-sm",
-        expanded
-          ? "fixed inset-0 z-40 rounded-none"
-          : "mx-auto h-[calc(100svh-6rem)] min-h-[560px] sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
-      )}
-    >
-      <div className="z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/15 px-3 py-2 text-slate-100">
+    <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-[#151f31]">
+      <div className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/15 px-3 py-2 text-slate-100">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Button
+            nativeButton={false}
+            variant="ghost"
+            size="sm"
+            render={<Link to="/students/study-spaces" />}
+            aria-label="Back to study hall"
+            className="text-slate-100 hover:bg-white/15 hover:text-white"
+          >
+            <DoorOpen aria-hidden="true" />
+            Study hall
+          </Button>
           <h2 className="max-w-56 truncate text-base font-semibold tracking-tight sm:max-w-80">
             {space.name}
           </h2>
@@ -602,27 +593,6 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           >
             {lightPhase === "night" ? <Moon aria-hidden="true" /> : lightPhase === "evening" ? <Sunset aria-hidden="true" /> : <Sun aria-hidden="true" />}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-pressed={expanded}
-            onClick={() => setExpanded((current) => !current)}
-            aria-label={expanded ? "Exit full screen" : "Expand room to full screen"}
-            title={expanded ? "Exit full screen (Esc)" : "Full screen"}
-          >
-            {expanded ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
-          </Button>
-          <Button
-            nativeButton={false}
-            variant="ghost"
-            size="icon-sm"
-            render={<Link to="/students/study-spaces" />}
-            aria-label="Leave space"
-            title="Leave space"
-          >
-            <DoorOpen aria-hidden="true" />
-          </Button>
         </div>
       </div>
 
@@ -669,7 +639,7 @@ function StudySpaceRoom({ spaceId, space, user }: { spaceId?: string; space: Stu
           <p role="status" className="absolute bottom-24 left-3 z-10 rounded-md bg-slate-900/90 px-2 py-1 text-xs text-white">{live.status}</p>
         )}
         {!noticeDismissed && !shared ? (
-          <div className="absolute left-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
+          <div className="absolute inset-x-3 top-3 z-10 flex max-w-sm items-start gap-2 rounded-lg border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 px-3 py-2 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-sm">
             <p className="flex-1">
               {studySpaceRoomPreviewNotice}
               {samplePeople.some((person) => !person.member) ? ` ${sampleRosterNotice}` : ""}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Bell, CircleHelp, LogOut, Menu, Search, Settings, ShieldCheck, UserRound, type LucideIcon } from "lucide-react"
-import { Link, Outlet, useLocation, useNavigate } from "react-router"
+import { Link, Outlet, useLocation, useMatch, useNavigate } from "react-router"
 import { AppSidebar } from "@/components/common/app-sidebar"
 import { DashboardChromeContext } from "@/components/common/dashboard-chrome"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -31,10 +31,12 @@ type MenuEntry = { label: string; href?: string; icon: LucideIcon }
 
 export default function PlatformLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [immersive, setImmersive] = useState(false)
+  const [immersiveRequested, setImmersive] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { pathname } = useLocation()
+  const studySpaces = Boolean(useMatch("/students/study-spaces/:spaceId?"))
+  const immersive = studySpaces || immersiveRequested
   const navigate = useNavigate()
   const { user, signOut } = useAuthSession()
   const profilePhoto = useProfilePhoto(user?.id)
@@ -229,7 +231,9 @@ export default function PlatformLayout() {
         <ScrollArea className="h-full min-h-0 min-w-0 flex-1"
           viewportClassName={immersive ? "overflow-hidden!" : undefined}
           contentClassName={immersive ? "flex h-full min-h-full min-w-full! flex-col" : "w-full min-w-0!"}>
-          <main id="main-content" className={immersive ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 sm:p-4" : "p-4 sm:p-6 lg:p-8"}>
+          <main id="main-content" className={studySpaces
+            ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+            : immersive ? "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-3 sm:p-4" : "p-4 sm:p-6 lg:p-8"}>
             <h1 className="sr-only">{pageTitle}</h1>
             {signOutError && <p className="mb-4 text-sm text-destructive" role="alert">{signOutError}</p>}
             <DashboardChromeContext.Provider value={setImmersive}>

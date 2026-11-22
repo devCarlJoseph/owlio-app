@@ -74,7 +74,6 @@ export type StudyHallWorldProps = {
   created: StudySpaceRecord[]
   joined: StudySpaceRecord[]
   locked: StudySpaceRecord[]
-  toolbar: ReactNode
   onOpen: (space: StudySpaceRecord) => void
   onUnlock: (space: StudySpaceRecord) => void
 }
@@ -98,7 +97,7 @@ function statusLabel(lot: CityLot) {
   return lot.role === "owner" ? "Yours" : "Joined"
 }
 
-export default function StudyHallWorld({ accountName, accountId, created, joined, locked, toolbar, onOpen, onUnlock }: StudyHallWorldProps) {
+export default function StudyHallWorld({ accountName, accountId, created, joined, locked, onOpen, onUnlock }: StudyHallWorldProps) {
   const layout = useMemo(
     () =>
       layoutCity([
@@ -185,10 +184,8 @@ export default function StudyHallWorld({ accountName, accountId, created, joined
         />
       </Canvas>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3">{toolbar}</div>
-
       {mode === "walk" && character ? (
-        <div className="pointer-events-none absolute left-3 top-[4.5rem] z-10 flex flex-wrap items-center gap-2 max-sm:top-32">
+        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-white/95 surface-dark:bg-card/95 px-3 py-1.5 text-xs font-semibold text-slate-800 surface-dark:text-foreground shadow-sm">
             Owlio Study Hall · Street {street}
           </span>
@@ -217,7 +214,7 @@ export default function StudyHallWorld({ accountName, accountId, created, joined
         </div>
       ) : null}
 
-      <div className="absolute bottom-3 left-3 z-10 flex max-w-[calc(100%-6rem)] flex-col items-start gap-2">
+      <div className="absolute bottom-20 left-3 z-10 flex max-w-[calc(100%-6rem)] flex-col items-start gap-2 sm:bottom-3">
         {infoOpen ? (
           <div id="study-hall-info" className="w-80 max-w-full rounded-2xl border border-slate-200 surface-dark:border-border bg-white/95 surface-dark:bg-card/95 p-4 text-xs leading-5 text-slate-700 surface-dark:text-foreground shadow-lg">
             <div className="mb-2 flex items-center justify-between gap-2">

@@ -1,12 +1,12 @@
 import { StudySpaceSkeleton } from '../ui/study-space-skeleton'
 import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from "react"
-import { useLocation, useNavigate } from "react-router"
-import { Globe2, Info, Layers, List, Maximize2, Minimize2, Plus, Search, Users } from "lucide-react"
+import { Link, useLocation, useNavigate } from "react-router"
+import { DoorOpen, Globe2, Info, Layers, List, Plus, Search, Users } from "lucide-react"
 import { cn } from "cn"
 import { AuthSessionContext } from "@/components/features/auth/context/auth-session-context"
 import { getApiErrorMessage } from "@/services/api/api-error"
 import { createStudySpace, getDiscoverableStudySpaces, getStudySpaces, joinStudySpace, removeStudySpace } from "@/services/api/study-space.service"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -81,7 +81,6 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
   const [query, setQuery] = useState("")
   const [webgl] = useState(hasWebGL)
   const [view, setView] = useState<HallView>(() => (webgl ? "world" : "list"))
-  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     active.current = true
@@ -119,15 +118,6 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
   useEffect(() => {
     saveJoinedDiscoveryIds(joinedDiscoveryIds)
   }, [joinedDiscoveryIds])
-
-  useEffect(() => {
-    if (!expanded) return
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape" && !document.querySelector("[role='dialog']")) setExpanded(false)
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [expanded])
 
   const needle = query.trim().toLowerCase()
   const matches = (space: StudySpaceRecord) => needle === "" || space.name.toLowerCase().includes(needle)
@@ -246,41 +236,36 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
     setSpaces((current) => current.filter((record) => record.id !== space.id))
   }
 
-  function changeView(next: HallView) {
-    setView(next)
-    if (next === "list") setExpanded(false)
-  }
-
-  const overlay = view === "world"
-  const pill = overlay ? "bg-white/95 surface-dark:bg-card/95 shadow-sm" : "bg-white surface-dark:bg-card shadow-sm"
+  const pill = "bg-white surface-dark:bg-card shadow-sm"
 
   const toolbar = (
-    <div
-      className={cn(
-        "flex flex-wrap items-center gap-2",
-        overlay && "pointer-events-none *:pointer-events-auto"
-      )}
-    >
-      <h2
-        id="study-hall-title"
-        className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm"
-      >
-        <Layers className="size-4" aria-hidden="true" />
-        Study hall
-      </h2>
-      <p className={cn("rounded-full px-3 py-2 text-xs font-medium text-slate-600 surface-dark:text-muted-foreground", pill)}>
+    <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background px-3 py-2 sm:flex sm:flex-wrap">
+      <div className="flex items-center gap-2">
+        <h2
+          id="study-hall-title"
+          className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm sm:px-4"
+        >
+          <Layers className="size-4" aria-hidden="true" />
+          Study hall
+        </h2>
+        <Link to="/students" className={buttonVariants({ variant: "outline", size: "sm", className: "rounded-full" })}>
+          <DoorOpen aria-hidden="true" />
+          Exit
+        </Link>
+      </div>
+      <p className={cn("hidden rounded-full px-3 py-2 text-xs font-medium text-slate-600 sm:block surface-dark:text-muted-foreground", pill)}>
         {createdSpaces.length} yours · {joinedSpaces.length} joined · {lockedSpaces.length} locked
       </p>
-      <div role="group" aria-label="Study hall view" className={cn("flex rounded-full p-1", pill)}>
+      <div role="group" aria-label="Study hall view" className={cn("flex justify-self-end rounded-full p-1", pill)}>
         <Button
           type="button"
           size="xs"
           variant={view === "world" ? "default" : "ghost"}
           className="rounded-full"
           aria-pressed={view === "world"}
-          onClick={() => changeView("world")}
+          onClick={() => setView("world")}
         >
-          <Globe2 aria-hidden="true" />
+          <Globe2 className="hidden sm:block" aria-hidden="true" />
           World
         </Button>
         <Button
@@ -289,13 +274,13 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
           variant={view === "list" ? "default" : "ghost"}
           className="rounded-full"
           aria-pressed={view === "list"}
-          onClick={() => changeView("list")}
+          onClick={() => setView("list")}
         >
-          <List aria-hidden="true" />
+          <List className="hidden sm:block" aria-hidden="true" />
           List
         </Button>
       </div>
-      <div className="relative min-w-48 flex-1 sm:max-w-xs">
+      <div className="relative min-w-0 sm:min-w-36 sm:max-w-xs sm:flex-1">
         <Search
           className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 surface-dark:text-muted-foreground"
           aria-hidden="true"
@@ -305,23 +290,23 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           aria-label="Search study spaces"
-          placeholder="Search a space name"
+          placeholder="Search spaces"
           className={cn("h-9 rounded-full border-transparent pl-9", pill)}
         />
       </div>
-      <div className="ml-auto flex flex-wrap items-center gap-2">
-        <Select value={sort} onValueChange={(value) => setSort(value as SpaceSortKey)}>
-          <SelectTrigger size="sm" aria-label="Sort spaces" className={cn("rounded-full", pill)}>
-            <SelectValue>{SORT_LABELS[sort]}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {(Object.keys(SORT_LABELS) as SpaceSortKey[]).map((key) => (
-              <SelectItem key={key} value={key}>
-                {SORT_LABELS[key]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Select value={sort} onValueChange={(value) => setSort(value as SpaceSortKey)}>
+        <SelectTrigger size="sm" aria-label="Sort spaces" className={cn("rounded-full sm:ml-auto", pill)}>
+          <SelectValue>{SORT_LABELS[sort]}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {(Object.keys(SORT_LABELS) as SpaceSortKey[]).map((key) => (
+            <SelectItem key={key} value={key}>
+              {SORT_LABELS[key]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="col-span-2 flex flex-wrap items-center justify-end gap-2">
         <Button type="button" size="sm" className="rounded-full shadow-sm" onClick={() => { setLocalCreate(false); setCreateOpen(true) }}>
           <Plus aria-hidden="true" />
           Create space
@@ -336,28 +321,15 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
           <Plus aria-hidden="true" />
           {userId ? "Join by code" : "Join space"}
         </Button>
-        {overlay ? (
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="outline"
-            className={cn("rounded-full", pill)}
-            aria-pressed={expanded}
-            aria-label={expanded ? "Exit full screen" : "Expand study hall to full screen"}
-            title={expanded ? "Exit full screen (Esc)" : "Full screen"}
-            onClick={() => setExpanded((current) => !current)}
-          >
-            {expanded ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
-          </Button>
-        ) : null}
       </div>
-    </div>
+    </header>
   )
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+      {toolbar}
       {directoryStatus && (
-        <div className="mb-2 flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm" role={directoryError ? "alert" : "status"}>
+        <div className="flex shrink-0 items-center gap-2 border-b bg-card px-3 py-2 text-sm" role={directoryError ? "alert" : "status"}>
           {directoryStatus}
           {directoryError && <Button size="xs" variant="outline" onClick={() => {
             setDirectoryError(false)
@@ -369,12 +341,7 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
       {view === "world" ? (
         <section
           aria-labelledby="study-hall-title"
-          className={cn(
-            "overflow-hidden bg-[#e3f1fb]",
-            expanded
-              ? "fixed inset-0 z-40"
-              : "relative h-[calc(100svh-6rem)] min-h-[520px] rounded-3xl border border-slate-200 surface-dark:border-border shadow-sm sm:h-[calc(100svh-7rem)] lg:h-[calc(100svh-8rem)]"
-          )}
+          className="relative min-h-0 flex-1 overflow-hidden bg-[#e3f1fb]"
         >
           {webgl ? (
             <Suspense
@@ -388,28 +355,22 @@ function StudySpacesHall({ userId, accountName, invitationCode }: { userId?: str
                 created={createdSpaces}
                 joined={joinedSpaces}
                 locked={lockedSpaces}
-                toolbar={toolbar}
                 onOpen={(space) => navigate(`/students/study-spaces/${space.id}`)}
                 onUnlock={openJoin}
               />
             </Suspense>
           ) : (
-            <>
-              <SpaceMap
-                className="absolute inset-0 bg-[#ece3cf]"
-                created={createdSpaces}
-                joined={joinedSpaces}
-                locked={lockedSpaces}
-                onUnlock={openJoin}
-              />
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3">{toolbar}</div>
-            </>
+            <SpaceMap
+              className="absolute inset-0 bg-[#ece3cf]"
+              created={createdSpaces}
+              joined={joinedSpaces}
+              locked={lockedSpaces}
+              onUnlock={openJoin}
+            />
           )}
         </section>
       ) : (
-        <section aria-labelledby="study-hall-title" className="space-y-6">
-          {toolbar}
-
+        <section aria-labelledby="study-hall-title" className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-3 sm:p-6">
           <div className="flex flex-wrap items-start gap-3 rounded-2xl border border-blue-100 surface-dark:border-surface-blue-border bg-blue-50 surface-dark:bg-surface-blue-soft px-4 py-3">
             <Users className="mt-1 size-4 shrink-0 text-blue-700 surface-dark:text-blue-300" aria-hidden="true" />
             <p className="flex-1 text-sm leading-6 text-blue-800 surface-dark:text-blue-300">{studySpacesGuidance}</p>

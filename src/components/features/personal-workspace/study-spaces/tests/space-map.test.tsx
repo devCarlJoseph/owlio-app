@@ -126,7 +126,7 @@ describe("study space map", () => {
     expect(screen.getByLabelText("Zoom level")).toBeTruthy()
     expect(screen.queryByRole("list", { name: "Spaces you've created" })).toBeNull()
     expect(screen.getByRole("searchbox", { name: "Search study spaces" })).toBeTruthy()
-    expect(screen.getByRole("button", { name: "Expand study hall to full screen" })).toBeTruthy()
+    expect(screen.getByRole("link", { name: "Exit" }).getAttribute("href")).toBe("/students")
   })
 
   it("zooms with the zoom buttons", async () => {
