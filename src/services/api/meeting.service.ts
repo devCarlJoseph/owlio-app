@@ -64,21 +64,38 @@ export async function createMeeting(sessionId: string) {
   return roomResult.parse(await postApiWithCsrf(path(sessionId), {}));
 }
 export async function openClassroomMeeting(classroomId: string) {
-  return roomResult.extend({ sessionId: z.uuid() }).parse(
-    await postApiWithCsrf('/api/v1/classrooms/' + id(classroomId) + '/native-meeting', {}))
+  return roomResult
+    .extend({ sessionId: z.uuid() })
+    .parse(
+      await postApiWithCsrf(
+        "/api/v1/classrooms/" + id(classroomId) + "/native-meeting",
+        {},
+      ),
+    );
 }
 export async function openPeerMeeting(spaceId?: string) {
-  const endpoint = spaceId ? '/api/v1/study-spaces/' + id(spaceId) + '/native-meeting' : '/api/v1/peer-meetings';
-  return roomResult.extend({ sessionId: z.uuid(), meetingCode: z.string() }).parse(await postApiWithCsrf(endpoint, {}));
+  const endpoint = spaceId
+    ? "/api/v1/study-spaces/" + id(spaceId) + "/native-meeting"
+    : "/api/v1/peer-meetings";
+  return roomResult
+    .extend({ sessionId: z.uuid(), meetingCode: z.string() })
+    .parse(await postApiWithCsrf(endpoint, {}));
 }
 export async function joinMeeting(sessionId: string, peerCode?: string) {
-  return joinResult.parse(await postApiWithCsrf(path(sessionId) + "/join", peerCode ? { peerCode } : {}));
+  return joinResult.parse(
+    await postApiWithCsrf(
+      path(sessionId) + "/join",
+      peerCode ? { peerCode } : {},
+    ),
+  );
 }
 export async function endMeeting(sessionId: string) {
   return roomResult.parse(await postApiWithCsrf(path(sessionId) + "/end", {}));
 }
 export async function endPeerMeeting(roomId: string) {
-  return roomResult.parse(await postApiWithCsrf('/api/v1/peer-meetings/' + id(roomId) + '/end', {}));
+  return roomResult.parse(
+    await postApiWithCsrf("/api/v1/peer-meetings/" + id(roomId) + "/end", {}),
+  );
 }
 export async function getMeetingState(sessionId: string, signal?: AbortSignal) {
   return envelope(
@@ -98,28 +115,52 @@ export async function getMeetingParticipants(
 }
 export const meetingChatPage = z.object({
   items: z.array(meetingChatMessage).max(50),
-  next: z.object({ beforeCreatedAt: z.string(), beforeId: z.uuid() }).nullable(),
+  next: z
+    .object({ beforeCreatedAt: z.string(), beforeId: z.uuid() })
+    .nullable(),
 });
-async function getMeetingMessagePage(sessionId: string, signal?: AbortSignal, cursor?: { beforeCreatedAt: string; beforeId: string }) {
-  return envelope(meetingChatPage, (await api.get<unknown>(path(sessionId) + '/messages', { params: { limit: 50, ...cursor }, signal })).data);
+async function getMeetingMessagePage(
+  sessionId: string,
+  signal?: AbortSignal,
+  cursor?: { beforeCreatedAt: string; beforeId: string },
+) {
+  return envelope(
+    meetingChatPage,
+    (
+      await api.get<unknown>(path(sessionId) + "/messages", {
+        params: { limit: 50, ...cursor },
+        signal,
+      })
+    ).data,
+  );
 }
-export async function getMeetingMessages(sessionId: string, signal?: AbortSignal) {
+export async function getMeetingMessages(
+  sessionId: string,
+  signal?: AbortSignal,
+) {
   return (await getMeetingMessagePage(sessionId, signal)).items;
 }
 // The room contract bounds history at 1,000 messages. Preserve cursor timestamps exactly.
-export async function recoverMeetingMessages(sessionId: string, signal?: AbortSignal) {
+export async function recoverMeetingMessages(
+  sessionId: string,
+  signal?: AbortSignal,
+) {
   const messages = new Map<string, NativeMessage>();
   const cursors = new Set<string>();
   let cursor: { beforeCreatedAt: string; beforeId: string } | undefined;
   for (let page = 0; page < 20; page++) {
     const result = await getMeetingMessagePage(sessionId, signal, cursor);
-    result.items.forEach(item => messages.set(item.id, item));
+    result.items.forEach((item) => messages.set(item.id, item));
     if (!result.next) return [...messages.values()];
-    const key = result.next.beforeCreatedAt + ':' + result.next.beforeId;
-    if (cursors.has(key)) throw new Error('The meeting repeated a message page. Please reconnect.');
-    cursors.add(key); cursor = result.next;
+    const key = result.next.beforeCreatedAt + ":" + result.next.beforeId;
+    if (cursors.has(key))
+      throw new Error("The meeting repeated a message page. Please reconnect.");
+    cursors.add(key);
+    cursor = result.next;
   }
-  throw new Error('The meeting message history exceeded its limit. Please reconnect.');
+  throw new Error(
+    "The meeting message history exceeded its limit. Please reconnect.",
+  );
 }
 export async function sendMeetingMessage(
   sessionId: string,
@@ -217,8 +258,21 @@ export async function scheduleClassroomSession(
   );
 }
 
-export async function resolveMeetingInvite(value: string, signal?: AbortSignal) {
-  const code = z.string().regex(/^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/).parse(value.trim().toUpperCase())
-  return envelope(z.object({ sessionId: z.uuid().nullable(), classroomId: z.uuid().nullable(), meetingCode: z.string() }),
-    (await api.get<unknown>('/api/v1/meeting-invitations/' + code, { signal })).data)
+export async function resolveMeetingInvite(
+  value: string,
+  signal?: AbortSignal,
+) {
+  const code = z
+    .string()
+    .regex(/^OWLIO-?(?:[A-Z0-9]{4}|[A-Z0-9]{8})$/)
+    .parse(value.trim().toUpperCase());
+  return envelope(
+    z.object({
+      sessionId: z.uuid().nullable(),
+      classroomId: z.uuid().nullable(),
+      meetingCode: z.string(),
+    }),
+    (await api.get<unknown>("/api/v1/meeting-invitations/" + code, { signal }))
+      .data,
+  );
 }
